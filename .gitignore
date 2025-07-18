@@ -1,3 +1,4 @@
+# CMake specific ignores
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -10,5 +11,7 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
-
 *build*
+
+# IDE Specific ignores
+.vscode
