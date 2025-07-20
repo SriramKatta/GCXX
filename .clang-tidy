@@ -1,8 +1,8 @@
 ---
 Checks:          'clang-diagnostic-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,-modernize-use-trailing-return-type'
 WarningsAsErrors: true
-HeaderFilterRegex: ''
-FormatStyle:     google
+HeaderFilterRegex: './lib/include/gpucxx/*'
+FormatStyle: Google
 CheckOptions:
   - key:             cert-dcl16-c.NewSuffixes
     value:           'L;LL;LU;LLU'
@@ -32,4 +32,8 @@ CheckOptions:
     value:           llvm
   - key:             modernize-use-nullptr.NullMacros
     value:           'NULL'
+  - key:             cppcoreguidelines-avoid-do-while.IgnoreMacros
+    value:           'true'
+  - key:             cppcoreguidelines-macro-usage.CheckCapsOnly
+    value:           'true'  
 ...
