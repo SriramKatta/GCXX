@@ -9,5 +9,6 @@
 
 
 // Section for API
+#include <gpucxx/runtime/event.hpp>
 
 #endif
