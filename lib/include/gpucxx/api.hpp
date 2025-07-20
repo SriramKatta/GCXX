@@ -10,5 +10,6 @@
 
 // Section for API
 #include <gpucxx/runtime/event.hpp>
+#include <gpucxx/runtime/stream.hpp>
 
 #endif
