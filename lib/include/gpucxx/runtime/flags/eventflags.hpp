@@ -11,6 +11,10 @@ namespace flags {
     Default       = GPUCXX_RUNTIME_BACKEND(EventDefault),
     BlockingSync  = GPUCXX_RUNTIME_BACKEND(EventBlockingSync),
     DisableTiming = GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
+    Interprocess  = GPUCXX_RUNTIME_BACKEND(EventInterprocess) | GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
+#if GPUCXX_HIP_MODE
+    DisableSystemFence = GPUCXX_RUNTIME_BACKEND(EventDisableSystemFence),
+#endif
   };
 
   enum class eventRecord : flag_t {
