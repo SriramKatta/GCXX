@@ -1,7 +1,5 @@
 set(LIB_INTERNAL_NAME gpu_cxx)
 
-set(GPUCXX_SRC_FILES src/runtime_error.cpp)
-
 add_library(${LIB_INTERNAL_NAME} INTERFACE)
 add_library(gpucxx::gpucxx ALIAS ${LIB_INTERNAL_NAME})
 target_include_directories(${LIB_INTERNAL_NAME} INTERFACE include)
