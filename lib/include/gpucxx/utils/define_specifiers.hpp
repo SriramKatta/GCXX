@@ -28,6 +28,22 @@
 #define GPUCXX_FHD __forceinline__ __host__ __device__
 #endif
 
+#ifndef GPUCXX_CA
+#define GPUCXX_CA constexpr auto
+#endif
+
+using flag_t = unsigned int;
+
+
+#ifndef GPUCXX_BEGIN_NAMESPACE
+#define GPUCXX_BEGIN_NAMESPACE \
+  namespace gpuCXX {           \
+    inline namespace v1 {
+#define GPUCXX_END_NAMESPACE   \
+  } /* inline namespace v1  */ \
+  }  // namespace gpuCXX
+#endif
+
 #else  // __GPUCXXCC__
 
 #error "Define either GPUCXX_CUDA_MODE or GPUCXX_HIP_MODE"
