@@ -34,11 +34,15 @@ endif()
 
 if(GPUCXX_CUDA_MODE)
   message(STATUS "GPU back-end selected: CUDA")
+  set(BUILD_GPU_LANGUAGE "CUDA")
 endif()
 
 if(GPUCXX_HIP_MODE)
   message(STATUS "GPU back-end selected: HIP")
+  set(BUILD_GPU_LANGUAGE "HIP")
 endif()
+
+enable_language(${BUILD_GPU_LANGUAGE})
 
 include(cmake/CPM.cmake)
 include(cmake/fmt.cmake)
