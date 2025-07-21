@@ -13,16 +13,16 @@ GPUCXX_BEGIN_NAMESPACE
 
 class Event {
  private:
-  using deviceRawEvent = GPUCXX_RUNTIME_BACKEND(Event_t);
-  using deviceStream_t = GPUCXX_RUNTIME_BACKEND(Stream_t);
-  deviceRawEvent event_{};
+  using deviceRawEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
+  using deviceStream_t   = GPUCXX_RUNTIME_BACKEND(Stream_t);
+  deviceRawEvent_t event_{};
 
-  GPUCXX_FH Event(const flags::eventCreate flag) {
+  GPUCXX_FH Event(const flags::eventCreate createFlag) {
     GPUCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags,
-                             (&event_, static_cast<flag_t>(flag)));
+                             (&event_, static_cast<flag_t>(createFlag)));
   }
 
-  GPUCXX_FH auto destroy() noexcept -> void {
+  GPUCXX_FH auto destroy() -> void {
     if (event_) {
       GPUCXX_SAFE_RUNTIME_CALL(EventDestroy, (event_));
       event_ = nullptr;
@@ -50,9 +50,9 @@ class Event {
 
   GPUCXX_FH auto RecordInStream(
     const deviceStream_t &str     = nullptr,
-    const flags::eventRecord flag = flags::eventRecord::Default) -> void {
+    const flags::eventRecord recordFlag = flags::eventRecord::Default) -> void {
     GPUCXX_SAFE_RUNTIME_CALL(EventRecordWithFlags,
-                             (event_, str, static_cast<flag_t>(flag)));
+                             (event_, str, static_cast<flag_t>(recordFlag)));
   }
 
   GPUCXX_FH auto Synchronize() const -> void {
@@ -62,13 +62,14 @@ class Event {
   Event(const Event &)            = delete;
   Event &operator=(const Event &) = delete;
 
-  Event(Event &&other) noexcept : event_(other.event_) {
-    other.event_ = nullptr;
+  Event(Event &&other) noexcept
+      : event_(std::exchange(other.event_, nullptr)) {}
+
+  GPUCXX_FH operator deviceRawEvent_t() const { return event_; }
+
+  GPUCXX_FH deviceRawEvent_t release() noexcept {
+    return std::exchange(event_, nullptr);
   }
-
-  GPUCXX_FH operator deviceRawEvent() const { return event_; }
-
-  GPUCXX_FH deviceRawEvent release() { return std::exchange(event_, nullptr); }
 
   GPUCXX_FH auto operator=(Event &&other) noexcept -> Event & {
     if (this != &other) {
@@ -87,13 +88,13 @@ class Event {
   }
 };
 
-[[nodiscard]] GPUCXX_FH auto EventCreate(
-  const flags::eventCreate flag = flags::eventCreate::Default) -> Event {
-  return {flag};
-}
-
 GPUCXX_FH auto ElapsedTime(const Event &start, const Event &stop) -> float {
   return stop.ElapsedTimeSince(start);
+}
+
+[[nodiscard]] GPUCXX_FH auto EventCreate(
+  const flags::eventCreate createFlag = flags::eventCreate::Default) -> Event {
+  return {createFlag};
 }
 
 GPUCXX_END_NAMESPACE
