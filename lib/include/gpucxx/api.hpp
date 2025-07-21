@@ -13,7 +13,10 @@
 
 
 // Section for API
-#include <gpucxx/runtime/event.hpp>
+#include <gpucxx/runtime/device.hpp>
 #include <gpucxx/runtime/stream.hpp>
+#include <gpucxx/runtime/event.hpp>
+
+#include <gpucxx/utils/undefine_specifiers.hpp>
 
 #endif
