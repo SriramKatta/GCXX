@@ -7,6 +7,10 @@
 // for example runtime, blas, etc.
 #include <gpucxx/error/runtime_error.hpp>
 
+// Section for Runtime Flags
+#include <gpucxx/runtime/flags/eventflags.hpp>
+#include <gpucxx/runtime/flags/streamflags.hpp>
+
 
 // Section for API
 #include <gpucxx/runtime/event.hpp>
