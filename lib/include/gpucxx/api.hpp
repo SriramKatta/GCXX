@@ -3,7 +3,7 @@
 #define GPUCXX_API_WRAPPERS_HPP
 
 #include <gpucxx/backend/backend.hpp>
-// Section for diffrent error handlings
+// Section for different error handlings
 // for example runtime, blas, etc.
 #include <gpucxx/error/runtime_error.hpp>
 
@@ -12,11 +12,10 @@
 #include <gpucxx/runtime/flags/streamflags.hpp>
 
 
-// Section for API
+// Section for Runtime API
 #include <gpucxx/runtime/device.hpp>
 #include <gpucxx/runtime/stream.hpp>
 #include <gpucxx/runtime/event.hpp>
 
-#include <gpucxx/utils/undefine_specifiers.hpp>
 
 #endif
