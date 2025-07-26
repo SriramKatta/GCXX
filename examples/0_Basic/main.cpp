@@ -26,7 +26,7 @@ int main0(int argc, char **argv) {
   hipMalloc((void **)&d_a, sizeInBytes);
 
   start_ev.RecordInStream();
-  hipMemcpyAsync(d_a, h_a, sizeInBytes, cudaMemcpyDefault);
+  hipMemcpyAsync(d_a, h_a, sizeInBytes, hipMemcpyDefault);
   stop_ev.RecordInStream();
   fmt::print("{}\n", stop_ev.query());
 
