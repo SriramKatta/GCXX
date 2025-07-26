@@ -9,6 +9,7 @@
 #include <gpucxx/utils/define_specifiers.hpp>
 
 #include <utility>
+#include <cstddef>
 
 GPUCXX_BEGIN_NAMESPACE
 
@@ -68,7 +69,7 @@ class Stream {
 
   Stream(const Stream &)            = delete;
   Stream &operator=(const Stream &) = delete;
-  Stream(nullptr_t)                 = delete;
+  Stream(std::nullptr_t)                 = delete;
   Stream(int)                       = delete;
 
   Stream(Stream &&other) noexcept
