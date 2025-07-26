@@ -3,6 +3,7 @@
 #define GPUCXX_RUNTIME_FLAGS_STREAM_HPP
 
 #include <gpucxx/utils/define_specifiers.hpp>
+#include <gpucxx/backend/backend.hpp>
 
 #include <limits>
 
