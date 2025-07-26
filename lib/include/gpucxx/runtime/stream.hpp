@@ -8,8 +8,8 @@
 #include <gpucxx/runtime/flags/streamflags.hpp>
 #include <gpucxx/utils/define_specifiers.hpp>
 
-#include <utility>
 #include <cstddef>
+#include <utility>
 
 GPUCXX_BEGIN_NAMESPACE
 
@@ -67,10 +67,10 @@ class Stream {
                              (stream_, event, static_cast<flag_t>(waitFlag)));
   }
 
+  Stream(int)                       = delete;
+  Stream(std::nullptr_t)            = delete;
   Stream(const Stream &)            = delete;
   Stream &operator=(const Stream &) = delete;
-  Stream(std::nullptr_t)                 = delete;
-  Stream(int)                       = delete;
 
   Stream(Stream &&other) noexcept
       : stream_(std::exchange(other.stream_, nullptr)) {}
@@ -97,7 +97,7 @@ class Stream {
 };
 
 GPUCXX_FH auto StreamCreate(
-  const flags::streamBehaviour createFlag     = flags::streamBehaviour::Default,
+  const flags::streamBehaviour createFlag  = flags::streamBehaviour::Default,
   const flags::streamPriority priorityFlag = flags::streamPriority::lowest)
   -> Stream {
   return {createFlag, priorityFlag};
