@@ -1,11 +1,12 @@
 #include <fmt/color.h>
 #include <gpucxx/api.hpp>
+#include <gpucxx/backend/backend.hpp>
 #include <vector>
 
 constexpr float giga  = 1e9;
 constexpr float milli = 1e3;
 
-int main(){
+int main() {
   auto ev = gpuCXX::EventCreate();
 }
 
@@ -21,11 +22,11 @@ int main0(int argc, char **argv) {
   size_t count       = atoll(argv[1]);
   size_t N           = 1 << count;
   size_t sizeInBytes = N * sizeof(int);
-  cudaMallocHost(&h_a, sizeInBytes);
-  cudaMalloc(&d_a, sizeInBytes);
+  hipMallocHost((void **)&h_a, sizeInBytes);
+  hipMalloc((void **)&d_a, sizeInBytes);
 
   start_ev.RecordInStream();
-  cudaMemcpyAsync(d_a, h_a, sizeInBytes, cudaMemcpyDefault);
+  hipMemcpyAsync(d_a, h_a, sizeInBytes, cudaMemcpyDefault);
   stop_ev.RecordInStream();
   fmt::print("{}\n", stop_ev.query());
 
@@ -33,7 +34,7 @@ int main0(int argc, char **argv) {
   float ms       = stop_ev.ElapsedTimeSince(start_ev);
   fmt::print("bw is {}\n", sizeinGB / (ms / milli));
 
-  cudaFree(d_a);
-  cudaFreeHost(h_a);
+  hipFree (d_a);
+  hipFreeHost (h_a);
   return 0;
 }
