@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
 
 project(
   GPUCXX
@@ -19,6 +19,7 @@ endif()
 set(GPUCXX_TOPLEVEL_PROJECT OFF)
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_LIST_DIR)
   set(GPUCXX_TOPLEVEL_PROJECT ON)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
 option(GPUCXX_BUILD_EXAMPLES "Enables building of examples" ON)
