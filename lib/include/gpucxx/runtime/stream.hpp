@@ -18,9 +18,9 @@ class Stream {
   using deviceRawStream_t = GPUCXX_RUNTIME_BACKEND(Stream_t);
   deviceRawStream_t stream_{nullptr};
 
-  GPUCXX_FH Stream(const flags::streamCreate createFlag,
+  GPUCXX_FH Stream(const flags::streamBehaviour createFlag,
                    const flags::streamPriority priorityFlag) {
-    if (createFlag == flags::streamCreate::Null) {
+    if (createFlag == flags::streamBehaviour::Null) {
       return;
     }
     GPUCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority,
@@ -36,7 +36,7 @@ class Stream {
   }
 
  public:
-  GPUCXX_FH friend auto StreamCreate(const flags::streamCreate,
+  GPUCXX_FH friend auto StreamCreate(const flags::streamBehaviour,
                                      const flags::streamPriority) -> Stream;
 
   GPUCXX_FH ~Stream() { this->destroy(); }
@@ -96,7 +96,7 @@ class Stream {
 };
 
 GPUCXX_FH auto StreamCreate(
-  const flags::streamCreate createFlag     = flags::streamCreate::Default,
+  const flags::streamBehaviour createFlag     = flags::streamBehaviour::Default,
   const flags::streamPriority priorityFlag = flags::streamPriority::lowest)
   -> Stream {
   return {createFlag, priorityFlag};

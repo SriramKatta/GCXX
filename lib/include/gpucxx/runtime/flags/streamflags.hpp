@@ -9,7 +9,7 @@
 GPUCXX_BEGIN_NAMESPACE
 
 namespace flags {
-  enum class streamCreate : flag_t {
+  enum class streamBehaviour : flag_t {
     Default     = GPUCXX_RUNTIME_BACKEND(StreamDefault),
     NonBlocking = GPUCXX_RUNTIME_BACKEND(StreamNonBlocking),
     Null        = std::numeric_limits<flag_t>::max()
