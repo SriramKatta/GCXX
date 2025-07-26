@@ -10,13 +10,11 @@ set_property(
   PROPERTIES LANGUAGE ${BUILD_GPU_LANGUAGE}
 )
 target_compile_definitions(${LIB_INTERNAL_NAME} INTERFACE "GPUCXX_${BUILD_GPU_LANGUAGE}_MODE")
+set_target_properties(${LIB_INTERNAL_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(GPUCXX_CUDA_MODE)
-  set(CMAKE_CUDA_ARCHITECTURES 80)
   find_package(CUDAToolkit REQUIRED)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)
 elseif(GPUCXX_HIP_MODE)
-  target_compile_definitions(${LIB_INTERNAL_NAME} INTERFACE __HIP_PLATFORM_AMD__)
-  target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE hip::device)
-  target_include_directories(${LIB_INTERNAL_NAME} INTERFACE ${HIP_INCLUDE_DIRS})
+  #test
 endif()
