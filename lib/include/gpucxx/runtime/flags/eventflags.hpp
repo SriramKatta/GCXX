@@ -2,6 +2,7 @@
 #ifndef GPUCXX_RUNTIME_FLAGS_EVENT_HPP
 #define GPUCXX_RUNTIME_FLAGS_EVENT_HPP
 
+#include <gpucxx/backend/backend.hpp>
 #include <gpucxx/utils/define_specifiers.hpp>
 
 GPUCXX_BEGIN_NAMESPACE
@@ -11,11 +12,7 @@ namespace flags {
     Default       = GPUCXX_RUNTIME_BACKEND(EventDefault),
     BlockingSync  = GPUCXX_RUNTIME_BACKEND(EventBlockingSync),
     DisableTiming = GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
-    Interprocess  = GPUCXX_RUNTIME_BACKEND(EventInterprocess) |
-                   GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
-#if GPUCXX_HIP_MODE
-    DisableSystemFence = GPUCXX_RUNTIME_BACKEND(EventDisableSystemFence),
-#endif
+    Interprocess  = GPUCXX_RUNTIME_BACKEND(EventInterprocess) | GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
   };
 
   enum class streamCapture : flag_t {
@@ -29,8 +26,13 @@ namespace flags {
   };
 
   enum class eventWait : flag_t {
+#if GPUCXX_CUDA_MODE
     Default  = GPUCXX_RUNTIME_BACKEND(EventWaitDefault),
     External = GPUCXX_RUNTIME_BACKEND(EventWaitExternal),
+#else
+    Default  = 0,
+    External = 0,
+#endif
   };
 }  // namespace flags
 
