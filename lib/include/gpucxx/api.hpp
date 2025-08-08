@@ -5,7 +5,7 @@
 #include <gpucxx/backend/backend.hpp>
 // Section for different error handlings
 // for example runtime, blas, etc.
-#include <gpucxx/error/runtime_error.hpp>
+#include <gpucxx/runtime/runtime_error.hpp>
 
 // Section for Runtime Flags
 #include <gpucxx/runtime/flags/eventflags.hpp>

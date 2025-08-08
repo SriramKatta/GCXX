@@ -3,7 +3,7 @@
 #define GPUCXX_API_RUNTIME_DEVICE_HPP
 
 #include <gpucxx/backend/backend.hpp>
-#include <gpucxx/error/runtime_error.hpp>
+#include <gpucxx/runtime/runtime_error.hpp>
 #include <gpucxx/utils/define_specifiers.hpp>
 
 #include <utility>

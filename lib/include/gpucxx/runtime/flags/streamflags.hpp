@@ -2,8 +2,8 @@
 #ifndef GPUCXX_RUNTIME_FLAGS_STREAM_HPP
 #define GPUCXX_RUNTIME_FLAGS_STREAM_HPP
 
-#include <gpucxx/utils/define_specifiers.hpp>
 #include <gpucxx/backend/backend.hpp>
+#include <gpucxx/utils/define_specifiers.hpp>
 
 #include <limits>
 
@@ -18,12 +18,12 @@ namespace flags {
   };
 
   enum class streamPriority : flag_t {
-    lowest  = 0U,
-    lower   = 1U,
-    low     = 2U,
-    medium  = 3U,
-    high    = 4U,
-    highest = 5U,
+    default  = 0U,
+    veryLow  = 1U,
+    low      = 2U,
+    high     = 3U,
+    veryHigh = 4U,
+    critical = 5U,
   };
 }  // namespace flags
 

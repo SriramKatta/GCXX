@@ -3,7 +3,7 @@
 #define GPUCXX_API_RUNTIME_STREAM_HPP
 
 #include <gpucxx/backend/backend.hpp>
-#include <gpucxx/error/runtime_error.hpp>
+#include <gpucxx/runtime/runtime_error.hpp>
 #include <gpucxx/runtime/flags/eventflags.hpp>
 #include <gpucxx/runtime/flags/streamflags.hpp>
 #include <gpucxx/utils/define_specifiers.hpp>
@@ -20,89 +20,45 @@ class Stream {
   deviceRawStream_t stream_{nullptr};
 
   GPUCXX_FH Stream(const flags::streamBehaviour createFlag,
-                   const flags::streamPriority priorityFlag) {
-    if (createFlag == flags::streamBehaviour::Null) {
-      return;
-    }
-    GPUCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority,
-                             (&stream_, static_cast<flag_t>(createFlag),
-                              -static_cast<flag_t>(priorityFlag)));
-  }
+                   const flags::streamPriority priorityFlag);
 
-  GPUCXX_FH auto destroy() -> void {
-    if (stream_) {
-      GPUCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
-      stream_ = nullptr;
-    }
-  }
+  GPUCXX_FH auto destroy() -> void;
 
  public:
   GPUCXX_FH friend auto StreamCreate(const flags::streamBehaviour,
                                      const flags::streamPriority) -> Stream;
 
-  GPUCXX_FH ~Stream() { this->destroy(); }
+  GPUCXX_FH ~Stream();
 
-  GPUCXX_FH auto query() const -> bool {
-    auto err            = GPUCXX_RUNTIME_BACKEND(StreamQuery)(stream_);
-    constexpr auto line = __LINE__ - 1;
-    switch (err) {
-      case GPUCXX_RUNTIME_BACKEND(Success):
-        return true;
-      case GPUCXX_RUNTIME_BACKEND(ErrorNotReady):
-        return false;
-      default:
-        details_::checkDeviceError(err, "stream Query", __FILE__, line);
-        return false;
-    }
-  }
+  GPUCXX_FH auto query() const -> bool;
 
-  GPUCXX_FH auto Synchronize() const -> void {
-    GPUCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
-  }
+  GPUCXX_FH auto Synchronize() const -> void;
 
   GPUCXX_FH auto WaitOnEvent(
     const deviceRawEvent_t &event,
-    const flags::eventWait waitFlag = flags::eventWait::Default) const -> void {
-    GPUCXX_SAFE_RUNTIME_CALL(StreamWaitEvent,
-                             (stream_, event, static_cast<flag_t>(waitFlag)));
-  }
+    const flags::eventWait waitFlag = flags::eventWait::Default) const -> void;
 
   Stream(int)                       = delete;
   Stream(std::nullptr_t)            = delete;
   Stream(const Stream &)            = delete;
   Stream &operator=(const Stream &) = delete;
 
-  Stream(Stream &&other) noexcept
-      : stream_(std::exchange(other.stream_, nullptr)) {}
+  Stream(Stream &&other) noexcept;
 
-  GPUCXX_FH operator deviceRawStream_t() const { return stream_; }
+  GPUCXX_FH operator deviceRawStream_t() const;
 
-  GPUCXX_FH deviceRawStream_t release() noexcept {
-    return std::exchange(stream_, nullptr);
-  }
+  GPUCXX_FH deviceRawStream_t release() noexcept;
+  GPUCXX_FH auto operator=(Stream &&other) noexcept -> Stream &;
 
-  GPUCXX_FH auto operator=(Stream &&other) noexcept -> Stream & {
-    if (this != &other) {
-      this->destroy();
-      stream_ = std::exchange(other.stream_, nullptr);
-    }
-    return *this;
-  }
-
-  GPUCXX_FH auto getPriority() -> flags::streamPriority {
-    int prio{0};
-    GPUCXX_SAFE_RUNTIME_CALL(StreamGetPriority, (stream_, &prio));
-    return static_cast<flags::streamPriority>(-prio);
-  }
+  GPUCXX_FH auto getPriority() -> flags::streamPriority;
 };
 
 GPUCXX_FH auto StreamCreate(
-  const flags::streamBehaviour createFlag  = flags::streamBehaviour::Default,
-  const flags::streamPriority priorityFlag = flags::streamPriority::lowest)
-  -> Stream {
-  return {createFlag, priorityFlag};
-}
+  const flags::streamBehaviour createFlag  = flags::streamBehaviour::Null,
+  const flags::streamPriority priorityFlag = flags::streamPriority::default) -> Stream;
 
 GPUCXX_END_NAMESPACE
+
+#include <gpucxx/details/runtime/stream.inl>
 
 #endif
