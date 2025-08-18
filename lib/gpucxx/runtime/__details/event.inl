@@ -3,7 +3,7 @@
 #define GPUCXX_API_DETAILS_RUNTIME_EVENT_INL_
 
 #include <gpucxx/backend/backend.hpp>
-#include <gpucxx/runtime/flags/eventflags.hpp>
+#include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/runtime/runtime_error.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 

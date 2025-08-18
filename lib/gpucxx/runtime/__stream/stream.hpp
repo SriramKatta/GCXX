@@ -3,9 +3,8 @@
 #define GPUCXX_API_RUNTIME_STREAM_STREAM_HPP_
 
 #include <gpucxx/backend/backend.hpp>
-#include <gpucxx/runtime/flags/eventflags.hpp>
-#include <gpucxx/runtime/flags/streamflags.hpp>
-#include <gpucxx/runtime/runtime_error.hpp>
+#include <gpucxx/runtime/__flags/eventflags.hpp>
+#include <gpucxx/runtime/__flags/streamflags.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 
 #include <cstddef>
@@ -27,11 +26,6 @@ class Stream : stream_ref{
 
   GPUCXX_FH ~Stream();
 
-
-  GPUCXX_FH auto WaitOnEvent(
-    const deviceRawEvent_t &event,
-    const flags::eventWait waitFlag = flags::eventWait::Default) const -> void;
-
   Stream(int)                       = delete;
   Stream(std::nullptr_t)            = delete;
   Stream(const Stream &)            = delete;
@@ -39,9 +33,9 @@ class Stream : stream_ref{
 
   Stream(Stream &&other) noexcept;
 
-  GPUCXX_FH operator deviceRawStream_t() const;
+  GPUCXX_FH operator deviceStream_t() const;
 
-  GPUCXX_FH deviceRawStream_t release() noexcept;
+  GPUCXX_FH deviceStream_t release() noexcept;
   GPUCXX_FH auto operator=(Stream &&other) noexcept -> Stream &;
 
   GPUCXX_FH auto getPriority() -> flags::streamPriority;
@@ -50,6 +44,8 @@ class Stream : stream_ref{
 
 GPUCXX_END_NAMESPACE
 
-#include <gpucxx/details/runtime/stream.inl>
+#include <gpucxx/runtime/__details/stream.inl>
+
+#include <gpucxx/macros/undefine_macros.hpp>
 
 #endif
