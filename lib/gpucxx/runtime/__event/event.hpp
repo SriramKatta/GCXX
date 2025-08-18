@@ -1,9 +1,9 @@
 #pragma once
-#ifndef GPUCXX_API_RUNTIME_EVENT_HPP_
-#define GPUCXX_API_RUNTIME_EVENT_HPP_
+#ifndef GPUCXX_RUNTIME_EVENT_EVENT_HPP_
+#define GPUCXX_RUNTIME_EVENT_EVENT_HPP_
 
 #include <gpucxx/backend/backend.hpp>
-#include <gpucxx/runtime/flags/eventflags.hpp>
+#include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 
 
@@ -21,7 +21,7 @@ class Event {
 
  public:
   GPUCXX_FH static auto Create(
-    const flags::eventCreate = flags::eventCreate::Default) -> Event;
+    const flags::eventCreate = flags::eventCreate::none) -> Event;
 
   GPUCXX_FH ~Event();
 
@@ -29,7 +29,7 @@ class Event {
 
   GPUCXX_FH auto RecordInStream(
     const deviceStream_t &str           = nullptr,
-    const flags::eventRecord recordFlag = flags::eventRecord::Default) -> void;
+    const flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
   GPUCXX_FH auto Synchronize() const -> void;
 
@@ -51,6 +51,6 @@ GPUCXX_FH auto ElapsedTime(const Event &start, const Event &stop) -> float;
 
 GPUCXX_END_NAMESPACE
 
-#include <gpucxx/details/runtime/event.inl>
+#include <gpucxx/runtime/__details/event.inl>
 
 #endif

@@ -4,10 +4,10 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
+#include <gpucxx/runtime/__event/event_base.hpp>
 #include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/runtime/__flags/streamflags.hpp>
-#include <gpucxx/runtime/__event/event_ref.hpp>
-#include <gpucxx/runtime/runtime_error.hpp>
+
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 
@@ -29,7 +29,7 @@ class stream_ref {
  public:
   constexpr stream_ref(deviceStream_t __str) noexcept : stream_(__str) {}
 
-  stream_ref()               = default;
+  stream_ref()               = delete;
   stream_ref(int)            = delete;
   stream_ref(std::nullptr_t) = delete;
 
@@ -42,7 +42,7 @@ class stream_ref {
   GPUCXX_FH auto Synchronize() const -> void;
 
   GPUCXX_FH auto WaitOnEvent(
-    const event_ref &event,
+    const event_base& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
  protected:
@@ -52,6 +52,7 @@ class stream_ref {
 GPUCXX_END_NAMESPACE
 
 
+#include <gpucxx/macros/undefine_macros.hpp>
 #include <gpucxx/runtime/__details/stream_ref.inl>
 
 #endif

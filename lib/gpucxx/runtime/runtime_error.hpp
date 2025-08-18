@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_API_RUNTIME_RUNTIME_ERROR_HPP_
-#define GPUCXX_API_RUNTIME_RUNTIME_ERROR_HPP_
+#ifndef GPUCXX_RUNTIME_RUNTIME_ERROR_HPP_
+#define GPUCXX_RUNTIME_RUNTIME_ERROR_HPP_
 
 #include <gpucxx/runtime/__error/runtime_error.hpp>
 

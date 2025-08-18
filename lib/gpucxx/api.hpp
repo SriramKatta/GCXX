@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_API_WRAPPERS_HPP
-#define GPUCXX_API_WRAPPERS_HPP
+#ifndef GPUCXX_API_HPP
+#define GPUCXX_API_HPP
 
 #include <gpucxx/backend/backend.hpp>
 // Section for different error handlings

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_API_RUNTIME_FLAGS_EVENTFLAGS_HPP_
-#define GPUCXX_API_RUNTIME_FLAGS_EVENTFLAGS_HPP_
+#ifndef GPUCXX_RUNTIME_FLAGS_EVENTFLAGS_HPP_
+#define GPUCXX_RUNTIME_FLAGS_EVENTFLAGS_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
