@@ -1,0 +1,7 @@
+#pragma once
+#ifndef GPUCXX_API_RUNTIME_VECTOR_BASE_INL_
+#define GPUCXX_API_RUNTIME_VECTOR_BASE_INL_
+
+
+
+#endif

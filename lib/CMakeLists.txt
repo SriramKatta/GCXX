@@ -2,8 +2,9 @@ set(LIB_INTERNAL_NAME gpu_cxx)
 
 add_library(${LIB_INTERNAL_NAME} INTERFACE)
 add_library(gpucxx::gpucxx ALIAS ${LIB_INTERNAL_NAME})
-target_include_directories(${LIB_INTERNAL_NAME} INTERFACE include)
+target_include_directories(${LIB_INTERNAL_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE fmt::fmt)
+set_target_properties(${LIB_INTERNAL_NAME} PROPERTIES CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set_property(
   TARGET ${LIB_INTERNAL_NAME} PROPERTY "${BUILD_GPU_LANGUAGE}_STANDARD" 17 PROPERTIES LANGUAGE
@@ -15,6 +16,7 @@ set_target_properties(${LIB_INTERNAL_NAME} PROPERTIES POSITION_INDEPENDENT_CODE 
 if(GPUCXX_CUDA_MODE)
   find_package(CUDAToolkit REQUIRED)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)
+  set_target_properties(${LIB_INTERNAL_NAME} PROPERTIES CMKAE_CUDA_SEPRABLE_COMPILATION ON)
 elseif(GPUCXX_HIP_MODE)
   # test
 endif()
