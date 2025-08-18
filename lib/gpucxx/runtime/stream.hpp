@@ -5,5 +5,4 @@
 #include <gpucxx/runtime/__stream/stream_ref.hpp>
 #include <gpucxx/runtime/__stream/stream.hpp>
 
-
 #endif

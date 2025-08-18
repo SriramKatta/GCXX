@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_API_RUNTIME_STREAM_HPP_
-#define GPUCXX_API_RUNTIME_STREAM_HPP_
+#ifndef GPUCXX_API_RUNTIME_STREAM_STREAM_HPP_
+#define GPUCXX_API_RUNTIME_STREAM_STREAM_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/runtime/flags/eventflags.hpp>
