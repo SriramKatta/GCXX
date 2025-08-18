@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CUDA_BACKEND_HPP
-#define CUDA_BACKEND_HPP
+#ifndef GPUCXX_BACKEND_CUDA_BACKEND_HPP_
+#define GPUCXX_BACKEND_CUDA_BACKEND_HPP_
 
 #include <cuda_runtime.h>
 
