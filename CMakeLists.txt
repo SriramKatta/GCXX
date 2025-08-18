@@ -54,6 +54,7 @@ set(CMAKE_${BUILD_GPU_LANGUAGE}_STANDARD_REQUIRED ON)
 
 include(cmake/CPM.cmake)
 include(cmake/fmt.cmake)
+include(cmake/GTest.cmake)
 
 if(GPUCXX_TOPLEVEL_PROJECT)
   include(cmake/format.cmake)

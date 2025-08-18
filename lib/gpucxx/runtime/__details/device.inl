@@ -1,0 +1,6 @@
+#pragma once
+#ifndef GPUCXX_RUNTIME_DETAILS_DEVICE_INL_
+#define GPUCXX_RUNTIME_DETAILS_DEVICE_INL_
+
+
+#endif

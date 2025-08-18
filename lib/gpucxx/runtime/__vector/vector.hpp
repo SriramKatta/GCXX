@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_API_RUNTIME_VECTOR_HPP_
-#define GPUCXX_API_RUNTIME_VECTOR_HPP_
+#ifndef GPUCXX_RUNTIME_VECTOR_VECTOR_HPP_
+#define GPUCXX_RUNTIME_VECTOR_VECTOR_HPP_
 
 #include <gpucxx/runtime/__vector/vector_base.hpp>
 #include <gpucxx/macros/define_macros.hpp>

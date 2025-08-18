@@ -7,4 +7,4 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-add_subdirectory(0_Basic)
+add_subdirectory(by_api_module)
