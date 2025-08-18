@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_API_DETAILS_RUNTIME_EVENT_INL_
-#define GPUCXX_API_DETAILS_RUNTIME_EVENT_INL_
+#ifndef GPUCXX_RUNTIME_DETAILS_EVENT_INL_
+#define GPUCXX_RUNTIME_DETAILS_EVENT_INL_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/runtime/__flags/eventflags.hpp>

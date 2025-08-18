@@ -1,10 +1,12 @@
 #pragma once
-#ifndef GPUCXX_API_DETAILS_RUNTIME_ERROR_INL_
-#define GPUCXX_API_DETAILS_RUNTIME_ERROR_INL_
+#ifndef GPUCXX_RUNTIME_DETAILS_RUNTIME_ERROR_INL_
+#define GPUCXX_RUNTIME_DETAILS_RUNTIME_ERROR_INL_
 
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
+
+#include <stdio.h>
 
 GPUCXX_BEGIN_NAMESPACE
 

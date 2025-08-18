@@ -1,9 +1,10 @@
 #pragma once
-#ifndef GPUCXX_API_DETAILS_STREAM_INL_
-#define GPUCXX_API_DETAILS_STREAM_INL_
+#ifndef GPUCXX_RUNTIME_DETAILS_STREAM_REF_INL_
+#define GPUCXX_RUNTIME_DETAILS_STREAM_REF_INL_
 
 #include <gpucxx/macros/define_macros.hpp>
 #include <gpucxx/runtime/__stream/stream_ref.hpp>
+#include <gpucxx/runtime/runtime_error.hpp>
 
 GPUCXX_BEGIN_NAMESPACE
 
@@ -23,6 +24,13 @@ GPUCXX_FH auto stream_ref::HasPendingWork() -> bool {
 
 GPUCXX_FH auto stream_ref::Synchronize() const -> void {
   GPUCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
+}
+
+GPUCXX_FH auto stream_ref::WaitOnEvent(const event_base& event,
+                                        const flags::eventWait waitFlag) const
+  -> void {
+  GPUCXX_SAFE_RUNTIME_CALL(
+    StreamWaitEvent, (this->get(), event.get(), static_cast<flag_t>(waitFlag)));
 }
 
 GPUCXX_END_NAMESPACE
