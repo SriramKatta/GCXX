@@ -24,7 +24,9 @@ endif()
 
 option(GPUCXX_CUDA_MODE "Enables building of examples" ON)
 option(GPUCXX_HIP_MODE "Enables building of examples" OFF)
-option(GPUCXX_BUILD_EXAMPLES "Enables building of examples" ON)
+option(GPUCXX_ENABLE_EXAMPLES "Enables building of examples" ON)
+option(GPUCXX_ENABLE_BENCHMARKS "Enables building of benchmarks" OFF)
+option(GPUCXX_ENABLE_TESTS "Enables building of tests" OFF)
 
 # basically XOR(GPUCXX_CUDA_MODE, GPUCXX_HIP_MODE); since only one mode can be active at a time
 if((GPUCXX_CUDA_MODE AND GPUCXX_HIP_MODE) OR (NOT GPUCXX_CUDA_MODE AND NOT GPUCXX_HIP_MODE))
@@ -60,6 +62,17 @@ endif()
 
 add_subdirectory(lib)
 
-if(GPUCXX_BUILD_EXAMPLES)
+
+if(GPUCXX_ENABLE_EXAMPLES)
   add_subdirectory(examples)
+endif()
+
+if(GPUCXX_ENABLE_BENCHMARKS)
+  add_subdirectory(benchmarks)
+endif()
+
+if(GPUCXX_ENABLE_TESTS)
+  include(CTest)
+  enable_testing()
+  add_subdirectory(testing)
 endif()
