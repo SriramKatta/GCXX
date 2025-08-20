@@ -7,9 +7,9 @@
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 
-using deviceError_t            = GPUCXX_RUNTIME_BACKEND(Error_t);
-GPUCXX_CA deviceSuccess        = GPUCXX_RUNTIME_BACKEND(Success);
-GPUCXX_CA deviceGetErrorstring = GPUCXX_RUNTIME_BACKEND(GetErrorString);
+using deviceError_t                   = GPUCXX_RUNTIME_BACKEND(Error_t);
+GPUCXX_CXPR auto deviceSuccess        = GPUCXX_RUNTIME_BACKEND(Success);
+GPUCXX_CXPR auto deviceGetErrorstring = GPUCXX_RUNTIME_BACKEND(GetErrorString);
 
 GPUCXX_FH auto checkDeviceError(const deviceError_t result,
                                 char const* const func, const char* const file,

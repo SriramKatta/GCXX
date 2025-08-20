@@ -3,51 +3,30 @@
 #define GPUCXX_RUNTIME_EVENT_EVENT_HPP_
 
 #include <gpucxx/backend/backend.hpp>
-#include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/macros/define_macros.hpp>
+#include <gpucxx/runtime/__event/event_ref.hpp>
+#include <gpucxx/runtime/__flags/eventflags.hpp>
 
 
 GPUCXX_BEGIN_NAMESPACE
 
-class Event {
+class Event : public event_ref {
  private:
-  using deviceRawEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
-  using deviceStream_t   = GPUCXX_RUNTIME_BACKEND(Stream_t);
-  deviceRawEvent_t event_{};
-
-  GPUCXX_FH Event(const flags::eventCreate createFlag);
-
   GPUCXX_FH auto destroy() -> void;
 
  public:
-  GPUCXX_FH static auto Create(
-    const flags::eventCreate = flags::eventCreate::none) -> Event;
+  GPUCXX_FH Event(
+    const flags::eventCreate createFlag = flags::eventCreate::none);
+  // GPUCXX_FHD static auto Create(
+  //   const flags::eventCreate = flags::eventCreate::none) -> Event;
 
   GPUCXX_FH ~Event();
 
-  GPUCXX_FH auto query() const -> bool;
+  Event(const Event&)            = delete;
+  Event& operator=(const Event&) = delete;
 
-  GPUCXX_FH auto RecordInStream(
-    const deviceStream_t &str           = nullptr,
-    const flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
-
-  GPUCXX_FH auto Synchronize() const -> void;
-
-  Event(const Event &)            = delete;
-  Event &operator=(const Event &) = delete;
-
-  Event(Event &&other) noexcept;
-
-  GPUCXX_FH operator deviceRawEvent_t() const;
-
-  GPUCXX_FH deviceRawEvent_t release() noexcept;
-
-  GPUCXX_FH auto operator=(Event &&other) noexcept -> Event &;
-
-  GPUCXX_FH auto ElapsedTimeSince(const Event &start) const -> float;
+  GPUCXX_FH Event(Event&& other) noexcept;
 };
-
-GPUCXX_FH auto ElapsedTime(const Event &start, const Event &stop) -> float;
 
 GPUCXX_END_NAMESPACE
 

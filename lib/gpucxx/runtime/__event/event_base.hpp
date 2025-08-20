@@ -7,28 +7,62 @@
 #include <gpucxx/runtime/__flags/eventflags.hpp>
 
 
-GPUCXX_BEGIN_NAMESPACE
+GPUCXX_DETAILS_BEGIN_NAMESPACE
 
+/**
+ * @brief Base class for GPU events
+ *
+ * @details Serves as a base for all GPU event types, providing a common interface.
+ *
+ */
 class event_base {
-
  protected:
   using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
 
  public:
-  constexpr event_base(deviceEvent_t __evt) noexcept : event_(__evt) {}
+ /**
+  * @brief Construct a new event base object from raw device event
+  *
+  * @param device_event device event to be handled
+  */
+  GPUCXX_CXPR event_base(deviceEvent_t __evt) GPUCXX_NOEXCEPT : event_(__evt) {}
 
-  event_base()               = delete;
+  /**
+   * @brief Default construct a new event base object
+   *
+   */
+  event_base()               = default;
+
+  /// Disallow creation from `int`
   event_base(int)            = delete;
+
+  /// Disallow creation from `nullptr`
   event_base(std::nullptr_t) = delete;
 
-  GPUCXX_FHD constexpr auto get() const noexcept -> deviceEvent_t {
-    return event_;
+  
+  GPUCXX_FHC auto get() GPUCXX_CONST_NOEXCEPT -> deviceEvent_t { return *this; }
+
+  GPUCXX_CXPR operator deviceEvent_t() GPUCXX_CONST_NOEXCEPT { return event_; }
+
+  GPUCXX_CXPR  explicit operator bool() GPUCXX_CONST_NOEXCEPT {
+    return event_ != static_cast<deviceEvent_t>(0ULL);
   }
+
+  GPUCXX_CXPR friend auto operator==(
+    const event_base& lhs, const event_base& rhs) GPUCXX_NOEXCEPT->bool {
+    return lhs.event_ == rhs.event_;
+  }
+
+  GPUCXX_CXPR friend auto operator!=(
+    const event_base& lhs, const event_base& rhs) GPUCXX_NOEXCEPT->bool {
+    return !(lhs == rhs);
+  }
+
  protected:
   deviceEvent_t event_{static_cast<deviceEvent_t>(0ULL)};
 };
 
-GPUCXX_END_NAMESPACE
+GPUCXX_DETAILS_END_NAMESPACE
 
 #include <gpucxx/macros/undefine_macros.hpp>
 

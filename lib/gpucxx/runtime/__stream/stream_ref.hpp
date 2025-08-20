@@ -42,7 +42,7 @@ class stream_ref {
   GPUCXX_FH auto Synchronize() const -> void;
 
   GPUCXX_FH auto WaitOnEvent(
-    const event_base& event,
+    const details_::event_base& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
  protected:

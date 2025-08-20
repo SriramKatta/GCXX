@@ -26,20 +26,25 @@ GPUCXX_FH auto event_ref::HasOccurred() const -> bool {
 }
 
 GPUCXX_FH auto event_ref::RecordInStream(const stream_ref& stream,
-                               const flags::eventRecord recordFlag) -> void {
-  GPUCXX_SAFE_RUNTIME_CALL(EventRecordWithFlags,
-                           (event_, stream.get(), static_cast<flag_t>(recordFlag)));
+                                         const flags::eventRecord recordFlag)
+  -> void {
+  GPUCXX_SAFE_RUNTIME_CALL(
+    EventRecordWithFlags,
+    (event_, stream.get(), static_cast<flag_t>(recordFlag)));
 }
 
 GPUCXX_FH auto event_ref::Synchronize() const -> void {
   GPUCXX_SAFE_RUNTIME_CALL(EventSynchronize, (event_));
 }
 
-GPUCXX_FH auto event_ref::GetElapsedTime(const event_ref& startEvent) const -> double {
+template <typename DurationT>
+GPUCXX_FH auto event_ref::ElapsedTimeSince(const event_ref& startEvent) const
+  -> DurationT {
   this->Synchronize();
   float ms{};
-  GPUCXX_SAFE_RUNTIME_CALL(EventElapsedTime, (&ms, startEvent.get(), this->get()));
-  return ms;
+  GPUCXX_SAFE_RUNTIME_CALL(EventElapsedTime,
+                           (&ms, startEvent.get(), this->get()));
+  return details_::ConvertDuration<DurationT>(ms);
 }
 
 

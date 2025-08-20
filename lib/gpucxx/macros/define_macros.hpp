@@ -12,12 +12,20 @@
 #define GPUCXX_FH __forceinline__ __host__
 #endif
 
+#ifndef GPUCXX_FHC
+#define GPUCXX_FHC __forceinline__ __host__ constexpr
+#endif
+
 #ifndef GPUCXX_D
 #define GPUCXX_D __device__
 #endif
 
 #ifndef GPUCXX_FD
 #define GPUCXX_FD __forceinline__ __device__
+#endif
+
+#ifndef GPUCXX_FDC
+#define GPUCXX_FDC __forceinline__ __device__ constexpr
 #endif
 
 #ifndef GPUCXX_HD
@@ -28,8 +36,12 @@
 #define GPUCXX_FHD __forceinline__ __host__ __device__
 #endif
 
-#ifndef GPUCXX_CA
-#define GPUCXX_CA constexpr auto
+#ifndef GPUCXX_FHDC
+#define GPUCXX_FHDC __forceinline__ __host__ __device__ constexpr
+#endif
+
+#ifndef GPUCXX_CXPR
+#define GPUCXX_CXPR constexpr 
 #endif
 
 #ifndef GPUCXX_NOEXCEPT

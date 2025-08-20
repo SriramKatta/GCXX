@@ -2,15 +2,36 @@
 #ifndef GPUCXX_RUNTIME_EVENT_EVENT_REF_HPP_
 #define GPUCXX_RUNTIME_EVENT_EVENT_REF_HPP_
 
+#include <chrono>
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 #include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/runtime/__stream/stream_ref.hpp>
 
+GPUCXX_DETAILS_BEGIN_NAMESPACE
+/**
+ * @brief Duration type representing milliseconds.
+ *
+ */
+using nanoSecDuration_t  = std::chrono::duration<float, std::nano>;
+using microSecDuration_t = std::chrono::duration<float, std::micro>;
+using milliSecDuration_t = std::chrono::duration<float, std::milli>;
+using secDuration_t      = std::chrono::duration<float>;
+
+template <typename DurationT>
+inline auto ConvertDuration(float ms) -> DurationT {
+  return std::chrono::duration_cast<DurationT>(milliSecDuration_t(ms));
+}
+
+GPUCXX_DETAILS_END_NAMESPACE
 
 GPUCXX_BEGIN_NAMESPACE
 
-class event_ref : event_base{
+/**
+ * @brief a non-owning wrapper for gpu events user is responsible for creating and destroying the event object
+ * 
+ */
+class event_ref : public details_::event_base {
 
  protected:
   using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
@@ -18,7 +39,7 @@ class event_ref : event_base{
  public:
   constexpr event_ref(deviceEvent_t __evt) noexcept : event_base(__evt) {}
 
-  event_ref()               = delete;
+  event_ref()               = default;
   event_ref(int)            = delete;
   event_ref(std::nullptr_t) = delete;
 
@@ -31,11 +52,16 @@ class event_ref : event_base{
     const stream_ref& stream      = details_::__null_stream,
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
+  template <typename DurationT = details_::milliSecDuration_t>
+  GPUCXX_FH auto ElapsedTimeSince(const event_ref& startEvent) const
+    -> DurationT;
 
-  GPUCXX_FH auto GetElapsedTime(const event_ref& startEvent) const -> double;
-
- protected:
-  deviceEvent_t event_{static_cast<deviceEvent_t>(0ULL)};
+  template <typename DurationT = details_::milliSecDuration_t>
+  GPUCXX_FH static auto ElapsedTimeBetween(const event_ref& startEvent,
+                                           const event_ref& endEvent)
+    -> DurationT {
+    return endEvent.ElapsedTimeSince<DurationT>(startEvent);
+  }
 };
 
 GPUCXX_END_NAMESPACE
