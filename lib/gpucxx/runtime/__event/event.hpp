@@ -4,8 +4,8 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__event/event_ref.hpp>
 #include <gpucxx/runtime/__flags/eventflags.hpp>
+#include <gpucxx/runtime/__event/event_ref.hpp>
 
 
 GPUCXX_BEGIN_NAMESPACE
@@ -17,8 +17,11 @@ class Event : public event_ref {
  public:
   GPUCXX_FH Event(
     const flags::eventCreate createFlag = flags::eventCreate::none);
-  // GPUCXX_FHD static auto Create(
-  //   const flags::eventCreate = flags::eventCreate::none) -> Event;
+
+  GPUCXX_FH static auto Create(
+    const flags::eventCreate createFlag = flags::eventCreate::none) -> Event {
+    return Event(createFlag);
+  };
 
   GPUCXX_FH ~Event();
 

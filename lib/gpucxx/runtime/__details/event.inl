@@ -11,7 +11,7 @@
 
 GPUCXX_BEGIN_NAMESPACE
 
-GPUCXX_FH Event::Event(const flags::eventCreate createFlag) {
+GPUCXX_FH Event::Event(const flags::eventCreate createFlag) : event_ref(__invalid_event_) {
   GPUCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags,
                            (&event_, static_cast<flag_t>(createFlag)));
 }

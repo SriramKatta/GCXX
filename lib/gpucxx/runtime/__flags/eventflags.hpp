@@ -16,6 +16,11 @@ namespace flags {
                    GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
   };
 
+  eventCreate operator|(const eventCreate& lhs, const eventCreate& rhs) {
+    return static_cast<eventCreate>(static_cast<flag_t>(lhs) |
+                                    static_cast<flag_t>(rhs));
+  }
+
   enum class streamCapture : flag_t {
     add = GPUCXX_RUNTIME_BACKEND(StreamAddCaptureDependencies),
     set = GPUCXX_RUNTIME_BACKEND(StreamSetCaptureDependencies),
@@ -27,8 +32,13 @@ namespace flags {
   };
 
   enum class eventWait : flag_t {
+#if defined(GPUCXX_CUDA_MODE)
     none     = GPUCXX_RUNTIME_BACKEND(EventWaitDefault),
     external = GPUCXX_RUNTIME_BACKEND(EventWaitExternal),
+#else
+    none     = 0,
+    external = 0,
+#endif
   };
 }  // namespace flags
 
