@@ -31,12 +31,12 @@ class stream_ref {
   stream_ref(int)            = delete;
   stream_ref(std::nullptr_t) = delete;
 
-  GPUCXX_FHD constexpr operator deviceStream_t() GPUCXX_CONST_NOEXCEPT {
-    return get();
+  GPUCXX_FH constexpr auto get() GPUCXX_CONST_NOEXCEPT -> deviceStream_t {
+    return stream_;
   }
 
-  GPUCXX_FHD constexpr auto get() GPUCXX_CONST_NOEXCEPT -> deviceStream_t {
-    return stream_;
+  GPUCXX_FH constexpr operator deviceStream_t() GPUCXX_CONST_NOEXCEPT {
+    return get();
   }
 
   GPUCXX_FH auto HasPendingWork() -> bool;
