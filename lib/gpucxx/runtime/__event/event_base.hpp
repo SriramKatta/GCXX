@@ -8,6 +8,10 @@
 
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
+// clang-format off
+  using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
+  inline static GPUCXX_CXPR auto __invalid_event_ = reinterpret_cast<deviceEvent_t>(0);  // Default null event
+// clang-format on
 
 /**
  * @brief Base class for GPU events
@@ -18,8 +22,6 @@ GPUCXX_DETAILS_BEGIN_NAMESPACE
 class event_ref {
  protected:
   using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
-  inline static GPUCXX_CXPR deviceEvent_t __invalid_event_ =
-    nullptr;  // Default null event
 
  public:
   /**
@@ -42,8 +44,8 @@ class event_ref {
   event_ref(std::nullptr_t) = delete;
 
 
-  event_ref(event_ref&)           = delete;
-  event_ref operator=(event_ref&) = delete;
+  // event_ref(event_ref&)           = delete;
+  // event_ref operator=(event_ref&) = delete;
 
   /// Move constructor
   GPUCXX_CXPR event_ref(event_ref&& other) GPUCXX_NOEXCEPT

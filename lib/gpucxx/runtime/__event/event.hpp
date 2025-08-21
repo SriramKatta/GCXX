@@ -29,6 +29,9 @@ class Event : public event_ref {
   Event& operator=(const Event&) = delete;
 
   GPUCXX_FH Event(Event&& other) noexcept;
+
+  GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> event_ref;
+
 };
 
 GPUCXX_END_NAMESPACE

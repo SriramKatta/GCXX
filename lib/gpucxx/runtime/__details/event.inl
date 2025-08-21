@@ -11,7 +11,8 @@
 
 GPUCXX_BEGIN_NAMESPACE
 
-GPUCXX_FH Event::Event(const flags::eventCreate createFlag) : event_ref(__invalid_event_) {
+GPUCXX_FH Event::Event(const flags::eventCreate createFlag)
+    : event_ref(details_::__invalid_event_) {
   GPUCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags,
                            (&event_, static_cast<flag_t>(createFlag)));
 }
@@ -21,6 +22,12 @@ GPUCXX_FH Event::~Event() {
 }
 
 GPUCXX_FH Event::Event(Event&& other) noexcept : event_ref(std::move(other)) {}
+
+GPUCXX_FH auto Event::release() GPUCXX_NOEXCEPT -> event_ref {
+  auto oldEvent = event_;
+  event_        = details_::__invalid_event_;
+  return event_ref(oldEvent);
+}
 
 GPUCXX_END_NAMESPACE
 

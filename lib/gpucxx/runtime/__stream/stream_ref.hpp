@@ -10,13 +10,11 @@
 
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
-
-using deviceStream_t = GPUCXX_RUNTIME_BACKEND(Stream_t);
-static const deviceStream_t __null_stream =
-  reinterpret_cast<deviceStream_t>(0ULL);
-static const deviceStream_t __invalid_stream =
-  reinterpret_cast<deviceStream_t>(~0ULL);
-
+// clang-format off
+using deviceStream_t                       = GPUCXX_RUNTIME_BACKEND(Stream_t);
+inline static const auto __null_stream_    = reinterpret_cast<deviceStream_t>(0ULL);
+inline static const auto __invalid_stream_ = reinterpret_cast<deviceStream_t>(~0ULL);
+// clang-format on
 GPUCXX_DETAILS_END_NAMESPACE
 
 
@@ -33,7 +31,11 @@ class stream_ref {
   stream_ref(int)            = delete;
   stream_ref(std::nullptr_t) = delete;
 
-  GPUCXX_FHD constexpr auto get() const noexcept -> deviceStream_t {
+  GPUCXX_FHD constexpr operator deviceStream_t() GPUCXX_CONST_NOEXCEPT {
+    return get();
+  }
+
+  GPUCXX_FHD constexpr auto get() GPUCXX_CONST_NOEXCEPT -> deviceStream_t {
     return stream_;
   }
 
@@ -42,11 +44,11 @@ class stream_ref {
   GPUCXX_FH auto Synchronize() const -> void;
 
   GPUCXX_FH auto WaitOnEvent(
-    const details_::event_base& event,
+    const details_::event_ref& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
  protected:
-  deviceStream_t stream_{details_::__invalid_stream};
+  deviceStream_t stream_{details_::__null_stream_};
 };
 
 GPUCXX_END_NAMESPACE

@@ -13,13 +13,11 @@
 GPUCXX_BEGIN_NAMESPACE
 
 class Stream : stream_ref {
- private:
-  GPUCXX_FH Stream(const flags::streamBehaviour createFlag,
-                   const flags::streamPriority priorityFlag);
-
-  GPUCXX_FH auto destroy() -> void;
-
  public:
+  GPUCXX_FH Stream(
+    const flags::streamBehaviour createFlag  = flags::streamBehaviour::none,
+    const flags::streamPriority priorityFlag = flags::streamPriority::none);
+
   GPUCXX_FH static auto Create(
     const flags::streamBehaviour createFlag  = flags::streamBehaviour::none,
     const flags::streamPriority priorityFlag = flags::streamPriority::none)
@@ -27,19 +25,24 @@ class Stream : stream_ref {
 
   GPUCXX_FH ~Stream();
 
-  Stream(int)                      = delete;
-  Stream(std::nullptr_t)           = delete;
-  Stream(const Stream&)            = delete;
+  Stream(int) = delete;
+
+  Stream(std::nullptr_t) = delete;
+
+  Stream(const Stream&) = delete;
+
   Stream& operator=(const Stream&) = delete;
 
   Stream(Stream&& other) noexcept;
 
-  GPUCXX_FH operator deviceStream_t() const;
+  GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> stream_ref;
 
-  GPUCXX_FH deviceStream_t release() noexcept;
-  GPUCXX_FH auto operator=(Stream&& other) noexcept -> Stream&;
+  GPUCXX_FH auto operator=(Stream&& other) GPUCXX_NOEXCEPT->Stream&;
 
   GPUCXX_FH auto getPriority() -> flags::streamPriority;
+
+ private:
+  GPUCXX_FH auto destroy() -> void;
 };
 
 GPUCXX_END_NAMESPACE
