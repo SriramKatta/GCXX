@@ -7,7 +7,6 @@
 #include <gpucxx/runtime/__event/event_ref.hpp>
 #include <gpucxx/runtime/__flags/eventflags.hpp>
 
-
 GPUCXX_BEGIN_NAMESPACE
 
 class Event : public event_ref {
@@ -32,6 +31,8 @@ class Event : public event_ref {
   GPUCXX_FH Event(Event&& other) noexcept;
 
   GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> event_ref;
+
+  operator deviceEvent_t() = delete;
 };
 
 GPUCXX_END_NAMESPACE

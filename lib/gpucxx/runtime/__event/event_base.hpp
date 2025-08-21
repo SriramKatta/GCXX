@@ -43,9 +43,11 @@ class event_ref {
   /// Disallow creation from `nullptr`
   event_ref(std::nullptr_t) = delete;
 
-  GPUCXX_FHC auto get() GPUCXX_CONST_NOEXCEPT -> deviceEvent_t { return *this; }
+  GPUCXX_FHC auto get() GPUCXX_CONST_NOEXCEPT -> deviceEvent_t {
+    return event_;
+  }
 
-  GPUCXX_CXPR operator deviceEvent_t() GPUCXX_CONST_NOEXCEPT { return event_; }
+  GPUCXX_CXPR operator deviceEvent_t() GPUCXX_CONST_NOEXCEPT { return get(); }
 
   GPUCXX_CXPR explicit operator bool() GPUCXX_CONST_NOEXCEPT {
     return event_ != __invalid_event_;
