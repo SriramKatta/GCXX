@@ -1,2 +1,2 @@
 add_subdirectory(event_wrapper)
-#add_subdirectory(stream_wrapper)
+add_subdirectory(stream_wrapper)
