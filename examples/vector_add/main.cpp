@@ -18,23 +18,24 @@ __global__ void kernel_2vec(size_t N, double* a) {
     a2->x       = a2->x + 1.0;
     a2->y       = a2->y + 1.0;
   }
-  if (N % 2 != 0 && start < 1) {
-    a[N - 1 + start] += 1.0;
+  if (N % 2 != 0 && start == 0) {
+    a[N - 1] += 1.0;
   }
 }
 
 __global__ void kernel_4vec(size_t N, double* a) {
   int start  = threadIdx.x + blockDim.x * blockIdx.x;
   int stride = blockDim.x * gridDim.x;
-  for (size_t i = start; i < N; i += stride) {
+  for (size_t i = start; i < N / 4; i += stride) {
     double4* a4 = reinterpret_cast<double4*>(a) + i;
     a4->x       = a4->x + 1.0;
     a4->y       = a4->y + 1.0;
     a4->z       = a4->z + 1.0;
     a4->w       = a4->w + 1.0;
   }
-  if (N % 4 != 0 && start < 4) {
-    a[N - 3 + start] += 1.0;
+  int remainder = N % 4;
+  if (start < remainder) {
+    a[N - remainder + start] += 1.0;
   }
 }
 
@@ -81,7 +82,7 @@ int main(int argc, char const* argv[]) {
 
   kernelstart.RecordInStream();
   for (size_t i = 1; i <= rep; i++) {
-    kernel_scalar<<<blocks, threads>>>(N, d_a);
+    kernel_4vec<<<blocks, threads>>>(N, d_a);
   }
   kernelend.RecordInStream();
 
