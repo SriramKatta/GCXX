@@ -54,7 +54,7 @@ set(CMAKE_${BUILD_GPU_LANGUAGE}_STANDARD_REQUIRED ON)
 
 include(cmake/CPM.cmake)
 include(cmake/fmt.cmake)
-include(cmake/GTest.cmake)
+
 
 if(GPUCXX_TOPLEVEL_PROJECT)
   include(cmake/format.cmake)
@@ -73,6 +73,7 @@ if(GPUCXX_ENABLE_BENCHMARKS)
 endif()
 
 if(GPUCXX_ENABLE_TESTS)
+  include(cmake/GTest.cmake)
   include(CTest)
   enable_testing()
   add_subdirectory(testing)
