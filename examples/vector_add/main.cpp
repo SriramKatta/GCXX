@@ -95,12 +95,12 @@ int main(int argc, char const* argv[]) {
   checkdata(N, h_a, rep);
 
   float Dtohtime =
-    (D2Hend.ElapsedTimeSince<gcxx::details_::secDuration_t>(D2Hstart)).count();
+    (D2Hend.ElapsedTimeSince<gcxx::details_::sec>(D2Hstart)).count();
   float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::details_::secDuration_t>(kernelstart))
+    (kernelend.ElapsedTimeSince<gcxx::details_::sec>(kernelstart))
       .count();
   float HtoDtime =
-    (H2Dend.ElapsedTimeSince<gcxx::details_::secDuration_t>(H2Dstart)).count();
+    (H2Dend.ElapsedTimeSince<gcxx::details_::sec>(H2Dstart)).count();
 
   double arraydatasizeinGbytes = static_cast<double>(N * sizeof(double)) / 1e9;
 

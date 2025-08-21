@@ -16,14 +16,14 @@ GPUCXX_DETAILS_BEGIN_NAMESPACE
  * @brief Duration type representing milliseconds.
  *
  */
-using nanoSecDuration_t  = std::chrono::duration<float, std::nano>;
-using microSecDuration_t = std::chrono::duration<float, std::micro>;
-using milliSecDuration_t = std::chrono::duration<float, std::milli>;
-using secDuration_t      = std::chrono::duration<float>;
+using nanoSec  = std::chrono::duration<float, std::nano>;
+using microSec = std::chrono::duration<float, std::micro>;
+using milliSec = std::chrono::duration<float, std::milli>;
+using sec      = std::chrono::duration<float>;
 
 template <typename DurationT>
 inline auto ConvertDuration(float ms) -> DurationT {
-  return std::chrono::duration_cast<DurationT>(milliSecDuration_t(ms));
+  return std::chrono::duration_cast<DurationT>(milliSec(ms));
 }
 
 GPUCXX_DETAILS_END_NAMESPACE
@@ -65,11 +65,11 @@ class event_ref : public details_::event_ref {
     const stream_ref& stream      = details_::__null_stream_,
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
-  template <typename DurationT = details_::milliSecDuration_t>
+  template <typename DurationT = details_::milliSec>
   GPUCXX_FH auto ElapsedTimeSince(const event_ref& startEvent) const
     -> DurationT;
 
-  template <typename DurationT = details_::milliSecDuration_t>
+  template <typename DurationT = details_::milliSec>
   GPUCXX_FH static auto ElapsedTimeBetween(const event_ref& startEvent,
                                            const event_ref& endEvent)
     -> DurationT {
