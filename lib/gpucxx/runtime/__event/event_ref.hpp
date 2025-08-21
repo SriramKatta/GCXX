@@ -50,32 +50,12 @@ class event_ref : public details_::event_ref {
   GPUCXX_CXPR event_ref(details_::event_ref __evt) GPUCXX_NOEXCEPT
       : details_::event_ref(__evt.get()) {}
 
-  /// Delete copy constructor
-  //event_ref(const event_ref&) = delete;
-
-  /// Delete copy assignment operator
-  //event_ref& operator=(const event_ref&) = delete;
-
-    /// Delete constructor from `int`
+  /// Delete constructor from `int`
   event_ref(int) = delete;
 
   /// Delete constructor from `nullptr`
   event_ref(std::nullptr_t) = delete;
 
-  /// Default move constructor
-  GPUCXX_CXPR event_ref(event_ref&& other) GPUCXX_NOEXCEPT
-      : details_::event_ref(other.event_) {
-    other.event_ = details_::__invalid_event_;
-  }
-
-  /// Default move assignment operator
-  event_ref& operator=(event_ref&& other) GPUCXX_NOEXCEPT {
-    if (this != &other) {
-      this->event_ = other.event_;
-      other.event_ = details_::__invalid_event_;
-    }
-    return *this;
-  }
 
   GPUCXX_FH auto HasOccurred() const -> bool;
 

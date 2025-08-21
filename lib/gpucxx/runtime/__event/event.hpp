@@ -4,8 +4,8 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/runtime/__event/event_ref.hpp>
+#include <gpucxx/runtime/__flags/eventflags.hpp>
 
 
 GPUCXX_BEGIN_NAMESPACE
@@ -25,13 +25,13 @@ class Event : public event_ref {
 
   GPUCXX_FH ~Event();
 
-  Event(const Event&)            = delete;
+  Event(const Event&) = delete;
+
   Event& operator=(const Event&) = delete;
 
   GPUCXX_FH Event(Event&& other) noexcept;
 
   GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> event_ref;
-
 };
 
 GPUCXX_END_NAMESPACE

@@ -43,25 +43,6 @@ class event_ref {
   /// Disallow creation from `nullptr`
   event_ref(std::nullptr_t) = delete;
 
-
-  // event_ref(event_ref&)           = delete;
-  // event_ref operator=(event_ref&) = delete;
-
-  /// Move constructor
-  GPUCXX_CXPR event_ref(event_ref&& other) GPUCXX_NOEXCEPT
-      : event_(other.event_) {
-    other.event_ = __invalid_event_;
-  }
-
-  /// Move assignment operator
-  event_ref& operator=(event_ref&& other) GPUCXX_NOEXCEPT {
-    if (this != &other) {
-      event_       = std::move(other.event_);
-      other.event_ = __invalid_event_;
-    }
-    return *this;
-  }
-
   GPUCXX_FHC auto get() GPUCXX_CONST_NOEXCEPT -> deviceEvent_t { return *this; }
 
   GPUCXX_CXPR operator deviceEvent_t() GPUCXX_CONST_NOEXCEPT { return event_; }
