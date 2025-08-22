@@ -70,9 +70,8 @@ class event_ref : public details_::event_ref {
     -> DurationT;
 
   template <typename DurationT = details_::milliSec>
-  GPUCXX_FH static auto ElapsedTimeBetween(const event_ref& startEvent,
-                                           const event_ref& endEvent)
-    -> DurationT {
+  GPUCXX_FH static auto ElapsedTimeBetween(
+    const event_ref& startEvent, const event_ref& endEvent) -> DurationT {
     return endEvent.ElapsedTimeSince<DurationT>(startEvent);
   }
 };

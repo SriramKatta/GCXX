@@ -29,10 +29,10 @@ class DeviceRef {
     GPUCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, ());
   }
 
-  DeviceRef(const DeviceRef &)                     = delete;
-  DeviceRef(const DeviceRef &&)                    = delete;
-  DeviceRef &operator=(const DeviceRef &)          = delete;
-  DeviceRef &operator=(DeviceRef &&other) noexcept = delete;
+  DeviceRef(const DeviceRef&)                      = delete;
+  DeviceRef(const DeviceRef&&)                     = delete;
+  DeviceRef& operator=(const DeviceRef&)           = delete;
+  DeviceRef& operator=(DeviceRef&& other) noexcept = delete;
 
   GPUCXX_FH auto id() const -> device_t { return deviceId_; }
 };

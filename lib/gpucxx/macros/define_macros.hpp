@@ -41,7 +41,7 @@
 #endif
 
 #ifndef GPUCXX_CXPR
-#define GPUCXX_CXPR constexpr 
+#define GPUCXX_CXPR constexpr
 #endif
 
 #ifndef GPUCXX_NOEXCEPT
@@ -71,7 +71,7 @@ using flag_t = unsigned int;
   namespace details_ {
 #define GPUCXX_DETAILS_END_NAMESPACE \
   } /* namespace details_  */        \
-  GPUCXX_END_NAMESPACE               
+  GPUCXX_END_NAMESPACE
 #endif
 
 #endif  // defined(GPUCXX_CUDA_MODE) || defined(GPUCXX_HIP_MODE)

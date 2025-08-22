@@ -2,6 +2,4 @@
 #define GPUCXX_RUNTIME_LAUNCH_LAUNCH_CONFIG_HPP_
 
 
-
-
 #endif

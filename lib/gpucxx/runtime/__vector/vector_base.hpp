@@ -43,8 +43,8 @@ class VectorBase {
     return allocator_;
   }
 
-  GPUCXX_FH auto get_allocator() GPUCXX_CONST_NOEXCEPT
-    -> const_allocator_type_reference {
+  GPUCXX_FH auto get_allocator()
+    GPUCXX_CONST_NOEXCEPT -> const_allocator_type_reference {
     return allocator_;
   }
 

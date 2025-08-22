@@ -97,8 +97,7 @@ int main(int argc, char const* argv[]) {
   float Dtohtime =
     (D2Hend.ElapsedTimeSince<gcxx::details_::sec>(D2Hstart)).count();
   float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::details_::sec>(kernelstart))
-      .count();
+    (kernelend.ElapsedTimeSince<gcxx::details_::sec>(kernelstart)).count();
   float HtoDtime =
     (H2Dend.ElapsedTimeSince<gcxx::details_::sec>(H2Dstart)).count();
 

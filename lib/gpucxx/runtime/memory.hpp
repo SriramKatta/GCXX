@@ -3,8 +3,8 @@
 #define GPUCXX_RUNTIME_MEMORY_HPP_
 
 #include <gpucxx/backend/backend.hpp>
-#include <gpucxx/runtime/runtime_error.hpp>
 #include <gpucxx/macros/define_macros.hpp>
+#include <gpucxx/runtime/runtime_error.hpp>
 
 
 #endif
