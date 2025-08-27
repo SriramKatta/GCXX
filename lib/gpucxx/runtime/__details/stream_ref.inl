@@ -27,7 +27,7 @@ GPUCXX_FH auto stream_ref::Synchronize() const -> void {
 }
 
 GPUCXX_FH auto stream_ref::WaitOnEvent(const details_::event_ref& event,
-                                        const flags::eventWait waitFlag) const
+                                       const flags::eventWait waitFlag) const
   -> void {
   GPUCXX_SAFE_RUNTIME_CALL(
     StreamWaitEvent, (this->get(), event.get(), static_cast<flag_t>(waitFlag)));
