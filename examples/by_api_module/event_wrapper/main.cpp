@@ -1,4 +1,4 @@
-#include <gpucxx/api.hpp>
+#include <gpucxx/runtime/event.hpp>
 #include <iostream>
 
 void eve_ref_check(gcxx::event_ref event) {
