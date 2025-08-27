@@ -2,6 +2,8 @@
 #ifndef GPUCXX_RUNTIME_STREAM_HPP_
 #define GPUCXX_RUNTIME_STREAM_HPP_
 
+#include <gpucxx/runtime/event.hpp>
+
 #include <gpucxx/runtime/__flags/streamflags.hpp>
 #include <gpucxx/runtime/__stream/stream.hpp>
 #include <gpucxx/runtime/__stream/stream_ref.hpp>
