@@ -6,10 +6,10 @@
 
 GPUCXX_BEGIN_NAMESPACE
 
-GPUCXX_FH Stream::Stream(const flags::streamBehaviour createFlag,
+GPUCXX_FH Stream::Stream(const flags::streamType createFlag,
                          const flags::streamPriority priorityFlag)
     : stream_ref(details_::__null_stream_) {
-  if (createFlag == flags::streamBehaviour::none) {
+  if (createFlag == flags::streamType::none) {
     return;
   }
   GPUCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority,
@@ -29,7 +29,7 @@ GPUCXX_FH Stream::~Stream() {
   this->destroy();
 }
 
-GPUCXX_FH auto Stream::Create(const flags::streamBehaviour createFlag,
+GPUCXX_FH auto Stream::Create(const flags::streamType createFlag,
                               const flags::streamPriority priorityFlag)
   -> Stream {
   return {createFlag, priorityFlag};
