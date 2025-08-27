@@ -1,7 +1,9 @@
-#include <gpucxx/api.hpp>
+#include <gpucxx/runtime/stream.hpp>
 #include <iostream>
 
-void eve_ref_check(gcxx::event_ref event) {
+namespace gflags = gcxx::flags;
+
+void eve_ref_check(gcxx::Event& event) {
   if (event.HasOccurred()) {
     std::cout << "Event has occurred." << std::endl;
   } else {
@@ -13,8 +15,8 @@ int main(int argc, char const* argv[]) {
 
   gcxx::Event def_event;
   auto start_event = gcxx::Event::Create();
-  auto compundFlag = gcxx::flags::eventCreate::disableTiming |
-                     gcxx::flags::eventCreate::interprocess;
+  auto compundFlag = gflags::eventCreate::disableTiming |
+                     gflags::eventCreate::interprocess;
   gcxx::Event end_event(compundFlag);
   eve_ref_check(end_event);
 

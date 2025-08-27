@@ -49,6 +49,7 @@ void checkdata(size_t N, double* h_a, double checkval) {
 }
 
 int main(int argc, char const* argv[]) {
+
   if (argc != 5) {
     std::cout << "the useage is\n"
               << argv[0]
@@ -62,20 +63,20 @@ int main(int argc, char const* argv[]) {
   size_t blocks  = std::atoi(argv[3]);
   size_t threads = std::atoi(argv[4]);
 
-  size_t size = N * sizeof(double);
+  size_t sizeInBytes = N * sizeof(double);
 
   double* h_a = nullptr;
   double* d_a = nullptr;
 
-  cudaMallocHost(&h_a, size);
-  cudaMalloc(&d_a, size);
+  cudaMallocHost(&h_a, sizeInBytes);
+  cudaMalloc(&d_a, sizeInBytes);
 
-  std::memset(h_a, 0, size);
+  std::memset(h_a, 0, sizeInBytes);
 
   gcxx::Event H2Dstart, H2Dend, D2Hstart, D2Hend, kernelstart, kernelend;
 
   H2Dstart.RecordInStream();
-  cudaMemcpy(d_a, h_a, size, cudaMemcpyHostToDevice);
+  gcxx::memory::copy(d_a, h_a, N);
   H2Dend.RecordInStream();
 
   cudaDeviceSynchronize();
@@ -89,7 +90,7 @@ int main(int argc, char const* argv[]) {
   cudaDeviceSynchronize();
 
   D2Hstart.RecordInStream();
-  cudaMemcpy(h_a, d_a, size, cudaMemcpyDeviceToHost);
+  gcxx::memory::copy(h_a, d_a, N);
   D2Hend.RecordInStream();
 
   checkdata(N, h_a, rep);
