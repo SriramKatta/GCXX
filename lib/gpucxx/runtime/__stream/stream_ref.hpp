@@ -8,6 +8,8 @@
 #include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/runtime/__flags/streamflags.hpp>
 
+#include <gpucxx/runtime/__event/event.hpp>
+
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 // clang-format off
@@ -19,7 +21,7 @@ GPUCXX_DETAILS_END_NAMESPACE
 
 
 GPUCXX_BEGIN_NAMESPACE
-
+class Event;
 class stream_ref {
  protected:
   using deviceStream_t = GPUCXX_RUNTIME_BACKEND(Stream_t);
@@ -46,6 +48,11 @@ class stream_ref {
   GPUCXX_FH auto WaitOnEvent(
     const details_::event_ref& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
+
+  GPUCXX_FH auto recordEvent(
+    const flags::eventCreate createflag = flags::eventCreate::none,
+    const flags::eventWait waitFlag     = flags::eventWait::none) const -> Event;
+
 
  protected:
   deviceStream_t stream_{details_::__null_stream_};
