@@ -39,5 +39,4 @@ GPUCXX_END_NAMESPACE
 
 #include <gpucxx/runtime/__details/event.inl>
 
-
 #endif
