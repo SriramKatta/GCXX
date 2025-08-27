@@ -30,11 +30,11 @@ GPUCXX_FH auto Event::release() GPUCXX_NOEXCEPT -> event_ref {
 }
 
 // Implementation of recordEvent to break circular dependency
-GPUCXX_FH auto stream_ref::recordEvent(const flags::eventCreate createflag,
-                                       const flags::eventWait waitFlag) const
-  -> Event {
+GPUCXX_FH auto stream_ref::recordEvent(
+  const flags::eventCreate createflag,
+  const flags::eventRecord recordFlag) const -> Event {
   Event event(createflag);
-  GPUCXX_SAFE_RUNTIME_CALL(EventRecord, (event.get(), this->get()));
+  event.RecordInStream(this->get(), recordFlag);
   return event;
 }
 

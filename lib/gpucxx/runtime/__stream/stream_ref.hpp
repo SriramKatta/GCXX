@@ -22,6 +22,7 @@ GPUCXX_DETAILS_END_NAMESPACE
 
 GPUCXX_BEGIN_NAMESPACE
 class Event;
+
 class stream_ref {
  protected:
   using deviceStream_t = GPUCXX_RUNTIME_BACKEND(Stream_t);
@@ -51,7 +52,8 @@ class stream_ref {
 
   GPUCXX_FH auto recordEvent(
     const flags::eventCreate createflag = flags::eventCreate::none,
-    const flags::eventWait waitFlag     = flags::eventWait::none) const -> Event;
+    const flags::eventRecord recordFlag = flags::eventRecord::none) const
+    -> Event;
 
 
  protected:
