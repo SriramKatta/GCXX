@@ -15,6 +15,7 @@
 // Section for Runtime API
 //#include <gpucxx/runtime/device.hpp>
 #include <gpucxx/runtime/event.hpp>
+#include <gpucxx/runtime/memory.hpp>
 #include <gpucxx/runtime/stream.hpp>
 
 
