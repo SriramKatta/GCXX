@@ -38,6 +38,6 @@ class Event : public event_ref {
 GPUCXX_END_NAMESPACE
 
 #include <gpucxx/runtime/__details/event.inl>
-#include <gpucxx/runtime/__details/stream_impl.inl>
+
 
 #endif
