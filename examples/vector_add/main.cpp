@@ -73,25 +73,25 @@ int main(int argc, char const* argv[]) {
 
   std::memset(h_a, 0, sizeInBytes);
 
-  gcxx::Event H2Dstart, H2Dend, D2Hstart, D2Hend, kernelstart, kernelend;
+  gcxx::Stream str(gcxx::flags::streamType::null);
 
-  H2Dstart.RecordInStream();
+  auto H2Dstart = str.recordEvent();
   gcxx::memory::copy(d_a, h_a, N);
-  H2Dend.RecordInStream();
+  auto H2Dend = str.recordEvent();
 
   cudaDeviceSynchronize();
 
-  kernelstart.RecordInStream();
+  auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= rep; i++) {
     kernel_4vec<<<blocks, threads>>>(N, d_a);
   }
-  kernelend.RecordInStream();
+  auto kernelend = str.recordEvent();
 
   cudaDeviceSynchronize();
 
-  D2Hstart.RecordInStream();
+  auto D2Hstart = str.recordEvent();
   gcxx::memory::copy(h_a, d_a, N);
-  D2Hend.RecordInStream();
+  auto D2Hend = str.recordEvent();
 
   checkdata(N, h_a, rep);
 
