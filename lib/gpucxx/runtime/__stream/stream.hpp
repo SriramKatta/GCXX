@@ -12,7 +12,7 @@
 
 GPUCXX_BEGIN_NAMESPACE
 
-class Stream : stream_ref {
+class Stream : public stream_ref {
  public:
   GPUCXX_FH Stream(
     const flags::streamType createFlag  = flags::streamType::none,
