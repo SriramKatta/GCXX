@@ -10,7 +10,7 @@ GPUCXX_BEGIN_NAMESPACE
 GPUCXX_FH Stream::Stream(const flags::streamType createFlag,
                          const flags::streamPriority priorityFlag)
     : stream_ref(details_::__null_stream_) {
-  if (createFlag == flags::streamType::none) {
+  if (createFlag == flags::streamType::null) {
     return;
   }
   GPUCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority,
