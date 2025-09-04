@@ -7,7 +7,6 @@
 #include <gpucxx/macros/define_macros.hpp>
 
 
-
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 
 class __EnsureCurrentDevice {
@@ -17,15 +16,14 @@ class __EnsureCurrentDevice {
 
  public:
   // Constructor: takes a CUDA stream
-  __EnsureCurrentDevice(int );
+  __EnsureCurrentDevice(int);
 
   // Destructor: restore old device if changed
   ~__EnsureCurrentDevice();
 
   // Delete copy constructor/assignment
-  __EnsureCurrentDevice(const __EnsureCurrentDevice&) = delete;
-  __EnsureCurrentDevice& operator=(const __EnsureCurrentDevice&) =
-    delete;
+  __EnsureCurrentDevice(const __EnsureCurrentDevice&)            = delete;
+  __EnsureCurrentDevice& operator=(const __EnsureCurrentDevice&) = delete;
 };
 
 GPUCXX_DETAILS_END_NAMESPACE
