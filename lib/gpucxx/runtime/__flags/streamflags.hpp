@@ -11,19 +11,19 @@ GPUCXX_BEGIN_NAMESPACE
 
 namespace flags {
   enum class streamType : flag_t {
-    none        = GPUCXX_RUNTIME_BACKEND(StreamDefault),
-    nonBlocking = GPUCXX_RUNTIME_BACKEND(StreamNonBlocking),
+    defaultStream     = GPUCXX_RUNTIME_BACKEND(StreamDefault),
+    nonBlockingStream = GPUCXX_RUNTIME_BACKEND(StreamNonBlocking),
     // Sentinel value, chosen high to avoid clashes with future valid flags.
-    null        = std::numeric_limits<flag_t>::max()
+    nullStream = std::numeric_limits<flag_t>::max()
   };
 
   enum class streamPriority : flag_t {
-    none      = 0U,
+    none     = 0U,
     veryLow  = 1U,
-    low       = 2U,
-    high      = 3U,
+    low      = 2U,
+    high     = 3U,
     veryHigh = 4U,
-    critical  = 5U,
+    critical = 5U,
   };
 }  // namespace flags
 
