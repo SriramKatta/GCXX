@@ -35,12 +35,15 @@ class Stream : public stream_ref {
 
   Stream(Stream&& other) noexcept;
 
+  GPUCXX_FH auto operator=(Stream&& other) GPUCXX_NOEXCEPT->Stream&;
+
+
   GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> stream_ref;
 
-  GPUCXX_FH auto operator=(Stream&& other) GPUCXX_NOEXCEPT->Stream&;
 
   GPUCXX_FH auto getPriority() -> flags::streamPriority;
 
+ private:
   GPUCXX_FH auto destroy() -> void;
 };
 
