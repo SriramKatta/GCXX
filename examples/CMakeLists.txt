@@ -15,3 +15,4 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_subdirectory(by_api_module)
 add_subdirectory(vector_add)
+add_subdirectory(multi_gpu_testspace)
