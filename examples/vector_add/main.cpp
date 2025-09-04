@@ -73,7 +73,7 @@ int main(int argc, char const* argv[]) {
 
   std::memset(h_a, 0, sizeInBytes);
 
-  gcxx::Stream str(gcxx::flags::streamType::null);
+  gcxx::Stream str(gcxx::flags::streamType::nullStream);
 
   auto H2Dstart = str.recordEvent();
   gcxx::memory::copy(d_a, h_a, N);
