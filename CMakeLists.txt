@@ -23,7 +23,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_LIST_DIR)
 endif()
 
 option(GPUCXX_CUDA_MODE "Enables building of examples" OFF)
-option(GPUCXX_HIP_MODE "Enables building of examples" ON)
+option(GPUCXX_HIP_MODE "Enables building of examples" OFF)
 option(GPUCXX_ENABLE_EXAMPLES "Enables building of examples" ON)
 option(GPUCXX_ENABLE_BENCHMARKS "Enables building of benchmarks" OFF)
 option(GPUCXX_ENABLE_TESTS "Enables building of tests" OFF)
