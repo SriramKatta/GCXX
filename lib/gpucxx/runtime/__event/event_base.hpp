@@ -10,7 +10,7 @@
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 // clang-format off
   using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
-  inline static GPUCXX_CXPR auto __invalid_event_ = reinterpret_cast<deviceEvent_t>(0);  // Default null event
+  inline static GPUCXX_CXPR deviceEvent_t __invalid_event_{};  // Default null event
 // clang-format on
 
 /**
