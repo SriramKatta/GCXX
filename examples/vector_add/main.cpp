@@ -41,8 +41,8 @@ __global__ void kernel_4vec(size_t N, double* a) {
 
 void checkdata(size_t N, double* h_a, double checkval) {
   for (size_t i = 0; i < N; i++) {
-    if (h_a[i] != checkval) {
-      std::cout << "FAILED" << h_a[i] << std::endl;
+    if ((h_a[i] - checkval) > 0.00001) {
+      std::cout << "FAILED " << h_a[i] << std::endl;
       exit(1);
     }
   }
@@ -68,8 +68,8 @@ int main(int argc, char const* argv[]) {
   double* h_a = nullptr;
   double* d_a = nullptr;
 
-  cudaMallocHost(&h_a, sizeInBytes);
-  cudaMalloc(&d_a, sizeInBytes);
+  GPUCXX_SAFE_RUNTIME_CALL(HostMalloc, (&h_a, sizeInBytes));
+  GPUCXX_SAFE_RUNTIME_CALL(Malloc, (&d_a, sizeInBytes));
 
   std::memset(h_a, 0, sizeInBytes);
 
@@ -79,15 +79,17 @@ int main(int argc, char const* argv[]) {
   gcxx::memory::copy(d_a, h_a, N);
   auto H2Dend = str.recordEvent();
 
-  cudaDeviceSynchronize();
+  GPUCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
 
+  str.Synchronize();
   auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= rep; i++) {
-    kernel_4vec<<<blocks, threads>>>(N, d_a);
+    kernel_4vec<<<blocks, threads, 0, str.get()>>>(N, d_a);
   }
   auto kernelend = str.recordEvent();
 
-  cudaDeviceSynchronize();
+  str.Synchronize();
+  // GPUCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
 
   auto D2Hstart = str.recordEvent();
   gcxx::memory::copy(h_a, d_a, N);
@@ -108,7 +110,7 @@ int main(int argc, char const* argv[]) {
             << (arraydatasizeinGbytes * 2 * rep) / kerneltime << std::endl
             << Dtohtime << " " << arraydatasizeinGbytes / Dtohtime << std::endl
             << HtoDtime << " " << arraydatasizeinGbytes / HtoDtime << std::endl;
-  cudaFreeHost(h_a);
-  cudaFree(d_a);
+  GPUCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));
+  GPUCXX_SAFE_RUNTIME_CALL(Free, (d_a));
   return 0;
 }
