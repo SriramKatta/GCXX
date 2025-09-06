@@ -57,7 +57,7 @@ class stream_ref {
 
 
  protected:
-  deviceStream_t stream_{details_::__null_stream_}; // NOLINT
+  deviceStream_t stream_{details_::__null_stream_};  // NOLINT
 };
 
 GPUCXX_END_NAMESPACE

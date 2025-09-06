@@ -65,7 +65,7 @@ class event_ref {
 
 
  protected:
-  deviceEvent_t event_{__invalid_event_}; // NOLINT
+  deviceEvent_t event_{__invalid_event_};  // NOLINT
 };
 
 GPUCXX_DETAILS_END_NAMESPACE
