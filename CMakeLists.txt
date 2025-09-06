@@ -22,11 +22,11 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_LIST_DIR)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
-option(GPUCXX_CUDA_MODE "Enables building of examples" OFF)
-option(GPUCXX_HIP_MODE "Enables building of examples" OFF)
-option(GPUCXX_ENABLE_EXAMPLES "Enables building of examples" ON)
-option(GPUCXX_ENABLE_BENCHMARKS "Enables building of benchmarks" OFF)
-option(GPUCXX_ENABLE_TESTS "Enables building of tests" OFF)
+option(GPUCXX_CUDA_MODE "to compile for CUDA programming language" OFF)
+option(GPUCXX_HIP_MODE "to compile for HIP programming language" OFF)
+option(GPUCXX_BUILD_EXAMPLES "Enables building of examples" OFF)
+option(GPUCXX_BUILD_BENCHMARKS "Enables building of benchmarks" OFF)
+option(GPUCXX_BUILD_TESTS "Enables building of tests" OFF)
 
 # basically XOR(GPUCXX_CUDA_MODE, GPUCXX_HIP_MODE); since only one mode can be active at a time
 if((GPUCXX_CUDA_MODE AND GPUCXX_HIP_MODE) OR (NOT GPUCXX_CUDA_MODE AND NOT GPUCXX_HIP_MODE))
@@ -65,15 +65,15 @@ endif()
 
 add_subdirectory(lib)
 
-if(GPUCXX_ENABLE_EXAMPLES)
+if(GPUCXX_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
-if(GPUCXX_ENABLE_BENCHMARKS)
+if(GPUCXX_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-if(GPUCXX_ENABLE_TESTS)
+if(GPUCXX_BUILD_TESTS)
   include(cmake/GTest.cmake)
   include(CTest)
   enable_testing()
