@@ -48,6 +48,7 @@ void checkdata(size_t N, double* h_a, double checkval) {
 }
 
 int main(int argc, char const* argv[]) {
+  using namespace gcxx::details_;
 
   if (argc != 5) {
     fmt::print(
@@ -101,12 +102,9 @@ int main(int argc, char const* argv[]) {
 
   checkdata(N, h_a, static_cast<double>(rep));
 
-  float Dtohtime =
-    (D2Hend.ElapsedTimeSince<gcxx::details_::sec>(D2Hstart)).count();
-  float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::details_::sec>(kernelstart)).count();
-  float HtoDtime =
-    (H2Dend.ElapsedTimeSince<gcxx::details_::sec>(H2Dstart)).count();
+  float Dtohtime   = (D2Hend.ElapsedTimeSince<sec>(D2Hstart)).count();
+  float kerneltime = (kernelend.ElapsedTimeSince<sec>(kernelstart)).count();
+  float HtoDtime   = (H2Dend.ElapsedTimeSince<sec>(H2Dstart)).count();
 
   double arraySizeinGbytes = static_cast<double>(N * sizeof(double)) / 1e9;
   double transfer_size     = arraySizeinGbytes * 2.0 * static_cast<double>(rep);
