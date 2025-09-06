@@ -14,9 +14,9 @@ void eve_ref_check(gcxx::Event& event) {
 int main(int argc, char const* argv[]) {
 
   gcxx::Stream str1;
-  gcxx::Stream str1default = gcxx::Stream::Create(gflags::streamType::none);
-  gcxx::Stream str2(gflags::streamType::nonBlocking);
-  gcxx::Stream str3 = gcxx::Stream::Create(gflags::streamType::nonBlocking);
-  gcxx::Stream str4 = gcxx::Stream::Create(gflags::streamType::null);
+  auto str1default = gcxx::Stream::Create(gflags::streamType::defaultStream);
+  gcxx::Stream str2(gflags::streamType::nonBlockingStream);
+  auto str3 = gcxx::Stream::Create(gflags::streamType::nonBlockingStream);
+  auto str4 = gcxx::Stream::Create(gflags::streamType::nullStream);
   return 0;
 }
