@@ -19,7 +19,7 @@ class Event : public event_ref {
 
   GPUCXX_FH static auto Create(
     const flags::eventCreate createFlag = flags::eventCreate::none) -> Event {
-    return Event(createFlag);
+    return {createFlag};
   };
 
   GPUCXX_FH ~Event();
@@ -29,6 +29,8 @@ class Event : public event_ref {
   Event& operator=(const Event&) = delete;
 
   GPUCXX_FH Event(Event&& other) noexcept;
+
+  GPUCXX_FH Event operator=(Event&& other) noexcept;
 
   GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> event_ref;
 

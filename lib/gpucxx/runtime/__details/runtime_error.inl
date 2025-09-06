@@ -7,6 +7,7 @@
 #include <gpucxx/macros/define_macros.hpp>
 
 #include <stdio.h>
+#include <cstdlib>
 
 GPUCXX_BEGIN_NAMESPACE
 

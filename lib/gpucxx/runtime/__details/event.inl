@@ -26,7 +26,7 @@ GPUCXX_FH Event::Event(Event&& other) noexcept : event_ref(std::move(other)) {}
 GPUCXX_FH auto Event::release() GPUCXX_NOEXCEPT -> event_ref {
   auto oldEvent = event_;
   event_        = details_::__invalid_event_;
-  return event_ref(oldEvent);
+  return {oldEvent};
 }
 
 // Implementation of recordEvent to break circular dependency

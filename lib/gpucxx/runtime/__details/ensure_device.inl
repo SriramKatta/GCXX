@@ -11,7 +11,7 @@
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 
 // Constructor: takes a CUDA stream
-__EnsureCurrentDevice::__EnsureCurrentDevice(int new_dev) : changed_(false) {
+__EnsureCurrentDevice::__EnsureCurrentDevice(int new_dev) {
   // Get current device
   GPUCXX_SAFE_RUNTIME_CALL(GetDevice, (&old_device_));
 

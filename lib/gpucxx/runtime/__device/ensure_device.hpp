@@ -11,8 +11,8 @@ GPUCXX_DETAILS_BEGIN_NAMESPACE
 
 class __EnsureCurrentDevice {
  private:
-  int old_device_;
-  bool changed_;
+  int old_device_{};
+  bool changed_{ false };
 
  public:
   // Constructor: takes a CUDA stream
@@ -24,6 +24,8 @@ class __EnsureCurrentDevice {
   // Delete copy constructor/assignment
   __EnsureCurrentDevice(const __EnsureCurrentDevice&)            = delete;
   __EnsureCurrentDevice& operator=(const __EnsureCurrentDevice&) = delete;
+  __EnsureCurrentDevice(const __EnsureCurrentDevice&&)            = delete;
+  __EnsureCurrentDevice& operator=(const __EnsureCurrentDevice&&) = delete;
 };
 
 GPUCXX_DETAILS_END_NAMESPACE

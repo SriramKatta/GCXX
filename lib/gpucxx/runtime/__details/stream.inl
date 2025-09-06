@@ -49,7 +49,7 @@ GPUCXX_FH auto Stream::Create(const flags::streamType createFlag,
 GPUCXX_FH auto Stream::release() GPUCXX_NOEXCEPT -> stream_ref {
   auto oldStream = stream_;
   stream_        = details_::__invalid_stream_;
-  return stream_ref(oldStream);
+  return {oldStream};
 }
 
 GPUCXX_END_NAMESPACE
