@@ -19,17 +19,24 @@ GPUCXX_FH Stream::Stream(const flags::streamType createFlag,
 }
 
 GPUCXX_FH auto Stream::destroy() -> void {
-  if (stream_ != details_::__null_stream_ ||
-      stream_ != details_::__invalid_stream_) {
-    int deviceId = -1;
-    GPUCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
-    details_::__EnsureCurrentDevice e(deviceId);
-    GPUCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
-    stream_ = details_::__invalid_stream_;
+// since cudaStreamDestroy releases the handle after all work is done, to keep similar behaviour
+#if GPUCXX_HIP_MODE
+  Synchronize();
+#endif
+
+  if (stream_ == details_::__null_stream_ ||
+      stream_ == details_::__invalid_stream_) {
+    return;
   }
+  int deviceId = -1;
+  GPUCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
+  details_::__EnsureCurrentDevice e(deviceId);
+  GPUCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
+  stream_ = details_::__invalid_stream_;
 }
 
 GPUCXX_FH Stream::~Stream() {
+
   this->destroy();
 }
 
