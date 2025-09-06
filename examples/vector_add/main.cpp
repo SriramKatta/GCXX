@@ -1,6 +1,5 @@
-#include <cstring>
+#include <fmt/format.h>
 #include <gpucxx/api.hpp>
-#include <iostream>
 
 __global__ void kernel_scalar(size_t N, double* a) {
   int start  = threadIdx.x + blockDim.x * blockIdx.x;
@@ -42,7 +41,7 @@ __global__ void kernel_4vec(size_t N, double* a) {
 void checkdata(size_t N, double* h_a, double checkval) {
   for (size_t i = 0; i < N; i++) {
     if ((h_a[i] - checkval) > 0.00001) {
-      std::cout << "FAILED " << h_a[i] << std::endl;
+      fmt::print("FAILED at index {} : {}\n", i, h_a[i]);
       exit(1);
     }
   }
@@ -51,11 +50,10 @@ void checkdata(size_t N, double* h_a, double checkval) {
 int main(int argc, char const* argv[]) {
 
   if (argc != 5) {
-    std::cout << "the useage is\n"
-              << argv[0]
-              << " <Num elements> <num kernel repetitions> <num blocks> "
-                 "<threads per block>"
-              << std::endl;
+    fmt::print(
+      "the useage is\n {} <Num elements> <num kernel repetitions> <num blocks> "
+      "<threads per block>\n",
+      argv[0]);
     return 1;
   }
   size_t N       = std::atoi(argv[1]);
@@ -110,12 +108,13 @@ int main(int argc, char const* argv[]) {
   float HtoDtime =
     (H2Dend.ElapsedTimeSince<gcxx::details_::sec>(H2Dstart)).count();
 
-  double arraydatasizeinGbytes = static_cast<double>(N * sizeof(double)) / 1e9;
+  double arraySizeinGbytes = static_cast<double>(N * sizeof(double)) / 1e9;
+  double transfer_size     = arraySizeinGbytes * 2.0 * static_cast<double>(rep);
 
-  std::cout << kerneltime << " "
-            << (arraydatasizeinGbytes * 2.0 * static_cast<double>(rep)) / kerneltime << std::endl
-            << Dtohtime << " " << arraydatasizeinGbytes / Dtohtime << std::endl
-            << HtoDtime << " " << arraydatasizeinGbytes / HtoDtime << std::endl;
+  fmt::print("{} {}\n{} {}\n{} {}\n", kerneltime, transfer_size / kerneltime,
+             Dtohtime, arraySizeinGbytes / Dtohtime, HtoDtime,
+             arraySizeinGbytes / HtoDtime);
+
   GPUCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));
   GPUCXX_SAFE_RUNTIME_CALL(Free, (d_a));
   return 0;
