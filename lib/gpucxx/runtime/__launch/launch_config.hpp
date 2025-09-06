@@ -3,11 +3,11 @@
 
 #include <gpucxx/backend/backend.hpp>
 
-class LaunchConfig{
+class LaunchConfig {
 
-    private:
-        dim3 gridDim{1,1,1};
-        dim3 blockDim{1,1,1};
+ private:
+  dim3 gridDim{1, 1, 1};
+  dim3 blockDim{1, 1, 1};
 }
 
 

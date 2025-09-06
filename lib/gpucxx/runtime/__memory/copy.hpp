@@ -30,8 +30,8 @@ namespace memory {
   }  // namespace details_
 
   template <typename VT>
-  GPUCXX_FH auto copy(VT* dst, const VT* src, const std::size_t numEntries)
-    -> void {
+  GPUCXX_FH auto copy(VT* dst, const VT* src,
+                      const std::size_t numEntries) -> void {
     details_::copy(static_cast<void*>(dst), static_cast<const void*>(src),
                    numEntries * sizeof(VT));
   }

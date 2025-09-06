@@ -41,7 +41,10 @@ endif()
 
 if(GPUCXX_HIP_MODE)
   set(BUILD_GPU_LANGUAGE "HIP")
-  set(ROCM_ROOT "/opt/rocm" CACHE PATH "Root directory of the ROCm installation" )
+  set(ROCM_ROOT
+      "/opt/rocm"
+      CACHE PATH "Root directory of the ROCm installation"
+  )
   list(APPEND CMAKE_PREFIX_PATH "${ROCM_ROOT}")
 endif()
 
@@ -55,14 +58,12 @@ set(CMAKE_${BUILD_GPU_LANGUAGE}_STANDARD_REQUIRED ON)
 include(cmake/CPM.cmake)
 include(cmake/fmt.cmake)
 
-
 if(GPUCXX_TOPLEVEL_PROJECT)
   include(cmake/format.cmake)
   include(cmake/tools.cmake)
 endif()
 
 add_subdirectory(lib)
-
 
 if(GPUCXX_ENABLE_EXAMPLES)
   add_subdirectory(examples)
