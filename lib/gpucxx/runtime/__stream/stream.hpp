@@ -41,7 +41,6 @@ class Stream : public stream_ref {
 
   GPUCXX_FH auto getPriority() -> flags::streamPriority;
 
- private:
   GPUCXX_FH auto destroy() -> void;
 };
 
