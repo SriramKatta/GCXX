@@ -70,7 +70,7 @@ int main(int argc, char const* argv[]) {
 
 #if GPUCXX_HIP_MODE
   GPUCXX_SAFE_RUNTIME_CALL(HostMalloc, (&h_a, sizeInBytes));
-#elseif GPUCXX_CUDA_MODE
+#elif GPUCXX_CUDA_MODE
   GPUCXX_SAFE_RUNTIME_CALL(MallocHost, (&h_a, sizeInBytes));
 #endif
 
@@ -101,7 +101,7 @@ int main(int argc, char const* argv[]) {
   gcxx::memory::copy(h_a, d_a, N);
   auto D2Hend = str.recordEvent();
 
-  checkdata(N, h_a, rep);
+  checkdata(N, h_a, static_cast<double>(rep));
 
   float Dtohtime =
     (D2Hend.ElapsedTimeSince<gcxx::details_::sec>(D2Hstart)).count();
@@ -113,7 +113,7 @@ int main(int argc, char const* argv[]) {
   double arraydatasizeinGbytes = static_cast<double>(N * sizeof(double)) / 1e9;
 
   std::cout << kerneltime << " "
-            << (arraydatasizeinGbytes * 2 * rep) / kerneltime << std::endl
+            << (arraydatasizeinGbytes * 2.0 * static_cast<double>(rep)) / kerneltime << std::endl
             << Dtohtime << " " << arraydatasizeinGbytes / Dtohtime << std::endl
             << HtoDtime << " " << arraydatasizeinGbytes / HtoDtime << std::endl;
   GPUCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));
