@@ -68,7 +68,13 @@ int main(int argc, char const* argv[]) {
   double* h_a = nullptr;
   double* d_a = nullptr;
 
+#if GPUCXX_HIP_MODE
   GPUCXX_SAFE_RUNTIME_CALL(HostMalloc, (&h_a, sizeInBytes));
+#elseif GPUCXX_CUDA_MODE
+  GPUCXX_SAFE_RUNTIME_CALL(MallocHost, (&h_a, sizeInBytes));
+#endif
+
+
   GPUCXX_SAFE_RUNTIME_CALL(Malloc, (&d_a, sizeInBytes));
 
   std::memset(h_a, 0, sizeInBytes);
@@ -79,7 +85,7 @@ int main(int argc, char const* argv[]) {
   gcxx::memory::copy(d_a, h_a, N);
   auto H2Dend = str.recordEvent();
 
-  GPUCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
+  GPUCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, ());
 
   str.Synchronize();
   auto kernelstart = str.recordEvent();
