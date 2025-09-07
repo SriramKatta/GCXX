@@ -1,4 +1,4 @@
-set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${BUILD_GPU_LANGUAGE})
+set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${GPUCXX_GPU_LANG})
 
 set(EXE_NAME vector_add)
 
