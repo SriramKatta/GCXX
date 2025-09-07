@@ -36,11 +36,11 @@ if((GPUCXX_CUDA_MODE AND GPUCXX_HIP_MODE) OR (NOT GPUCXX_CUDA_MODE AND NOT GPUCX
 endif()
 
 if(GPUCXX_CUDA_MODE)
-  set(BUILD_GPU_LANGUAGE "CUDA")
+  set(GPUCXX_GPU_LANG "CUDA" CACHE STRING "GPU programming language to use")
 endif()
 
 if(GPUCXX_HIP_MODE)
-  set(BUILD_GPU_LANGUAGE "HIP")
+  set(GPUCXX_GPU_LANG "HIP" CACHE STRING "GPU programming language to use")
   set(ROCM_ROOT
       "/opt/rocm"
       CACHE PATH "Root directory of the ROCm installation"
@@ -48,20 +48,23 @@ if(GPUCXX_HIP_MODE)
   list(APPEND CMAKE_PREFIX_PATH "${ROCM_ROOT}")
 endif()
 
-message(STATUS "GPU back-end selected: ${BUILD_GPU_LANGUAGE}")
+message(STATUS "GPU back-end selected: ${GPUCXX_GPU_LANG}")
 
-enable_language(${BUILD_GPU_LANGUAGE})
-set(CMAKE_${BUILD_GPU_LANGUAGE}_STANDARD 17)
-set(CMAKE_${BUILD_GPU_LANGUAGE}_EXTENSIONS OFF)
-set(CMAKE_${BUILD_GPU_LANGUAGE}_STANDARD_REQUIRED ON)
+enable_language(${GPUCXX_GPU_LANG})
+set(CMAKE_${GPUCXX_GPU_LANG}_STANDARD 17)
+set(CMAKE_${GPUCXX_GPU_LANG}_EXTENSIONS OFF)
+set(CMAKE_${GPUCXX_GPU_LANG}_STANDARD_REQUIRED ON)
 
-include(cmake/CPM.cmake)
-include(cmake/fmt.cmake)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+include(CPM)
 
 if(GPUCXX_TOPLEVEL_PROJECT)
-  include(cmake/format.cmake)
-  include(cmake/tools.cmake)
+  include(format)
+  include(tools)
 endif()
+
 
 add_subdirectory(lib)
 
