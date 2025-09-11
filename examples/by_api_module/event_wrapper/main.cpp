@@ -9,7 +9,7 @@ void eve_ref_check(gcxx::event_ref event) {
   }
 }
 
-int main(int argc, char const* argv[]) {
+int main() {
 
   gcxx::Event def_event;
   auto start_event = gcxx::Event::Create();

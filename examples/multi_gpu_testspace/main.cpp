@@ -1,6 +1,6 @@
 #include <gpucxx/api.hpp>
 
-int main(int argc, char const* argv[]) {
+int main() {
   int numdevices = 0;
   GPUCXX_SAFE_RUNTIME_CALL(GetDeviceCount, (&numdevices));
 

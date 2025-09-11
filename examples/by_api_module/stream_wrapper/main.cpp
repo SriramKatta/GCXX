@@ -11,7 +11,7 @@ void eve_ref_check(gcxx::Event& event) {
   }
 }
 
-int main(int argc, char const* argv[]) {
+int main() {
 
   gcxx::Stream str1;
   auto str1default = gcxx::Stream::Create(gflags::streamType::defaultStream);
