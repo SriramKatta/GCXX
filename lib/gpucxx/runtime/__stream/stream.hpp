@@ -6,6 +6,7 @@
 #include <gpucxx/macros/define_macros.hpp>
 #include <gpucxx/runtime/__flags/eventflags.hpp>
 #include <gpucxx/runtime/__flags/streamflags.hpp>
+#include <gpucxx/runtime/__stream/stream_ref.hpp>
 
 #include <cstddef>
 #include <utility>
