@@ -16,10 +16,10 @@ class [[maybe_unused]] __EnsureCurrentDevice {
 
  public:
   // Constructor: takes a CUDA stream
-  __EnsureCurrentDevice(int);
+  GPUCXX_FH __EnsureCurrentDevice(int);
 
   // Destructor: restore old device if changed
-  ~__EnsureCurrentDevice();
+  GPUCXX_FH ~__EnsureCurrentDevice();
 
   // Delete copy constructor/assignment
   __EnsureCurrentDevice(const __EnsureCurrentDevice&)             = delete;
