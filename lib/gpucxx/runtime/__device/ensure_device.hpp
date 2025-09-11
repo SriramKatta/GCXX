@@ -9,7 +9,7 @@
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 
-class __EnsureCurrentDevice {
+class [[maybe_unused]] __EnsureCurrentDevice {
  private:
   int old_device_{};
   bool changed_{false};
