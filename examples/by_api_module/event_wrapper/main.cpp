@@ -1,11 +1,12 @@
+#include <fmt/chrono.h>  // needed to print the chrono durations
+#include <fmt/format.h>
 #include <gpucxx/runtime/event.hpp>
-#include <iostream>
 
 void eve_ref_check(gcxx::event_ref event) {
   if (event.HasOccurred()) {
-    std::cout << "Event has occurred." << std::endl;
+    fmt::print("Event has occurred.\n");
   } else {
-    std::cout << "Event has not occurred." << std::endl;
+    fmt::print("Event has not occurred.\n");
   }
 }
 
@@ -24,12 +25,22 @@ int main() {
   auto res = GPUCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
 
   if (res == GPUCXX_RUNTIME_BACKEND(Success)) {
-    std::cout << "Event query successful." << std::endl;
+    fmt::print("Event query successful.\n");
   } else if (res == GPUCXX_RUNTIME_BACKEND(ErrorNotReady)) {
-    std::cout << "Event not ready." << std::endl;
+    fmt::print("Event not ready.\n");
   } else {
-    std::cerr << "Event query failed with error code: " << res << std::endl;
+    fmt::print("Event query failed with error code: {}\n",
+static_cast<int>(res));
   }
+
+  gcxx::Event end_event2;
+
+  start_event.RecordInStream();
+  end_event2.RecordInStream();
+
+  auto dur = gcxx::event_ref::ElapsedTimeBetween(start_event, end_event2);
+
+  fmt::print("Elapsed time between events: {}\n", dur);
 
   return 0;
 }
