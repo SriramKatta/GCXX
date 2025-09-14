@@ -56,13 +56,11 @@ set(CMAKE_${GPUCXX_GPU_LANG}_EXTENSIONS OFF)
 set(CMAKE_${GPUCXX_GPU_LANG}_STANDARD_REQUIRED ON)
 
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-include(CPM)
+include(cmake/CPM.cmake)
 
 if(GPUCXX_TOPLEVEL_PROJECT)
-  include(format)
-  include(tools)
+  include(cmake/format.cmake)
+  include(cmake/tools.cmake)
 endif()
 
 
@@ -77,7 +75,7 @@ if(GPUCXX_BUILD_BENCHMARKS)
 endif()
 
 if(GPUCXX_BUILD_TESTS)
-  include(cmake/GTest.cmake)
+  include(GTest.cmake)
   include(CTest)
   enable_testing()
   add_subdirectory(testing)

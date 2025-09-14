@@ -7,7 +7,7 @@ set(CMAKE_CUDA_ARCHITECTURES 80 86 87 89 90
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-include(fmt)
+include(cmake/fmt.cmake)
 
 add_subdirectory(by_api_module)
 add_subdirectory(vector_add)

@@ -1,6 +1,9 @@
 #include <fmt/chrono.h>  // needed to print the chrono durations
 #include <fmt/format.h>
 #include <gpucxx/runtime/event.hpp>
+#include <span>
+#include <array>
+
 
 void eve_ref_check(gcxx::event_ref event) {
   if (event.HasOccurred()) {
@@ -19,9 +22,8 @@ int main() {
   gcxx::Event end_event(compundFlag);
   eve_ref_check(end_event);
 
+  // auto res = cudaEventQuery(end_event); // an error because Event is a owning reference and cannot be cast to raw event
   gcxx::event_ref end_event_ref = end_event;
-  // an error because Event is a owning reference and cannot be cast to raw event
-  // auto res                      = cudaEventQuery(end_event);
   auto res = GPUCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
 
   if (res == GPUCXX_RUNTIME_BACKEND(Success)) {
@@ -30,7 +32,7 @@ int main() {
     fmt::print("Event not ready.\n");
   } else {
     fmt::print("Event query failed with error code: {}\n",
-static_cast<int>(res));
+      static_cast<int>(res));
   }
 
   gcxx::Event end_event2;
