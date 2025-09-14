@@ -15,7 +15,6 @@ class [[maybe_unused]] __EnsureCurrentDevice {
   bool changed_{false};
 
  public:
-  // Constructor: takes a CUDA stream
   GPUCXX_FH __EnsureCurrentDevice(int);
 
   // Destructor: restore old device if changed
