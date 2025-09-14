@@ -5,10 +5,11 @@ CPMAddPackage(
 )
 
 if(fmt_ADDED)
-  set_target_properties(fmt PROPERTIES CXX_CLANG_TIDY "")
-  add_library(fmt_system INTERFACE)
-  target_link_libraries(fmt_system INTERFACE fmt)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|NVIDIA")
-    target_compile_options(fmt_system INTERFACE -diag-suppress=128,2417)
-  endif()
+  get_target_property(FMT_INCLUDES fmt INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(FMT_SYS_INCLUDES fmt INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
+
+  # keep include dirs, but also tell CMake they are "system"
+  set_target_properties(fmt PROPERTIES
+    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${FMT_INCLUDES};${FMT_SYS_INCLUDES}"
+  )
 endif()
