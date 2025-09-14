@@ -75,16 +75,16 @@ namespace flags {
    */
   enum class streamPriority : flag_t {
     /// No priority hint; runtime chooses the default scheduling behavior.
-    none     = 0U,
+    none = 0U,
 
     /// Hint for the lowest available priority (background work).
-    veryLow  = 1U,
+    veryLow = 1U,
 
     /// Hint for a slightly reduced priority compared to default.
-    low      = 2U,
+    low = 2U,
 
     /// Hint for elevated priority; work may preempt lower-priority streams.
-    high     = 3U,
+    high = 3U,
 
     /// Hint for very high priority, just below critical tasks.
     veryHigh = 4U,
