@@ -1,0 +1,19 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "localsys-Release",
+            "displayName": "Local system-Release",
+            "description": "Sets Unix Makefiles generator, build and install directory",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "GPUCXX_CUDA_MODE": "ON",
+                "GPUCXX_BUILD_EXAMPLES": "ON"
+            }
+        }
+    ]
+}
