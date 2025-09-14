@@ -16,11 +16,11 @@ GPUCXX_BEGIN_NAMESPACE
 class Stream : public stream_ref {
  public:
   GPUCXX_FH Stream(
-    const flags::streamType createFlag       = flags::streamType::defaultStream,
+    const flags::streamType createFlag       = flags::streamType::syncWithNull,
     const flags::streamPriority priorityFlag = flags::streamPriority::none);
 
   GPUCXX_FH static auto Create(
-    const flags::streamType createFlag       = flags::streamType::defaultStream,
+    const flags::streamType createFlag       = flags::streamType::syncWithNull,
     const flags::streamPriority priorityFlag = flags::streamPriority::none)
     -> Stream;
 
