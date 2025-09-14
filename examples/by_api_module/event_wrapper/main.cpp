@@ -1,9 +1,8 @@
 #include <fmt/chrono.h>  // needed to print the chrono durations
 #include <fmt/format.h>
+#include <array>
 #include <gpucxx/runtime/event.hpp>
 #include <span>
-#include <array>
-
 
 void eve_ref_check(gcxx::event_ref event) {
   if (event.HasOccurred()) {
@@ -32,7 +31,7 @@ int main() {
     fmt::print("Event not ready.\n");
   } else {
     fmt::print("Event query failed with error code: {}\n",
-      static_cast<int>(res));
+               static_cast<int>(res));
   }
 
   gcxx::Event end_event2;

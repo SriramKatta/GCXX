@@ -4,4 +4,6 @@ set(EXE_NAME multi_gpu_testspace)
 
 add_executable(${EXE_NAME} main.cpp)
 target_link_libraries(${EXE_NAME} PRIVATE gpucxx::gpucxx)
-set_target_properties(${EXE_NAME} PROPERTIES LINKER_LANGUAGE CXX POSITION_INDEPENDENT_CODE ON)
+set_target_properties(
+  ${EXE_NAME} PROPERTIES LINKER_LANGUAGE CXX POSITION_INDEPENDENT_CODE ON
+)
