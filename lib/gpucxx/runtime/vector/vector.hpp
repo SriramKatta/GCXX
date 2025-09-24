@@ -3,7 +3,7 @@
 #define GPUCXX_RUNTIME_VECTOR_VECTOR_HPP_
 
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__vector/vector_base.hpp>
+#include <gpucxx/runtime/vector/vector_base.hpp>
 #include <iterator>
 
 GPUCXX_BEGIN_NAMESPACE

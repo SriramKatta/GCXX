@@ -29,7 +29,7 @@ class [[maybe_unused]] __EnsureCurrentDevice {
 
 GPUCXX_DETAILS_END_NAMESPACE
 
-#include <gpucxx/runtime/__details/ensure_device.inl>
+#include <gpucxx/runtime/details/ensure_device.inl>
 
 
 #endif

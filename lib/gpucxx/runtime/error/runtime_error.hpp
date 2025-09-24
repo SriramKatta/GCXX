@@ -23,6 +23,6 @@ GPUCXX_FH auto peekLastDeviceError(const char* errorMessage, const char* file,
 
 GPUCXX_DETAILS_END_NAMESPACE
 
-#include <gpucxx/runtime/__details/runtime_error.inl>
+#include <gpucxx/runtime/details/runtime_error.inl>
 
 #endif

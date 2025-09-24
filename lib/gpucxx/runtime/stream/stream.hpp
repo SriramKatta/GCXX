@@ -4,9 +4,9 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__flags/eventflags.hpp>
-#include <gpucxx/runtime/__flags/streamflags.hpp>
-#include <gpucxx/runtime/__stream/stream_ref.hpp>
+#include <gpucxx/runtime/flags/eventflags.hpp>
+#include <gpucxx/runtime/flags/streamflags.hpp>
+#include <gpucxx/runtime/stream/stream_ref.hpp>
 
 #include <cstddef>
 #include <utility>
@@ -50,7 +50,7 @@ class Stream : public stream_ref {
 
 GPUCXX_END_NAMESPACE
 
-#include <gpucxx/runtime/__details/stream.inl>
+#include <gpucxx/runtime/details/stream.inl>
 
 #include <gpucxx/macros/undefine_macros.hpp>
 

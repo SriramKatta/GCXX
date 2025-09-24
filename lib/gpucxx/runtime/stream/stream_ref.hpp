@@ -4,11 +4,11 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__event/event_base.hpp>
-#include <gpucxx/runtime/__flags/eventflags.hpp>
-#include <gpucxx/runtime/__flags/streamflags.hpp>
+#include <gpucxx/runtime/event/event_base.hpp>
+#include <gpucxx/runtime/flags/eventflags.hpp>
+#include <gpucxx/runtime/flags/streamflags.hpp>
 
-#include <gpucxx/runtime/__event/event.hpp>
+#include <gpucxx/runtime/event/event.hpp>
 
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
@@ -64,6 +64,6 @@ GPUCXX_END_NAMESPACE
 
 
 #include <gpucxx/macros/undefine_macros.hpp>
-#include <gpucxx/runtime/__details/stream_ref.inl>
+#include <gpucxx/runtime/details/stream_ref.inl>
 
 #endif

@@ -4,7 +4,7 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__flags/eventflags.hpp>
+#include <gpucxx/runtime/flags/eventflags.hpp>
 
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE

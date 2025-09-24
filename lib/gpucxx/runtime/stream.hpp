@@ -4,8 +4,8 @@
 
 #include <gpucxx/runtime/event.hpp>
 
-#include <gpucxx/runtime/__flags/streamflags.hpp>
-#include <gpucxx/runtime/__stream/stream.hpp>
-#include <gpucxx/runtime/__stream/stream_ref.hpp>
+#include <gpucxx/runtime/flags/streamflags.hpp>
+#include <gpucxx/runtime/stream/stream.hpp>
+#include <gpucxx/runtime/stream/stream_ref.hpp>
 
 #endif

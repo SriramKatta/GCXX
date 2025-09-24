@@ -2,7 +2,7 @@
 #ifndef GPUCXX_RUNTIME_RUNTIME_ERROR_HPP_
 #define GPUCXX_RUNTIME_RUNTIME_ERROR_HPP_
 
-#include <gpucxx/runtime/__error/runtime_error.hpp>
+#include <gpucxx/runtime/error/runtime_error.hpp>
 
 #define GPUCXX_CHECK_DEVICE_ERR(val)                                   \
   do {                                                                 \

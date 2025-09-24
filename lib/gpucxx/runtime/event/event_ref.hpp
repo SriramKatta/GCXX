@@ -7,8 +7,8 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__flags/eventflags.hpp>
-#include <gpucxx/runtime/__stream/stream_ref.hpp>
+#include <gpucxx/runtime/flags/eventflags.hpp>
+#include <gpucxx/runtime/stream/stream_ref.hpp>
 
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
@@ -78,7 +78,7 @@ class event_ref : public details_::event_ref {
 
 GPUCXX_END_NAMESPACE
 
-#include <gpucxx/runtime/__details/event_ref.inl>
+#include <gpucxx/runtime/details/event_ref.inl>
 
 #include <gpucxx/macros/undefine_macros.hpp>
 

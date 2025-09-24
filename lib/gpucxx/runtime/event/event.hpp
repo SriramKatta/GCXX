@@ -4,8 +4,8 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/__event/event_ref.hpp>
-#include <gpucxx/runtime/__flags/eventflags.hpp>
+#include <gpucxx/runtime/event/event_ref.hpp>
+#include <gpucxx/runtime/flags/eventflags.hpp>
 
 GPUCXX_BEGIN_NAMESPACE
 
@@ -39,6 +39,6 @@ class Event : public event_ref {
 
 GPUCXX_END_NAMESPACE
 
-#include <gpucxx/runtime/__details/event.inl>
+#include <gpucxx/runtime/details/event.inl>
 
 #endif

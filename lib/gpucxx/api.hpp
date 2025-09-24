@@ -8,8 +8,8 @@
 #include <gpucxx/runtime/runtime_error.hpp>
 
 // Section for Runtime Flags
-#include <gpucxx/runtime/__flags/eventflags.hpp>
-#include <gpucxx/runtime/__flags/streamflags.hpp>
+#include <gpucxx/runtime/flags/eventflags.hpp>
+#include <gpucxx/runtime/flags/streamflags.hpp>
 
 
 // Section for Runtime API

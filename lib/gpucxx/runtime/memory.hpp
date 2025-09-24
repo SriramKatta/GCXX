@@ -2,7 +2,7 @@
 #ifndef GPUCXX_RUNTIME_MEMORY_HPP_
 #define GPUCXX_RUNTIME_MEMORY_HPP_
 
-#include <gpucxx/runtime/__memory/copy.hpp>
+#include <gpucxx/runtime/memory/copy.hpp>
 
 
 #endif

@@ -2,7 +2,7 @@
 #ifndef GPUCXX_RUNTIME_DETAILS_STREAM_INL_
 #define GPUCXX_RUNTIME_DETAILS_STREAM_INL_
 
-#include <gpucxx/runtime/__device/ensure_device.hpp>
+#include <gpucxx/runtime/device/ensure_device.hpp>
 #include <gpucxx/runtime/stream.hpp>
 
 GPUCXX_BEGIN_NAMESPACE
