@@ -3,8 +3,8 @@
 #define GPUCXX_RUNTIME_DETAILS_STREAM_REF_INL_
 
 #include <gpucxx/macros/define_macros.hpp>
-#include <gpucxx/runtime/stream/stream_ref.hpp>
 #include <gpucxx/runtime/runtime_error.hpp>
+#include <gpucxx/runtime/stream/stream_ref.hpp>
 
 GPUCXX_BEGIN_NAMESPACE
 
