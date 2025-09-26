@@ -20,7 +20,7 @@
     {
       "name": "localsys-Release",
       "configurePreset": "localsys-Release",
-      "jobs": 8
+      "jobs": 0
     }
   ]
 }
