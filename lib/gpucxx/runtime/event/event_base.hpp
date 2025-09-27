@@ -21,9 +21,10 @@ GPUCXX_DETAILS_BEGIN_NAMESPACE
  */
 class event_ref {
  protected:
-  using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
+  deviceEvent_t event_{INVALID_EVENT};  // NOLINT
 
  public:
+  using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
   /**
    * @brief Default construct a new event base object
    *
@@ -35,7 +36,8 @@ class event_ref {
   *
   * @param device_event device event to be handled
   */
-  GPUCXX_CXPR event_ref(deviceEvent_t rawEvent) GPUCXX_NOEXCEPT : event_(rawEvent) {}
+  GPUCXX_CXPR event_ref(deviceEvent_t rawEvent) GPUCXX_NOEXCEPT
+      : event_(rawEvent) {}
 
   /// Disallow creation from `int`
   event_ref(int) = delete;
@@ -62,10 +64,6 @@ class event_ref {
     GPUCXX_NOEXCEPT->bool {
     return !(lhs == rhs);
   }
-
-
- protected:
-  deviceEvent_t event_{INVALID_EVENT};  // NOLINT
 };
 
 GPUCXX_DETAILS_END_NAMESPACE
