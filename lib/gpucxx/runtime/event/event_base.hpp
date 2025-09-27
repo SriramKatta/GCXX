@@ -10,7 +10,7 @@
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 // clang-format off
   using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
-  inline static GPUCXX_CXPR deviceEvent_t __invalid_event_{};  // Default null event
+  inline static GPUCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
 // clang-format on
 
 /**
@@ -50,7 +50,7 @@ class event_ref {
   GPUCXX_CXPR operator deviceEvent_t() GPUCXX_CONST_NOEXCEPT { return get(); }
 
   GPUCXX_CXPR explicit operator bool() GPUCXX_CONST_NOEXCEPT {
-    return event_ != __invalid_event_;
+    return event_ != INVALID_EVENT;
   }
 
   GPUCXX_CXPR friend auto operator==(const event_ref& lhs, const event_ref& rhs)
@@ -65,7 +65,7 @@ class event_ref {
 
 
  protected:
-  deviceEvent_t event_{__invalid_event_};  // NOLINT
+  deviceEvent_t event_{INVALID_EVENT};  // NOLINT
 };
 
 GPUCXX_DETAILS_END_NAMESPACE

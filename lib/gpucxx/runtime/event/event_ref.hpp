@@ -44,11 +44,11 @@ class event_ref : public details_::event_ref {
   event_ref() = default;
 
   /// Constructor from raw device event
-  GPUCXX_CXPR event_ref(deviceEvent_t __evt) GPUCXX_NOEXCEPT
-      : details_::event_ref(__evt) {}
+  GPUCXX_CXPR event_ref(deviceEvent_t rawEvent) GPUCXX_NOEXCEPT
+      : details_::event_ref(rawEvent) {}
 
-  GPUCXX_CXPR event_ref(details_::event_ref __evt) GPUCXX_NOEXCEPT
-      : details_::event_ref(__evt.get()) {}
+  GPUCXX_CXPR event_ref(details_::event_ref eventRef) GPUCXX_NOEXCEPT
+      : details_::event_ref(eventRef.get()) {}
 
   /// Delete constructor from `int`
   event_ref(int) = delete;
@@ -62,7 +62,7 @@ class event_ref : public details_::event_ref {
   GPUCXX_FH auto Synchronize() const -> void;
 
   GPUCXX_FH auto RecordInStream(
-    const stream_ref& stream      = details_::__null_stream_,
+    const stream_ref& stream      = details_::NULL_STREAM,
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
   template <typename DurationT = details_::milliSec>

@@ -9,7 +9,7 @@ GPUCXX_BEGIN_NAMESPACE
 
 GPUCXX_FH Stream::Stream(const flags::streamType createFlag,
                          const flags::streamPriority priorityFlag)
-    : stream_ref(details_::__null_stream_) {
+    : stream_ref(details_::NULL_STREAM) {
   if (createFlag == flags::streamType::nullStream) {
     return;
   }
@@ -24,15 +24,15 @@ GPUCXX_FH auto Stream::destroy() -> void {
   Synchronize();
 #endif
 
-  if (stream_ == details_::__null_stream_ ||
-      stream_ == details_::__invalid_stream_) {
+  if (stream_ == details_::NULL_STREAM ||
+      stream_ == details_::INVALID_STREAM) {
     return;
   }
   // int deviceId = -1;
   // GPUCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
-  // details_::__EnsureCurrentDevice e(deviceId);
+  // details_::EnsureCurrentDevice e(deviceId);
   GPUCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
-  stream_ = details_::__invalid_stream_;
+  stream_ = details_::INVALID_STREAM;
 }
 
 GPUCXX_FH Stream::~Stream() {
@@ -48,7 +48,7 @@ GPUCXX_FH auto Stream::Create(const flags::streamType createFlag,
 
 GPUCXX_FH auto Stream::release() GPUCXX_NOEXCEPT -> stream_ref {
   auto oldStream = stream_;
-  stream_        = details_::__invalid_stream_;
+  stream_        = details_::INVALID_STREAM;
   return {oldStream};
 }
 

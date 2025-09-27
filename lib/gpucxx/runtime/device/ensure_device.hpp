@@ -9,22 +9,22 @@
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 
-class [[maybe_unused]] __EnsureCurrentDevice {
+class [[maybe_unused]] EnsureCurrentDevice {
  private:
   int old_device_{};
   bool changed_{false};
 
  public:
-  GPUCXX_FH __EnsureCurrentDevice(int);
+  GPUCXX_FH EnsureCurrentDevice(int);
 
   // Destructor: restore old device if changed
-  GPUCXX_FH ~__EnsureCurrentDevice();
+  GPUCXX_FH ~EnsureCurrentDevice();
 
   // Delete copy constructor/assignment
-  __EnsureCurrentDevice(const __EnsureCurrentDevice&)             = delete;
-  __EnsureCurrentDevice& operator=(const __EnsureCurrentDevice&)  = delete;
-  __EnsureCurrentDevice(const __EnsureCurrentDevice&&)            = delete;
-  __EnsureCurrentDevice& operator=(const __EnsureCurrentDevice&&) = delete;
+  EnsureCurrentDevice(const EnsureCurrentDevice&)             = delete;
+  EnsureCurrentDevice& operator=(const EnsureCurrentDevice&)  = delete;
+  EnsureCurrentDevice(const EnsureCurrentDevice&&)            = delete;
+  EnsureCurrentDevice& operator=(const EnsureCurrentDevice&&) = delete;
 };
 
 GPUCXX_DETAILS_END_NAMESPACE

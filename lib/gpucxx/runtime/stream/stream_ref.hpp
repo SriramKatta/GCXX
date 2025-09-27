@@ -13,9 +13,9 @@
 
 GPUCXX_DETAILS_BEGIN_NAMESPACE
 // clang-format off
-using deviceStream_t                       = GPUCXX_RUNTIME_BACKEND(Stream_t);
-inline static const auto __null_stream_    = reinterpret_cast<deviceStream_t>(0ULL); // NOLINT
-inline static const auto __invalid_stream_ = reinterpret_cast<deviceStream_t>(~0ULL); // NOLINT
+using deviceStream_t                    = GPUCXX_RUNTIME_BACKEND(Stream_t);
+inline static const auto NULL_STREAM    = reinterpret_cast<deviceStream_t>(0ULL); // NOLINT
+inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL); // NOLINT
 // clang-format on
 GPUCXX_DETAILS_END_NAMESPACE
 
@@ -28,7 +28,7 @@ class stream_ref {
   using deviceStream_t = GPUCXX_RUNTIME_BACKEND(Stream_t);
 
  public:
-  constexpr stream_ref(deviceStream_t __str) noexcept : stream_(__str) {}
+  constexpr stream_ref(deviceStream_t rawStream) noexcept : stream_(rawStream) {}
 
   stream_ref()               = delete;
   stream_ref(int)            = delete;
@@ -57,7 +57,7 @@ class stream_ref {
 
 
  protected:
-  deviceStream_t stream_{details_::__null_stream_};  // NOLINT
+  deviceStream_t stream_{details_::NULL_STREAM};  // NOLINT
 };
 
 GPUCXX_END_NAMESPACE
