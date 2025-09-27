@@ -2,7 +2,6 @@
 #include <fmt/format.h>
 #include <array>
 #include <gpucxx/runtime/event.hpp>
-#include <span>
 
 void eve_ref_check(gcxx::event_ref event) {
   if (event.HasOccurred()) {
