@@ -1,4 +1,4 @@
-project(GPUCXX_EXamples)
+project(GPUCXX_Examples)
 add_custom_target(examples)
 
 set(CMAKE_CUDA_ARCHITECTURES 80 86 #87 89 90
