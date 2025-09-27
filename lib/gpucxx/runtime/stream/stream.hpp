@@ -34,7 +34,8 @@ class Stream : public stream_ref {
 
   Stream& operator=(const Stream&) = delete;
 
-  Stream(Stream&& other) noexcept;
+  GPUCXX_FH Stream(Stream&& other) noexcept
+      : stream_ref(std::exchange(other.stream_, details_::__invalid_stream_)) {}
 
   GPUCXX_FH auto operator=(Stream&& other) GPUCXX_NOEXCEPT->Stream&;
 
