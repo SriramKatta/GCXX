@@ -18,10 +18,10 @@ GPUCXX_FH Event::Event(const flags::eventCreate createFlag)
 }
 
 GPUCXX_FH Event::~Event() {
-  GPUCXX_SAFE_RUNTIME_CALL(EventDestroy, (event_));
+  if (event_ != details_::INVALID_EVENT) {
+    GPUCXX_SAFE_RUNTIME_CALL(EventDestroy, (event_));
+  }
 }
-
-GPUCXX_FH Event::Event(Event&& other) noexcept : event_ref(std::move(other)) {}
 
 GPUCXX_FH auto Event::release() GPUCXX_NOEXCEPT -> event_ref {
   auto oldEvent = event_;
