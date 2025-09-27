@@ -7,6 +7,7 @@
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
+#include <gpucxx/runtime/event/event_base.hpp>
 #include <gpucxx/runtime/flags/eventflags.hpp>
 #include <gpucxx/runtime/stream/stream_ref.hpp>
 
@@ -56,6 +57,8 @@ class event_ref : public details_::event_ref {
   /// Delete constructor from `nullptr`
   event_ref(std::nullptr_t) = delete;
 
+  
+
 
   GPUCXX_FH auto HasOccurred() const -> bool;
 
@@ -70,8 +73,9 @@ class event_ref : public details_::event_ref {
     -> DurationT;
 
   template <typename DurationT = details_::milliSec>
-  GPUCXX_FH static auto ElapsedTimeBetween(
-    const event_ref& startEvent, const event_ref& endEvent) -> DurationT {
+  GPUCXX_FH static auto ElapsedTimeBetween(const event_ref& startEvent,
+                                           const event_ref& endEvent)
+    -> DurationT {
     return endEvent.ElapsedTimeSince<DurationT>(startEvent);
   }
 };
