@@ -2,24 +2,45 @@
   "version": 8,
   "configurePresets": [
     {
-      "name": "localsys-Release",
-      "displayName": "Local system-Release",
-      "description": "Sets Unix Makefiles generator, build and install directory",
+      "name": "base-config",
+      "hidden": true,
       "generator": "Unix Makefiles",
-      "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "GPUCXX_CUDA_MODE": "ON",
         "GPUCXX_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "configure-Release-cuda",
+      "displayName": "Release (CUDA)",
+      "inherits": "base-config",
+      "binaryDir": "${sourceDir}/build/cuda",
+      "cacheVariables": {
+        "GPUCXX_CUDA_MODE": "ON",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/cudabin"
+      }
+    },
+    {
+      "name": "configure-Release-hip",
+      "displayName": "Release (HIP)",
+      "inherits": "base-config",
+      "binaryDir": "${sourceDir}/build/hip",
+      "cacheVariables": {
+        "GPUCXX_HIP_MODE": "ON",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "localsys-Release",
-      "configurePreset": "localsys-Release",
+      "name": "build_cuda",
+      "configurePreset": "configure-Release-cuda",
+      "jobs": 0
+    },
+    {
+      "name": "build_hip",
+      "configurePreset": "configure-Release-hip",
       "jobs": 0
     }
   ]
