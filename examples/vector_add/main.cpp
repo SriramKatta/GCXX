@@ -67,14 +67,14 @@ int main(int argc, char const* argv[]) {
   double* h_a = nullptr;
   double* d_a = nullptr;
 
-#if GPUCXX_HIP_MODE
-  GPUCXX_SAFE_RUNTIME_CALL(HostMalloc, (&h_a, sizeInBytes));
-#elif GPUCXX_CUDA_MODE
-  GPUCXX_SAFE_RUNTIME_CALL(MallocHost, (&h_a, sizeInBytes));
+#if GCXX_HIP_MODE
+  GCXX_SAFE_RUNTIME_CALL(HostMalloc, (&h_a, sizeInBytes));
+#elif GCXX_CUDA_MODE
+  GCXX_SAFE_RUNTIME_CALL(MallocHost, (&h_a, sizeInBytes));
 #endif
 
 
-  GPUCXX_SAFE_RUNTIME_CALL(Malloc, (&d_a, sizeInBytes));
+  GCXX_SAFE_RUNTIME_CALL(Malloc, (&d_a, sizeInBytes));
 
   std::memset(h_a, 0, sizeInBytes);
 
@@ -84,7 +84,7 @@ int main(int argc, char const* argv[]) {
   gcxx::memory::copy(d_a, h_a, N);
   auto H2Dend = str.recordEvent();
 
-  GPUCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, ());
+  GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, ());
 
   str.Synchronize();
   auto kernelstart = str.recordEvent();
@@ -94,7 +94,7 @@ int main(int argc, char const* argv[]) {
   auto kernelend = str.recordEvent();
 
   str.Synchronize();
-  // GPUCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
+  // GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
 
   auto D2Hstart = str.recordEvent();
   gcxx::memory::copy(h_a, d_a, N);
@@ -113,7 +113,7 @@ int main(int argc, char const* argv[]) {
              Dtohtime, arraySizeinGbytes / Dtohtime, HtoDtime,
              arraySizeinGbytes / HtoDtime);
 
-  GPUCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));
-  GPUCXX_SAFE_RUNTIME_CALL(Free, (d_a));
+  GCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));
+  GCXX_SAFE_RUNTIME_CALL(Free, (d_a));
   return 0;
 }

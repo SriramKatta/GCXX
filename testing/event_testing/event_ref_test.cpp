@@ -7,14 +7,14 @@ using namespace gcxx;
 class EventTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    GPUCXX_SAFE_RUNTIME_CALL(StreamCreate, (&stream_));
+    GCXX_SAFE_RUNTIME_CALL(StreamCreate, (&stream_));
   }
 
   void TearDown() override {
-    GPUCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
+    GCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
   }
 
-  GPUCXX_RUNTIME_BACKEND(Stream_t) stream_{};
+  GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
 };
 
 TEST_F(EventTest, ConstructAndDestroy) {
@@ -57,7 +57,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
   EXPECT_EQ(ref.get(), raw);
 
   // Destroy manually since ownership transferred
-  GPUCXX_SAFE_RUNTIME_CALL(EventDestroy, (raw));
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (raw));
 }
 
 TEST_F(EventTest, RecordAndElapsedTime) {
@@ -66,10 +66,10 @@ TEST_F(EventTest, RecordAndElapsedTime) {
   stream_ref s(stream_);
 
   start.RecordInStream(s);
-  GPUCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
+  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
 
   end.RecordInStream(s);
-  GPUCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
+  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
 
   auto elapsed = Event::ElapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);

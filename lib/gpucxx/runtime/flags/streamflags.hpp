@@ -1,13 +1,13 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_FLAGS_STREAMFLAGS_HPP_
-#define GPUCXX_RUNTIME_FLAGS_STREAMFLAGS_HPP_
+#ifndef GCXX_RUNTIME_FLAGS_STREAMFLAGS_HPP_
+#define GCXX_RUNTIME_FLAGS_STREAMFLAGS_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 
 #include <limits>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
 namespace flags {
 
@@ -37,7 +37,7 @@ namespace flags {
      * will serialize with operations in stream 0, ensuring ordering but limiting
      * concurrency.
      */
-    syncWithNull = GPUCXX_RUNTIME_BACKEND(StreamDefault),
+    syncWithNull = GCXX_RUNTIME_BACKEND(StreamDefault),
 
     /**
      * @brief Stream that does not synchronize with the NULL stream.
@@ -46,7 +46,7 @@ namespace flags {
      * enabling overlap of kernels and memory transfers when hardware resources
      * permit.
      */
-    noSyncWithNull = GPUCXX_RUNTIME_BACKEND(StreamNonBlocking),
+    noSyncWithNull = GCXX_RUNTIME_BACKEND(StreamNonBlocking),
 
     /**
      * @brief Explicit handle to the NULL stream (stream 0).
@@ -95,6 +95,6 @@ namespace flags {
 
 }  // namespace flags
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 #endif

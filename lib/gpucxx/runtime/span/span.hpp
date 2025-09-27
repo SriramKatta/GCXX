@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_SPAN_SPAN_HPP
-#define GPUCXX_RUNTIME_SPAN_SPAN_HPP
+#ifndef GCXX_RUNTIME_SPAN_SPAN_HPP
+#define GCXX_RUNTIME_SPAN_SPAN_HPP
 
 
 #include <iterator>
@@ -11,7 +11,7 @@
 #include <gpucxx/macros/define_macros.hpp>
 
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
 inline constexpr std::size_t dynamic_extent =
   std::numeric_limits<std::size_t>::max();
@@ -31,7 +31,7 @@ class span {
   using reverse_iterator = std::reverse_iterator<iterator>;
 };
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 
 #endif

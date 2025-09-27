@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_EVENT_HPP_
-#define GPUCXX_RUNTIME_EVENT_HPP_
+#ifndef GCXX_RUNTIME_EVENT_HPP_
+#define GCXX_RUNTIME_EVENT_HPP_
 
 #include <gpucxx/runtime/flags/eventflags.hpp>
 

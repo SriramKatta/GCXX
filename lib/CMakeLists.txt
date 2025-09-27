@@ -10,23 +10,23 @@ set_target_properties(
 )
 
 set_property(
-  TARGET ${LIB_INTERNAL_NAME} PROPERTY "${GPUCXX_GPU_LANG}_STANDARD" 17
+  TARGET ${LIB_INTERNAL_NAME} PROPERTY "${GCXX_GPU_LANG}_STANDARD" 17
 )
 
 target_compile_features(${LIB_INTERNAL_NAME} INTERFACE cxx_std_17)
 target_compile_definitions(
-  ${LIB_INTERNAL_NAME} INTERFACE "GPUCXX_${GPUCXX_GPU_LANG}_MODE"
+  ${LIB_INTERNAL_NAME} INTERFACE "GCXX_${GCXX_GPU_LANG}_MODE"
 )
 set_target_properties(
   ${LIB_INTERNAL_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 
-if(GPUCXX_CUDA_MODE)
+if(GCXX_CUDA_MODE)
   find_package(CUDAToolkit REQUIRED)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)
   set_target_properties(
     ${LIB_INTERNAL_NAME} PROPERTIES CMKAE_CUDA_SEPRABLE_COMPILATION ON
   )
-elseif(GPUCXX_HIP_MODE)
+elseif(GCXX_HIP_MODE)
   # test
 endif()

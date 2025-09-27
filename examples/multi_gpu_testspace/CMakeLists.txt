@@ -1,4 +1,4 @@
-set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${GPUCXX_GPU_LANG})
+set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
 
 set(EXE_NAME multi_gpu_testspace)
 

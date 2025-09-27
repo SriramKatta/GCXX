@@ -1,19 +1,19 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_FLAGS_EVENTFLAGS_HPP_
-#define GPUCXX_RUNTIME_FLAGS_EVENTFLAGS_HPP_
+#ifndef GCXX_RUNTIME_FLAGS_EVENTFLAGS_HPP_
+#define GCXX_RUNTIME_FLAGS_EVENTFLAGS_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
 namespace flags {
   enum class eventCreate : flag_t {
-    none          = GPUCXX_RUNTIME_BACKEND(EventDefault),
-    blockingSync  = GPUCXX_RUNTIME_BACKEND(EventBlockingSync),
-    disableTiming = GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
-    interprocess  = GPUCXX_RUNTIME_BACKEND(EventInterprocess) |
-                   GPUCXX_RUNTIME_BACKEND(EventDisableTiming),
+    none          = GCXX_RUNTIME_BACKEND(EventDefault),
+    blockingSync  = GCXX_RUNTIME_BACKEND(EventBlockingSync),
+    disableTiming = GCXX_RUNTIME_BACKEND(EventDisableTiming),
+    interprocess  = GCXX_RUNTIME_BACKEND(EventInterprocess) |
+                   GCXX_RUNTIME_BACKEND(EventDisableTiming),
   };
 
   eventCreate operator|(const eventCreate& lhs, const eventCreate& rhs) {
@@ -22,19 +22,19 @@ namespace flags {
   }
 
   enum class streamCapture : flag_t {
-    add = GPUCXX_RUNTIME_BACKEND(StreamAddCaptureDependencies),
-    set = GPUCXX_RUNTIME_BACKEND(StreamSetCaptureDependencies),
+    add = GCXX_RUNTIME_BACKEND(StreamAddCaptureDependencies),
+    set = GCXX_RUNTIME_BACKEND(StreamSetCaptureDependencies),
   };
 
   enum class eventRecord : flag_t {
-    none     = GPUCXX_RUNTIME_BACKEND(EventRecordDefault),
-    external = GPUCXX_RUNTIME_BACKEND(EventRecordExternal),
+    none     = GCXX_RUNTIME_BACKEND(EventRecordDefault),
+    external = GCXX_RUNTIME_BACKEND(EventRecordExternal),
   };
 
   enum class eventWait : flag_t {
-#if defined(GPUCXX_CUDA_MODE)
-    none     = GPUCXX_RUNTIME_BACKEND(EventWaitDefault),
-    external = GPUCXX_RUNTIME_BACKEND(EventWaitExternal),
+#if defined(GCXX_CUDA_MODE)
+    none     = GCXX_RUNTIME_BACKEND(EventWaitDefault),
+    external = GCXX_RUNTIME_BACKEND(EventWaitExternal),
 #else  // its stupid!! these are supposedly defined as per documentation but not implemented
     none     = 0,
     external = 0,
@@ -42,6 +42,6 @@ namespace flags {
   };
 }  // namespace flags
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 #endif

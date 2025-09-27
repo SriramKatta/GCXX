@@ -1,48 +1,48 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_EVENT_EVENT_HPP_
-#define GPUCXX_RUNTIME_EVENT_EVENT_HPP_
+#ifndef GCXX_RUNTIME_EVENT_EVENT_HPP_
+#define GCXX_RUNTIME_EVENT_EVENT_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 #include <gpucxx/runtime/event/event_ref.hpp>
 #include <gpucxx/runtime/flags/eventflags.hpp>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
 class Event : public event_ref {
  private:
-  GPUCXX_FH auto destroy() -> void;
+  GCXX_FH auto destroy() -> void;
 
  public:
-  GPUCXX_FH Event(
+  GCXX_FH Event(
     const flags::eventCreate createFlag = flags::eventCreate::none);
 
-  GPUCXX_FH static auto Create(
+  GCXX_FH static auto Create(
     const flags::eventCreate createFlag = flags::eventCreate::none) -> Event {
     return {createFlag};
   };
 
-  GPUCXX_FH ~Event();
+  GCXX_FH ~Event();
 
   Event(const Event&) = delete;
 
   Event& operator=(const Event&) = delete;
 
-  GPUCXX_FH Event(Event&& other) noexcept
+  GCXX_FH Event(Event&& other) noexcept
       : event_ref(std::exchange(other.event_, details_::INVALID_EVENT)) {}
 
-  GPUCXX_FH auto operator=(Event&& other) noexcept -> Event& {
+  GCXX_FH auto operator=(Event&& other) noexcept -> Event& {
     if (this != &other)
       this->event_ = std::exchange(other.event_, details_::INVALID_EVENT);
     return *this;
   }
 
-  GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> event_ref;
+  GCXX_FH auto release() GCXX_NOEXCEPT -> event_ref;
 
   operator deviceEvent_t() = delete;
 };
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 #include <gpucxx/runtime/details/event.inl>
 

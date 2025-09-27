@@ -4,7 +4,7 @@
 
 int main() {
   int numdevices = 0;
-  GPUCXX_SAFE_RUNTIME_CALL(GetDeviceCount, (&numdevices));
+  GCXX_SAFE_RUNTIME_CALL(GetDeviceCount, (&numdevices));
 
   fmt::print("numdevices : {}\n", numdevices);
 
@@ -12,7 +12,7 @@ int main() {
   streams.reserve(numdevices);
 
   for (int i = 0; i < numdevices; ++i) {
-    GPUCXX_SAFE_RUNTIME_CALL(SetDevice, (i));
+    GCXX_SAFE_RUNTIME_CALL(SetDevice, (i));
     streams.emplace_back(gcxx::flags::streamType::nullStream,
                          gcxx::flags::streamPriority::veryLow);
   }

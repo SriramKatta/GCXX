@@ -16,9 +16,9 @@
       "inherits": "base-config",
       "binaryDir": "${sourceDir}/build/cuda",
       "cacheVariables": {
-        "GPUCXX_CUDA_MODE": "ON",
-        "GPUCXX_BUILD_EXAMPLES": "ON",
-        "GPUCXX_BUILD_TESTS": "ON",
+        "GCXX_CUDA_MODE": "ON",
+        "GCXX_BUILD_EXAMPLES": "ON",
+        "GCXX_BUILD_TESTS": "ON",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/cudabin"
       }
     },
@@ -28,9 +28,9 @@
       "inherits": "base-config",
       "binaryDir": "${sourceDir}/build/hip",
       "cacheVariables": {
-        "GPUCXX_HIP_MODE": "ON",
-        "GPUCXX_BUILD_EXAMPLES": "ON",
-        "GPUCXX_BUILD_TESTS": "ON",
+        "GCXX_HIP_MODE": "ON",
+        "GCXX_BUILD_EXAMPLES": "ON",
+        "GCXX_BUILD_TESTS": "ON",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin"
       }
     }

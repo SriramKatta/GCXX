@@ -1,17 +1,17 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_VECTOR_VECTOR_HPP_
-#define GPUCXX_RUNTIME_VECTOR_VECTOR_HPP_
+#ifndef GCXX_RUNTIME_VECTOR_VECTOR_HPP_
+#define GCXX_RUNTIME_VECTOR_VECTOR_HPP_
 
 #include <gpucxx/macros/define_macros.hpp>
 #include <gpucxx/runtime/vector/vector_base.hpp>
 #include <iterator>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
 template <typename VT, typename Allocator_t>
 class Vector : protected vector_base {};
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 
 #endif

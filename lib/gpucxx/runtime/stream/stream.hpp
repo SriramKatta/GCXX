@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_API_RUNTIME_STREAM_STREAM_HPP_
-#define GPUCXX_API_RUNTIME_STREAM_STREAM_HPP_
+#ifndef GCXX_API_RUNTIME_STREAM_STREAM_HPP_
+#define GCXX_API_RUNTIME_STREAM_STREAM_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
@@ -11,20 +11,20 @@
 #include <cstddef>
 #include <utility>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
 class Stream : public stream_ref {
  public:
-  GPUCXX_FH Stream(
+  GCXX_FH Stream(
     const flags::streamType createFlag       = flags::streamType::syncWithNull,
     const flags::streamPriority priorityFlag = flags::streamPriority::none);
 
-  GPUCXX_FH static auto Create(
+  GCXX_FH static auto Create(
     const flags::streamType createFlag       = flags::streamType::syncWithNull,
     const flags::streamPriority priorityFlag = flags::streamPriority::none)
     -> Stream;
 
-  GPUCXX_FH ~Stream();
+  GCXX_FH ~Stream();
 
   Stream(int) = delete;
 
@@ -34,22 +34,22 @@ class Stream : public stream_ref {
 
   Stream& operator=(const Stream&) = delete;
 
-  GPUCXX_FH Stream(Stream&& other) noexcept
+  GCXX_FH Stream(Stream&& other) noexcept
       : stream_ref(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
 
-  GPUCXX_FH auto operator=(Stream&& other) GPUCXX_NOEXCEPT->Stream&;
+  GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 
 
-  GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> stream_ref;
+  GCXX_FH auto release() GCXX_NOEXCEPT -> stream_ref;
 
 
-  GPUCXX_FH auto getPriority() -> flags::streamPriority;
+  GCXX_FH auto getPriority() -> flags::streamPriority;
 
  private:
-  GPUCXX_FH auto destroy() -> void;
+  GCXX_FH auto destroy() -> void;
 };
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 #include <gpucxx/runtime/details/stream.inl>
 

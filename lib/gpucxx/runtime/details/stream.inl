@@ -1,26 +1,26 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_DETAILS_STREAM_INL_
-#define GPUCXX_RUNTIME_DETAILS_STREAM_INL_
+#ifndef GCXX_RUNTIME_DETAILS_STREAM_INL_
+#define GCXX_RUNTIME_DETAILS_STREAM_INL_
 
 #include <gpucxx/runtime/device/ensure_device.hpp>
 #include <gpucxx/runtime/stream.hpp>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
-GPUCXX_FH Stream::Stream(const flags::streamType createFlag,
+GCXX_FH Stream::Stream(const flags::streamType createFlag,
                          const flags::streamPriority priorityFlag)
     : stream_ref(details_::NULL_STREAM) {
   if (createFlag == flags::streamType::nullStream) {
     return;
   }
-  GPUCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority,
+  GCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority,
                            (&stream_, static_cast<flag_t>(createFlag),
                             -static_cast<flag_t>(priorityFlag)));
 }
 
-GPUCXX_FH auto Stream::destroy() -> void {
+GCXX_FH auto Stream::destroy() -> void {
 // since cudaStreamDestroy releases the handle after all work is done, to keep similar behaviour
-#if GPUCXX_HIP_MODE
+#if GCXX_HIP_MODE
   Synchronize();
 #endif
 
@@ -29,30 +29,30 @@ GPUCXX_FH auto Stream::destroy() -> void {
     return;
   }
   // int deviceId = -1;
-  // GPUCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
+  // GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
   // details_::EnsureCurrentDevice e(deviceId);
-  GPUCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
+  GCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
   stream_ = details_::INVALID_STREAM;
 }
 
-GPUCXX_FH Stream::~Stream() {
+GCXX_FH Stream::~Stream() {
 
   this->destroy();
 }
 
-GPUCXX_FH auto Stream::Create(const flags::streamType createFlag,
+GCXX_FH auto Stream::Create(const flags::streamType createFlag,
                               const flags::streamPriority priorityFlag)
   -> Stream {
   return {createFlag, priorityFlag};
 }
 
-GPUCXX_FH auto Stream::release() GPUCXX_NOEXCEPT -> stream_ref {
+GCXX_FH auto Stream::release() GCXX_NOEXCEPT -> stream_ref {
   auto oldStream = stream_;
   stream_        = details_::INVALID_STREAM;
   return {oldStream};
 }
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 
 #endif

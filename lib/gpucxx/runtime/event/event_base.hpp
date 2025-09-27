@@ -1,16 +1,16 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_EVENT_EVENT_BASE_HPP_
-#define GPUCXX_RUNTIME_EVENT_EVENT_BASE_HPP_
+#ifndef GCXX_RUNTIME_EVENT_EVENT_BASE_HPP_
+#define GCXX_RUNTIME_EVENT_EVENT_BASE_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
 #include <gpucxx/runtime/flags/eventflags.hpp>
 
 
-GPUCXX_DETAILS_BEGIN_NAMESPACE
+GCXX_DETAILS_BEGIN_NAMESPACE
 // clang-format off
-  using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
-  inline static GPUCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
+  using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
+  inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
 // clang-format on
 
 /**
@@ -35,7 +35,7 @@ class event_ref {
   *
   * @param device_event device event to be handled
   */
-  GPUCXX_CXPR event_ref(deviceEvent_t rawEvent) GPUCXX_NOEXCEPT
+  GCXX_CXPR event_ref(deviceEvent_t rawEvent) GCXX_NOEXCEPT
       : event_(rawEvent) {}
 
   /// Disallow creation from `int`
@@ -44,28 +44,28 @@ class event_ref {
   /// Disallow creation from `nullptr`
   event_ref(std::nullptr_t) = delete;
 
-  GPUCXX_FHC auto get() GPUCXX_CONST_NOEXCEPT -> deviceEvent_t {
+  GCXX_FHC auto get() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
     return event_;
   }
 
-  GPUCXX_CXPR operator deviceEvent_t() GPUCXX_CONST_NOEXCEPT { return get(); }
+  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT { return get(); }
 
-  GPUCXX_CXPR explicit operator bool() GPUCXX_CONST_NOEXCEPT {
+  GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT {
     return event_ != INVALID_EVENT;
   }
 
-  GPUCXX_CXPR friend auto operator==(const event_ref& lhs, const event_ref& rhs)
-    GPUCXX_NOEXCEPT->bool {
+  GCXX_CXPR friend auto operator==(const event_ref& lhs, const event_ref& rhs)
+    GCXX_NOEXCEPT->bool {
     return lhs.event_ == rhs.event_;
   }
 
-  GPUCXX_CXPR friend auto operator!=(const event_ref& lhs, const event_ref& rhs)
-    GPUCXX_NOEXCEPT->bool {
+  GCXX_CXPR friend auto operator!=(const event_ref& lhs, const event_ref& rhs)
+    GCXX_NOEXCEPT->bool {
     return !(lhs == rhs);
   }
 };
 
-GPUCXX_DETAILS_END_NAMESPACE
+GCXX_DETAILS_END_NAMESPACE
 
 #include <gpucxx/macros/undefine_macros.hpp>
 

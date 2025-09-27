@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_DETAILS_RUNTIME_ERROR_INL_
-#define GPUCXX_RUNTIME_DETAILS_RUNTIME_ERROR_INL_
+#ifndef GCXX_RUNTIME_DETAILS_RUNTIME_ERROR_INL_
+#define GCXX_RUNTIME_DETAILS_RUNTIME_ERROR_INL_
 
 
 #include <gpucxx/backend/backend.hpp>
@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <cstdlib>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
 namespace details_ {
 
@@ -21,7 +21,7 @@ namespace details_ {
               "  Location : %s:%4d\n"
               "  Function : %s\n"
               "  Error    : code = %4d (%s)\n",
-              GPUCXX_RUNTIME_BACKEND_STR, file, line, func,
+              GCXX_RUNTIME_BACKEND_STR, file, line, func,
               static_cast<unsigned int>(result), deviceGetErrorstring(result));
       exit(EXIT_FAILURE);
     }
@@ -29,14 +29,14 @@ namespace details_ {
 
   auto checkLastDeviceError(const char* errorMessage, const char* file,
                             const int line) -> void {
-    auto err = GPUCXX_RUNTIME_BACKEND(GetLastError)();
+    auto err = GCXX_RUNTIME_BACKEND(GetLastError)();
     if (err != deviceSuccess) {
       fprintf(stderr,
               "[%5s Last Error]\n"
               "  Location : %s:%4d\n"
               "  Function : %s\n"
               "  Error    : code = %4d (%s)\n",
-              GPUCXX_RUNTIME_BACKEND_STR, file, line, errorMessage,
+              GCXX_RUNTIME_BACKEND_STR, file, line, errorMessage,
               static_cast<int>(err), deviceGetErrorstring(err));
       exit(EXIT_FAILURE);
     }
@@ -44,19 +44,19 @@ namespace details_ {
 
   auto peekLastDeviceError(const char* errorMessage, const char* file,
                            const int line) -> void {
-    auto err = GPUCXX_RUNTIME_BACKEND(PeekAtLastError)();
+    auto err = GCXX_RUNTIME_BACKEND(PeekAtLastError)();
     if (err != deviceSuccess) {
       fprintf(stderr,
               "[%5s Peek Last Error]\n"
               "  Location : %s:%4d\n"
               "  Function : %s\n"
               "  Error    : code = %4d (%s)\n",
-              GPUCXX_RUNTIME_BACKEND_STR, file, line, errorMessage,
+              GCXX_RUNTIME_BACKEND_STR, file, line, errorMessage,
               static_cast<int>(err), deviceGetErrorstring(err));
     }
   }
 }  // namespace details_
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 #endif

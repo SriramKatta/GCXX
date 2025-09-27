@@ -1,78 +1,78 @@
 #pragma once
-#ifndef GPUCXX_MACROS_DEFINE_MACROS_HPP_
-#define GPUCXX_MACROS_DEFINE_MACROS_HPP_
+#ifndef GCXX_MACROS_DEFINE_MACROS_HPP_
+#define GCXX_MACROS_DEFINE_MACROS_HPP_
 
-#if defined(GPUCXX_CUDA_MODE) || defined(GPUCXX_HIP_MODE)
+#if defined(GCXX_CUDA_MODE) || defined(GCXX_HIP_MODE)
 
-#ifndef GPUCXX_H
-#define GPUCXX_H __host__
+#ifndef GCXX_H
+#define GCXX_H __host__
 #endif
 
-#ifndef GPUCXX_FH
-#define GPUCXX_FH __forceinline__ __host__
+#ifndef GCXX_FH
+#define GCXX_FH __forceinline__ __host__
 #endif
 
-#ifndef GPUCXX_FHC
-#define GPUCXX_FHC __forceinline__ __host__ constexpr
+#ifndef GCXX_FHC
+#define GCXX_FHC __forceinline__ __host__ constexpr
 #endif
 
-#ifndef GPUCXX_D
-#define GPUCXX_D __device__
+#ifndef GCXX_D
+#define GCXX_D __device__
 #endif
 
-#ifndef GPUCXX_FD
-#define GPUCXX_FD __forceinline__ __device__
+#ifndef GCXX_FD
+#define GCXX_FD __forceinline__ __device__
 #endif
 
-#ifndef GPUCXX_FDC
-#define GPUCXX_FDC __forceinline__ __device__ constexpr
+#ifndef GCXX_FDC
+#define GCXX_FDC __forceinline__ __device__ constexpr
 #endif
 
-#ifndef GPUCXX_HD
-#define GPUCXX_HD __host__ __device__
+#ifndef GCXX_HD
+#define GCXX_HD __host__ __device__
 #endif
 
-#ifndef GPUCXX_FHD
-#define GPUCXX_FHD __forceinline__ __host__ __device__
+#ifndef GCXX_FHD
+#define GCXX_FHD __forceinline__ __host__ __device__
 #endif
 
-#ifndef GPUCXX_FHDC
-#define GPUCXX_FHDC __forceinline__ __host__ __device__ constexpr
+#ifndef GCXX_FHDC
+#define GCXX_FHDC __forceinline__ __host__ __device__ constexpr
 #endif
 
-#ifndef GPUCXX_CXPR
-#define GPUCXX_CXPR constexpr
+#ifndef GCXX_CXPR
+#define GCXX_CXPR constexpr
 #endif
 
-#ifndef GPUCXX_NOEXCEPT
-#define GPUCXX_NOEXCEPT noexcept
+#ifndef GCXX_NOEXCEPT
+#define GCXX_NOEXCEPT noexcept
 #endif
 
 
-#ifndef GPUCXX_CONST_NOEXCEPT
-#define GPUCXX_CONST_NOEXCEPT const noexcept
+#ifndef GCXX_CONST_NOEXCEPT
+#define GCXX_CONST_NOEXCEPT const noexcept
 #endif
 
 using flag_t = unsigned int;
 
 
-#ifndef GPUCXX_BEGIN_NAMESPACE
-#define GPUCXX_BEGIN_NAMESPACE \
+#ifndef GCXX_BEGIN_NAMESPACE
+#define GCXX_BEGIN_NAMESPACE \
   namespace gcxx {             \
     inline namespace v1 {
-#define GPUCXX_END_NAMESPACE   \
+#define GCXX_END_NAMESPACE   \
   } /* inline namespace v1  */ \
   }  // namespace gcxx
 #endif
 
-#ifndef GPUCXX_DETAILS_BEGIN_NAMESPACE
-#define GPUCXX_DETAILS_BEGIN_NAMESPACE \
-  GPUCXX_BEGIN_NAMESPACE               \
+#ifndef GCXX_DETAILS_BEGIN_NAMESPACE
+#define GCXX_DETAILS_BEGIN_NAMESPACE \
+  GCXX_BEGIN_NAMESPACE               \
   namespace details_ {
-#define GPUCXX_DETAILS_END_NAMESPACE \
+#define GCXX_DETAILS_END_NAMESPACE \
   } /* namespace details_  */        \
-  GPUCXX_END_NAMESPACE
+  GCXX_END_NAMESPACE
 #endif
 
-#endif  // defined(GPUCXX_CUDA_MODE) || defined(GPUCXX_HIP_MODE)
+#endif  // defined(GCXX_CUDA_MODE) || defined(GCXX_HIP_MODE)
 #endif

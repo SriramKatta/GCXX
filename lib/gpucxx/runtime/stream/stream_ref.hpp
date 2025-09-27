@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_STREAM_STREAM_REF_HPP_
-#define GPUCXX_RUNTIME_STREAM_STREAM_REF_HPP_
+#ifndef GCXX_RUNTIME_STREAM_STREAM_REF_HPP_
+#define GCXX_RUNTIME_STREAM_STREAM_REF_HPP_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
@@ -11,21 +11,21 @@
 #include <gpucxx/runtime/event/event.hpp>
 
 
-GPUCXX_DETAILS_BEGIN_NAMESPACE
+GCXX_DETAILS_BEGIN_NAMESPACE
 // clang-format off
-using deviceStream_t                    = GPUCXX_RUNTIME_BACKEND(Stream_t);
+using deviceStream_t                    = GCXX_RUNTIME_BACKEND(Stream_t);
 inline static const auto NULL_STREAM    = reinterpret_cast<deviceStream_t>(0ULL); // NOLINT
 inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL); // NOLINT
 // clang-format on
-GPUCXX_DETAILS_END_NAMESPACE
+GCXX_DETAILS_END_NAMESPACE
 
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 class Event;
 
 class stream_ref {
  protected:
-  using deviceStream_t = GPUCXX_RUNTIME_BACKEND(Stream_t);
+  using deviceStream_t = GCXX_RUNTIME_BACKEND(Stream_t);
 
  public:
   constexpr stream_ref(deviceStream_t rawStream) noexcept : stream_(rawStream) {}
@@ -34,23 +34,23 @@ class stream_ref {
   stream_ref(int)            = delete;
   stream_ref(std::nullptr_t) = delete;
 
-  GPUCXX_FH constexpr auto get() GPUCXX_CONST_NOEXCEPT -> deviceStream_t {
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT -> deviceStream_t {
     return stream_;
   }
 
-  GPUCXX_FH constexpr operator deviceStream_t() GPUCXX_CONST_NOEXCEPT {
+  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT {
     return get();
   }
 
-  GPUCXX_FH auto HasPendingWork() -> bool;
+  GCXX_FH auto HasPendingWork() -> bool;
 
-  GPUCXX_FH auto Synchronize() const -> void;
+  GCXX_FH auto Synchronize() const -> void;
 
-  GPUCXX_FH auto WaitOnEvent(
+  GCXX_FH auto WaitOnEvent(
     const details_::event_ref& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
-  GPUCXX_FH auto recordEvent(
+  GCXX_FH auto recordEvent(
     const flags::eventCreate createflag = flags::eventCreate::none,
     const flags::eventRecord recordFlag = flags::eventRecord::none) const
     -> Event;
@@ -60,7 +60,7 @@ class stream_ref {
   deviceStream_t stream_{details_::NULL_STREAM};  // NOLINT
 };
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 
 #include <gpucxx/macros/undefine_macros.hpp>

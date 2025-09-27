@@ -1,29 +1,29 @@
 // #pragma once
-// #ifndef GPUCXX_MACROS_UNDEFINE_MACROS_HPP_
-// #define GPUCXX_MACROS_UNDEFINE_MACROS_HPP_
+// #ifndef GCXX_MACROS_UNDEFINE_MACROS_HPP_
+// #define GCXX_MACROS_UNDEFINE_MACROS_HPP_
 
-// #ifdef GPUCXX_H
-// #undef GPUCXX_H
+// #ifdef GCXX_H
+// #undef GCXX_H
 // #endif
 
-// #ifdef GPUCXX_FH
-// #undef GPUCXX_FH
+// #ifdef GCXX_FH
+// #undef GCXX_FH
 // #endif
 
-// #ifdef GPUCXX_D
-// #undef GPUCXX_D
+// #ifdef GCXX_D
+// #undef GCXX_D
 // #endif
 
-// #ifdef GPUCXX_FD
-// #undef GPUCXX_FD
+// #ifdef GCXX_FD
+// #undef GCXX_FD
 // #endif
 
-// #ifdef GPUCXX_HD
-// #undef GPUCXX_HD
+// #ifdef GCXX_HD
+// #undef GCXX_HD
 // #endif
 
-// #ifdef GPUCXX_FHD
-// #undef GPUCXX_FHD
+// #ifdef GCXX_FHD
+// #undef GCXX_FHD
 // #endif
 
 // #endif

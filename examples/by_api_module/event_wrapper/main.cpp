@@ -22,11 +22,11 @@ int main() {
 
   // auto res = cudaEventQuery(end_event); // an error because Event is a owning reference and cannot be cast to raw event
   gcxx::event_ref end_event_ref = end_event;
-  auto res = GPUCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
+  auto res = GCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
 
-  if (res == GPUCXX_RUNTIME_BACKEND(Success)) {
+  if (res == GCXX_RUNTIME_BACKEND(Success)) {
     fmt::print("Event query successful.\n");
-  } else if (res == GPUCXX_RUNTIME_BACKEND(ErrorNotReady)) {
+  } else if (res == GCXX_RUNTIME_BACKEND(ErrorNotReady)) {
     fmt::print("Event not ready.\n");
   } else {
     fmt::print("Event query failed with error code: {}\n",

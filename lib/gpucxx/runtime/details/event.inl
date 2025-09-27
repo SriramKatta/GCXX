@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GPUCXX_RUNTIME_DETAILS_EVENT_INL_
-#define GPUCXX_RUNTIME_DETAILS_EVENT_INL_
+#ifndef GCXX_RUNTIME_DETAILS_EVENT_INL_
+#define GCXX_RUNTIME_DETAILS_EVENT_INL_
 
 #include <gpucxx/backend/backend.hpp>
 #include <gpucxx/macros/define_macros.hpp>
@@ -9,28 +9,28 @@
 
 #include <utility>
 
-GPUCXX_BEGIN_NAMESPACE
+GCXX_BEGIN_NAMESPACE
 
-GPUCXX_FH Event::Event(const flags::eventCreate createFlag)
+GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : event_ref(details_::INVALID_EVENT) {
-  GPUCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags,
+  GCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags,
                            (&event_, static_cast<flag_t>(createFlag)));
 }
 
-GPUCXX_FH Event::~Event() {
+GCXX_FH Event::~Event() {
   if (event_ != details_::INVALID_EVENT) {
-    GPUCXX_SAFE_RUNTIME_CALL(EventDestroy, (event_));
+    GCXX_SAFE_RUNTIME_CALL(EventDestroy, (event_));
   }
 }
 
-GPUCXX_FH auto Event::release() GPUCXX_NOEXCEPT -> event_ref {
+GCXX_FH auto Event::release() GCXX_NOEXCEPT -> event_ref {
   auto oldEvent = event_;
   event_        = details_::INVALID_EVENT;
   return {oldEvent};
 }
 
 // Implementation of recordEvent to break circular dependency
-GPUCXX_FH auto stream_ref::recordEvent(
+GCXX_FH auto stream_ref::recordEvent(
   const flags::eventCreate createflag,
   const flags::eventRecord recordFlag) const -> Event {
   Event event(createflag);
@@ -38,7 +38,7 @@ GPUCXX_FH auto stream_ref::recordEvent(
   return event;
 }
 
-GPUCXX_END_NAMESPACE
+GCXX_END_NAMESPACE
 
 
 #endif
