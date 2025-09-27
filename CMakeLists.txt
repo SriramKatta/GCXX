@@ -30,8 +30,8 @@ option(GCXX_BUILD_TESTS "Enables building of tests" OFF)
 
 # basically XOR(GCXX_CUDA_MODE, GCXX_HIP_MODE); since only one mode can be
 # active at a time
-if((GCXX_CUDA_MODE AND GCXX_HIP_MODE) OR (NOT GCXX_CUDA_MODE
-                                              AND NOT GCXX_HIP_MODE)
+if((GCXX_CUDA_MODE AND GCXX_HIP_MODE) OR (NOT GCXX_CUDA_MODE AND NOT
+                                                                 GCXX_HIP_MODE)
 )
   message(
     FATAL_ERROR
