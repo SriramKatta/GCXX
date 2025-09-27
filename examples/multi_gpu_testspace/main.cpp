@@ -1,14 +1,21 @@
 #include <gpucxx/api.hpp>
+#include <vector>
+#include <fmt/format.h>
 
 int main() {
   int numdevices = 0;
   GPUCXX_SAFE_RUNTIME_CALL(GetDeviceCount, (&numdevices));
 
-  GPUCXX_SAFE_RUNTIME_CALL(SetDevice, (0));
-  auto str1 = gcxx::Stream::Create();
-  GPUCXX_SAFE_RUNTIME_CALL(SetDevice, (1));
-  auto str2 = gcxx::Stream::Create();
-  //	str2.destroy();
-  //      str1.destroy();
+  fmt::print("numdevices : {}\n", numdevices);
+
+  std::vector<gcxx::Stream> streams;
+  streams.reserve(numdevices);
+
+  for (int i = 0; i < numdevices; ++i) {
+    GPUCXX_SAFE_RUNTIME_CALL(SetDevice, (i));
+    streams.emplace_back(gcxx::flags::streamType::nullStream,
+                         gcxx::flags::streamPriority::veryLow);
+  }
+
   return 0;
 }
