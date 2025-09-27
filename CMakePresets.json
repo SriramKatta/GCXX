@@ -61,7 +61,7 @@
       },
       "output": {
         "outputOnFailure": true,
-        "verbosity": "extra"
+        "verbosity": "default"
       },
       "execution": {
         "jobs": 0
