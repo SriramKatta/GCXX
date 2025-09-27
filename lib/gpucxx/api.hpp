@@ -19,4 +19,8 @@
 #include <gpucxx/runtime/stream.hpp>
 
 
+//section for memory API
+#include <gpucxx/runtime/span/span.hpp>
+
+
 #endif
