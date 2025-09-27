@@ -28,9 +28,14 @@ class Event : public event_ref {
 
   Event& operator=(const Event&) = delete;
 
-  GPUCXX_FH Event(Event&& other) noexcept;
+  GPUCXX_FH Event(Event&& other) noexcept
+      : event_ref(std::exchange(other.event_, details_::INVALID_EVENT)) {}
 
-  GPUCXX_FH Event operator=(Event&& other) noexcept;
+  GPUCXX_FH auto operator=(Event&& other) noexcept -> Event& {
+    if (this != &other)
+      this->event_ = std::exchange(other.event_, details_::INVALID_EVENT);
+    return *this;
+  }
 
   GPUCXX_FH auto release() GPUCXX_NOEXCEPT -> event_ref;
 
