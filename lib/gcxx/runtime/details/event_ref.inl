@@ -42,7 +42,7 @@ GCXX_FH auto event_ref::ElapsedTimeSince(const event_ref& startEvent) const
   this->Synchronize();
   float ms{};
   GCXX_SAFE_RUNTIME_CALL(EventElapsedTime,
-                           (&ms, startEvent.get(), this->get()));
+                         (&ms, startEvent.get(), this->get()));
   return details_::ConvertDuration<DurationT>(ms);
 }
 

@@ -1,6 +1,6 @@
+#include <fmt/format.h>
 #include <gcxx/api.hpp>
 #include <vector>
-#include <fmt/format.h>
 
 int main() {
   int numdevices = 0;

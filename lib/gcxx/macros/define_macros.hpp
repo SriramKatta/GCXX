@@ -58,9 +58,9 @@ using flag_t = unsigned int;
 
 #ifndef GCXX_BEGIN_NAMESPACE
 #define GCXX_BEGIN_NAMESPACE \
-  namespace gcxx {             \
+  namespace gcxx {           \
     inline namespace v1 {
-#define GCXX_END_NAMESPACE   \
+#define GCXX_END_NAMESPACE     \
   } /* inline namespace v1  */ \
   }  // namespace gcxx
 #endif
@@ -70,7 +70,7 @@ using flag_t = unsigned int;
   GCXX_BEGIN_NAMESPACE               \
   namespace details_ {
 #define GCXX_DETAILS_END_NAMESPACE \
-  } /* namespace details_  */        \
+  } /* namespace details_  */      \
   GCXX_END_NAMESPACE
 #endif
 

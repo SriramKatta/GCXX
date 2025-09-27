@@ -1,9 +1,10 @@
 #include <type_traits>
 
 #include <gtest/gtest.h>
-#include <gcxx/runtime/event/event_base.hpp>
+#include <gcxx/runtime/event.hpp>
 
-using namespace gcxx::details_;  //since no other file includes this
+using namespace gcxx;  //okay, since no other file includes this
+using details_::deviceEvent_t;
 
 // Parameterized fixture
 class EventRefParameterizedTest
@@ -22,7 +23,7 @@ TEST_P(EventRefParameterizedTest, ConstructAndGet) {
   event_ref e(raw);
 
   EXPECT_EQ(e.get(), raw);
-  if (raw == INVALID_EVENT) {
+  if (raw == details_::INVALID_EVENT) {
     EXPECT_FALSE(static_cast<bool>(e));
   } else {
     EXPECT_TRUE(static_cast<bool>(e));
@@ -57,7 +58,7 @@ TEST_P(EventRefParameterizedTest, EqualityAndInequality) {
 TEST(EventRefStandaloneTest, DefaultConstructorCreatesInvalidEvent) {
   event_ref e;
   EXPECT_FALSE(static_cast<bool>(e));
-  EXPECT_EQ(e.get(), INVALID_EVENT);
+  EXPECT_EQ(e.get(), details_::INVALID_EVENT);
 }
 
 TEST(EventRefStandaloneTest, DeletedConstructors) {

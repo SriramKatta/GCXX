@@ -35,8 +35,8 @@ class event_ref {
   *
   * @param device_event device event to be handled
   */
-  GCXX_CXPR event_ref(deviceEvent_t rawEvent) GCXX_NOEXCEPT
-      : event_(rawEvent) {}
+  GCXX_CXPR event_ref(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {
+  }
 
   /// Disallow creation from `int`
   event_ref(int) = delete;
@@ -44,9 +44,7 @@ class event_ref {
   /// Disallow creation from `nullptr`
   event_ref(std::nullptr_t) = delete;
 
-  GCXX_FHC auto get() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
-    return event_;
-  }
+  GCXX_FHC auto get() GCXX_CONST_NOEXCEPT -> deviceEvent_t { return event_; }
 
   GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT { return get(); }
 
@@ -54,13 +52,13 @@ class event_ref {
     return event_ != INVALID_EVENT;
   }
 
-  GCXX_CXPR friend auto operator==(const event_ref& lhs, const event_ref& rhs)
-    GCXX_NOEXCEPT->bool {
+  GCXX_CXPR friend auto operator==(const event_ref& lhs,
+                                   const event_ref& rhs) GCXX_NOEXCEPT->bool {
     return lhs.event_ == rhs.event_;
   }
 
-  GCXX_CXPR friend auto operator!=(const event_ref& lhs, const event_ref& rhs)
-    GCXX_NOEXCEPT->bool {
+  GCXX_CXPR friend auto operator!=(const event_ref& lhs,
+                                   const event_ref& rhs) GCXX_NOEXCEPT->bool {
     return !(lhs == rhs);
   }
 };

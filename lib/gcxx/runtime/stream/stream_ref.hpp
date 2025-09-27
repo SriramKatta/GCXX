@@ -28,7 +28,8 @@ class stream_ref {
   using deviceStream_t = GCXX_RUNTIME_BACKEND(Stream_t);
 
  public:
-  constexpr stream_ref(deviceStream_t rawStream) noexcept : stream_(rawStream) {}
+  constexpr stream_ref(deviceStream_t rawStream) noexcept
+      : stream_(rawStream) {}
 
   stream_ref()               = delete;
   stream_ref(int)            = delete;

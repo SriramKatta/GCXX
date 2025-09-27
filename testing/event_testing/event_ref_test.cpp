@@ -5,14 +5,10 @@
 using namespace gcxx;
 
 class EventTest : public ::testing::Test {
-protected:
-  void SetUp() override {
-    GCXX_SAFE_RUNTIME_CALL(StreamCreate, (&stream_));
-  }
+ protected:
+  void SetUp() override { GCXX_SAFE_RUNTIME_CALL(StreamCreate, (&stream_)); }
 
-  void TearDown() override {
-    GCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
-  }
+  void TearDown() override { GCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_)); }
 
   GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
 };
@@ -21,7 +17,7 @@ TEST_F(EventTest, ConstructAndDestroy) {
   {
     Event e;
     EXPECT_NE(e.get(), nullptr);
-  } // auto destroyed here
+  }  // auto destroyed here
 }
 
 TEST_F(EventTest, CreateFactory) {

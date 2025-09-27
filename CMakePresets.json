@@ -37,28 +37,45 @@
   ],
   "buildPresets": [
     {
+      "name": "build_base",
+      "hidden": true,
+      "jobs": 0
+    },
+    {
       "name": "build_cuda",
       "configurePreset": "configure-Release-cuda",
-      "jobs": 0
+      "inherits": "build_base"
     },
     {
       "name": "build_hip",
       "configurePreset": "configure-Release-hip",
-      "jobs": 0
+      "inherits": "build_base"
     }
   ],
   "testPresets": [
     {
+      "hidden": true,
+      "name": "test_base",
+      "environment": {
+        "GTEST_COLOR": "1"
+      },
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "extra"
+      },
+      "execution": {
+        "jobs": 0
+      }
+    },
+    {
       "name": "test_cuda",
       "configurePreset": "configure-Release-cuda",
-      "output": {"outputOnFailure": true},
-      "execution": {"jobs": 0}
+      "inherits": "test_base"
     },
     {
       "name": "test_hip",
       "configurePreset": "configure-Release-hip",
-      "output": {"outputOnFailure": true},
-      "execution": {"jobs": 0}
+      "inherits": "test_base"
     }
   ]
 }

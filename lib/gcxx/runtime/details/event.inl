@@ -14,7 +14,7 @@ GCXX_BEGIN_NAMESPACE
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : event_ref(details_::INVALID_EVENT) {
   GCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags,
-                           (&event_, static_cast<flag_t>(createFlag)));
+                         (&event_, static_cast<flag_t>(createFlag)));
 }
 
 GCXX_FH Event::~Event() {
@@ -30,9 +30,9 @@ GCXX_FH auto Event::release() GCXX_NOEXCEPT -> event_ref {
 }
 
 // Implementation of recordEvent to break circular dependency
-GCXX_FH auto stream_ref::recordEvent(
-  const flags::eventCreate createflag,
-  const flags::eventRecord recordFlag) const -> Event {
+GCXX_FH auto stream_ref::recordEvent(const flags::eventCreate createflag,
+                                     const flags::eventRecord recordFlag) const
+  -> Event {
   Event event(createflag);
   event.RecordInStream(this->get(), recordFlag);
   return event;

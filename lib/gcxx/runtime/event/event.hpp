@@ -14,8 +14,7 @@ class Event : public event_ref {
   GCXX_FH auto destroy() -> void;
 
  public:
-  GCXX_FH Event(
-    const flags::eventCreate createFlag = flags::eventCreate::none);
+  GCXX_FH Event(const flags::eventCreate createFlag = flags::eventCreate::none);
 
   GCXX_FH static auto Create(
     const flags::eventCreate createFlag = flags::eventCreate::none) -> Event {
