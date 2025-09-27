@@ -57,9 +57,6 @@ class event_ref : public details_::event_ref {
   /// Delete constructor from `nullptr`
   event_ref(std::nullptr_t) = delete;
 
-  
-
-
   GPUCXX_FH auto HasOccurred() const -> bool;
 
   GPUCXX_FH auto Synchronize() const -> void;
