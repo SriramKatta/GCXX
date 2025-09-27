@@ -24,7 +24,6 @@ class event_ref {
   deviceEvent_t event_{INVALID_EVENT};  // NOLINT
 
  public:
-  using deviceEvent_t = GPUCXX_RUNTIME_BACKEND(Event_t);
   /**
    * @brief Default construct a new event base object
    *
