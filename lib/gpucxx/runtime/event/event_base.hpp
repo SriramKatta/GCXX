@@ -35,7 +35,7 @@ class event_ref {
   *
   * @param device_event device event to be handled
   */
-  GPUCXX_CXPR event_ref(deviceEvent_t __evt) GPUCXX_NOEXCEPT : event_(__evt) {}
+  GPUCXX_CXPR event_ref(deviceEvent_t rawEvent) GPUCXX_NOEXCEPT : event_(rawEvent) {}
 
   /// Disallow creation from `int`
   event_ref(int) = delete;
