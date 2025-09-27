@@ -84,7 +84,6 @@ if(GPUCXX_BUILD_BENCHMARKS)
 endif()
 
 if(GPUCXX_BUILD_TESTS)
-  include(GTest.cmake)
   include(CTest)
   enable_testing()
   add_subdirectory(testing)
