@@ -1,7 +1,7 @@
 set(LIB_INTERNAL_NAME gpu_cxx)
 
 add_library(${LIB_INTERNAL_NAME} INTERFACE)
-add_library(gpucxx::gpucxx ALIAS ${LIB_INTERNAL_NAME})
+add_library(gcxx::gcxx ALIAS ${LIB_INTERNAL_NAME})
 target_include_directories(
   ${LIB_INTERNAL_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 )

@@ -1,7 +1,7 @@
 #include <fmt/chrono.h>  // needed to print the chrono durations
 #include <fmt/format.h>
 #include <array>
-#include <gpucxx/runtime/event.hpp>
+#include <gcxx/runtime/event.hpp>
 
 void eve_ref_check(gcxx::event_ref event) {
   if (event.HasOccurred()) {

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <gpucxx/runtime/event/event.hpp>
-#include <gpucxx/runtime/stream/stream_ref.hpp>
+#include <gcxx/runtime/event/event.hpp>
+#include <gcxx/runtime/stream/stream_ref.hpp>
 
 using namespace gcxx;
 

@@ -1,7 +1,7 @@
 #include <type_traits>
 
 #include <gtest/gtest.h>
-#include <gpucxx/runtime/event/event_base.hpp>
+#include <gcxx/runtime/event/event_base.hpp>
 
 using namespace gcxx::details_;  //since no other file includes this
 

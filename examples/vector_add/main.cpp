@@ -1,5 +1,5 @@
 #include <fmt/format.h>
-#include <gpucxx/api.hpp>
+#include <gcxx/api.hpp>
 
 __global__ void kernel_scalar(size_t N, double* a) {
   int start  = threadIdx.x + blockDim.x * blockIdx.x;

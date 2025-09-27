@@ -1,7 +1,7 @@
 ---
 Checks:          'clang-diagnostic-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,-modernize-use-trailing-return-type'
 WarningsAsErrors: true
-HeaderFilterRegex: './lib/gpucxx/*'
+HeaderFilterRegex: './lib/gcxx/*'
 FormatStyle: Google
 CheckOptions:
   - key:             cert-dcl16-c.NewSuffixes

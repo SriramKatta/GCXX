@@ -1,4 +1,4 @@
-#include <gpucxx/runtime/stream.hpp>
+#include <gcxx/runtime/stream.hpp>
 #include <iostream>
 
 namespace gflags = gcxx::flags;
