@@ -66,6 +66,12 @@ set(CMAKE_${GCXX_GPU_LANG}_STANDARD 17)
 set(CMAKE_${GCXX_GPU_LANG}_EXTENSIONS OFF)
 set(CMAKE_${GCXX_GPU_LANG}_STANDARD_REQUIRED ON)
 
+if(GCXX_CUDA_MODE)
+  find_package(CUDAToolkit REQUIRED)
+elseif(GCXX_HIP_MODE)
+  # TODO add hip specific stuffs
+endif()
+
 include(cmake/CPM.cmake)
 
 if(GCXX_TOPLEVEL_PROJECT)
