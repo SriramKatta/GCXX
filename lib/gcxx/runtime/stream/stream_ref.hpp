@@ -25,7 +25,7 @@ class Event;
 
 class stream_ref {
  protected:
-  using deviceStream_t = GCXX_RUNTIME_BACKEND(Stream_t);
+  using deviceStream_t = details_::deviceStream_t;
 
  public:
   constexpr stream_ref(deviceStream_t rawStream) noexcept

@@ -8,10 +8,8 @@
 
 
 GCXX_DETAILS_BEGIN_NAMESPACE
-// clang-format off
-  using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
-  inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
-// clang-format on
+using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
+inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
 
 /**
  * @brief Base class for GPU events
@@ -21,6 +19,7 @@ GCXX_DETAILS_BEGIN_NAMESPACE
  */
 class event_ref {
  protected:
+  using deviceEvent_t = details_::deviceEvent_t;
   deviceEvent_t event_{INVALID_EVENT};  // NOLINT
 
  public:
@@ -28,7 +27,7 @@ class event_ref {
    * @brief Default construct a new event base object
    *
    */
-  event_ref() = default;
+  GCXX_CXPR event_ref() = default;
 
   /**
   * @brief Construct a new event base object from raw device event
