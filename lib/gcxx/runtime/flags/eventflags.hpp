@@ -16,7 +16,7 @@ namespace flags {
                    GCXX_RUNTIME_BACKEND(EventDisableTiming),
   };
 
-  eventCreate operator|(const eventCreate& lhs, const eventCreate& rhs) {
+  inline eventCreate operator|(const eventCreate& lhs, const eventCreate& rhs) {
     return static_cast<eventCreate>(static_cast<flag_t>(lhs) |
                                     static_cast<flag_t>(rhs));
   }
