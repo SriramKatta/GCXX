@@ -3,8 +3,7 @@
 #include <gtest/gtest.h>
 #include <gcxx/runtime/event.hpp>
 
-using namespace gcxx;  //okay, since no other file includes this
-using details_::deviceEvent_t;
+using namespace gcxx::details_;  //okay, since no other file includes this
 
 // Parameterized fixture
 class EventRefParameterizedTest
@@ -23,7 +22,7 @@ TEST_P(EventRefParameterizedTest, ConstructAndGet) {
   event_ref e(raw);
 
   EXPECT_EQ(e.get(), raw);
-  if (raw == details_::INVALID_EVENT) {
+  if (raw == INVALID_EVENT) {
     EXPECT_FALSE(static_cast<bool>(e));
   } else {
     EXPECT_TRUE(static_cast<bool>(e));
@@ -58,7 +57,7 @@ TEST_P(EventRefParameterizedTest, EqualityAndInequality) {
 TEST(EventRefStandaloneTest, DefaultConstructorCreatesInvalidEvent) {
   event_ref e;
   EXPECT_FALSE(static_cast<bool>(e));
-  EXPECT_EQ(e.get(), details_::INVALID_EVENT);
+  EXPECT_EQ(e.get(), INVALID_EVENT);
 }
 
 TEST(EventRefStandaloneTest, DeletedConstructors) {

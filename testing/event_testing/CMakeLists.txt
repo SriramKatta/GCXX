@@ -1,14 +1,5 @@
-if(BUILD_TESTING)
-  add_executable(test_event_base event_base_test.cpp)
-  target_link_libraries(test_event_base PRIVATE gcxx::gcxx)
-  target_link_libraries(test_event_base PRIVATE GTest::gtest_main)
-  include(GoogleTest)
-  gtest_discover_tests(test_event_base)
+set(SRC_BASE_NAMES test_event_base test_event_ref test_event)
 
-  add_executable(test_event_ref event_ref_test.cpp)
-  target_link_libraries(test_event_ref PRIVATE gcxx::gcxx)
-  target_link_libraries(test_event_ref PRIVATE GTest::gtest_main)
-  include(GoogleTest)
-  gtest_discover_tests(test_event_ref)
-
-endif()
+foreach(SRC_BASE_NAME IN LISTS SRC_BASE_NAMES)
+  add_gcxx_test(${SRC_BASE_NAME})
+endforeach()

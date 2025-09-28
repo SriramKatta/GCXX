@@ -12,7 +12,7 @@
     },
     {
       "name": "configure-Release-cuda",
-      "displayName": "Release (CUDA)",
+      "displayName": "Release (CUDA Examples)",
       "inherits": "base-config",
       "binaryDir": "${sourceDir}/build/cuda",
       "cacheVariables": {
@@ -23,7 +23,7 @@
     },
     {
       "name": "configure-Release-hip",
-      "displayName": "Release (HIP)",
+      "displayName": "Release (HIP Examples)",
       "inherits": "base-config",
       "binaryDir": "${sourceDir}/build/hip",
       "cacheVariables": {
@@ -34,19 +34,21 @@
     },
     {
       "name": "configure-Release-cuda-tests",
-      "displayName": "Release (CUDA + Tests)",
-      "inherits": "configure-Release-cuda",
+      "displayName": "Release (CUDA Tests)",
+      "inherits": "base-config",
       "binaryDir": "${sourceDir}/build/cuda-tests",
       "cacheVariables": {
+        "GCXX_CUDA_MODE": "ON",
         "GCXX_BUILD_TESTS": "ON"
       }
     },
     {
       "name": "configure-Release-hip-tests",
-      "displayName": "Release (HIP + Tests)",
-      "inherits": "configure-Release-hip",
+      "displayName": "Release (HIP Tests)",
+      "inherits": "base-config",
       "binaryDir": "${sourceDir}/build/hip-tests",
       "cacheVariables": {
+        "GCXX_HIP_MODE": "ON",
         "GCXX_BUILD_TESTS": "ON"
       }
     }
