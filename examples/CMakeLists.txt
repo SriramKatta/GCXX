@@ -6,6 +6,7 @@ set(CMAKE_CUDA_ARCHITECTURES 80 86 # 87 89 90
 )
 
 include(cmake/fmt.cmake)
+include(cmake/argparse.cmake)
 
 add_subdirectory(by_api_module)
 add_subdirectory(vector_add)
