@@ -27,5 +27,5 @@ if(GCXX_CUDA_MODE)
     ${LIB_INTERNAL_NAME} PROPERTIES CMKAE_CUDA_SEPRABLE_COMPILATION ON
   )
 elseif(GCXX_HIP_MODE)
-  # test
+  target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE hip::device)
 endif()
