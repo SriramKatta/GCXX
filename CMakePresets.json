@@ -7,8 +7,7 @@
       "generator": "Unix Makefiles",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "USE_STATIC_ANALYZER" : "iwyu"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
