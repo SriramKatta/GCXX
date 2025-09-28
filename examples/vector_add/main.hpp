@@ -15,22 +15,22 @@ struct Args {
 inline Args parse_args(int argc, char** argv) {
   argparse::ArgumentParser program("vector_add");
 
-  program.add_argument("N")
+  program.add_argument("-N", "--num-entries")
     .help("Number of elements")
     .default_value<size_t>(32'000'000)
     .scan<'i', std::size_t>(); 
 
-  program.add_argument("rep")
+  program.add_argument("-R","--reps")
     .help("Number of kernel repetitions")
     .default_value<size_t>(10)
     .scan<'i', std::size_t>();
 
-  program.add_argument("blocks")
+  program.add_argument("-B","--blocks")
     .help("Number of blocks")
     .default_value<size_t>(3456)
     .scan<'i', std::size_t>();
 
-  program.add_argument("threads")
+  program.add_argument("-T", "--threads")
     .help("Threads per block")
     .default_value<size_t>(256)
     .scan<'i', std::size_t>();
@@ -45,7 +45,7 @@ inline Args parse_args(int argc, char** argv) {
 
   return {
     program.get<size_t>("N"),
-    program.get<size_t>("rep"),
+    program.get<size_t>("reps"),
     program.get<size_t>("blocks"),
     program.get<size_t>("threads")
   };
