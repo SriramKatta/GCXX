@@ -24,8 +24,8 @@ set_target_properties(
 if(GCXX_CUDA_MODE)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)
   set_target_properties(
-    ${LIB_INTERNAL_NAME} PROPERTIES CMKAE_CUDA_SEPRABLE_COMPILATION ON
+    ${LIB_INTERNAL_NAME} PROPERTIES CMAKE_CUDA_SEPRABLE_COMPILATION ON
   )
 elseif(GCXX_HIP_MODE)
-  target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE hip::device)
+  target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE hip::host)
 endif()
