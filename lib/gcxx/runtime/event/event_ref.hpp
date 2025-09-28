@@ -65,9 +65,8 @@ class event_ref : public details_::event_ref {
   GCXX_FH auto ElapsedTimeSince(const event_ref& startEvent) const -> DurationT;
 
   template <typename DurationT = details_::milliSec>
-  GCXX_FH static auto ElapsedTimeBetween(const event_ref& startEvent,
-                                         const event_ref& endEvent)
-    -> DurationT {
+  GCXX_FH static auto ElapsedTimeBetween(
+    const event_ref& startEvent, const event_ref& endEvent) -> DurationT {
     return endEvent.ElapsedTimeSince<DurationT>(startEvent);
   }
 };

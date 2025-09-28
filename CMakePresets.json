@@ -18,7 +18,6 @@
       "cacheVariables": {
         "GCXX_CUDA_MODE": "ON",
         "GCXX_BUILD_EXAMPLES": "ON",
-        "GCXX_BUILD_TESTS": "ON",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/cudabin"
       }
     },
@@ -30,8 +29,25 @@
       "cacheVariables": {
         "GCXX_HIP_MODE": "ON",
         "GCXX_BUILD_EXAMPLES": "ON",
-        "GCXX_BUILD_TESTS": "ON",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin"
+      }
+    },
+    {
+      "name": "configure-Release-cuda-tests",
+      "displayName": "Release (CUDA + Tests)",
+      "inherits": "configure-Release-cuda",
+      "binaryDir": "${sourceDir}/build/cuda-tests",
+      "cacheVariables": {
+        "GCXX_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "configure-Release-hip-tests",
+      "displayName": "Release (HIP + Tests)",
+      "inherits": "configure-Release-hip",
+      "binaryDir": "${sourceDir}/build/hip-tests",
+      "cacheVariables": {
+        "GCXX_BUILD_TESTS": "ON"
       }
     }
   ],
@@ -49,6 +65,16 @@
     {
       "name": "build_hip",
       "configurePreset": "configure-Release-hip",
+      "inherits": "build_base"
+    },
+    {
+      "name": "build_cuda_tests",
+      "configurePreset": "configure-Release-cuda-tests",
+      "inherits": "build_base"
+    },
+    {
+      "name": "build_hip_tests",
+      "configurePreset": "configure-Release-hip-tests",
       "inherits": "build_base"
     }
   ],
@@ -69,12 +95,12 @@
     },
     {
       "name": "test_cuda",
-      "configurePreset": "configure-Release-cuda",
+      "configurePreset": "configure-Release-cuda-tests",
       "inherits": "test_base"
     },
     {
       "name": "test_hip",
-      "configurePreset": "configure-Release-hip",
+      "configurePreset": "configure-Release-hip-tests",
       "inherits": "test_base"
     }
   ]

@@ -8,8 +8,8 @@
 #include <gcxx/runtime/stream.hpp>
 
 GCXX_DETAILS_BEGIN_NAMESPACE
-GCXX_FH auto copy(void* dst, const void* src, const std::size_t countinBytes)
-  -> void {
+GCXX_FH auto copy(void* dst, const void* src,
+                  const std::size_t countinBytes) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     Memcpy, (dst, src, countinBytes, GCXX_RUNTIME_BACKEND(MemcpyDefault)));
 }
@@ -30,8 +30,8 @@ namespace memory {
 
 
   template <typename VT>
-  GCXX_FH auto copy(VT* dst, const VT* src, const std::size_t numElements)
-    -> void {
+  GCXX_FH auto copy(VT* dst, const VT* src,
+                    const std::size_t numElements) -> void {
     details_::copy(static_cast<void*>(dst), static_cast<const void*>(src),
                    numElements * sizeof(VT));
   }
