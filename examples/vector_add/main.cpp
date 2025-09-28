@@ -33,10 +33,10 @@ int main(int argc, char** argv) {
 
   std::memset(h_a, 0, sizeInBytes);
 
-  gcxx::Stream str(gcxx::flags::streamType::nullStream);
+  gcxx::Stream str(gcxx::flags::streamType::syncWithNull);
 
   auto H2Dstart = str.recordEvent();
-  gcxx::memory::copy(d_a, h_a, arg.N);
+  gcxx::memory::copy(d_a, h_a, arg.N, str);
   auto H2Dend = str.recordEvent();
 
   GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, ());
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
   str.Synchronize();
   auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
-    launch_scalar_kernel(arg, str, arg.N, d_a);
+    launch_vec4_kernel(arg, str, arg.N, d_a);
   }
   auto kernelend = str.recordEvent();
 
@@ -52,8 +52,10 @@ int main(int argc, char** argv) {
   // GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
 
   auto D2Hstart = str.recordEvent();
-  gcxx::memory::copy(h_a, d_a, arg.N);
+  gcxx::memory::copy(h_a, d_a, arg.N, str);
   auto D2Hend = str.recordEvent();
+
+  str.Synchronize();
 
   checkdata(arg.N, h_a, static_cast<double>(arg.N));
 
@@ -64,8 +66,8 @@ int main(int argc, char** argv) {
   double arraySizeinGbytes = static_cast<double>(arg.N * sizeof(double)) / 1e9;
   double transfer_size = arraySizeinGbytes * 2.0 * static_cast<double>(arg.rep);
 
-  fmt::print("{} {}\n{} {}\n{} {}\n", kerneltime, arraySizeinGbytes / kerneltime,
-             Dtohtime, transfer_size / Dtohtime, HtoDtime,
+  fmt::print("{} {}\n{} {}\n{} {}\n", kerneltime, transfer_size / kerneltime,
+             Dtohtime, arraySizeinGbytes / Dtohtime, HtoDtime,
              arraySizeinGbytes / HtoDtime);
 
   GCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));

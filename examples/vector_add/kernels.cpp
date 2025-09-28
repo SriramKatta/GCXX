@@ -34,9 +34,12 @@ __global__ void kernel_4vec(size_t N, double* a) {
     a4->z       = a4->z + 1.0;
     a4->w       = a4->w + 1.0;
   }
+  // in only one thread, process final elements (if there are any)
   int remainder = N % 4;
-  if (start < remainder) {
-    a[N - remainder + start] += 1.0;
+  if (start == N / 4 && remainder != 0) {
+    while (remainder) {
+      a[N - remainder + start] += 1.0;
+    }
   }
 }
 
