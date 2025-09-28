@@ -64,8 +64,8 @@ int main(int argc, char** argv) {
   double arraySizeinGbytes = static_cast<double>(arg.N * sizeof(double)) / 1e9;
   double transfer_size = arraySizeinGbytes * 2.0 * static_cast<double>(arg.rep);
 
-  fmt::print("{} {}\n{} {}\n{} {}\n", kerneltime, transfer_size / kerneltime,
-             Dtohtime, arraySizeinGbytes / Dtohtime, HtoDtime,
+  fmt::print("{} {}\n{} {}\n{} {}\n", kerneltime, arraySizeinGbytes / kerneltime,
+             Dtohtime, transfer_size / Dtohtime, HtoDtime,
              arraySizeinGbytes / HtoDtime);
 
   GCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));
