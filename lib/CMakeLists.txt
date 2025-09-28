@@ -22,7 +22,6 @@ set_target_properties(
 )
 
 if(GCXX_CUDA_MODE)
-  find_package(CUDAToolkit REQUIRED)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)
   set_target_properties(
     ${LIB_INTERNAL_NAME} PROPERTIES CMKAE_CUDA_SEPRABLE_COMPILATION ON
