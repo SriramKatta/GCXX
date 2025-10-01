@@ -8,6 +8,7 @@
 #include <gcxx/runtime/stream.hpp>
 
 GCXX_DETAILS_BEGIN_NAMESPACE
+
 GCXX_FH auto copy(void* dst, const void* src,
                   const std::size_t countinBytes) -> void {
   GCXX_SAFE_RUNTIME_CALL(
