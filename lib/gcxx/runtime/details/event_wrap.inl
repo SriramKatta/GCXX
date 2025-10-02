@@ -26,7 +26,7 @@ GCXX_FH auto event_wrap::HasOccurred() const -> bool {
 }
 
 GCXX_FH auto event_wrap::RecordInStream(
-  const stream_ref& stream, const flags::eventRecord recordFlag) -> void {
+  const stream_wrap& stream, const flags::eventRecord recordFlag) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     EventRecordWithFlags,
     (event_, stream.get(), static_cast<flag_t>(recordFlag)));

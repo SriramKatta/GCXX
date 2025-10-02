@@ -19,7 +19,7 @@ GCXX_FH auto copy(void* dst, const void* src,
 }
 
 GCXX_FH auto copy(void* dst, const void* src, const std::size_t countinBytes,
-                  const stream_ref& stream) -> void {
+                  const stream_wrap& stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     MemcpyAsync, (dst, src, countinBytes, GCXX_RUNTIME_BACKEND(MemcpyDefault),
                   stream.get()));
@@ -39,7 +39,7 @@ namespace memory {
 
   template <typename VT>
   GCXX_FH auto copy(const VT* dst, const VT* src, const std::size_t numElements,
-                    const stream_ref& stream) -> void {
+                    const stream_wrap& stream) -> void {
     details_::copy(static_cast<void*>(dst), static_cast<const void*>(src),
                    numElements * sizeof(VT), stream);
   }
@@ -52,7 +52,7 @@ namespace memory {
 
   template <typename VT>
   GCXX_FH auto copy(const span<VT>& dst, const span<VT>& src,
-                    const stream_ref& stream) -> void {
+                    const stream_wrap& stream) -> void {
     details_::copy(static_cast<void*>(dst.data()),
                    static_cast<const void*>(src.data()),
                    dst.size() * sizeof(VT), stream);

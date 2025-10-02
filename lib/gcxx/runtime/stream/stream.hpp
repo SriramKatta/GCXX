@@ -6,14 +6,14 @@
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/flags/eventflags.hpp>
 #include <gcxx/runtime/flags/streamflags.hpp>
-#include <gcxx/runtime/stream/stream_ref.hpp>
+#include <gcxx/runtime/stream/stream_wrap.hpp>
 
 #include <cstddef>
 #include <utility>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-class Stream : public stream_ref {
+class Stream : public stream_wrap {
  public:
   GCXX_FH Stream(
     const flags::streamType createFlag       = flags::streamType::syncWithNull,
@@ -35,12 +35,12 @@ class Stream : public stream_ref {
   Stream& operator=(const Stream&) = delete;
 
   GCXX_FH Stream(Stream&& other) noexcept
-      : stream_ref(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
+      : stream_wrap(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
 
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 
 
-  GCXX_FH auto release() GCXX_NOEXCEPT -> stream_ref;
+  GCXX_FH auto release() GCXX_NOEXCEPT -> stream_wrap;
 
 
   GCXX_FH auto getPriority() -> flags::streamPriority;

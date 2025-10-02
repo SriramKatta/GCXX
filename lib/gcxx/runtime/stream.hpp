@@ -6,6 +6,6 @@
 
 #include <gcxx/runtime/flags/streamflags.hpp>
 #include <gcxx/runtime/stream/stream.hpp>
-#include <gcxx/runtime/stream/stream_ref.hpp>
+#include <gcxx/runtime/stream/stream_wrap.hpp>
 
 #endif
