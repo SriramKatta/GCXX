@@ -5,7 +5,9 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
+#include <gcxx/runtime/span/span.hpp>
 #include <gcxx/runtime/stream.hpp>
+
 GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_NAMESPACE_DETAILS_BEGIN
@@ -36,11 +38,26 @@ namespace memory {
   }
 
   template <typename VT>
-  GCXX_FH auto copy(VT* dst, const VT* src, const std::size_t numElements,
+  GCXX_FH auto copy(const VT* dst, const VT* src, const std::size_t numElements,
                     const stream_ref& stream) -> void {
     details_::copy(static_cast<void*>(dst), static_cast<const void*>(src),
                    numElements * sizeof(VT), stream);
   }
+
+  template <typename VT>
+  GCXX_FH auto copy(span<VT> dst, const span<VT>& src) -> void {
+    details_::copy(static_cast<void*>(dst), static_cast<const void*>(src),
+                   dst.size() * sizeof(VT));
+  }
+
+  template <typename VT>
+  GCXX_FH auto copy(const span<VT>& dst, const span<VT>& src,
+                    const stream_ref& stream) -> void {
+    details_::copy(static_cast<void*>(dst.data()),
+                   static_cast<const void*>(src.data()),
+                   dst.size() * sizeof(VT), stream);
+  }
+
 
 }  // namespace memory
 
