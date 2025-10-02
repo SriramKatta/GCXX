@@ -6,7 +6,8 @@
       "hidden": true,
       "generator": "Unix Makefiles",
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CPM_SOURCE_CACHE": "$env{HOME}/.cache/CPM"
       }
     },
     {
@@ -61,9 +62,9 @@
         "mode-cuda",
         "purpose-examples"
       ],
-      "binaryDir": "${sourceDir}/build/cuda",
+      "binaryDir": "${sourceDir}/build/cuda-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/cudabin"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/cudabin-release"
       }
     },
     {
@@ -87,9 +88,9 @@
         "mode-hip",
         "purpose-examples"
       ],
-      "binaryDir": "${sourceDir}/build/hip",
+      "binaryDir": "${sourceDir}/build/hip-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin-release"
       }
     },
     {
@@ -113,7 +114,7 @@
         "mode-cuda",
         "purpose-tests"
       ],
-      "binaryDir": "${sourceDir}/build/cuda-tests"
+      "binaryDir": "${sourceDir}/build/cuda-release"
     },
     {
       "name": "cuda-debug-tests",
@@ -123,7 +124,7 @@
         "mode-cuda",
         "purpose-tests"
       ],
-      "binaryDir": "${sourceDir}/build/cuda-tests-debug"
+      "binaryDir": "${sourceDir}/build/cuda-debug"
     },
     {
       "name": "hip-release-tests",
@@ -133,7 +134,7 @@
         "mode-hip",
         "purpose-tests"
       ],
-      "binaryDir": "${sourceDir}/build/hip-tests"
+      "binaryDir": "${sourceDir}/build/hip-release"
     },
     {
       "name": "hip-debug-tests",
@@ -143,7 +144,7 @@
         "mode-hip",
         "purpose-tests"
       ],
-      "binaryDir": "${sourceDir}/build/hip-tests-debug"
+      "binaryDir": "${sourceDir}/build/hip-debug"
     }
   ],
   "buildPresets": [
