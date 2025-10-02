@@ -120,12 +120,12 @@ class span {
   template <typename container, std::size_t E = Extent,
             typename std::enable_if_t<(E == dynamic_extent), int> = 0>
   GCXX_CXPR span(const container& arr) GCXX_NOEXCEPT
-      : storage_(std::data(arr), std::data(arr)) {}
+      : storage_(std::data(arr), std::size(arr)) {}
 
   template <typename container, std::size_t E = Extent,
             typename std::enable_if_t<(E == dynamic_extent), int> = 0>
   GCXX_CXPR span(container& arr) GCXX_NOEXCEPT
-      : storage_(std::data(arr), std::data(arr)) {}
+      : storage_(std::data(arr), std::size(arr)) {}
 
   template <typename OtherElementType, std::size_t OtherExtent,
             typename std::enable_if_t<(Extent == dynamic_extent ||
@@ -188,11 +188,11 @@ class span {
   // ==========================================================
 
   GCXX_CXPR auto size() GCXX_CONST_NOEXCEPT -> size_type {
-    return storage_.size();
+    return storage_.size;
   }
 
   GCXX_CXPR auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
-    return storage_.size() * sizeof(element_type);
+    return size() * sizeof(element_type);
   }
 
   GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool { return size() == 0; }
