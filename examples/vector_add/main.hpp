@@ -48,15 +48,6 @@ inline Args parse_args(int argc, char** argv) {
 }
 
 void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,
-                          std::size_t N, double* ptr);
-
-void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str, std::size_t N,
-                        double* ptr);
-
-void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str, std::size_t N,
-                        double* ptr);
-
-void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,
                           gcxx::span<double>&);
 
 void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str,
