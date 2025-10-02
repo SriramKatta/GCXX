@@ -229,5 +229,127 @@
       "inherits": "test-base",
       "configurePreset": "hip-debug-tests"
     }
+  ],
+  "workflowPresets": [
+    {
+      "name": "all-cuda-release-examples",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "cuda-release-examples"
+        },
+        {
+          "type": "build",
+          "name": "build-cuda-release-examples"
+        }
+      ]
+    },
+    {
+      "name": "all-cuda-debug-examples",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "cuda-debug-examples"
+        },
+        {
+          "type": "build",
+          "name": "build-cuda-debug-examples"
+        }
+      ]
+    },
+    {
+      "name": "all-hip-release-examples",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "hip-release-examples"
+        },
+        {
+          "type": "build",
+          "name": "build-hip-release-examples"
+        }
+      ]
+    },
+    {
+      "name": "all-hip-debug-examples",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "hip-debug-examples"
+        },
+        {
+          "type": "build",
+          "name": "build-hip-debug-examples"
+        }
+      ]
+    },
+    {
+      "name": "all-cuda-release-tests",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "cuda-release-tests"
+        },
+        {
+          "type": "build",
+          "name": "build-cuda-release-tests"
+        },
+        {
+          "type": "test",
+          "name": "test-cuda-release"
+        }
+      ]
+    },
+    {
+      "name": "all-cuda-debug-tests",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "cuda-debug-tests"
+        },
+        {
+          "type": "build",
+          "name": "build-cuda-debug-tests"
+        },
+        {
+          "type": "test",
+          "name": "test-cuda-debug"
+        }
+      ]
+    },
+    {
+      "name": "all-hip-release-tests",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "hip-release-tests"
+        },
+        {
+          "type": "build",
+          "name": "build-hip-release-tests"
+        },
+        {
+          "type": "test",
+          "name": "test-hip-release"
+        }
+      ]
+    },
+    {
+      "name": "all-hip-debug-tests",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "hip-debug-tests"
+        },
+        {
+          "type": "build",
+          "name": "build-hip-debug-tests"
+        },
+        {
+          "type": "test",
+          "name": "test-hip-debug"
+        }
+      ]
+    }
   ]
 }
