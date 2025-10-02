@@ -6,7 +6,7 @@
 void checkdata(const gcxx::span<double>& h_a, double checkval) {
   for (size_t i = 0; i < h_a.size(); i++) {
     if ((h_a[i] - checkval) > 0.00001) {
-      fmt::print("FAILED at index {} : {}\n", i, h_a[i]);
+      fmt::print("FAILED at index {} : {}\n", i, h_a[i] - checkval);
       exit(1);
     }
   }
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
   gcxx::memory::copy(d_a_span, h_a_span, str);
   auto H2Dend = str.recordEvent();
 
-  GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, ());
+  H2Dend.Synchronize();
 
   str.Synchronize();
   auto kernelstart = str.recordEvent();
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
   gcxx::memory::copy(h_a_span, d_a_span, str);
   auto D2Hend = str.recordEvent();
 
-  str.Synchronize();
+  D2Hend.Synchronize();
 
   checkdata(h_a_span, static_cast<double>(arg.rep));
 
