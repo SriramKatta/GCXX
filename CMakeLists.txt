@@ -10,7 +10,7 @@ project(
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
   message(
     FATAL_ERROR
-    "In-source builds not allowed. Please make a new directory (e.g. build) and run CMake from there."
+      "In-source builds not allowed. Please make a new directory (e.g. build) and run CMake from there."
   )
 endif()
 
@@ -31,30 +31,30 @@ option(GCXX_BUILD_TESTS "Enables building of tests" OFF)
 # basically XOR(GCXX_CUDA_MODE, GCXX_HIP_MODE); since only one mode can be
 # active at a time
 if((GCXX_CUDA_MODE AND GCXX_HIP_MODE) OR (NOT GCXX_CUDA_MODE AND NOT
-     GCXX_HIP_MODE)
+                                                                 GCXX_HIP_MODE)
 )
   message(
     FATAL_ERROR
-    "Exactly one GPU back-end must be enabled: "
-    "set either GCXX_CUDA_MODE=${GCXX_CUDA_MODE} or GCXX_HIP_MODE=${GCXX_HIP_MODE} (but not both)."
+      "Exactly one GPU back-end must be enabled: "
+      "set either GCXX_CUDA_MODE=${GCXX_CUDA_MODE} or GCXX_HIP_MODE=${GCXX_HIP_MODE} (but not both)."
   )
 endif()
 
 if(GCXX_CUDA_MODE)
   set(GCXX_GPU_LANG
-    "CUDA"
-    CACHE STRING "GPU programming language to use"
+      "CUDA"
+      CACHE STRING "GPU programming language to use"
   )
 endif()
 
 if(GCXX_HIP_MODE)
   set(GCXX_GPU_LANG
-    "HIP"
-    CACHE STRING "GPU programming language to use"
+      "HIP"
+      CACHE STRING "GPU programming language to use"
   )
   set(ROCM_ROOT
-    "/opt/rocm"
-    CACHE PATH "Root directory of the ROCm installation"
+      "/opt/rocm"
+      CACHE PATH "Root directory of the ROCm installation"
   )
   list(APPEND CMAKE_PREFIX_PATH "${ROCM_ROOT}")
 endif()

@@ -1,3 +1,1 @@
-CPMAddPackage(
-    "gh:p-ranav/argparse#v3.2"
-)
+CPMAddPackage("gh:p-ranav/argparse#v3.2")
