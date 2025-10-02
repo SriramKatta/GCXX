@@ -20,7 +20,8 @@ int main() {
   gcxx::Event end_event(compundFlag);
   eve_ref_check(end_event);
 
-  // auto res = cudaEventQuery(end_event); // an error because Event is a owning reference and cannot be cast to raw event
+  // auto res = cudaEventQuery(end_event); // an error because Event is a owning
+  // reference and cannot be cast to raw event
   gcxx::event_ref end_event_ref = end_event;
   auto res = GCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
 
