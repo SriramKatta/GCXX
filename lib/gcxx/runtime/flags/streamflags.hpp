@@ -7,7 +7,7 @@
 
 #include <limits>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 namespace flags {
 
@@ -95,6 +95,6 @@ namespace flags {
 
 }  // namespace flags
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #endif

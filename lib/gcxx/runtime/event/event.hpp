@@ -7,7 +7,7 @@
 #include <gcxx/runtime/event/event_ref.hpp>
 #include <gcxx/runtime/flags/eventflags.hpp>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 class Event : public event_ref {
  private:
@@ -41,7 +41,7 @@ class Event : public event_ref {
   operator deviceEvent_t() = delete;
 };
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #include <gcxx/runtime/details/event.inl>
 

@@ -6,7 +6,7 @@
 #include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_ref.hpp>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH auto stream_ref::HasPendingWork() -> bool {
   auto err            = GCXX_RUNTIME_BACKEND(StreamQuery)(stream_);
@@ -33,7 +33,7 @@ GCXX_FH auto stream_ref::WaitOnEvent(const details_::event_ref& event,
     StreamWaitEvent, (this->get(), event.get(), static_cast<flag_t>(waitFlag)));
 }
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #include <gcxx/macros/undefine_macros.hpp>
 

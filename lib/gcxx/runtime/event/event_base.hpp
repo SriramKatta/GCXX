@@ -7,7 +7,7 @@
 #include <gcxx/runtime/flags/eventflags.hpp>
 
 
-GCXX_DETAILS_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
 inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
 
@@ -62,7 +62,7 @@ class event_ref {
   }
 };
 
-GCXX_DETAILS_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_END
 
 #include <gcxx/macros/undefine_macros.hpp>
 

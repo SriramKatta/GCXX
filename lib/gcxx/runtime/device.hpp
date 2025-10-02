@@ -5,7 +5,7 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 class DeviceRef {
  private:
@@ -37,6 +37,6 @@ class DeviceRef {
   GCXX_FH auto id() const -> device_t { return deviceId_; }
 };
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #endif

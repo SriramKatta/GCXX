@@ -9,7 +9,7 @@
 
 #include <utility>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : event_ref(details_::INVALID_EVENT) {
@@ -38,7 +38,7 @@ GCXX_FH auto stream_ref::recordEvent(const flags::eventCreate createflag,
   return event;
 }
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 
 #endif

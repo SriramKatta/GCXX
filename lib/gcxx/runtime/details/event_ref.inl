@@ -9,7 +9,7 @@
 
 #include <utility>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH auto event_ref::HasOccurred() const -> bool {
   auto err            = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
@@ -46,7 +46,7 @@ GCXX_FH auto event_ref::ElapsedTimeSince(const event_ref& startEvent) const
   return details_::ConvertDuration<DurationT>(ms);
 }
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 
 #endif

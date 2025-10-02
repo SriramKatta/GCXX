@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <utility>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 class Stream : public stream_ref {
  public:
@@ -49,7 +49,7 @@ class Stream : public stream_ref {
   GCXX_FH auto destroy() -> void;
 };
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #include <gcxx/runtime/details/stream.inl>
 

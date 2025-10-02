@@ -7,7 +7,7 @@
 #include <gcxx/macros/define_macros.hpp>
 
 
-GCXX_DETAILS_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 class [[maybe_unused]] EnsureCurrentDevice {
  private:
@@ -27,7 +27,7 @@ class [[maybe_unused]] EnsureCurrentDevice {
   EnsureCurrentDevice& operator=(const EnsureCurrentDevice&&) = delete;
 };
 
-GCXX_DETAILS_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_END
 
 #include <gcxx/runtime/details/ensure_device.inl>
 

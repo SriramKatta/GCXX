@@ -5,7 +5,7 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-GCXX_DETAILS_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 using deviceError_t                 = GCXX_RUNTIME_BACKEND(Error_t);
 GCXX_CXPR auto deviceSuccess        = GCXX_RUNTIME_BACKEND(Success);
@@ -21,7 +21,7 @@ GCXX_FH auto checkLastDeviceError(const char* errorMessage, const char* file,
 GCXX_FH auto peekLastDeviceError(const char* errorMessage, const char* file,
                                  const int line) -> void;
 
-GCXX_DETAILS_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_END
 
 #include <gcxx/runtime/details/runtime_error.inl>
 

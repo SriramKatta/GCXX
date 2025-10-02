@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <cstdlib>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 namespace details_ {
 
@@ -57,6 +57,6 @@ namespace details_ {
   }
 }  // namespace details_
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #endif

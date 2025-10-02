@@ -56,28 +56,28 @@
 using flag_t = unsigned int;
 
 
-#ifndef GCXX_BEGIN_NAMESPACE
-#define GCXX_BEGIN_NAMESPACE \
-  namespace gcxx {           \
+#ifndef GCXX_NAMESPACE_MAIN_BEGIN
+#define GCXX_NAMESPACE_MAIN_BEGIN \
+  namespace gcxx {                \
     inline namespace v1 {
-#define GCXX_END_NAMESPACE     \
-  } /* inline namespace v1  */ \
+#define GCXX_NAMESPACE_MAIN_END \
+  } /* inline namespace v1  */  \
   }  // namespace gcxx
 #endif
 
-#ifndef GCXX_DETAILS_NAMESPACE
-#define GCXX_DETAILS_NAMESPACE namespace details_ {
-#define GCXX_DETAILS_NAMESPACE_END } /* namespace details_  */
+#ifndef GCXX_NAMESPACE_DETAILS_BEGIN
+#define GCXX_NAMESPACE_DETAILS_BEGIN namespace details_ {
+#define GCXX_NAMESPACE_DETAILS_END } /* namespace details_  */
 #endif
 
 
-#ifndef GCXX_DETAILS_BEGIN_NAMESPACE
-#define GCXX_DETAILS_BEGIN_NAMESPACE \
-  GCXX_BEGIN_NAMESPACE               \
-  namespace details_ {
-#define GCXX_DETAILS_END_NAMESPACE \
-  } /* namespace details_  */      \
-  GCXX_END_NAMESPACE
+#ifndef GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+#define GCXX_NAMESPACE_MAIN_DETAILS_BEGIN \
+  GCXX_NAMESPACE_MAIN_BEGIN               \
+  GCXX_NAMESPACE_DETAILS_BEGIN
+#define GCXX_NAMESPACE_MAIN_DETAILS_END \
+  GCXX_NAMESPACE_DETAILS_END            \
+  GCXX_NAMESPACE_MAIN_END
 #endif
 
 #endif  // defined(GCXX_CUDA_MODE) || defined(GCXX_HIP_MODE)

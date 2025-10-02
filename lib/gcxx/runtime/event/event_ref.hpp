@@ -12,7 +12,7 @@
 #include <gcxx/runtime/stream/stream_ref.hpp>
 
 
-GCXX_DETAILS_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 /**
  * @brief Duration type representing milliseconds.
  *
@@ -27,9 +27,9 @@ inline auto ConvertDuration(float ms) -> DurationT {
   return std::chrono::duration_cast<DurationT>(milliSec(ms));
 }
 
-GCXX_DETAILS_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_END
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 /**
  * @brief a non-owning wrapper for gpu events user is responsible for creating and destroying the event object
@@ -71,7 +71,7 @@ class event_ref : public details_::event_ref {
   }
 };
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #include <gcxx/runtime/details/event_ref.inl>
 

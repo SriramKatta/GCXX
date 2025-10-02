@@ -5,7 +5,7 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 namespace flags {
   enum class eventCreate : flag_t {
@@ -42,6 +42,6 @@ namespace flags {
   };
 }  // namespace flags
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 #endif

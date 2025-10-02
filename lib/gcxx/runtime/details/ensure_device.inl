@@ -8,7 +8,7 @@
 #include <gcxx/runtime/runtime_error.hpp>
 
 
-GCXX_DETAILS_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 // Constructor: takes a CUDA stream
 EnsureCurrentDevice::EnsureCurrentDevice(int new_dev) {
@@ -27,7 +27,7 @@ EnsureCurrentDevice::~EnsureCurrentDevice() {
   }
 }
 
-GCXX_DETAILS_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_DETAILS_END
 
 
 #endif

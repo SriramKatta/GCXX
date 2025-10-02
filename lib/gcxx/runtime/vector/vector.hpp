@@ -6,12 +6,12 @@
 #include <gcxx/runtime/vector/vector_base.hpp>
 #include <iterator>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 template <typename VT, typename Allocator_t>
 class Vector : protected vector_base {};
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 
 #endif

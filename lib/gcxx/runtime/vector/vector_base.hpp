@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <gcxx/macros/define_macros.hpp>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 template <typename VT, typename Allocator_t>
 class VectorBase {
@@ -64,7 +64,7 @@ class VectorBase {
   void DoFree(VT* p, size_type n);
 };
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 
 #endif

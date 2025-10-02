@@ -5,7 +5,7 @@
 #include <gcxx/runtime/device/ensure_device.hpp>
 #include <gcxx/runtime/stream.hpp>
 
-GCXX_BEGIN_NAMESPACE
+GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH Stream::Stream(const flags::streamType createFlag,
                        const flags::streamPriority priorityFlag)
@@ -51,7 +51,7 @@ GCXX_FH auto Stream::release() GCXX_NOEXCEPT -> stream_ref {
   return {oldStream};
 }
 
-GCXX_END_NAMESPACE
+GCXX_NAMESPACE_MAIN_END
 
 
 #endif
