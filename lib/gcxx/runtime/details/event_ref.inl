@@ -43,7 +43,7 @@ GCXX_FH auto event_ref::ElapsedTimeSince(const event_ref& startEvent) const
   float ms{};
   GCXX_SAFE_RUNTIME_CALL(EventElapsedTime,
                          (&ms, startEvent.get(), this->get()));
-  return details_::ConvertDuration<DurationT>(ms);
+  return ConvertDuration<DurationT>(ms);
 }
 
 GCXX_NAMESPACE_MAIN_END

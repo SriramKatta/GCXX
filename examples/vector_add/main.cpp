@@ -13,7 +13,7 @@ void checkdata(const gcxx::span<double>& h_a, double checkval) {
 }
 
 int main(int argc, char** argv) {
-  using namespace gcxx::details_;
+  //using namespace gcxx::details_;
 
   Args arg = parse_args(argc, argv);
 
@@ -32,8 +32,8 @@ int main(int argc, char** argv) {
   GCXX_SAFE_RUNTIME_CALL(Malloc, (&d_a, sizeInBytes));
 
 
-  gcxx::span<double> h_a_span(h_a, arg.N);
-  gcxx::span<double> d_a_span(d_a, arg.N);
+  gcxx::span h_a_span(h_a, arg.N);
+  gcxx::span d_a_span(d_a, arg.N);
 
 
   std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
@@ -64,9 +64,9 @@ int main(int argc, char** argv) {
 
   checkdata(h_a_span, static_cast<double>(arg.rep));
 
-  float Dtohtime   = (D2Hend.ElapsedTimeSince<sec>(D2Hstart)).count();
-  float kerneltime = (kernelend.ElapsedTimeSince<sec>(kernelstart)).count();
-  float HtoDtime   = (H2Dend.ElapsedTimeSince<sec>(H2Dstart)).count();
+  float Dtohtime   = (D2Hend.ElapsedTimeSince<gcxx::sec>(D2Hstart)).count();
+  float kerneltime = (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
+  float HtoDtime   = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
 
   double arraySizeinGbytes = static_cast<double>(arg.N * sizeof(double)) / 1e9;
   double transfer_size = arraySizeinGbytes * 2.0 * static_cast<double>(arg.rep);

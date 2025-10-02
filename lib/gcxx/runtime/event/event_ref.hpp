@@ -12,9 +12,10 @@
 #include <gcxx/runtime/stream/stream_ref.hpp>
 
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN
+
 /**
- * @brief Duration type representing milliseconds.
+ * @brief Duration type aliases for time measurements.
  *
  */
 using nanoSec  = std::chrono::duration<float, std::nano>;
@@ -26,10 +27,6 @@ template <typename DurationT>
 inline auto ConvertDuration(float ms) -> DurationT {
   return std::chrono::duration_cast<DurationT>(milliSec(ms));
 }
-
-GCXX_NAMESPACE_MAIN_DETAILS_END
-
-GCXX_NAMESPACE_MAIN_BEGIN
 
 /**
  * @brief a non-owning wrapper for gpu events user is responsible for creating
@@ -62,10 +59,10 @@ class event_ref : public details_::event_ref {
     const stream_ref& stream      = details_::NULL_STREAM,
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
-  template <typename DurationT = details_::milliSec>
+  template <typename DurationT = milliSec>
   GCXX_FH auto ElapsedTimeSince(const event_ref& startEvent) const -> DurationT;
 
-  template <typename DurationT = details_::milliSec>
+  template <typename DurationT = milliSec>
   GCXX_FH static auto ElapsedTimeBetween(
     const event_ref& startEvent, const event_ref& endEvent) -> DurationT {
     return endEvent.ElapsedTimeSince<DurationT>(startEvent);
