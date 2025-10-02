@@ -57,3 +57,18 @@ void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str, std::size_t N,
                         double* ptr) {
   kernel_4vec<<<arg.blocks, arg.threads, 0, str.get()>>>(N, ptr);
 }
+
+void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,
+                          gcxx::span<double>& ptr) {
+  launch_scalar_kernel(arg, str, ptr.size(), ptr.data());
+}
+
+void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str,
+                        gcxx::span<double>& ptr) {
+  launch_vec2_kernel(arg, str, ptr.size(), ptr.data());
+}
+
+void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
+                        gcxx::span<double>& ptr) {
+  launch_vec4_kernel(arg, str, ptr.size(), ptr.data());
+}

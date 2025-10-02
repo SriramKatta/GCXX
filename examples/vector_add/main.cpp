@@ -3,8 +3,8 @@
 
 #include "main.hpp"
 
-void checkdata(size_t N, double* h_a, double checkval) {
-  for (size_t i = 0; i < N; i++) {
+void checkdata(const gcxx::span<double>& h_a, double checkval) {
+  for (size_t i = 0; i < h_a.size(); i++) {
     if ((h_a[i] - checkval) > 0.00001) {
       fmt::print("FAILED at index {} : {}\n", i, h_a[i]);
       exit(1);
@@ -19,8 +19,8 @@ int main(int argc, char** argv) {
 
   size_t sizeInBytes = arg.N * sizeof(double);
 
-  double* h_a = nullptr;
-  double* d_a = nullptr;
+  double* h_a{nullptr};
+  double* d_a{nullptr};
 
 #if GCXX_HIP_MODE
   GCXX_SAFE_RUNTIME_CALL(HostMalloc, (&h_a, sizeInBytes));
@@ -31,12 +31,17 @@ int main(int argc, char** argv) {
 
   GCXX_SAFE_RUNTIME_CALL(Malloc, (&d_a, sizeInBytes));
 
-  std::memset(h_a, 0, sizeInBytes);
+
+  gcxx::span<double> h_a_span(h_a, arg.N);
+  gcxx::span<double> d_a_span(d_a, arg.N);
+
+
+  std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
 
   gcxx::Stream str(gcxx::flags::streamType::syncWithNull);
 
   auto H2Dstart = str.recordEvent();
-  gcxx::memory::copy(d_a, h_a, arg.N, str);
+  gcxx::memory::copy(d_a_span, h_a_span, str);
   auto H2Dend = str.recordEvent();
 
   GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, ());
@@ -44,7 +49,7 @@ int main(int argc, char** argv) {
   str.Synchronize();
   auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
-    launch_vec4_kernel(arg, str, arg.N, d_a);
+    launch_scalar_kernel(arg, str, d_a_span);
   }
   auto kernelend = str.recordEvent();
 
@@ -52,12 +57,12 @@ int main(int argc, char** argv) {
   // GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
 
   auto D2Hstart = str.recordEvent();
-  gcxx::memory::copy(h_a, d_a, arg.N, str);
+  gcxx::memory::copy(h_a_span, d_a_span, str);
   auto D2Hend = str.recordEvent();
 
   str.Synchronize();
 
-  checkdata(arg.N, h_a, static_cast<double>(arg.N));
+  checkdata(h_a_span, static_cast<double>(arg.N));
 
   float Dtohtime   = (D2Hend.ElapsedTimeSince<sec>(D2Hstart)).count();
   float kerneltime = (kernelend.ElapsedTimeSince<sec>(kernelstart)).count();

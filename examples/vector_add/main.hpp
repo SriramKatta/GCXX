@@ -18,14 +18,14 @@ inline Args parse_args(int argc, char** argv) {
   program.add_argument("-N", "--num-entries")
     .help("Number of elements")
     .default_value<size_t>(32'000'000)
-    .scan<'i', std::size_t>(); 
+    .scan<'i', std::size_t>();
 
-  program.add_argument("-R","--reps")
+  program.add_argument("-R", "--reps")
     .help("Number of kernel repetitions")
     .default_value<size_t>(10)
     .scan<'i', std::size_t>();
 
-  program.add_argument("-B","--blocks")
+  program.add_argument("-B", "--blocks")
     .help("Number of blocks")
     .default_value<size_t>(3456)
     .scan<'i', std::size_t>();
@@ -43,12 +43,8 @@ inline Args parse_args(int argc, char** argv) {
     std::exit(1);
   }
 
-  return {
-    program.get<size_t>("N"),
-    program.get<size_t>("reps"),
-    program.get<size_t>("blocks"),
-    program.get<size_t>("threads")
-  };
+  return {program.get<size_t>("N"), program.get<size_t>("reps"),
+          program.get<size_t>("blocks"), program.get<size_t>("threads")};
 }
 
 void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,
@@ -59,3 +55,12 @@ void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str, std::size_t N,
 
 void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str, std::size_t N,
                         double* ptr);
+
+void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,
+                          gcxx::span<double>&);
+
+void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str,
+                        gcxx::span<double>&);
+
+void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
+                        gcxx::span<double>&);
