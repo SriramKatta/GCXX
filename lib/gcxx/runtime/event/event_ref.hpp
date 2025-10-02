@@ -32,8 +32,9 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 GCXX_NAMESPACE_MAIN_BEGIN
 
 /**
- * @brief a non-owning wrapper for gpu events user is responsible for creating and destroying the event object
- * 
+ * @brief a non-owning wrapper for gpu events user is responsible for creating
+ * and destroying the event object
+ *
  */
 class event_ref : public details_::event_ref {
  public:

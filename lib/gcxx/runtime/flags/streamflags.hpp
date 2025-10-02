@@ -33,9 +33,9 @@ namespace flags {
     /**
      * @brief Stream that synchronizes with the NULL stream.
      *
-     * This is the *default* behavior on most backends: operations in this stream
-     * will serialize with operations in stream 0, ensuring ordering but limiting
-     * concurrency.
+     * This is the *default* behavior on most backends: operations in this
+     * stream will serialize with operations in stream 0, ensuring ordering but
+     * limiting concurrency.
      */
     syncWithNull = GCXX_RUNTIME_BACKEND(StreamDefault),
 

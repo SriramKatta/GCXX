@@ -35,7 +35,8 @@ namespace flags {
 #if defined(GCXX_CUDA_MODE)
     none     = GCXX_RUNTIME_BACKEND(EventWaitDefault),
     external = GCXX_RUNTIME_BACKEND(EventWaitExternal),
-#else  // its stupid!! these are supposedly defined as per documentation but not implemented
+#else  // its stupid!! these are supposedly defined as per documentation but not
+       // implemented in the actual code
     none     = 0,
     external = 0,
 #endif

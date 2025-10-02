@@ -19,7 +19,8 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
 }
 
 GCXX_FH auto Stream::destroy() -> void {
-// since cudaStreamDestroy releases the handle after all work is done, to keep similar behaviour
+// since cudaStreamDestroy releases the handle after all work is done, to keep
+// similar behaviour
 #if GCXX_HIP_MODE
   Synchronize();
 #endif

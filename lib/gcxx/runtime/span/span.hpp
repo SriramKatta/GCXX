@@ -113,8 +113,11 @@ class span {
   using const_pointer   = const pointer;
   using reference       = element_type&;
   using const_reference = const element_type&;
-  using iterator        = pointer;  // dont assume this to be T* in your code
-                                    // maybe changed to a bidirectional iterator
+
+  // TODO : change to a  iterator that can be used on device
+  using iterator = pointer;  // dont assume this to be T* in your code
+
+  // TODO : change to a  iterator that can be used on device
   using reverse_iterator = std::reverse_iterator<iterator>;
 
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█

@@ -14,7 +14,8 @@ inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
 /**
  * @brief Base class for GPU events
  *
- * @details Serves as a base for all GPU event types, providing a common interface.
+ * @details Serves as a base for all GPU event types, providing a common
+ * interface.
  *
  */
 class event_ref {
@@ -30,10 +31,10 @@ class event_ref {
   GCXX_CXPR event_ref() = default;
 
   /**
-  * @brief Construct a new event base object from raw device event
-  *
-  * @param device_event device event to be handled
-  */
+   * @brief Construct a new event base object from raw device event
+   *
+   * @param device_event device event to be handled
+   */
   GCXX_CXPR event_ref(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {
   }
 

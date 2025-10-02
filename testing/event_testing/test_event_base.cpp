@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 #include <gcxx/runtime/event.hpp>
 
-using namespace gcxx::details_;  //okay, since no other file includes this
+using namespace gcxx::details_;  // okay, since no other file includes this
 
 // Parameterized fixture
 class EventRefParameterizedTest
