@@ -17,6 +17,11 @@ GCXX_BEGIN_NAMESPACE
 inline constexpr std::size_t dynamic_extent =
   std::numeric_limits<std::size_t>::max();
 
+template <class VT, std::size_t Extent>
+class span;
+
+GCXX_END_NAMESPACE
+
 GCXX_DETAILS_BEGIN_NAMESPACE
 
 template <typename VT, std::size_t S>
@@ -41,7 +46,18 @@ struct span_storage<VT, dynamic_extent> {
   std::size_t size{0};
 };
 
+template <typename, typename = size_t>
+struct is_complete : std::false_type {};
+
+template <typename T>
+struct is_complete<T, decltype(sizeof(T))> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_complete_v = is_complete<T>::value;
+
 GCXX_DETAILS_END_NAMESPACE
+
+GCXX_BEGIN_NAMESPACE
 
 template <class VT, std::size_t Extent = dynamic_extent>
 class span {
@@ -49,13 +65,13 @@ class span {
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
   // █                     Static Asserts                     █
   // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-  static_assert(std::is_object<VT>::value,
+  static_assert(std::is_object_v<VT>,
                 "An refrence is not supported"
                 " need an fully declared type");
-  static_assert(detail::is_complete<VT>::value,
+  static_assert(details_::is_complete_v<VT>,
                 "A forward declaration is not supported"
                 " need an fully declared type");
-  static_assert(!std::is_abstract<VT>::value,
+  static_assert(!std::is_abstract_v<VT>,
                 "An abstract class type is not supported");
   using storage_type = details_::span_storage<VT, Extent>;
 
@@ -74,17 +90,30 @@ class span {
   using iterator        = pointer;  // dont assume this to be T* in your code
                                     // maybe changed to a bidirectional iterator
   using reverse_iterator = std::reverse_iterator<iterator>;
+
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
   // █                    Memeber Function                    █
   // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
   // ==========================================================
   //                        Constructors
   // ==========================================================
-  GCXX_CXPR span() GCXX_NOEXCEPT = default;
+  template <std::size_t E = Extent,
+            typename std::enable_if_t<(E == 0 || E == dynamic_extent), int> = 0>
+  GCXX_CXPR span() GCXX_NOEXCEPT {}
+
+  GCXX_CXPR span(pointer ptr, size_type count) : storage_(ptr, count) {}
+
+  // ==========================================================
+  //                         destructor
+  // ==========================================================
+
+  ~span() = default;
 
   // ==========================================================
   //                         operator =
   // ==========================================================
+
+  GCXX_CXPR span& operator=(const span& other) GCXX_NOEXCEPT = default;
 
   // ==========================================================
   //                         Iterators
@@ -110,7 +139,7 @@ class span {
   static constexpr size_type extent = Extent;
 
  private:
-  storage_type storage{};
+  storage_type storage_{};
 };
 
 GCXX_END_NAMESPACE
