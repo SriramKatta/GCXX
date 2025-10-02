@@ -65,6 +65,12 @@ using flag_t = unsigned int;
   }  // namespace gcxx
 #endif
 
+#ifndef GCXX_DETAILS_NAMESPACE
+#define GCXX_DETAILS_NAMESPACE namespace details_ {
+#define GCXX_DETAILS_NAMESPACE_END } /* namespace details_  */
+#endif
+
+
 #ifndef GCXX_DETAILS_BEGIN_NAMESPACE
 #define GCXX_DETAILS_BEGIN_NAMESPACE \
   GCXX_BEGIN_NAMESPACE               \
