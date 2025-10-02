@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   str.Synchronize();
   auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
-    launch_scalar_kernel(arg, str, d_a_span);
+    launch_vec2_kernel(arg, str, d_a_span);
   }
   auto kernelend = str.recordEvent();
 
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
 
   str.Synchronize();
 
-  checkdata(h_a_span, static_cast<double>(arg.N));
+  checkdata(h_a_span, static_cast<double>(arg.rep));
 
   float Dtohtime   = (D2Hend.ElapsedTimeSince<sec>(D2Hstart)).count();
   float kerneltime = (kernelend.ElapsedTimeSince<sec>(kernelstart)).count();
