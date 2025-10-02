@@ -26,7 +26,7 @@ GCXX_FH auto stream_ref::Synchronize() const -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
 }
 
-GCXX_FH auto stream_ref::WaitOnEvent(const details_::event_ref& event,
+GCXX_FH auto stream_ref::WaitOnEvent(const details_::event_wrap& event,
                                      const flags::eventWait waitFlag) const
   -> void {
   GCXX_SAFE_RUNTIME_CALL(

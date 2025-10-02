@@ -33,23 +33,23 @@ inline auto ConvertDuration(float ms) -> DurationT {
  * and destroying the event object
  *
  */
-class event_ref : public details_::event_ref {
+class event_wrap : public details_::event_wrap {
  public:
   /// Default constructor
-  event_ref() = default;
+  event_wrap() = default;
 
   /// Constructor from raw device event
-  GCXX_CXPR event_ref(deviceEvent_t rawEvent) GCXX_NOEXCEPT
-      : details_::event_ref(rawEvent) {}
+  GCXX_CXPR event_wrap(deviceEvent_t rawEvent) GCXX_NOEXCEPT
+      : details_::event_wrap(rawEvent) {}
 
-  GCXX_CXPR event_ref(details_::event_ref eventRef) GCXX_NOEXCEPT
-      : details_::event_ref(eventRef.get()) {}
+  GCXX_CXPR event_wrap(details_::event_wrap eventRef) GCXX_NOEXCEPT
+      : details_::event_wrap(eventRef.get()) {}
 
   /// Delete constructor from `int`
-  event_ref(int) = delete;
+  event_wrap(int) = delete;
 
   /// Delete constructor from `nullptr`
-  event_ref(std::nullptr_t) = delete;
+  event_wrap(std::nullptr_t) = delete;
 
   GCXX_FH auto HasOccurred() const -> bool;
 
@@ -60,11 +60,11 @@ class event_ref : public details_::event_ref {
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
   template <typename DurationT = milliSec>
-  GCXX_FH auto ElapsedTimeSince(const event_ref& startEvent) const -> DurationT;
+  GCXX_FH auto ElapsedTimeSince(const event_wrap& startEvent) const -> DurationT;
 
   template <typename DurationT = milliSec>
   GCXX_FH static auto ElapsedTimeBetween(
-    const event_ref& startEvent, const event_ref& endEvent) -> DurationT {
+    const event_wrap& startEvent, const event_wrap& endEvent) -> DurationT {
     return endEvent.ElapsedTimeSince<DurationT>(startEvent);
   }
 };

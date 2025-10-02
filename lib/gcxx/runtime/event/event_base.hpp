@@ -18,7 +18,7 @@ inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
  * interface.
  *
  */
-class event_ref {
+class event_wrap {
  protected:
   using deviceEvent_t = details_::deviceEvent_t;
   deviceEvent_t event_{INVALID_EVENT};  // NOLINT
@@ -28,21 +28,21 @@ class event_ref {
    * @brief Default construct a new event base object
    *
    */
-  GCXX_CXPR event_ref() = default;
+  GCXX_CXPR event_wrap() = default;
 
   /**
    * @brief Construct a new event base object from raw device event
    *
    * @param device_event device event to be handled
    */
-  GCXX_CXPR event_ref(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {
+  GCXX_CXPR event_wrap(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {
   }
 
   /// Disallow creation from `int`
-  event_ref(int) = delete;
+  event_wrap(int) = delete;
 
   /// Disallow creation from `nullptr`
-  event_ref(std::nullptr_t) = delete;
+  event_wrap(std::nullptr_t) = delete;
 
   GCXX_FHC auto get() GCXX_CONST_NOEXCEPT -> deviceEvent_t { return event_; }
 
@@ -52,13 +52,13 @@ class event_ref {
     return event_ != INVALID_EVENT;
   }
 
-  GCXX_CXPR friend auto operator==(const event_ref& lhs,
-                                   const event_ref& rhs) GCXX_NOEXCEPT->bool {
+  GCXX_CXPR friend auto operator==(const event_wrap& lhs,
+                                   const event_wrap& rhs) GCXX_NOEXCEPT->bool {
     return lhs.event_ == rhs.event_;
   }
 
-  GCXX_CXPR friend auto operator!=(const event_ref& lhs,
-                                   const event_ref& rhs) GCXX_NOEXCEPT->bool {
+  GCXX_CXPR friend auto operator!=(const event_wrap& lhs,
+                                   const event_wrap& rhs) GCXX_NOEXCEPT->bool {
     return !(lhs == rhs);
   }
 };

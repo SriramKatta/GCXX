@@ -48,7 +48,7 @@ class stream_ref {
   GCXX_FH auto Synchronize() const -> void;
 
   GCXX_FH auto WaitOnEvent(
-    const details_::event_ref& event,
+    const details_::event_wrap& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
   GCXX_FH auto recordEvent(

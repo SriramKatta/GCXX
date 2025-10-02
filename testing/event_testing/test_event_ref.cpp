@@ -48,7 +48,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
   Event e;
   auto raw = e.get();
 
-  event_ref ref = e.release();
+  event_wrap ref = e.release();
   EXPECT_EQ(e.get(), nullptr);
   EXPECT_EQ(ref.get(), raw);
 

@@ -11,7 +11,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FH auto event_ref::HasOccurred() const -> bool {
+GCXX_FH auto event_wrap::HasOccurred() const -> bool {
   auto err            = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
   constexpr auto line = __LINE__ - 1;
   switch (err) {
@@ -25,19 +25,19 @@ GCXX_FH auto event_ref::HasOccurred() const -> bool {
   }
 }
 
-GCXX_FH auto event_ref::RecordInStream(
+GCXX_FH auto event_wrap::RecordInStream(
   const stream_ref& stream, const flags::eventRecord recordFlag) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     EventRecordWithFlags,
     (event_, stream.get(), static_cast<flag_t>(recordFlag)));
 }
 
-GCXX_FH auto event_ref::Synchronize() const -> void {
+GCXX_FH auto event_wrap::Synchronize() const -> void {
   GCXX_SAFE_RUNTIME_CALL(EventSynchronize, (event_));
 }
 
 template <typename DurationT>
-GCXX_FH auto event_ref::ElapsedTimeSince(const event_ref& startEvent) const
+GCXX_FH auto event_wrap::ElapsedTimeSince(const event_wrap& startEvent) const
   -> DurationT {
   this->Synchronize();
   float ms{};
