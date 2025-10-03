@@ -6,11 +6,17 @@ using namespace gcxx;
 
 class EventTest : public ::testing::Test {
  protected:
-  void SetUp() override { GCXX_SAFE_RUNTIME_CALL(StreamCreate, (&stream_)); }
+  void SetUp() override {
+    GCXX_SAFE_RUNTIME_CALL(StreamCreate, "Failed to Create GPU Stream",
+                           &stream_);
+  }
 
-  void TearDown() override { GCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_)); }
+  void TearDown() override {
+    GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "Failed to Destroy GPU Stream",
+                           stream_);
+  }
 
-  GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
+  GCXX_RUNTIME_BACKEND(Stream_t) stream_ {};
 };
 
 TEST_F(EventTest, ConstructAndDestroy) {
@@ -53,7 +59,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
   EXPECT_EQ(ref.get(), raw);
 
   // Destroy manually since ownership transferred
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (raw));
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", raw);
 }
 
 TEST_F(EventTest, RecordAndElapsedTime) {
@@ -62,10 +68,12 @@ TEST_F(EventTest, RecordAndElapsedTime) {
   stream_wrap s(stream_);
 
   start.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
+  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
+                         stream_);
 
   end.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, (stream_));
+  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
+                         stream_);
 
   auto elapsed = Event::ElapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);

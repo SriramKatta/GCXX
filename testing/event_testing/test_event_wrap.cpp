@@ -8,17 +8,21 @@ using namespace gcxx;
 class EventWrapTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    GCXX_SAFE_RUNTIME_CALL(StreamCreate, (&stream_));
-    GCXX_SAFE_RUNTIME_CALL(EventCreate, (&raw_event_));
+    GCXX_SAFE_RUNTIME_CALL(StreamCreate, "Failed to create GPU Stream",
+                           &stream_);
+    GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event",
+                           &raw_event_);
   }
 
   void TearDown() override {
-    GCXX_SAFE_RUNTIME_CALL(EventDestroy, (raw_event_));
-    GCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
+    GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event",
+                           raw_event_);
+    GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "Failed to destroy GPU Event",
+                           stream_);
   }
 
-  GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
-  GCXX_RUNTIME_BACKEND(Event_t) raw_event_{};
+  GCXX_RUNTIME_BACKEND(Stream_t) stream_ {};
+  GCXX_RUNTIME_BACKEND(Event_t) raw_event_ {};
 };
 
 // Test default construction
@@ -152,8 +156,8 @@ TEST_F(EventWrapTest, HasOccurred) {
 // Test ElapsedTimeSince with milliSec (default)
 TEST_F(EventWrapTest, ElapsedTimeSinceMilliSec) {
   GCXX_RUNTIME_BACKEND(Event_t) start_raw, end_raw;
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, (&start_raw));
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, (&end_raw));
+  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &start_raw);
+  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &end_raw);
 
   event_wrap start_event(start_raw);
   event_wrap end_event(end_raw);
@@ -171,15 +175,16 @@ TEST_F(EventWrapTest, ElapsedTimeSinceMilliSec) {
   EXPECT_TRUE((std::is_same_v<decltype(elapsed), milliSec>));
 
   // Cleanup
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (start_raw));
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (end_raw));
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event",
+                         start_raw);
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event", end_raw);
 }
 
 // Test ElapsedTimeSince with different duration types
 TEST_F(EventWrapTest, ElapsedTimeSinceDifferentDurations) {
   GCXX_RUNTIME_BACKEND(Event_t) start_raw, end_raw;
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, (&start_raw));
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, (&end_raw));
+  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &start_raw);
+  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &end_raw);
 
   event_wrap start_event(start_raw);
   event_wrap end_event(end_raw);
@@ -207,15 +212,16 @@ TEST_F(EventWrapTest, ElapsedTimeSinceDifferentDurations) {
   EXPECT_TRUE((std::is_same_v<decltype(sec_elapsed), sec>));
 
   // Cleanup
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (start_raw));
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (end_raw));
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event",
+                         start_raw);
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event", end_raw);
 }
 
 // Test ElapsedTimeBetween static method
 TEST_F(EventWrapTest, ElapsedTimeBetweenStatic) {
   GCXX_RUNTIME_BACKEND(Event_t) start_raw, end_raw;
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, (&start_raw));
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, (&end_raw));
+  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &start_raw);
+  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &end_raw);
 
   event_wrap start_event(start_raw);
   event_wrap end_event(end_raw);
@@ -236,8 +242,9 @@ TEST_F(EventWrapTest, ElapsedTimeBetweenStatic) {
   EXPECT_TRUE((std::is_same_v<decltype(elapsed_nano), nanoSec>));
 
   // Cleanup
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (start_raw));
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, (end_raw));
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event",
+                         start_raw);
+  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event", end_raw);
 }
 
 // Test duration conversion function
