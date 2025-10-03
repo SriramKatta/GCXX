@@ -147,7 +147,7 @@ TEST_F(EventBaseTest, ConstexprFunctionality) {
   // Test that INVALID_EVENT is constexpr
   constexpr auto invalid = gcxx::details_::INVALID_EVENT;
   (void)invalid;  // Suppress unused variable warning
-  
+
   // Test constexpr constructor
   constexpr gcxx::details_::event_wrap default_event;
   EXPECT_FALSE(static_cast<bool>(default_event));
