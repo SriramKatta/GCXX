@@ -13,13 +13,13 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : event_wrap(details_::INVALID_EVENT) {
-  GCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags,
-                         (&event_, static_cast<flag_t>(createFlag)));
+  GCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags, "Failed to create GPU Event",
+                         &event_, static_cast<flag_t>(createFlag));
 }
 
 GCXX_FH Event::~Event() {
   if (event_ != details_::INVALID_EVENT) {
-    GCXX_SAFE_RUNTIME_CALL(EventDestroy, (event_));
+    GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event", event_);
   }
 }
 

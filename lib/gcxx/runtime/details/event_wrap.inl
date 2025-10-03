@@ -12,28 +12,29 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH auto event_wrap::HasOccurred() const -> bool {
-  auto err            = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
-  constexpr auto line = __LINE__ - 1;
+  auto err = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
   switch (err) {
-    case GCXX_RUNTIME_BACKEND(Success):
+    case details_::deviceSuccess:
       return true;
-    case GCXX_RUNTIME_BACKEND(ErrorNotReady):
+    case details_::deviceErrorNotReady:
       return false;
     default:
-      details_::checkDeviceError(err, "event Query", __FILE__, line);
-      return false;
+      details_::throwGPUError(err, "Failed to query GPU Event");
   }
+  return false;
 }
 
-GCXX_FH auto event_wrap::RecordInStream(
-  const stream_wrap& stream, const flags::eventRecord recordFlag) -> void {
-  GCXX_SAFE_RUNTIME_CALL(
-    EventRecordWithFlags,
-    (event_, stream.get(), static_cast<flag_t>(recordFlag)));
+GCXX_FH auto event_wrap::RecordInStream(const stream_wrap& stream,
+                                        const flags::eventRecord recordFlag)
+  -> void {
+  GCXX_SAFE_RUNTIME_CALL(EventRecordWithFlags,
+                         "Failed to recoed GPU Event in GPU Stream", event_,
+                         stream.get(), static_cast<flag_t>(recordFlag));
 }
 
 GCXX_FH auto event_wrap::Synchronize() const -> void {
-  GCXX_SAFE_RUNTIME_CALL(EventSynchronize, (event_));
+  GCXX_SAFE_RUNTIME_CALL(EventSynchronize, "Failed to synchronize GPU Event",
+                         event_);
 }
 
 template <typename DurationT>
@@ -42,7 +43,8 @@ GCXX_FH auto event_wrap::ElapsedTimeSince(const event_wrap& startEvent) const
   this->Synchronize();
   float ms{};
   GCXX_SAFE_RUNTIME_CALL(EventElapsedTime,
-                         (&ms, startEvent.get(), this->get()));
+                         "Failed to get elapsed time between GPU Events", &ms,
+                         startEvent.get(), this->get());
   return ConvertDuration<DurationT>(ms);
 }
 

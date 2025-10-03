@@ -23,13 +23,16 @@ int main(int argc, char** argv) {
   double* d_a{nullptr};
 
 #if GCXX_HIP_MODE
-  GCXX_SAFE_RUNTIME_CALL(HostMalloc, (&h_a, sizeInBytes));
+  GCXX_SAFE_RUNTIME_CALL(HostMalloc, "failed to allocated Pinned Host data",
+                         &h_a, sizeInBytes);
 #elif GCXX_CUDA_MODE
-  GCXX_SAFE_RUNTIME_CALL(MallocHost, (&h_a, sizeInBytes));
+  GCXX_SAFE_RUNTIME_CALL(MallocHost, "failed to allocated Pinned Host data",
+                         &h_a, sizeInBytes);
 #endif
 
 
-  GCXX_SAFE_RUNTIME_CALL(Malloc, (&d_a, sizeInBytes));
+  GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocted GPU memory", &d_a,
+                         sizeInBytes);
 
 
   gcxx::span h_a_span(h_a, arg.N);
@@ -76,7 +79,7 @@ int main(int argc, char** argv) {
              Dtohtime, arraySizeinGbytes / Dtohtime, HtoDtime,
              arraySizeinGbytes / HtoDtime);
 
-  GCXX_SAFE_RUNTIME_CALL(FreeHost, (h_a));
-  GCXX_SAFE_RUNTIME_CALL(Free, (d_a));
+  GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Allocated Host data", h_a);
+  GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Allocated GPU data", d_a);
   return 0;
 }

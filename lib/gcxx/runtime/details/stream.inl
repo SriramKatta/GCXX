@@ -13,9 +13,9 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
   if (createFlag == flags::streamType::nullStream) {
     return;
   }
-  GCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority,
-                         (&stream_, static_cast<flag_t>(createFlag),
-                          -static_cast<flag_t>(priorityFlag)));
+  GCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority, "Failed to Create Stream",
+                         &stream_, static_cast<flag_t>(createFlag),
+                         -static_cast<flag_t>(priorityFlag));
 }
 
 GCXX_FH auto Stream::destroy() -> void {
@@ -31,7 +31,7 @@ GCXX_FH auto Stream::destroy() -> void {
   // int deviceId = -1;
   // GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
   // details_::EnsureCurrentDevice e(deviceId);
-  GCXX_SAFE_RUNTIME_CALL(StreamDestroy, (stream_));
+  GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "failed to destroy GPU Event", stream_);
   stream_ = details_::INVALID_STREAM;
 }
 
