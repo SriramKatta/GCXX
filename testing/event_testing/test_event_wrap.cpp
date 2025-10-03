@@ -121,8 +121,9 @@ TEST_F(EventWrapTest, RecordInStreamWithFlags) {
 
   // Test with different record flags
   EXPECT_NO_THROW(event.RecordInStream(test_stream, flags::eventRecord::none));
+  // TODO : need to understand why this fails wiith cuda error
   // EXPECT_NO_THROW(event.RecordInStream(test_stream,
-  // flags::eventRecord::external)); //
+  // flags::eventRecord::external));
 }
 
 // Test Synchronize
