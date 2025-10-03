@@ -31,7 +31,7 @@ GCXX_FH auto Event::release() GCXX_NOEXCEPT -> event_wrap {
 
 // Implementation of recordEvent to break circular dependency
 GCXX_FH auto stream_wrap::recordEvent(const flags::eventCreate createflag,
-                                     const flags::eventRecord recordFlag) const
+                                      const flags::eventRecord recordFlag) const
   -> Event {
   Event event(createflag);
   event.RecordInStream(this->get(), recordFlag);

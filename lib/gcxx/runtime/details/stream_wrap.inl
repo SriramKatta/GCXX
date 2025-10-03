@@ -27,7 +27,7 @@ GCXX_FH auto stream_wrap::Synchronize() const -> void {
 }
 
 GCXX_FH auto stream_wrap::WaitOnEvent(const details_::event_wrap& event,
-                                     const flags::eventWait waitFlag) const
+                                      const flags::eventWait waitFlag) const
   -> void {
   GCXX_SAFE_RUNTIME_CALL(
     StreamWaitEvent, (this->get(), event.get(), static_cast<flag_t>(waitFlag)));
