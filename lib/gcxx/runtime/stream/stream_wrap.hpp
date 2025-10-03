@@ -12,11 +12,13 @@
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+using deviceStream_t = GCXX_RUNTIME_BACKEND(Stream_t);
+inline constexpr deviceStream_t NULL_STREAM{nullptr};  // NOLINT
+
 // clang-format off
-using deviceStream_t                    = GCXX_RUNTIME_BACKEND(Stream_t);
-inline static const auto NULL_STREAM    = reinterpret_cast<deviceStream_t>(0ULL); // NOLINT
-inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL); // NOLINT
+inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL);  // NOLINT
 // clang-format on
+
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
 
