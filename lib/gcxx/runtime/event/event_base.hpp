@@ -35,13 +35,13 @@ class event_wrap {
    *
    * @param device_event device event to be handled
    */
-  GCXX_CXPR event_wrap(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {
-  }
+  GCXX_CXPR event_wrap(deviceEvent_t rawEvent) GCXX_NOEXCEPT
+      : event_(rawEvent) {}
 
-  /// Disallow creation from `int`
+  // Disallow creation from `int`
   event_wrap(int) = delete;
 
-  /// Disallow creation from `nullptr`
+  // Disallow creation from `nullptr`
   event_wrap(std::nullptr_t) = delete;
 
   GCXX_FHC auto get() GCXX_CONST_NOEXCEPT -> deviceEvent_t { return event_; }
