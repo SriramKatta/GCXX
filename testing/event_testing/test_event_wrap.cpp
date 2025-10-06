@@ -21,8 +21,8 @@ class EventWrapTest : public ::testing::Test {
                            stream_);
   }
 
-  GCXX_RUNTIME_BACKEND(Stream_t) stream_ {};
-  GCXX_RUNTIME_BACKEND(Event_t) raw_event_ {};
+  GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
+  GCXX_RUNTIME_BACKEND(Event_t) raw_event_{};
 };
 
 // Test default construction

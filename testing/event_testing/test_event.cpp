@@ -16,7 +16,7 @@ class EventTest : public ::testing::Test {
                            stream_);
   }
 
-  GCXX_RUNTIME_BACKEND(Stream_t) stream_ {};
+  GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
 };
 
 TEST_F(EventTest, ConstructAndDestroy) {
