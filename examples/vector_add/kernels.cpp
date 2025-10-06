@@ -34,13 +34,12 @@ __global__ void kernel_4vec(gcxx::span<double> a) {
     a4->z += 1.0;
     a4->w += 1.0;
   }
-  // in only one thread, process final elements (if there are any)
+  // 0 thread, process final elements (if there are any)
   int remainder = a.size() % 4;
-  if (start == a.size() / 4 && remainder != 0) {
-    for (auto& elem : a.last(remainder)) {
-      elem += 1.0;
+  if (start == 0)
+    for (auto& i : a.last(remainder)) {
+      i += 1.0;
     }
-  }
 }
 
 void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,

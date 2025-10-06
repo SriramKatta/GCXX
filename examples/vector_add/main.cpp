@@ -12,6 +12,21 @@ void checkdata(const gcxx::span<double>& h_a, double checkval) {
   }
 }
 
+template <typename func_t>
+float time_measure(const gcxx::Stream& str, const Args& arg,
+                   gcxx::span<double>& d_a_span, func_t func) {
+  str.Synchronize();
+  auto kernelstart = str.recordEvent();
+  for (size_t i = 1; i <= arg.rep; i++) {
+    func(arg, str, d_a_span);
+  }
+  auto kernelend = str.recordEvent();
+  str.Synchronize();
+  float kerneltime =
+    (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
+  return kerneltime;
+}
+
 int main(int argc, char** argv) {
   // using namespace gcxx::details_;
 
@@ -47,17 +62,11 @@ int main(int argc, char** argv) {
   gcxx::memory::copy(d_a_span, h_a_span, str);
   auto H2Dend = str.recordEvent();
 
-  H2Dend.Synchronize();
+  auto scalar_kern_time =
+    time_measure(str, arg, d_a_span, launch_scalar_kernel);
+  auto vec2_kern_time = time_measure(str, arg, d_a_span, launch_vec2_kernel);
+  auto vec4_kern_time = time_measure(str, arg, d_a_span, launch_vec4_kernel);
 
-  str.Synchronize();
-  auto kernelstart = str.recordEvent();
-  for (size_t i = 1; i <= arg.rep; i++) {
-    launch_vec2_kernel(arg, str, d_a_span);
-  }
-  auto kernelend = str.recordEvent();
-
-  str.Synchronize();
-  // GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize,());
 
   auto D2Hstart = str.recordEvent();
   gcxx::memory::copy(h_a_span, d_a_span, str);
@@ -65,19 +74,22 @@ int main(int argc, char** argv) {
 
   D2Hend.Synchronize();
 
-  checkdata(h_a_span, static_cast<double>(arg.rep));
+  checkdata(h_a_span, static_cast<double>(arg.rep) * 3.0);
 
   float Dtohtime = (D2Hend.ElapsedTimeSince<gcxx::sec>(D2Hstart)).count();
-  float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
+
   float HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
 
   double arraySizeinGbytes = static_cast<double>(arg.N * sizeof(double)) / 1e9;
   double transfer_size = arraySizeinGbytes * 2.0 * static_cast<double>(arg.rep);
 
-  fmt::print("{} {}\n{} {}\n{} {}\n", kerneltime, transfer_size / kerneltime,
-             Dtohtime, arraySizeinGbytes / Dtohtime, HtoDtime,
-             arraySizeinGbytes / HtoDtime);
+  fmt::print(
+    "{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} "
+    "{:>4.3f}\n{:>4.3f} {:>4.3f}\n",
+    scalar_kern_time, transfer_size / scalar_kern_time, vec2_kern_time,
+    transfer_size / vec2_kern_time, vec4_kern_time,
+    transfer_size / vec4_kern_time, Dtohtime, arraySizeinGbytes / Dtohtime,
+    HtoDtime, arraySizeinGbytes / HtoDtime);
 
   GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Allocated Host data", h_a);
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Allocated GPU data", d_a);
