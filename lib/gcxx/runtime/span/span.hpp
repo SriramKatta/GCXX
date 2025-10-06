@@ -15,9 +15,10 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 
-GCXX_FC std::size_t dynamic_extent = std::numeric_limits<std::size_t>::max();
+GCXX_CXPR inline std::size_t dynamic_extent =
+  std::numeric_limits<std::size_t>::max();
 
-template <class VT, std::size_t Extent>
+template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class span;
 
 GCXX_NAMESPACE_DETAILS_BEGIN
@@ -84,7 +85,7 @@ GCXX_FHDC std::size_t size(const T (&)[N]) noexcept {
 
 GCXX_NAMESPACE_DETAILS_END
 
-template <class VT, std::size_t Extent = dynamic_extent>
+template <class VT, std::size_t Extent>
 class span {
  private:
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
