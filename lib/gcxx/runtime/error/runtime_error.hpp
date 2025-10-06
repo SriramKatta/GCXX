@@ -16,7 +16,7 @@ GCXX_CXPR auto deviceErrorNotReady  = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 GCXX_CXPR auto deviceGetErrorstring = GCXX_RUNTIME_BACKEND(GetErrorString);
 GCXX_CXPR auto deviceGetLastError   = GCXX_RUNTIME_BACKEND(GetLastError);
 
-inline auto throwGPUError(deviceError_t err, const char* msg) {
+inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
   fprintf(stderr, "code  %d : %s", err, msg);
   std::terminate();
 }
