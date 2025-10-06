@@ -12,6 +12,10 @@
 #define GCXX_FH __forceinline__ __host__
 #endif
 
+#ifndef GCXX_FC
+#define GCXX_FC __forceinline__ constexpr
+#endif
+
 #ifndef GCXX_FHC
 #define GCXX_FHC __forceinline__ __host__ constexpr
 #endif
