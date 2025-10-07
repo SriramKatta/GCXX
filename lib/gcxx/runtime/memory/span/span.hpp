@@ -183,7 +183,7 @@ class span {
   using size_type       = std::size_t;
   using difference_type = std::ptrdiff_t;
   using pointer         = element_type*;
-  using const_pointer   = const pointer;
+  using const_pointer   = const element_type*;
   using reference       = element_type&;
   using const_reference = const element_type&;
 
@@ -379,8 +379,9 @@ class span {
     return {data() + Offset, Count != dynamic_extent ? Count : size() - Offset};
   }
 
-  GCXX_FHDC auto subspan(size_type offset, size_type count = dynamic_extent)
-    const -> span<element_type> {
+  GCXX_FHDC auto subspan(size_type offset,
+                         size_type count = dynamic_extent) const
+    -> span<element_type> {
     GCXX_EXPECT(
       offset <= size() && count == dynamic_extent || offset + count < size(),
       "Span.subspan contract failure");
@@ -411,7 +412,7 @@ span(const std::array<VT, N>&) -> span<const VT, N>;
 
 template <class Container>
 span(Container&) -> span<typename std::remove_reference_t<
-                   decltype(*std::data(std::declval<Container&>()))>>;
+  decltype(*std::data(std::declval<Container&>()))>>;
 
 template <class Container>
 span(const Container&) -> span<const typename Container::value_type>;
