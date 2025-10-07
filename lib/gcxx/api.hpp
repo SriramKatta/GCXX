@@ -14,8 +14,8 @@
 
 // Section for Runtime API
 // #include <gcxx/runtime/device.hpp>
-#include <gcxx/runtime/stream.hpp>
 #include <gcxx/runtime/event.hpp>
+#include <gcxx/runtime/stream.hpp>
 
 
 // section for memory API
