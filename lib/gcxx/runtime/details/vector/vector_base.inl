@@ -1,6 +1,0 @@
-#pragma once
-#ifndef GCXX_API_RUNTIME_VECTOR_BASE_INL_
-#define GCXX_API_RUNTIME_VECTOR_BASE_INL_
-
-
-#endif
