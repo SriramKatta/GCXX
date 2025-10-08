@@ -8,7 +8,7 @@
 #elif GCXX_HIP_MODE
 #include <gcxx/backend/hip_backend.hpp>
 #else
-#error "Atleast one backend must be defined"
+#error "One backend GCXX_CUDA_MODE or GCXX_HIP_MODE must be defined"
 #endif
 
 
