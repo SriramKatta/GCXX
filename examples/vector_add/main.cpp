@@ -3,7 +3,10 @@
 
 #include "main.hpp"
 
-void checkdata(const gcxx::span<double>& h_a, double checkval) {
+using datatype = float;
+
+template <typename VT>
+void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
   for (size_t i = 0; i < h_a.size(); i++) {
     if ((h_a[i] - checkval) > 0.00001) {
       fmt::print("FAILED at index {} : {}\n", i, h_a[i] - checkval);
@@ -12,9 +15,9 @@ void checkdata(const gcxx::span<double>& h_a, double checkval) {
   }
 }
 
-template <typename func_t>
+template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
-                   gcxx::span<double>& d_a_span, func_t func) {
+                   gcxx::span<VT>& d_a_span, func_t func) {
   str.Synchronize();
   auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
@@ -32,10 +35,10 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  size_t sizeInBytes = arg.N * sizeof(double);
+  size_t sizeInBytes = arg.N * sizeof(datatype);
 
-  double* h_a{nullptr};
-  double* d_a{nullptr};
+  datatype* h_a{nullptr};
+  datatype* d_a{nullptr};
 
 #if GCXX_HIP_MODE
   GCXX_SAFE_RUNTIME_CALL(HostMalloc, "failed to allocated Pinned Host data",
@@ -56,16 +59,18 @@ int main(int argc, char** argv) {
 
   std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
 
-  gcxx::Stream str(gcxx::flags::streamType::nullStream);
+  gcxx::Stream str(gcxx::flags::streamType::noSyncWithNull);
 
   auto H2Dstart = str.recordEvent();
   gcxx::memory::copy(d_a_span, h_a_span, str);
   auto H2Dend = str.recordEvent();
 
   auto scalar_kern_time =
-    time_measure(str, arg, d_a_span, launch_scalar_kernel);
-  auto vec2_kern_time = time_measure(str, arg, d_a_span, launch_vec2_kernel);
-  auto vec4_kern_time = time_measure(str, arg, d_a_span, launch_vec4_kernel);
+    time_measure(str, arg, d_a_span, launch_scalar_kernel<datatype>);
+  auto vec2_kern_time =
+    time_measure(str, arg, d_a_span, launch_vec2_kernel<datatype>);
+  auto vec4_kern_time =
+    time_measure(str, arg, d_a_span, launch_vec4_kernel<datatype>);
 
 
   auto D2Hstart = str.recordEvent();
@@ -74,14 +79,14 @@ int main(int argc, char** argv) {
 
   D2Hend.Synchronize();
 
-  checkdata(h_a_span, static_cast<double>(arg.rep) * 3.0);
+  checkdata(h_a_span, static_cast<datatype>(arg.rep * 3));
 
-  float Dtohtime = (D2Hend.ElapsedTimeSince<gcxx::sec>(D2Hstart)).count();
+  auto Dtohtime = (D2Hend.ElapsedTimeSince<gcxx::sec>(D2Hstart)).count();
 
-  float HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
+  auto HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
 
-  double arraySizeinGbytes = static_cast<double>(arg.N * sizeof(double)) / 1e9;
-  double transfer_size = arraySizeinGbytes * 2.0 * static_cast<double>(arg.rep);
+  auto arraySizeinGbytes = static_cast<float>(arg.N * sizeof(float)) / (1E9);
+  auto transfer_size = arraySizeinGbytes * 2.0 * static_cast<float>(arg.rep);
 
   fmt::print(
     "{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} "

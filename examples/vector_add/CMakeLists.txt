@@ -1,15 +1,15 @@
-set_source_files_properties(kernels.cpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
+set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
 
 set(EXE_NAME vector_add)
 
-add_library(vector_add_lib kernels.cpp)
+add_library(vector_add_lib INTERFACE)
 
 set_target_properties(
   vector_add_lib PROPERTIES LINKER_LANGUAGE CXX POSITION_INDEPENDENT_CODE ON
 )
 
 target_link_libraries(
-  vector_add_lib PUBLIC gcxx::gcxx fmt::fmt argparse::argparse
+  vector_add_lib INTERFACE gcxx::gcxx fmt::fmt argparse::argparse
 )
 
 add_executable(${EXE_NAME} main.cpp)
