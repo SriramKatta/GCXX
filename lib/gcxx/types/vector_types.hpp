@@ -13,12 +13,12 @@ GCXX_NAMESPACE_MAIN_BEGIN
 GCXX_NAMESPACE_DETAILS_BEGIN
 
 // Helper to trigger static_assert for unsupported combinations
-template <typename>
-struct always_false : std::false_type {};
+template <class>
+inline constexpr bool is_always_false_v = false;
 
 template <typename VT, int N>
 struct vec {
-  GCXX_STATIC_EXPECT(always_false<VT>::value,
+  GCXX_STATIC_EXPECT(is_always_false_v<VT>,
                      "vec: unsupported type and/or dimension");
 };
 
@@ -29,7 +29,10 @@ struct vec {
     using type = VEC_TYPE;                      \
   }
 
-// --------------- DEFINE ALL MAPPINGS -----------------
+// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+// █                  DEFINE ALL MAPPINGS                   █
+// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
 
 #define MULTI_DEFINE_VEC_MAPPING(TYPE, NAME) \
   DEFINE_VEC_MAPPING(TYPE, 1, NAME##1);      \
@@ -76,7 +79,9 @@ MULTI_DEFINE_VEC_MAPPING(double, double);
 
 GCXX_NAMESPACE_DETAILS_END
 
-// --------------- TYPE ALIASES TO USE -----------------
+// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+// █                  TYPE ALIASES TO USE                   █
+// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 /// A 1-component vector of type VT.
 /// Equivalent to: struct [DEVICE SPECIFIC ATTIRIBUTES] VT1 { VT x; };
