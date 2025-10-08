@@ -1,5 +1,7 @@
 set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
-set_source_files_properties(main.hpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG}) # helps in intellisense
+
+# helps in intellisense
+set_source_files_properties(main.hpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
 
 set(EXE_NAME vector_add)
 

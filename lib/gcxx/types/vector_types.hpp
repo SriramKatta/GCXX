@@ -6,6 +6,7 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
+#include <gcxx/runtime/runtime_error.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -17,7 +18,8 @@ struct always_false : std::false_type {};
 
 template <typename T, int N>
 struct vec {
-  static_assert(always_false<T>::value, "vec: unsupported type or dimension");
+  GCXX_STATIC_EXPECT(always_false<T>::value,
+                     "vec: unsupported type and/or dimension");
 };
 
 // Macro to define specializations
