@@ -7,6 +7,8 @@
 #include <gcxx/backend/cuda_backend.hpp>
 #elif GCXX_HIP_MODE
 #include <gcxx/backend/hip_backend.hpp>
+#else
+#error "Atleast one backend must be defined"
 #endif
 
 
