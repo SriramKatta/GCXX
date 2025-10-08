@@ -16,17 +16,17 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 template <typename>
 struct always_false : std::false_type {};
 
-template <typename T, int N>
+template <typename VT, int N>
 struct vec {
-  GCXX_STATIC_EXPECT(always_false<T>::value,
+  GCXX_STATIC_EXPECT(always_false<VT>::value,
                      "vec: unsupported type and/or dimension");
 };
 
 // Macro to define specializations
-#define DEFINE_VEC_MAPPING(T, N, VEC_TYPE) \
-  template <>                              \
-  struct vec<T, N> {                       \
-    using type = VEC_TYPE;                 \
+#define DEFINE_VEC_MAPPING(VTYPE, VN, VEC_TYPE) \
+  template <>                                   \
+  struct vec<VTYPE, VN> {                       \
+    using type = VEC_TYPE;                      \
   }
 
 // --------------- DEFINE ALL MAPPINGS -----------------
@@ -78,17 +78,25 @@ GCXX_NAMESPACE_DETAILS_END
 
 // --------------- TYPE ALIASES TO USE -----------------
 
-template <typename T>
-using vec1_t = typename details_::vec<T, 1>::type;
+/// A 1-component vector of type VT.
+/// Equivalent to: struct [DEVICE SPECIFIC ATTIRIBUTES] VT1 { VT x; };
+template <typename VT>
+using vec1_t = typename details_::vec<VT, 1>::type;
 
-template <typename T>
-using vec2_t = typename details_::vec<T, 2>::type;
+/// A 2-component vector of type VT.
+/// Equivalent to: struct [DEVICE SPECIFIC ATTIRIBUTES] VT2 { VT x, y; };
+template <typename VT>
+using vec2_t = typename details_::vec<VT, 2>::type;
 
-template <typename T>
-using vec3_t = typename details_::vec<T, 3>::type;
+/// A 3-component vector of type VT.
+/// Equivalent to: struct [DEVICE SPECIFIC ATTIRIBUTES] VT3 { VT x, y, z; };
+template <typename VT>
+using vec3_t = typename details_::vec<VT, 3>::type;
 
-template <typename T>
-using vec4_t = typename details_::vec<T, 4>::type;
+/// A 4-component vector of type VT.
+/// Equivalent to: struct [DEVICE SPECIFIC ATTIRIBUTES] VT4 { VT x, y, z, w; };
+template <typename VT>
+using vec4_t = typename details_::vec<VT, 4>::type;
 
 GCXX_NAMESPACE_MAIN_END
 
