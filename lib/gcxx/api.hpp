@@ -3,6 +3,10 @@
 #define GCXX_API_HPP
 
 #include <gcxx/backend/backend.hpp>
+
+// section for types
+#include <gcxx/types/vector_types.hpp>
+
 // Section for different error handlings
 // for example runtime, blas, etc.
 #include <gcxx/runtime/runtime_error.hpp>
