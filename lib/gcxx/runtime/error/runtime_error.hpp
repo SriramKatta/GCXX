@@ -3,6 +3,7 @@
 #define GCXX_RUNTIME_ERROR_RUNTIME_ERROR_HPP_
 
 #include <stdio.h>
+#include <cstdlib>
 #include <exception>
 
 #include <gcxx/backend/backend.hpp>
@@ -18,7 +19,7 @@ GCXX_CXPR auto deviceGetLastError   = GCXX_RUNTIME_BACKEND(GetLastError);
 
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
   fprintf(stderr, "code  %d : %s\n", err, msg);
-  std::terminate();
+  std::abort();
 }
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
