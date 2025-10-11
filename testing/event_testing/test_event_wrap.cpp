@@ -1,4 +1,5 @@
-#include <gtest/gtest.h>
+#include "tests_common.hpp"
+
 #include <chrono>
 #include <gcxx/runtime/event.hpp>
 #include <type_traits>

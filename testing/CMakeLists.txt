@@ -14,4 +14,5 @@ function(add_gcxx_test SRC_BASE_NAME)
   endif()
 endfunction()
 
+include_directories(common)
 add_subdirectory(event_testing)

@@ -1,4 +1,6 @@
-#include <gtest/gtest.h>
+#include "tests_common.hpp"
+
+
 #include <gcxx/runtime/event/event.hpp>
 #include <gcxx/runtime/stream/stream_wrap.hpp>
 
