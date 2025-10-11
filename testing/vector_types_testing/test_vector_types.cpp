@@ -1,189 +1,150 @@
 #include <type_traits>
+#include <cuda_runtime.h>
 
 #include "tests_common.hpp"
 
-#include <gcxx/runtime/event.hpp>
+#include <gcxx/types/vector_types.hpp>
 
-// Test fixture for event_base tests
-class EventBaseTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    // Setup code if needed
-  }
+// Test that GCXX vector types are the same as CUDA vector types using std::is_same_v
 
-  void TearDown() override {
-    // Cleanup code if needed
-  }
-};
-
-// Test default construction
-TEST_F(EventBaseTest, DefaultConstructor) {
-  gcxx::details_::event_wrap event;
-
-  // Default constructed event should be invalid
-  EXPECT_FALSE(static_cast<bool>(event));
-  EXPECT_EQ(event.get(), gcxx::details_::INVALID_EVENT);
+// Test char vector types
+TEST(VectorTypesTest, CharVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<char>, char1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<char>, char2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<char>, char3>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<char>, char4>));
 }
 
-// Test construction from raw device event
-TEST_F(EventBaseTest, RawEventConstructor) {
-  // Create a mock device event (assuming cudaEvent_t is a pointer type)
-  gcxx::details_::deviceEvent_t raw_event =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x12345);
-
-  gcxx::details_::event_wrap event(raw_event);
-
-  EXPECT_TRUE(static_cast<bool>(event));
-  EXPECT_EQ(event.get(), raw_event);
+// Test unsigned char vector types
+TEST(VectorTypesTest, UCharVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<unsigned char>, uchar1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<unsigned char>, uchar2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<unsigned char>, uchar3>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned char>, uchar4>));
 }
 
-// Test that construction from int is deleted
-TEST_F(EventBaseTest, IntConstructorDeleted) {
-  // This test verifies that the deleted constructor is indeed deleted
-  // We can't instantiate it, but we can check with type traits
-  EXPECT_FALSE((std::is_constructible_v<gcxx::details_::event_wrap, int>));
+// Test short vector types
+TEST(VectorTypesTest, ShortVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<short>, short1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<short>, short2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<short>, short3>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<short>, short4>));
 }
 
-// Test that construction from nullptr is deleted
-TEST_F(EventBaseTest, NullptrConstructorDeleted) {
-  // This test verifies that the deleted constructor is indeed deleted
-  EXPECT_FALSE(
-    (std::is_constructible_v<gcxx::details_::event_wrap, std::nullptr_t>));
+// Test unsigned short vector types
+TEST(VectorTypesTest, UShortVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<unsigned short>, ushort1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<unsigned short>, ushort2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<unsigned short>, ushort3>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned short>, ushort4>));
 }
 
-// Test get() method
-TEST_F(EventBaseTest, GetMethod) {
-  gcxx::details_::deviceEvent_t raw_event =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0xABCDE);
-  gcxx::details_::event_wrap event(raw_event);
-
-  EXPECT_EQ(event.get(), raw_event);
+// Test int vector types
+TEST(VectorTypesTest, IntVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<int>, int1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<int>, int2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<int>, int3>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<int>, int4>));
 }
 
-// Test implicit conversion to deviceEvent_t
-TEST_F(EventBaseTest, ImplicitConversion) {
-  gcxx::details_::deviceEvent_t raw_event =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0xFEDCB);
-  gcxx::details_::event_wrap event(raw_event);
-
-  gcxx::details_::deviceEvent_t converted = event;
-  EXPECT_EQ(converted, raw_event);
+// Test unsigned int vector types
+TEST(VectorTypesTest, UIntVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<unsigned int>, uint1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<unsigned int>, uint2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<unsigned int>, uint3>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned int>, uint4>));
 }
 
-// Test explicit bool conversion - valid event
-TEST_F(EventBaseTest, BoolConversionValid) {
-  gcxx::details_::deviceEvent_t raw_event =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x54321);
-  gcxx::details_::event_wrap event(raw_event);
-
-  EXPECT_TRUE(static_cast<bool>(event));
-  EXPECT_TRUE(event);
+// Test float vector types
+TEST(VectorTypesTest, FloatVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<float>, float1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<float>, float2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<float>, float3>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<float>, float4>));
 }
 
-// Test explicit bool conversion - invalid event
-TEST_F(EventBaseTest, BoolConversionInvalid) {
-  gcxx::details_::event_wrap event;  // Default constructed (invalid)
-
-  EXPECT_FALSE(static_cast<bool>(event));
-  EXPECT_FALSE(event);
+// Test long vector types (only 1-3 dimensions)
+TEST(VectorTypesTest, LongVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<long>, long1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<long>, long2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<long>, long3>));
+    
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 13)
+    // CUDA 13+ uses alignment-aware types
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<long>, long4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<long>, long4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_32a_t<long>, long4_32a>));
+#else
+    // Legacy CUDA uses standard long4
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<long>, long4>));
+#endif
 }
 
-// Test equality operator
-TEST_F(EventBaseTest, EqualityOperator) {
-  gcxx::details_::deviceEvent_t raw_event1 =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x11111);
-  gcxx::details_::deviceEvent_t raw_event2 =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x22222);
-
-  gcxx::details_::event_wrap event1(raw_event1);
-  gcxx::details_::event_wrap event2(raw_event1);  // Same raw event
-  gcxx::details_::event_wrap event3(raw_event2);  // Different raw event
-
-  EXPECT_TRUE(event1 == event2);   // Same underlying event
-  EXPECT_FALSE(event1 == event3);  // Different underlying events
+// Test unsigned long vector types (only 1-3 dimensions)
+TEST(VectorTypesTest, ULongVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<unsigned long>, ulong1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<unsigned long>, ulong2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<unsigned long>, ulong3>));
+    
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 13)
+    // CUDA 13+ uses alignment-aware types
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned long>, ulong4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<unsigned long>, ulong4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_32a_t<unsigned long>, ulong4_32a>));
+#else
+    // Legacy CUDA uses standard ulong4
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned long>, ulong4>));
+#endif
 }
 
-// Test inequality operator
-TEST_F(EventBaseTest, InequalityOperator) {
-  gcxx::details_::deviceEvent_t raw_event1 =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x33333);
-  gcxx::details_::deviceEvent_t raw_event2 =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x44444);
-
-  gcxx::details_::event_wrap event1(raw_event1);
-  gcxx::details_::event_wrap event2(raw_event1);  // Same raw event
-  gcxx::details_::event_wrap event3(raw_event2);  // Different raw event
-
-  EXPECT_FALSE(event1 != event2);  // Same underlying event
-  EXPECT_TRUE(event1 != event3);   // Different underlying events
+// Test long long vector types (only 1-3 dimensions)
+TEST(VectorTypesTest, LongLongVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<long long>, longlong1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<long long>, longlong2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<long long>, longlong3>));
+    
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 13)
+    // CUDA 13+ uses alignment-aware types
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<long long>, longlong4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<long long>, longlong4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_32a_t<long long>, longlong4_32a>));
+#else
+    // Legacy CUDA uses standard longlong4
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<long long>, longlong4>));
+#endif
 }
 
-// Test equality with invalid events
-TEST_F(EventBaseTest, EqualityWithInvalidEvents) {
-  gcxx::details_::event_wrap invalid1;  // Default constructed
-  gcxx::details_::event_wrap invalid2;  // Default constructed
-  gcxx::details_::deviceEvent_t raw_event =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x55555);
-  gcxx::details_::event_wrap valid(raw_event);
-
-  EXPECT_TRUE(invalid1 == invalid2);  // Both invalid should be equal
-  EXPECT_FALSE(invalid1 == valid);    // Invalid != valid
-  EXPECT_TRUE(invalid1 != valid);     // Invalid != valid
+// Test unsigned long long vector types (only 1-3 dimensions)
+TEST(VectorTypesTest, ULongLongVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<unsigned long long>, ulonglong1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<unsigned long long>, ulonglong2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<unsigned long long>, ulonglong3>));
+    
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 13)
+    // CUDA 13+ uses alignment-aware types
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned long long>, ulonglong4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<unsigned long long>, ulonglong4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_32a_t<unsigned long long>, ulonglong4_32a>));
+#else
+    // Legacy CUDA uses standard ulonglong4
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned long long>, ulonglong4>));
+#endif
 }
 
-// Test copy constructor
-TEST_F(EventBaseTest, CopyConstructor) {
-  gcxx::details_::deviceEvent_t raw_event =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x66666);
-  gcxx::details_::event_wrap original(raw_event);
-  gcxx::details_::event_wrap copy(original);
-
-  EXPECT_EQ(original.get(), copy.get());
-  EXPECT_TRUE(original == copy);
+// Test double vector types (only 1-3 dimensions)
+TEST(VectorTypesTest, DoubleVectorTypesSame) {
+    EXPECT_TRUE((std::is_same_v<gcxx::vec1_t<double>, double1>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<double>, double2>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<double>, double3>));
+    
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 13)
+    // CUDA 13+ uses alignment-aware types
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<double>, double4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<double>, double4_16a>));
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_32a_t<double>, double4_32a>));
+#else
+    // Legacy CUDA uses standard double4
+    EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<double>, double4>));
+#endif
 }
 
-// Test copy assignment
-TEST_F(EventBaseTest, CopyAssignment) {
-  gcxx::details_::deviceEvent_t raw_event =
-    reinterpret_cast<gcxx::details_::deviceEvent_t>(0x77777);
-  gcxx::details_::event_wrap original(raw_event);
-  gcxx::details_::event_wrap assigned;
-
-  assigned = original;
-
-  EXPECT_EQ(original.get(), assigned.get());
-  EXPECT_TRUE(original == assigned);
-}
-
-// Test constexpr functionality
-TEST_F(EventBaseTest, ConstexprFunctionality) {
-  // Test that INVALID_EVENT is constexpr
-  constexpr auto invalid = gcxx::details_::INVALID_EVENT;
-  (void)invalid;  // Suppress unused variable warning
-
-  // Test constexpr constructor
-  constexpr gcxx::details_::event_wrap default_event;
-  EXPECT_FALSE(static_cast<bool>(default_event));
-}
-
-// Test type traits
-TEST_F(EventBaseTest, TypeTraits) {
-  using event_type = gcxx::details_::event_wrap;
-
-  // Check basic type traits
-  EXPECT_TRUE(std::is_default_constructible_v<event_type>);
-  EXPECT_TRUE(std::is_copy_constructible_v<event_type>);
-  EXPECT_TRUE(std::is_copy_assignable_v<event_type>);
-  EXPECT_TRUE(std::is_move_constructible_v<event_type>);
-  EXPECT_TRUE(std::is_move_assignable_v<event_type>);
-
-  // Check that int constructor is deleted
-  EXPECT_FALSE((std::is_constructible_v<event_type, int>));
-
-  // Check that nullptr_t constructor is deleted
-  EXPECT_FALSE((std::is_constructible_v<event_type, std::nullptr_t>));
-
-  // Check that raw event constructor exists
-  EXPECT_TRUE(
-    (std::is_constructible_v<event_type, gcxx::details_::deviceEvent_t>));
-}

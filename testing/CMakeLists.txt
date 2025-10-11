@@ -16,3 +16,4 @@ endfunction()
 
 include_directories(common)
 add_subdirectory(event_testing)
+add_subdirectory(vector_types_testing)
