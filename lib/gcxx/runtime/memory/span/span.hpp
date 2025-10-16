@@ -381,7 +381,7 @@ class span {
 
   GCXX_FHDC auto subspan(size_type offset, size_type count = dynamic_extent)
     const -> span<element_type> {
-    GCXX_EXPECT(
+    GCXX_DYNAMIC_EXPECT(
       offset <= size() && count == dynamic_extent || offset + count < size(),
       "Span.subspan contract failure");
     return {data() + offset, count == dynamic_extent ? size() - count : count};
