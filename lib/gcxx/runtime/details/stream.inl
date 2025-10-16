@@ -18,6 +18,11 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
                          -static_cast<flag_t>(priorityFlag));
 }
 
+GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
+  this->stream_ = std::exchange(other.stream_, details_::INVALID_STREAM);
+  return *this;
+}
+
 GCXX_FH auto Stream::destroy() -> void {
 // since cudaStreamDestroy releases the handle after all work is done, to keep
 // similar behaviour
