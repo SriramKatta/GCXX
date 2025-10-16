@@ -10,6 +10,7 @@ struct Args {
   size_t rep{};
   size_t blocks{};
   size_t threads{};
+  size_t numstreams{};
 };
 
 inline Args parse_args(int argc, char** argv) {
@@ -35,6 +36,12 @@ inline Args parse_args(int argc, char** argv) {
     .default_value<size_t>(256)
     .scan<'i', std::size_t>();
 
+
+  program.add_argument("-S", "--streams")
+    .help("Number of streams")
+    .default_value<size_t>(4)
+    .scan<'i', std::size_t>();
+
   try {
     program.parse_args(argc, argv);
   } catch (const std::runtime_error& err) {
@@ -44,7 +51,8 @@ inline Args parse_args(int argc, char** argv) {
   }
 
   return {program.get<size_t>("N"), program.get<size_t>("reps"),
-          program.get<size_t>("blocks"), program.get<size_t>("threads")};
+          program.get<size_t>("blocks"), program.get<size_t>("threads"),
+          program.get<size_t>("streams")};
 }
 
 template <typename VT>

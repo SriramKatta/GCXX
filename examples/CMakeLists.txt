@@ -10,4 +10,5 @@ include(cmake/argparse.cmake)
 
 add_subdirectory(by_api_module)
 add_subdirectory(vector_add)
+add_subdirectory(vector_add_overlap)
 add_subdirectory(multi_gpu_testspace)

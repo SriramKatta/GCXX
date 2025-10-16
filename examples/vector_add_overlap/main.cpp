@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <fmt/format.h>
 #include <gcxx/api.hpp>
 
@@ -13,6 +15,7 @@ void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
       exit(1);
     }
   }
+  fmt::print("ALL PASSED!\n");
 }
 
 template <typename VT, typename func_t>
@@ -31,7 +34,6 @@ float time_measure(const gcxx::Stream& str, const Args& arg,
 }
 
 int main(int argc, char** argv) {
-  // using namespace gcxx::details_;
 
   Args arg = parse_args(argc, argv);
 
@@ -59,42 +61,28 @@ int main(int argc, char** argv) {
 
   std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
 
-  gcxx::Stream str(gcxx::flags::streamType::noSyncWithNull);
+  std::vector<gcxx::Stream> streams(arg.numstreams);
+  for (auto& stream : streams) {
+    stream = gcxx::Stream::Create(gcxx::flags::streamType::syncWithNull);
+  }
 
-  auto H2Dstart = str.recordEvent();
-  gcxx::memory::copy(d_a_span, h_a_span, str);
-  auto H2Dend = str.recordEvent();
+  size_t base_count = arg.N / arg.numstreams;
 
-  auto scalar_kern_time =
-    time_measure(str, arg, d_a_span, launch_scalar_kernel<datatype>);
-  auto vec2_kern_time =
-    time_measure(str, arg, d_a_span, launch_vec2_kernel<datatype>);
-  auto vec4_kern_time =
-    time_measure(str, arg, d_a_span, launch_vec4_kernel<datatype>);
+  for (size_t i = 0; i < arg.numstreams; i++) {
+    size_t offset  = i * base_count;
+    size_t count   = std::min(base_count, arg.N - offset);
+    auto h_subspan = h_a_span.subspan(offset, count);
+    auto d_subspan = d_a_span.subspan(offset, count);
+    gcxx::memory::copy(h_subspan, d_subspan, streams[i]);
+    launch_scalar_kernel(arg, streams[i], d_subspan);
+    gcxx::memory::copy(h_subspan, d_subspan, streams[i]);
+  }
 
 
-  auto D2Hstart = str.recordEvent();
-  gcxx::memory::copy(h_a_span, d_a_span, str);
-  auto D2Hend = str.recordEvent();
+  GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "FAILED to synchronize the device");
 
-  D2Hend.Synchronize();
 
-  checkdata(h_a_span, static_cast<datatype>(arg.rep * 3));
-
-  auto Dtohtime = (D2Hend.ElapsedTimeSince<gcxx::sec>(D2Hstart)).count();
-
-  auto HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
-
-  auto arraySizeinGbytes = static_cast<float>(arg.N * sizeof(float)) / (1E9);
-  auto transfer_size = arraySizeinGbytes * 2.0 * static_cast<float>(arg.rep);
-
-  fmt::print(
-    "{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} "
-    "{:>4.3f}\n{:>4.3f} {:>4.3f}\n",
-    scalar_kern_time, transfer_size / scalar_kern_time, vec2_kern_time,
-    transfer_size / vec2_kern_time, vec4_kern_time,
-    transfer_size / vec4_kern_time, Dtohtime, arraySizeinGbytes / Dtohtime,
-    HtoDtime, arraySizeinGbytes / HtoDtime);
+  checkdata(h_a_span, static_cast<datatype>(1.0));
 
   GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Allocated Host data", h_a);
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Allocated GPU data", d_a);

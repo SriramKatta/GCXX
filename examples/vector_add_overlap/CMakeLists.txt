@@ -3,7 +3,7 @@ set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
 # helps in intellisense
 set_source_files_properties(main.hpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
 
-set(EXE_NAME vector_add)
+set(EXE_NAME vector_add_overlap)
 set(LIB_NAME ${EXE_NAME}_lib)
 
 add_library(${LIB_NAME} INTERFACE)
