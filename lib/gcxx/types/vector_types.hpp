@@ -15,8 +15,9 @@ inline constexpr bool is_always_false_v = false;
 
 template <typename VT, int N, int ALIGN = 0>
 struct vec {
-  GCXX_STATIC_EXPECT(is_always_false_v<VT>,
-                     "vec: unsupported type and/or dimension");
+  GCXX_STATIC_EXPECT(
+    is_always_false_v<VT>,
+    "vec: unsupported type and/or dimension and/or alaignment");
 };
 
 #define DEFINE_VEC(VTYPE, N, NAME) \
@@ -124,13 +125,15 @@ using vec2_t = typename details_::vec<VT, 2>::type;
 template <typename VT>
 using vec3_t = typename details_::vec<VT, 3>::type;
 
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && \
+  (__CUDACC_VER_MAJOR__ >= 13)
 // Alignment-aware vec4 variants (only valid if mapped above)
 template <typename VT>
 using vec4_16a_t = typename details_::vec<VT, 4, 16>::type;
 
 template <typename VT>
 using vec4_32a_t = typename details_::vec<VT, 4, 32>::type;
-
+#endif
 // Default vec4_t — will be 16a on CUDA 13+ (due to override above)
 template <typename VT>
 using vec4_t = typename details_::vec<VT, 4>::type;
