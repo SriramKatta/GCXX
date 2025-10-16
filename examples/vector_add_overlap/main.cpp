@@ -66,23 +66,23 @@ int main(int argc, char** argv) {
     stream = gcxx::Stream::Create(gcxx::flags::streamType::syncWithNull);
   }
 
-  size_t base_count = arg.N / arg.numstreams;
-
-  for (size_t i = 0; i < arg.numstreams; i++) {
-    size_t offset  = i * base_count;
-    size_t count   = std::min(base_count, arg.N - 1 - offset);
-    auto h_subspan = h_a_span.subspan(offset, count);
-    auto d_subspan = d_a_span.subspan(offset, count);
-    gcxx::memory::copy(d_subspan, h_subspan, streams[i]);
-    launch_scalar_kernel(arg, streams[i], d_subspan);
-    gcxx::memory::copy(h_subspan, d_subspan, streams[i]);
+  for (size_t rep = 0; rep < arg.rep; rep++) {
+    size_t base_count = arg.N / arg.numstreams;
+    size_t i          = 0;
+    for (auto& stream : streams) {
+      size_t offset  = i++ * base_count;
+      size_t count   = std::min(base_count, arg.N - 1 - offset);
+      auto h_subspan = h_a_span.subspan(offset, count);
+      auto d_subspan = d_a_span.subspan(offset, count);
+      gcxx::memory::copy(d_subspan, h_subspan, stream);
+      launch_scalar_kernel(arg, stream, d_subspan);
+      gcxx::memory::copy(h_subspan, d_subspan, stream);
+    }
   }
-
 
   GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "FAILED to synchronize the device");
 
-
-  checkdata(h_a_span, static_cast<datatype>(1.0));
+  checkdata(h_a_span, static_cast<datatype>(arg.rep));
 
   GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Allocated Host data", h_a);
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Allocated GPU data", d_a);
