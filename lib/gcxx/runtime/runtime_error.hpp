@@ -17,7 +17,7 @@
     }                                                               \
   } while (0)
 
-#define GCXX_DYNAMIC_EXPECT(COND, MSG) assert(COND&& MSG)
+#define GCXX_DYNAMIC_EXPECT(COND, MSG) assert((COND) && (MSG))
 
 #define GCXX_STATIC_EXPECT(COND, MSG) static_assert(COND, MSG)
 
