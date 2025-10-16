@@ -5,16 +5,16 @@
 
 #include <gcxx/runtime/error/runtime_error.hpp>
 
-#define GCXX_SAFE_RUNTIME_CALL(FUNC, MSG, ...)                      \
-  do {                                                              \
-    const auto err_state = GCXX_RUNTIME_BACKEND(FUNC)(__VA_ARGS__); \
-    switch (err_state) {                                            \
-      case gcxx::details_::deviceSuccess:                           \
-        break;                                                      \
-      default:                                                      \
-        gcxx::details_::deviceGetLastError();                       \
-        gcxx::details_::throwGPUError(err_state, MSG);              \
-    }                                                               \
+#define GCXX_SAFE_RUNTIME_CALL(FUNC, MSG, ...)                       \
+  do {                                                               \
+    const auto err_state = GCXX_RUNTIME_BACKEND(FUNC)(__VA_ARGS__);  \
+    switch (err_state) {                                             \
+      case gcxx::details_::deviceSuccess:                            \
+        break;                                                       \
+      default:                                                       \
+        const auto err_state = gcxx::details_::deviceGetLastError(); \
+        gcxx::details_::throwGPUError(err_state, MSG);               \
+    }                                                                \
   } while (0)
 
 #define GCXX_DYNAMIC_EXPECT(COND, MSG) assert((COND) && (MSG))
