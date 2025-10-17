@@ -24,15 +24,21 @@ GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
 }
 
 GCXX_FH auto Stream::destroy() -> void {
-// since cudaStreamDestroy releases the handle after all work is done, to keep
-// similar behaviour
+  // since cudaStreamDestroy releases the handle after all work is done, to keep
+  // similar behaviour
+
+  if (stream_ != details_::INVALID_STREAM) {
 #if GCXX_HIP_MODE
-  Synchronize();
+    Synchronize();
 #endif
+  }
 
   if (stream_ == details_::NULL_STREAM || stream_ == details_::INVALID_STREAM) {
     return;
   }
+
+
+  // NOTE : seems that this is not needed need to verify in multi gpu rigrously
   // int deviceId = -1;
   // GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
   // details_::EnsureCurrentDevice e(deviceId);
