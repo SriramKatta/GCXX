@@ -76,13 +76,15 @@ int main(int argc, char** argv) {
       auto d_subspan = d_a_span.subspan(offset, count);
       gcxx::memory::copy(d_subspan, h_subspan, stream);
       launch_scalar_kernel(arg, stream, d_subspan);
+      launch_vec2_kernel(arg, stream, d_subspan);
+      launch_vec4_kernel(arg, stream, d_subspan);
       gcxx::memory::copy(h_subspan, d_subspan, stream);
     }
   }
 
   GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "FAILED to synchronize the device");
 
-  checkdata(h_a_span, static_cast<datatype>(arg.rep));
+  checkdata(h_a_span, static_cast<datatype>(3 * arg.rep));
 
   GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Allocated Host data", h_a);
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Allocated GPU data", d_a);
