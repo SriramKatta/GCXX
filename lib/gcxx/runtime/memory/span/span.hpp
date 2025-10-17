@@ -277,7 +277,7 @@ class span {
   //                         destructor
   // ==========================================================
 
-  GCXX_CXPR GCXX_FHD span() = default;
+  GCXX_FHD ~span() = default;
 
   // ==========================================================
   //                         operator =
