@@ -27,16 +27,15 @@ GCXX_FH auto Stream::destroy() -> void {
   // since cudaStreamDestroy releases the handle after all work is done, to keep
   // similar behaviour
 
-  if (stream_ != details_::INVALID_STREAM) {
 #if GCXX_HIP_MODE
+  if (stream_ != details_::INVALID_STREAM) {
     Synchronize();
-#endif
   }
+#endif
 
   if (stream_ == details_::NULL_STREAM || stream_ == details_::INVALID_STREAM) {
     return;
   }
-
 
   // NOTE : seems that this is not needed need to verify in multi gpu rigrously
   // int deviceId = -1;
