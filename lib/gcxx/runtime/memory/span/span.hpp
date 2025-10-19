@@ -66,6 +66,11 @@ struct restrict_span_storage : size_holder<Extent> {
   using size_holder<Extent>::size;
 };
 
+
+// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+// █                   Useful Type Traits                   █
+// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
 template <typename>
 struct is_span : std::false_type {};
 
