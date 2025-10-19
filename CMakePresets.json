@@ -81,6 +81,26 @@
       }
     },
     {
+      "name": "cuda-release-tests",
+      "displayName": "CUDA Release (Tests)",
+      "inherits": [
+        "base-release",
+        "mode-cuda",
+        "purpose-tests"
+      ],
+      "binaryDir": "${sourceDir}/build/cuda-release"
+    },
+    {
+      "name": "cuda-debug-tests",
+      "displayName": "CUDA Debug (Tests)",
+      "inherits": [
+        "base-debug",
+        "mode-cuda",
+        "purpose-tests"
+      ],
+      "binaryDir": "${sourceDir}/build/cuda-debug"
+    },
+    {
       "name": "hip-release-examples",
       "displayName": "HIP Release (Examples)",
       "inherits": [
@@ -105,26 +125,6 @@
       "cacheVariables": {
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin-debug"
       }
-    },
-    {
-      "name": "cuda-release-tests",
-      "displayName": "CUDA Release (Tests)",
-      "inherits": [
-        "base-release",
-        "mode-cuda",
-        "purpose-tests"
-      ],
-      "binaryDir": "${sourceDir}/build/cuda-release"
-    },
-    {
-      "name": "cuda-debug-tests",
-      "displayName": "CUDA Debug (Tests)",
-      "inherits": [
-        "base-debug",
-        "mode-cuda",
-        "purpose-tests"
-      ],
-      "binaryDir": "${sourceDir}/build/cuda-debug"
     },
     {
       "name": "hip-release-tests",
