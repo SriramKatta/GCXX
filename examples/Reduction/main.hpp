@@ -100,7 +100,7 @@ __global__ void kernel_reduction(const gcxx::span<VT> a, VT* result) {
 
 template <typename VT>
 VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
-                             gcxx::span<VT>& ptr) {
+                           gcxx::span<VT>& ptr) {
   VT* res;
   cudaMalloc(&res, sizeof(VT));
   cudaMemset(res, 0, sizeof(VT));
@@ -108,7 +108,7 @@ VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
                      str.get()>>>(ptr, res);
   VT res_host{};
   VT* res_host_ptr = &res_host;
-  gcxx::memory::copy(res_host_ptr, res, 1,str.get());
+  gcxx::memory::copy(res_host_ptr, res, 1, str.get());
   cudaFree(res);
   return res_host;
 }
