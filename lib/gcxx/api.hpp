@@ -5,6 +5,7 @@
 #include <gcxx/backend/backend.hpp>
 
 // section for types
+#include <gcxx/types/shared_mem.hpp>
 #include <gcxx/types/vector_types.hpp>
 
 // Section for different error handlings
