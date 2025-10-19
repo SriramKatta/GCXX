@@ -37,11 +37,11 @@ struct size_holder {
 
 template <>
 struct size_holder<dynamic_extent> {
-  std::size_t size_{0};
+  std::size_t m_size{0};
 
-  GCXX_FHDC size_holder(std::size_t n) noexcept : size_(n) {}
+  GCXX_FHDC size_holder(std::size_t n) noexcept : m_size(n) {}
 
-  GCXX_FHDC std::size_t size() const noexcept { return size_; }
+  GCXX_FHDC std::size_t size() const noexcept { return m_size; }
 };
 
 template <typename VT, std::size_t Extent>
@@ -50,6 +50,17 @@ struct span_storage : size_holder<Extent> {
   GCXX_FHDC span_storage() noexcept = default;
 
   GCXX_FHDC span_storage(VT* v_ptr, std::size_t n) noexcept
+      : size_holder<Extent>(n), start(v_ptr) {}
+
+  using size_holder<Extent>::size;
+};
+
+template <typename VT, std::size_t Extent>
+struct restrict_span_storage : size_holder<Extent> {
+  VT* GCXX_RESTRICT_KEYWORD start{nullptr};
+  GCXX_FHDC restrict_span_storage() noexcept = default;
+
+  GCXX_FHDC restrict_span_storage(VT* v_ptr, std::size_t n) noexcept
       : size_holder<Extent>(n), start(v_ptr) {}
 
   using size_holder<Extent>::size;
@@ -91,6 +102,9 @@ class span {
                 " need an fully declared type");
 
   using storage_type = details_::span_storage<VT, Extent>;
+  // std::conditional_t<UseRestrict, details_::restrict_span_storage<VT,
+  // Extent>,
+  //                    >;
 
  public:
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -122,13 +136,13 @@ class span {
   GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT {}
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
-      : storage_(first, count) {
+      : m_storage(first, count) {
     GCXX_DYNAMIC_EXPECT(extent == dynamic_extent || count == dynamic_extent,
                         "Span (ptr,count) contract violation");
   }
 
   GCXX_CXPR GCXX_FHD span(pointer first, pointer last)
-      : storage_(first, last - first) {
+      : m_storage(first, last - first) {
     GCXX_DYNAMIC_EXPECT(
       extent == dynamic_extent ||
         (last - first) == static_cast<difference_type>(dynamic_extent),
@@ -142,7 +156,7 @@ class span {
                   element_type (&)[N], element_type>,
               int> = 0>
   GCXX_CXPR GCXX_FHD span(element_type (&arr)[N]) GCXX_NOEXCEPT
-      : storage_(arr, N) {}
+      : m_storage(arr, N) {}
 
   template <typename OVT, std::size_t N, std::size_t E = Extent,
             typename std::enable_if_t<
@@ -151,7 +165,7 @@ class span {
                   std::array<OVT, N>&, element_type>,
               int> = 0>
   GCXX_CXPR GCXX_FHD span(std::array<OVT, N>& arr) GCXX_NOEXCEPT
-      : storage_(arr.data(), N) {}
+      : m_storage(arr.data(), N) {}
 
   template <typename OVT, std::size_t N, std::size_t E = Extent,
             typename std::enable_if_t<
@@ -160,7 +174,7 @@ class span {
                   const std::array<OVT, N>&, element_type>,
               int> = 0>
   GCXX_CXPR GCXX_FHD span(const std::array<OVT, N>& arr) GCXX_NOEXCEPT
-      : storage_(arr.data(), N) {}
+      : m_storage(arr.data(), N) {}
 
   template <typename container, std::size_t E = Extent,
             typename std::enable_if_t<
@@ -169,7 +183,7 @@ class span {
                   const container&, element_type>,
               int> = 0>
   GCXX_CXPR GCXX_FHD span(const container& arr) GCXX_NOEXCEPT
-      : storage_(details_::data(arr), details_::size(arr)) {}
+      : m_storage(details_::data(arr), details_::size(arr)) {}
 
   template <typename container, std::size_t E = Extent,
             typename std::enable_if_t<
@@ -178,7 +192,7 @@ class span {
                                                                  element_type>,
               int> = 0>
   GCXX_CXPR GCXX_FHD span(container& arr) GCXX_NOEXCEPT
-      : storage_(details_::data(arr), details_::size(arr)) {}
+      : m_storage(details_::data(arr), details_::size(arr)) {}
 
   template <typename OVT, std::size_t OtherExtent,
             typename std::enable_if_t<
@@ -187,7 +201,7 @@ class span {
                 std::is_convertible_v<OVT (*)[], VT (*)[]>,
               int> = 0>
   GCXX_CXPR GCXX_FHD span(const span<OVT, OtherExtent>& other) GCXX_NOEXCEPT
-      : storage_(other.data(), other.size()) {}
+      : m_storage(other.data(), other.size()) {}
 
   GCXX_CXPR GCXX_FHD span(const span& other) GCXX_NOEXCEPT = default;
 
@@ -237,7 +251,7 @@ class span {
   }
 
   GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT -> pointer {
-    return storage_.start;
+    return m_storage.start;
   }
 
   // ==========================================================
@@ -245,7 +259,7 @@ class span {
   // ==========================================================
 
   GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
-    return storage_.size();
+    return m_storage.size();
   }
 
   GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
@@ -297,8 +311,9 @@ class span {
     return {data() + Offset, Count != dynamic_extent ? Count : size() - Offset};
   }
 
-  GCXX_FHDC auto subspan(size_type offset, size_type count = dynamic_extent)
-    const -> span<element_type> {
+  GCXX_FHDC auto subspan(size_type offset,
+                         size_type count = dynamic_extent) const
+    -> span<element_type> {
     GCXX_DYNAMIC_EXPECT(
       offset <= size() && count == dynamic_extent || offset + count < size(),
       "Span.subspan contract failure");
@@ -312,7 +327,7 @@ class span {
   static constexpr size_type extent = Extent;
 
  private:
-  storage_type storage_{};
+  storage_type m_storage{};
 };
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -329,7 +344,7 @@ span(const std::array<VT, N>&) -> span<const VT, N>;
 
 template <class Container>
 span(Container&) -> span<typename std::remove_reference_t<
-                   decltype(*std::data(std::declval<Container&>()))>>;
+  decltype(*std::data(std::declval<Container&>()))>>;
 
 template <class Container>
 span(const Container&) -> span<const typename Container::value_type>;

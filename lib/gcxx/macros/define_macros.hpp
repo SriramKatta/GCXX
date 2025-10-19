@@ -84,5 +84,13 @@ using flag_t = unsigned int;
   GCXX_NAMESPACE_MAIN_END
 #endif
 
+#if  defined(__INTEL_COMPILER) 
+#define GCXX_RESTRICT_KEYWORD __restrict
+#elif defined(__GNUC__) || defined(__clang__)
+#define GCXX_RESTRICT_KEYWORD __restrict__
+#else
+#define GCXX_RESTRICT_KEYWORD
+#endif
+
 #endif  // defined(GCXX_CUDA_MODE) || defined(GCXX_HIP_MODE)
 #endif
