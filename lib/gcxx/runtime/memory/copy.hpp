@@ -35,32 +35,28 @@ namespace memory {
   template <typename VT>
   GCXX_FH auto copy(VT* destination, const VT* source,
                     const std::size_t numElements) -> void {
-    details_::copy(static_cast<void*>(destination),
-                   static_cast<const void*>(source), numElements * sizeof(VT));
+    details_::copy((void*)destination, (const void*)source,
+                   numElements * sizeof(VT));
   }
 
   template <typename VT>
   GCXX_FH auto copy(const VT* destination, const VT* source,
                     const std::size_t numElements,
                     const stream_wrap& stream) -> void {
-    details_::copy(static_cast<void*>(destination),
-                   static_cast<const void*>(source), numElements * sizeof(VT),
-                   stream);
+    details_::copy((void*)destination, (const void*)source,
+                   numElements * sizeof(VT), stream);
   }
 
   template <typename VT>
   GCXX_FH auto copy(span<VT> destination, const span<VT>& source) -> void {
-    details_::copy(static_cast<void*>(destination),
-                   static_cast<const void*>(source),
-                   destination.size() * sizeof(VT));
+    details_::copy(destination.data(), source.data(), destination.size_bytes());
   }
 
   template <typename VT>
   GCXX_FH auto copy(const span<VT>& destination, const span<VT>& source,
                     const stream_wrap& stream) -> void {
-    details_::copy(static_cast<void*>(destination.data()),
-                   static_cast<const void*>(source.data()),
-                   destination.size() * sizeof(VT), stream);
+    details_::copy(destination.data(), source.data(), destination.size_bytes(),
+                   stream);
   }
 
 
