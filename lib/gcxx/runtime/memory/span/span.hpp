@@ -6,10 +6,11 @@
 #include <array>
 #include <iterator>
 #include <limits>
-#include <type_traits>
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
+#include <gcxx/runtime/details/helper_function.hpp>
+#include <gcxx/runtime/details/type_traits.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -26,75 +27,33 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                      Span Storage                      █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-template <typename VT, std::size_t S>
-struct span_storage {
-  GCXX_FHDC span_storage() noexcept = default;
 
-  GCXX_FHDC span_storage(VT* v_ptr, std::size_t) noexcept : start(v_ptr) {}
+template <std::size_t Extent>
+struct size_holder {
+  GCXX_FHDC size_holder(std::size_t) noexcept {}
 
-  VT* start{nullptr};
-  static constexpr std::size_t size = S;
+  static GCXX_FHDC std::size_t size() noexcept { return Extent; }
 };
 
-template <typename VT>
-struct span_storage<VT, dynamic_extent> {
-  GCXX_FHDC span_storage() noexcept = default;
+template <>
+struct size_holder<dynamic_extent> {
+  std::size_t size_{0};
 
-  GCXX_FHDC span_storage(VT* v_ptr, std::size_t v_size) noexcept
-      : start(v_ptr), size(v_size) {}
+  GCXX_FHDC size_holder(std::size_t n) noexcept : size_(n) {}
 
-  VT* start{nullptr};
-  std::size_t size{0};
+  GCXX_FHDC std::size_t size() const noexcept { return size_; }
 };
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █            Impl of std::size and std::data             █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-template <class C>
-GCXX_FHDC auto data(C& c) -> decltype(c.data()) {
-  return c.data();
-}
+template <typename VT, std::size_t Extent>
+struct span_storage : size_holder<Extent> {
+  VT* start{nullptr};
+  GCXX_FHDC span_storage() noexcept = default;
 
-template <class C>
-GCXX_FHDC auto data(const C& c) -> decltype(c.data()) {
-  return c.data();
-}
+  GCXX_FHDC span_storage(VT* v_ptr, std::size_t n) noexcept
+      : size_holder<Extent>(n), start(v_ptr) {}
 
-template <class T, std::size_t N>
-GCXX_FHDC T* data(T (&array)[N]) noexcept {
-  return array;
-}
-
-template <class E>
-GCXX_FHDC const E* data(std::initializer_list<E> il) noexcept {
-  return il.begin();
-}
-
-template <class C>
-GCXX_FHDC auto size(const C& c) -> decltype(c.size()) {
-  return c.size();
-}
-
-template <class T, std::size_t N>
-GCXX_FHDC std::size_t size(const T (&)[N]) noexcept {
-  return N;
-}
-
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                   Useful Type Traits                   █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-template <typename, typename = size_t>
-struct is_complete : std::false_type {};
-
-template <typename T>
-struct is_complete<T, decltype(sizeof(T))> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_complete_v = is_complete<T>::value;
-
-template <typename VT>
-using uncvref_t =
-  typename std::remove_cv_t<typename std::remove_reference_t<VT>>;
+  using size_holder<Extent>::size;
+};
 
 template <typename>
 struct is_span : std::false_type {};
@@ -105,26 +64,6 @@ struct is_span<span<VT, S>> : std::true_type {};
 template <typename VT>
 GCXX_CXPR inline bool is_span_v = is_span<VT>::value;
 
-template <typename>
-struct is_std_array : std::false_type {};
-
-template <typename VT, std::size_t N>
-struct is_std_array<std::array<VT, N>> : std::true_type {};
-
-template <typename VT>
-GCXX_CXPR inline bool is_std_array_v = is_std_array<VT>::value;
-
-template <typename, typename = void>
-struct has_size_and_data : std::false_type {};
-
-template <typename VT>
-struct has_size_and_data<VT, std::void_t<decltype(size(std::declval<VT>())),
-                                         decltype(data(std::declval<VT>()))>>
-    : std::true_type {};
-
-template <typename VT>
-GCXX_CXPR inline bool has_size_and_data_v = has_size_and_data<VT>::value;
-
 template <typename C, typename U = uncvref_t<C>>
 struct is_container {
   static constexpr bool value = !is_span_v<U> && !is_std_array_v<U> &&
@@ -133,27 +72,6 @@ struct is_container {
 
 template <typename C>
 GCXX_CXPR inline bool is_container_v = is_container<C>::value;
-
-template <typename T>
-using remove_pointer_t = typename std::remove_pointer<T>::type;
-
-template <typename, typename, typename = void>
-struct is_container_element_type_compatible : std::false_type {};
-
-template <typename T, typename E>
-struct is_container_element_type_compatible<
-  T, E,
-  typename std::enable_if<
-    !std::is_same_v<
-      typename std::remove_cv_t<decltype(data(std::declval<T>()))>::type,
-      void> &&
-    std::is_convertible_v<
-      remove_pointer_t<decltype(data(std::declval<T>()))> (*)[], E (*)[]>>>
-    : std::true_type {};
-
-template <typename VT, typename ET>
-GCXX_CXPR inline bool is_container_element_type_compatible_v =
-  is_container_element_type_compatible<VT, ET>::value;
 
 GCXX_NAMESPACE_DETAILS_END
 
@@ -327,7 +245,7 @@ class span {
   // ==========================================================
 
   GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
-    return storage_.size;
+    return storage_.size();
   }
 
   GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
