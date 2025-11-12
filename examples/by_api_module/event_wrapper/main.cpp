@@ -25,9 +25,9 @@ int main() {
   gcxx::event_wrap end_event_ref = end_event;
   auto res = GCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
 
-  if (res == GCXX_RUNTIME_BACKEND(Success)) {
+  if (res == gcxx::details_::deviceErrSuccess) {
     fmt::print("Event query successful.\n");
-  } else if (res == GCXX_RUNTIME_BACKEND(ErrorNotReady)) {
+  } else if (res == gcxx::details_::deviceErrNotReady) {
     fmt::print("Event not ready.\n");
   } else {
     fmt::print("Event query failed with error code: {}\n",

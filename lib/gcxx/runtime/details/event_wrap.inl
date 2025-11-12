@@ -14,9 +14,9 @@ GCXX_NAMESPACE_MAIN_BEGIN
 GCXX_FH auto event_wrap::HasOccurred() const -> bool {
   auto err = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
   switch (err) {
-    case details_::deviceSuccess:
+    case details_::deviceErrSuccess:
       return true;
-    case details_::deviceErrorNotReady:
+    case details_::deviceErrNotReady:
       return false;
     default:
       details_::throwGPUError(err, "Failed to query GPU Event");
