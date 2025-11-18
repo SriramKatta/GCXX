@@ -22,6 +22,9 @@ GCXX_CXPR inline std::size_t dynamic_extent =
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class span;
 
+template <class VT, std::size_t Extent = gcxx::dynamic_extent>
+class restrict_span;
+
 GCXX_NAMESPACE_DETAILS_BEGIN
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -77,6 +80,9 @@ struct is_span : std::false_type {};
 template <typename VT, std::size_t S>
 struct is_span<span<VT, S>> : std::true_type {};
 
+template <typename VT, std::size_t S>
+struct is_span<restrict_span<VT, S>> : std::true_type {};
+
 template <typename VT>
 GCXX_CXPR inline bool is_span_v = is_span<VT>::value;
 
@@ -107,9 +113,6 @@ class span {
                 " need an fully declared type");
 
   using storage_type = details_::span_storage<VT, Extent>;
-  // std::conditional_t<UseRestrict, details_::restrict_span_storage<VT,
-  // Extent>,
-  //                    >;
 
  public:
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
