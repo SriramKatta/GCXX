@@ -13,7 +13,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 auto checkDeviceError(const deviceError_t result, char const* const func,
                       const char* const file, const int line) -> void {
-  if (result != deviceSuccess) {
+  if (result != deviceErrSuccess) {
     fprintf(stderr,
             "[%5s Runtime Error]\n"
             "  Location : %s:%4d\n"
@@ -28,7 +28,7 @@ auto checkDeviceError(const deviceError_t result, char const* const func,
 auto checkLastDeviceError(const char* errorMessage, const char* file,
                           const int line) -> void {
   auto err = GCXX_RUNTIME_BACKEND(GetLastError)();
-  if (err != deviceSuccess) {
+  if (err != deviceErrSuccess) {
     fprintf(stderr,
             "[%5s Last Error]\n"
             "  Location : %s:%4d\n"
@@ -43,7 +43,7 @@ auto checkLastDeviceError(const char* errorMessage, const char* file,
 auto peekLastDeviceError(const char* errorMessage, const char* file,
                          const int line) -> void {
   auto err = GCXX_RUNTIME_BACKEND(PeekAtLastError)();
-  if (err != deviceSuccess) {
+  if (err != deviceErrSuccess) {
     fprintf(stderr,
             "[%5s Peek Last Error]\n"
             "  Location : %s:%4d\n"

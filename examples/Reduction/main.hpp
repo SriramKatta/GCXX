@@ -89,7 +89,7 @@ GCXX_FDC void inter_block_reduction(VT* smem, VT* res) {
 
 template <typename VT>
 __global__ void kernel_reduction(const gcxx::span<VT> a, VT* result) {
-  VT* sdata      = gcxx::SharedMemory<VT>();
+  VT* sdata      = gcxx::dynamicSharedMemory<VT>();
   const auto tid = threadIdx.x;
   sdata[tid]     = thread_partial_sum(a);
 
