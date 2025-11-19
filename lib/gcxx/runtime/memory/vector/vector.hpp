@@ -8,8 +8,8 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-template <typename VT, typename Allocator_t>
-class Vector : protected details_::vector_base<VT, Allocator_t> {};
+template <typename VT, typename allocator>
+class Vector : protected details_::vector_base<VT, allocator> {};
 
 GCXX_NAMESPACE_MAIN_END
 

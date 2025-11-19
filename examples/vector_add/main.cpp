@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
   auto vec2_kern_time =
     time_measure(str, arg, d_a_span, launch_vec2_kernel<datatype>);
   auto vec4_kern_time =
-    time_measure(str, arg, d_a_span, launch_reduction_kernel<datatype>);
+    time_measure(str, arg, d_a_span, launch_vec4_kernel<datatype>);
 
 
   auto D2Hstart = str.recordEvent();

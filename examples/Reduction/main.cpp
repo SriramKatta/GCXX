@@ -4,7 +4,7 @@
 
 #include "main.hpp"
 
-using datatype = double;
+using datatype = float;
 
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,

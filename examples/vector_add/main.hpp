@@ -102,7 +102,7 @@ void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str,
 }
 
 template <typename VT>
-void launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
+void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
                              gcxx::span<VT>& ptr) {
   kernel_4vec<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }

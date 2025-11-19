@@ -99,16 +99,16 @@ __global__ void kernel_reduction(const gcxx::span<VT> a, VT* result) {
 }
 
 template <typename VT>
-VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
+VT launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
                            gcxx::span<VT>& ptr) {
   VT* res;
-  cudaMalloc(&res, sizeof(VT));
-  cudaMemset(res, 0, sizeof(VT));
+  GCXX_SAFE_RUNTIME_CALL(Malloc,"Device malloc failed", &res, sizeof(VT));
+  GCXX_SAFE_RUNTIME_CALL(Memset,"Device memset failed", res, 0, sizeof(VT));
   kernel_reduction<<<arg.blocks, arg.threads, arg.threads * sizeof(VT),
                      str.get()>>>(ptr, res);
   VT res_host{};
   VT* res_host_ptr = &res_host;
   gcxx::memory::copy(res_host_ptr, res, 1, str.get());
-  cudaFree(res);
+  GCXX_SAFE_RUNTIME_CALL(Free,"Device memory free failed",res);
   return res_host;
 }
