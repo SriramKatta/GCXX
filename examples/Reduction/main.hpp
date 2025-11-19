@@ -99,7 +99,7 @@ __global__ void kernel_reduction(const gcxx::span<VT> a, VT* result) {
 }
 
 template <typename VT>
-VT launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
+VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
                            gcxx::span<VT>& ptr) {
   VT* res;
   GCXX_SAFE_RUNTIME_CALL(Malloc,"Device malloc failed", &res, sizeof(VT));
