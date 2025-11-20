@@ -3,7 +3,7 @@
 
 #include "main.hpp"
 
-using datatype = double;
+using datatype = float;
 
 template <typename VT>
 void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
@@ -85,13 +85,15 @@ int main(int argc, char** argv) {
 
   auto HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
 
-  auto arraySizeinGbytes = static_cast<float>(arg.N * sizeof(float)) / (1E9);
+  auto arraySizeinGbytes = static_cast<float>(arg.N * sizeof(datatype)) / (1E9);
   auto transfer_size = arraySizeinGbytes * 2.0 * static_cast<float>(arg.rep);
 
   fmt::print(
+    "{} {:>4.9f}\n"
     "{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} {:>4.3f}\n{:>4.3f} "
     "{:>4.3f}\n{:>4.3f} {:>4.3f}\n",
-    scalar_kern_time, transfer_size / scalar_kern_time, vec2_kern_time,
+    arg.N, arraySizeinGbytes, scalar_kern_time,
+    transfer_size / scalar_kern_time, vec2_kern_time,
     transfer_size / vec2_kern_time, vec4_kern_time,
     transfer_size / vec4_kern_time, Dtohtime, arraySizeinGbytes / Dtohtime,
     HtoDtime, arraySizeinGbytes / HtoDtime);

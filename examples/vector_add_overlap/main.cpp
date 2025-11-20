@@ -5,7 +5,7 @@
 
 #include "main.hpp"
 
-using datatype = double;
+using datatype = int;
 
 template <typename VT>
 void checkdata(const gcxx::span<VT>& h_a, VT checkval) {

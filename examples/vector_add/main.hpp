@@ -25,14 +25,14 @@ inline Args parse_args(int argc, char** argv) {
     .default_value<size_t>(10)
     .scan<'i', std::size_t>();
 
-  program.add_argument("-B", "--blocks")
-    .help("Number of blocks")
-    .default_value<size_t>(3456)
+  program.add_argument("-B", "--blocksmult")
+    .help("Number of blocks multiple of SMS")
+    .default_value<size_t>(32)
     .scan<'i', std::size_t>();
 
-  program.add_argument("-T", "--threads")
-    .help("Threads per block")
-    .default_value<size_t>(256)
+  program.add_argument("-T", "--threadsmult")
+    .help("Threads per block multiple of warpsize")
+    .default_value<size_t>(8)
     .scan<'i', std::size_t>();
 
   try {
@@ -43,8 +43,31 @@ inline Args parse_args(int argc, char** argv) {
     std::exit(1);
   }
 
+  int SMcount  = 0;
+  int warpSize = 0;
+  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute, "Failed to get device attributes",
+                         &SMcount,
+#if GCXX_CUDA_MODE
+                         cudaDevAttrMultiProcessorCount
+#else
+                         hipDeviceAttributeMultiprocessorCount
+#endif
+                         ,
+                         0);
+  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute, "Failed to get device attributes",
+                         &warpSize,
+#if GCXX_CUDA_MODE
+                         cudaDevAttrWarpSize
+#else
+                         hipDeviceAttributeWarpSize
+#endif
+
+                         ,
+                         0);
+
   return {program.get<size_t>("N"), program.get<size_t>("reps"),
-          program.get<size_t>("blocks"), program.get<size_t>("threads")};
+          SMcount * program.get<size_t>("blocksmult"),
+          warpSize * program.get<size_t>("threadsmult")};
 }
 
 template <typename VT>
@@ -103,6 +126,6 @@ void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str,
 
 template <typename VT>
 void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
-                             gcxx::span<VT>& ptr) {
+                        gcxx::span<VT>& ptr) {
   kernel_4vec<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }
