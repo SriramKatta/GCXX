@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_SPAN_SPAN_HPP
-#define GCXX_RUNTIME_SPAN_SPAN_HPP
+#ifndef GCXX_RUNTIME_MEMORY_SPAN_SPAN_HPP
+#define GCXX_RUNTIME_MEMORY_SPAN_SPAN_HPP
 
 
 #include <array>
@@ -23,7 +23,7 @@ template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class span;
 
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
-class restrict_span;
+class restrict_span; // TODO: to be implemented
 
 GCXX_NAMESPACE_DETAILS_BEGIN
 
