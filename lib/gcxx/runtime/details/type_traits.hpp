@@ -36,8 +36,8 @@ template <typename, typename = void>
 struct has_size_and_data : std::false_type {};
 
 template <typename VT>
-struct has_size_and_data<VT, std::void_t<decltype(size(std::declval<VT>())),
-                                         decltype(data(std::declval<VT>()))>>
+struct has_size_and_data<VT, std::void_t<decltype(gcxx::details_::size(std::declval<VT&>())),
+                                         decltype(gcxx::details_::data(std::declval<VT&>()))>>
     : std::true_type {};
 
 template <typename VT>
