@@ -6,6 +6,7 @@
 #include <array>
 #include <iterator>
 #include <limits>
+#include <vector>
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
@@ -190,7 +191,7 @@ class span {
                 details_::is_container_element_type_compatible_v<
                   const container&, element_type>,
               int> = 0>
-  GCXX_CXPR GCXX_FHD span(const container& arr) GCXX_NOEXCEPT
+  GCXX_CXPR GCXX_FH span(const container& arr) GCXX_NOEXCEPT
       : m_storage(details_::data(arr), details_::size(arr)) {}
 
   template <typename container, std::size_t E = Extent,
@@ -199,8 +200,24 @@ class span {
                 details_::is_container_element_type_compatible_v<container&,
                                                                  element_type>,
               int> = 0>
-  GCXX_CXPR GCXX_FHD span(container& arr) GCXX_NOEXCEPT
+  GCXX_CXPR GCXX_FH span(container& arr) GCXX_NOEXCEPT
       : m_storage(details_::data(arr), details_::size(arr)) {}
+
+  template <typename OVT, typename Alloc, std::size_t E = Extent,
+            typename std::enable_if_t<
+              E == dynamic_extent &&
+                std::is_convertible_v<OVT (*)[], element_type (*)[]>,
+              int> = 0>
+  GCXX_CXPR GCXX_FH span(std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
+      : m_storage(vec.data(), vec.size()) {}
+
+  template <typename OVT, typename Alloc, std::size_t E = Extent,
+            typename std::enable_if_t<
+              E == dynamic_extent &&
+                std::is_convertible_v<const OVT (*)[], element_type (*)[]>,
+              int> = 0>
+  GCXX_CXPR GCXX_FH span(const std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
+      : m_storage(vec.data(), vec.size()) {}
 
   template <typename OVT, std::size_t OtherExtent,
             typename std::enable_if_t<
