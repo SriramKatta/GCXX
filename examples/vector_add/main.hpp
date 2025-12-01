@@ -114,18 +114,18 @@ __global__ void kernel_4vec(const gcxx::span<VT> a) {
 
 template <typename VT>
 void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,
-                          gcxx::span<VT>& ptr) {
+                          gcxx::span<VT> ptr) {
   kernel_scalar<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }
 
 template <typename VT>
 void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str,
-                        gcxx::span<VT>& ptr) {
+                        gcxx::span<VT> ptr) {
   kernel_2vec<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }
 
 template <typename VT>
 void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
-                        gcxx::span<VT>& ptr) {
+                        gcxx::span<VT> ptr) {
   kernel_4vec<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }
