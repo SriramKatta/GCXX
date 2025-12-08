@@ -6,7 +6,6 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-#include <memory_resource>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
@@ -43,11 +42,13 @@ class device_allocator {
     return false;
   }
 
-  // needed since std::vector by default constructs the object irresoective of
-  // memory space
+  // needed since std::vector by default constructs the object on host
+  // irrespective of memory space
   template <typename U>
-  void construct(U* p) {
-    ::new (static_cast<void*>(p)) U;
+  constexpr void construct(U* p) {
+    // ::new (static_cast<void*>(p)) U;
+    // GCXX_SAFE_RUNTIME_CALL(Memset, "Failed to memset the data", p, 0,
+    // sizeof(U));
   }
 };
 
