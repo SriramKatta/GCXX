@@ -37,33 +37,20 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  size_t sizeInBytes = arg.N * sizeof(datatype);
-
-  datatype* h_a{nullptr};
-  datatype* d_a{nullptr};
-
-#if GCXX_HIP_MODE
-  GCXX_SAFE_RUNTIME_CALL(HostMalloc, "failed to allocated Pinned Host data",
-                         &h_a, sizeInBytes);
-#elif GCXX_CUDA_MODE
-  GCXX_SAFE_RUNTIME_CALL(MallocHost, "failed to allocated Pinned Host data",
-                         &h_a, sizeInBytes);
-#endif
+  auto h_a = gcxx::host_vector<datatype>(arg.N);
+  auto d_a = gcxx::device_vector<datatype>(arg.N);
 
 
-  GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocted GPU memory", &d_a,
-                         sizeInBytes);
-
-
-  gcxx::span h_a_span(h_a, arg.N);
-  gcxx::span d_a_span(d_a, arg.N);
+  gcxx::span h_a_span(h_a);
+  gcxx::span d_a_span(d_a);
 
 
   std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
 
-  std::vector<gcxx::Stream> streams(arg.numstreams);
-  for (auto& stream : streams) {
-    stream = gcxx::Stream::Create(gcxx::flags::streamType::syncWithNull);
+  std::vector<gcxx::Stream> streams;
+  streams.reserve(arg.numstreams);
+  for (size_t i =0; i < arg.numstreams; ++i) {
+    streams.emplace_back(gcxx::flags::streamType::syncWithNull);
   }
 
   for (size_t rep = 0; rep < arg.rep; rep++) {
@@ -86,7 +73,5 @@ int main(int argc, char** argv) {
 
   checkdata(h_a_span, static_cast<datatype>(3 * arg.rep));
 
-  GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Allocated Host data", h_a);
-  GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Allocated GPU data", d_a);
   return 0;
 }
