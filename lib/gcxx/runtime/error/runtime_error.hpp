@@ -35,7 +35,7 @@ class gpu_runtime_error : public std::runtime_error {
     const char* error_string = GCXX_RUNTIME_BACKEND(GetErrorString)(err);
     
     std::string result = "GPU Runtime Error: ";
-    result += msg;
+    result += msg ? msg : "(no message)";
     result += " [Error code: ";
     result += std::to_string(static_cast<int>(err));
     result += ", ";

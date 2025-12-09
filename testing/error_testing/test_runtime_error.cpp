@@ -73,3 +73,18 @@ TEST_F(RuntimeErrorTest, ExceptionMessageContainsErrorCode) {
     EXPECT_TRUE(message.find("99") != std::string::npos);
   }
 }
+
+TEST_F(RuntimeErrorTest, HandlesNullMessage) {
+  // Test that the exception handles null message gracefully
+  try {
+    details_::throwGPUError(
+      static_cast<details_::deviceError_t>(1),
+      nullptr
+    );
+    FAIL() << "Expected exception to be thrown";
+  } catch (const std::runtime_error& e) {
+    std::string message = e.what();
+    // Should contain "(no message)" instead of crashing
+    EXPECT_TRUE(message.find("(no message)") != std::string::npos);
+  }
+}
