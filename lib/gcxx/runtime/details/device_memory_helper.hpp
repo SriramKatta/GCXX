@@ -9,7 +9,7 @@
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 auto device_malloc = [](std::size_t numbytes) {
-  void* ptr;
+  void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate device memory", &ptr,
                          numbytes);
   return ptr;
@@ -17,14 +17,14 @@ auto device_malloc = [](std::size_t numbytes) {
 
 
 auto device_managed_malloc = [](std::size_t numbytes) {
-  void* ptr;
+  void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(
     MallocManaged, "Failed to allocate manged device memory", &ptr, numbytes);
   return ptr;
 };
 
 auto host_malloc = [](std::size_t numbytes) {
-  void* ptr;
+  void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_MODE
     MallocHost

@@ -142,7 +142,7 @@ class span {
   // ==========================================================
   template <std::size_t E = Extent,
             typename std::enable_if_t<(E == 0 || E == dynamic_extent), int> = 0>
-  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT {}
+  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT = default;
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
       : m_storage(first, count) {
