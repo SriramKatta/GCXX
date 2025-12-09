@@ -24,5 +24,4 @@ inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
-
 #endif
