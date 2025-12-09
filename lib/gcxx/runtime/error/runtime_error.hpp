@@ -26,8 +26,10 @@ private:
   
 public:
   GPURuntimeError(deviceError_t err, const char* msg) 
-    : std::runtime_error(formatMessage(err, msg)),
-      error_code_(err) {}
+    : std::runtime_error(formatMessage(err, msg ? msg : "Unknown error")),
+      error_code_(err) {
+    // Note: msg is null-checked in the initializer list
+  }
   
   deviceError_t getErrorCode() const noexcept {
     return error_code_;

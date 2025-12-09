@@ -44,8 +44,7 @@ TEST_F(RuntimeErrorTest, ExceptionIsDerivedFromStdRuntimeError) {
     details_::throwGPUError(details_::deviceError_t(1), "Test");
     FAIL() << "Expected GPURuntimeError to be thrown";
   } catch (const std::runtime_error& e) {
-    // Should catch as std::runtime_error
-    SUCCEED();
+    // Should catch as std::runtime_error - test passes if we reach here
   } catch (...) {
     FAIL() << "Exception should be catchable as std::runtime_error";
   }
@@ -56,8 +55,7 @@ TEST_F(RuntimeErrorTest, ExceptionIsDerivedFromStdException) {
     details_::throwGPUError(details_::deviceError_t(1), "Test");
     FAIL() << "Expected GPURuntimeError to be thrown";
   } catch (const std::exception& e) {
-    // Should catch as std::exception
-    SUCCEED();
+    // Should catch as std::exception - test passes if we reach here
   } catch (...) {
     FAIL() << "Exception should be catchable as std::exception";
   }
