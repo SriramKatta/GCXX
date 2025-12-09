@@ -12,7 +12,7 @@
       case gcxx::details_::deviceErrSuccess:                            \
         break;                                                       \
       default:                                                       \
-        const auto err_state = gcxx::details_::deviceGetLastError(); \
+        const auto err_state = GCXX_RUNTIME_BACKEND(GetLastError)(); \
         gcxx::details_::throwGPUError(err_state, MSG);               \
     }                                                                \
   } while (0)

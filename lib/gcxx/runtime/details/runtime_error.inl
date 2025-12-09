@@ -20,7 +20,7 @@ auto checkDeviceError(const deviceError_t result, char const* const func,
             "  Function : %s\n"
             "  Error    : code = %4d (%s)\n",
             GCXX_RUNTIME_BACKEND_STR, file, line, func,
-            static_cast<unsigned int>(result), deviceGetErrorstring(result));
+            static_cast<unsigned int>(result), GCXX_RUNTIME_BACKEND(GetErrorString)(result));
     exit(EXIT_FAILURE);
   }
 }
@@ -35,7 +35,7 @@ auto checkLastDeviceError(const char* errorMessage, const char* file,
             "  Function : %s\n"
             "  Error    : code = %4d (%s)\n",
             GCXX_RUNTIME_BACKEND_STR, file, line, errorMessage,
-            static_cast<int>(err), deviceGetErrorstring(err));
+            static_cast<int>(err), GCXX_RUNTIME_BACKEND(GetErrorString)(err));
     exit(EXIT_FAILURE);
   }
 }
@@ -50,7 +50,7 @@ auto peekLastDeviceError(const char* errorMessage, const char* file,
             "  Function : %s\n"
             "  Error    : code = %4d (%s)\n",
             GCXX_RUNTIME_BACKEND_STR, file, line, errorMessage,
-            static_cast<int>(err), deviceGetErrorstring(err));
+            static_cast<int>(err), GCXX_RUNTIME_BACKEND(GetErrorString)(err));
   }
 }
 

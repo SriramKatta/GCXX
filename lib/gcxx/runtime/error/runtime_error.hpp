@@ -14,8 +14,6 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 using deviceError_t                 = GCXX_RUNTIME_BACKEND(Error_t);
 GCXX_CXPR auto deviceErrSuccess     = GCXX_RUNTIME_BACKEND(Success);
 GCXX_CXPR auto deviceErrNotReady    = GCXX_RUNTIME_BACKEND(ErrorNotReady);
-GCXX_CXPR auto deviceGetErrorstring = GCXX_RUNTIME_BACKEND(GetErrorString);
-GCXX_CXPR auto deviceGetLastError   = GCXX_RUNTIME_BACKEND(GetLastError);
 
 // TODO : Implement an exception style throw
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {

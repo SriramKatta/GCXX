@@ -5,6 +5,7 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
+#include <gcxx/runtime/details/device_memory_helper.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
@@ -21,15 +22,10 @@ class device_allocator {
 
   [[nodiscard]]
   VT* allocate(std::size_t n) {
-    void* ptr;
-    GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate device memory", &ptr,
-                           n * sizeof(VT));
-    return static_cast<VT*>(ptr);
+    return static_cast<VT*>(details_::device_malloc(n * sizeof(VT)));
   }
 
-  void deallocate(VT* p, std::size_t) noexcept {
-    GCXX_SAFE_RUNTIME_CALL(Free, "Failed to deallocate device memory", p);
-  }
+  void deallocate(VT* p, std::size_t) noexcept { details_::device_free(p); }
 
   // Stateless allocators compare equal
   template <class U>

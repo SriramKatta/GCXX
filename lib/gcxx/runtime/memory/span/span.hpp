@@ -291,7 +291,7 @@ class span {
     return size() * sizeof(element_type);
   }
 
-  GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool { return size() == 0; }
+  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool { return size() == 0; }
 
   // ==========================================================
   //                          subviews
@@ -359,7 +359,7 @@ class span {
 // █                    Deduction guides                    █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class VT, size_t N>
-span(VT (&)[N]) -> span<VT, N>;
+span(VT (&)[N]) -> span<VT, N>; //NOLINT
 
 template <class VT, size_t N>
 span(std::array<VT, N>&) -> span<VT, N>;
