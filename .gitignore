@@ -14,4 +14,4 @@ CMakeUserPresets.json
 *build*
 
 # IDE Specific ignores
-.vscode
+.vscode_codeql_detected_source_root
