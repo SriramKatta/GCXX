@@ -8,7 +8,7 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
-auto device_malloc = [](std::size_t numbytes) {
+GCXX_CXPR auto device_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate device memory", &ptr,
                          numbytes);
@@ -16,14 +16,14 @@ auto device_malloc = [](std::size_t numbytes) {
 };
 
 
-auto device_managed_malloc = [](std::size_t numbytes) {
+GCXX_CXPR auto device_managed_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(
     MallocManaged, "Failed to allocate manged device memory", &ptr, numbytes);
   return ptr;
 };
 
-auto host_malloc = [](std::size_t numbytes) {
+GCXX_CXPR auto host_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_MODE
@@ -36,11 +36,11 @@ auto host_malloc = [](std::size_t numbytes) {
   return ptr;
 };
 
-auto device_free = [](void* ptr) {
+GCXX_CXPR auto device_free = [](void* ptr) {
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to deallocate device memory", ptr);
 };
 
-auto host_free = [](void* ptr) {
+GCXX_CXPR auto host_free = [](void* ptr) {
   GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to deallocate Pinned host memory",
                          ptr);
 };

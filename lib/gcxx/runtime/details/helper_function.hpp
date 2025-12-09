@@ -24,7 +24,7 @@ GCXX_FHDC auto data(const C& c) -> decltype(c.data()) {
 }
 
 template <class T, std::size_t N>
-GCXX_FHDC T* data(T (&array)[N]) noexcept {
+GCXX_FHDC T* data(T (&array)[N]) noexcept { // NOLINT
   return array;
 }
 
@@ -39,7 +39,7 @@ GCXX_FHDC auto size(const C& c) -> decltype(c.size()) {
 }
 
 template <class T, std::size_t N>
-GCXX_FHDC std::size_t size(const T (&)[N]) noexcept {
+GCXX_FHDC std::size_t size(const T (&)[N]) noexcept { // NOLINT
   return N;
 }
 

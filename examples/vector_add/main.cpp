@@ -3,12 +3,15 @@
 
 #include "main.hpp"
 
+constexpr float kReadWriteFactor = 2.0f;
+constexpr float kGiga = 1E9;
+constexpr float keps = 1e-6;
 using datatype = float;
 
 template <typename VT>
 void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
   for (size_t i = 0; i < h_a.size(); i++) {
-    if ((h_a[i] - checkval) > 0.00001) {
+    if ((h_a[i] - checkval) > keps) {
       fmt::print("FAILED at index {} : {}\n", i, h_a[i] - checkval);
       exit(1);
     }
@@ -71,8 +74,9 @@ int main(int argc, char** argv) {
 
   auto HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
 
-  auto arraySizeinGbytes = static_cast<float>(arg.N * sizeof(datatype)) / (1E9);
-  auto transfer_size = arraySizeinGbytes * 2.0 * static_cast<float>(arg.rep);
+  auto arraySizeinGbytes =
+    static_cast<float>(arg.N * sizeof(datatype)) / kGiga;
+  auto transfer_size = arraySizeinGbytes * kReadWriteFactor * static_cast<float>(arg.rep);
 
   fmt::print(
     "{} {:>4.9f}\n"

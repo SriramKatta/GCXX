@@ -20,16 +20,16 @@ namespace memory {
 
 
   template <typename VT>
-  using host_pinned_ptr = gcxx_unique_ptr<VT[], decltype(details_::host_free)>;
+  using host_pinned_ptr = gcxx_unique_ptr<VT[], decltype(details_::host_free)>; // NOLINT
 
   template <typename VT>
   auto make_device_unique_ptr(std::size_t numElem) -> device_ptr<VT> {
-    return {details_::device_malloc(numElem * sizeof(VT))};
+    return device_ptr<VT>{details_::device_malloc(numElem * sizeof(VT))};
   }
 
   template <typename VT>
   auto make_device_unique_ptr(std::size_t numElem) -> host_pinned_ptr<VT> {
-    return {details_::host_malloc(numElem * sizeof(VT))};
+    return host_pinned_ptr<VT>{details_::host_malloc(numElem * sizeof(VT))};
   }
 
 

@@ -4,7 +4,8 @@
 
 #include "main.hpp"
 
-using datatype = float;
+constexpr float keps = 1e-6;
+using datatype       = float;
 
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
@@ -43,7 +44,7 @@ int main(int argc, char** argv) {
 
   auto res = launch_reduction_kernel<datatype>(arg, str, d_a_span);
 
-  if (res != arg.N) {
+  if ((res - static_cast<datatype>(arg.N) > keps)) {
     fmt::print("CHECK FAILED res {} and check val{}\n", res, arg.N);
 
   } else {

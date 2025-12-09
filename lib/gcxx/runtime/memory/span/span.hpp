@@ -24,7 +24,7 @@ template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class span;
 
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
-class restrict_span; // TODO: to be implemented
+class restrict_span;  // TODO: to be implemented
 
 GCXX_NAMESPACE_DETAILS_BEGIN
 
@@ -69,7 +69,6 @@ struct restrict_span_storage : size_holder<Extent> {
 
   using size_holder<Extent>::size;
 };
-
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                   Useful Type Traits                   █
@@ -142,7 +141,7 @@ class span {
   // ==========================================================
   template <std::size_t E = Extent,
             typename std::enable_if_t<(E == 0 || E == dynamic_extent), int> = 0>
-  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT = default;
+  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT {};  // NOLINT
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
       : m_storage(first, count) {
@@ -162,9 +161,9 @@ class span {
             typename std::enable_if_t<
               (E == dynamic_extent || E == N) &&
                 details_::is_container_element_type_compatible_v<
-                  element_type (&)[N], element_type>,
+                  element_type (&)[N], element_type>,  // NOLINT
               int> = 0>
-  GCXX_CXPR GCXX_FHD span(element_type (&arr)[N]) GCXX_NOEXCEPT
+  GCXX_CXPR GCXX_FHD span(element_type (&arr)[N]) GCXX_NOEXCEPT  // NOLINT
       : m_storage(arr, N) {}
 
   template <typename OVT, std::size_t N, std::size_t E = Extent,
@@ -206,16 +205,17 @@ class span {
   template <typename OVT, typename Alloc, std::size_t E = Extent,
             typename std::enable_if_t<
               E == dynamic_extent &&
-                std::is_convertible_v<OVT (*)[], element_type (*)[]>,
+                std::is_convertible_v<OVT (*)[], element_type (*)[]>,  // NOLINT
               int> = 0>
   GCXX_CXPR GCXX_FH span(std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
       : m_storage(vec.data(), vec.size()) {}
 
-  template <typename OVT, typename Alloc, std::size_t E = Extent,
-            typename std::enable_if_t<
-              E == dynamic_extent &&
-                std::is_convertible_v<const OVT (*)[], element_type (*)[]>,
-              int> = 0>
+  template <
+    typename OVT, typename Alloc, std::size_t E = Extent,
+    typename std::enable_if_t<
+      E == dynamic_extent &&
+        std::is_convertible_v<const OVT (*)[], element_type (*)[]>,  // NOLINT
+      int> = 0>
   GCXX_CXPR GCXX_FH span(const std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
       : m_storage(vec.data(), vec.size()) {}
 
@@ -223,12 +223,14 @@ class span {
             typename std::enable_if_t<
               (Extent == dynamic_extent || OtherExtent == dynamic_extent ||
                Extent == OtherExtent) &&
-                std::is_convertible_v<OVT (*)[], VT (*)[]>,
+                std::is_convertible_v<OVT (*)[], VT (*)[]>,  // NOLINT
               int> = 0>
   GCXX_CXPR GCXX_FHD span(const span<OVT, OtherExtent>& other) GCXX_NOEXCEPT
       : m_storage(other.data(), other.size()) {}
 
-  GCXX_CXPR GCXX_FHD span(const span& other) GCXX_NOEXCEPT = default;
+  GCXX_CXPR GCXX_FHD span(const span& other) GCXX_NOEXCEPT  = default;
+  
+  GCXX_CXPR GCXX_FHD span(span&& other) GCXX_NOEXCEPT = default;
 
   // ==========================================================
   //                         destructor
@@ -241,6 +243,8 @@ class span {
   // ==========================================================
 
   GCXX_CXPR auto operator=(const span&) GCXX_NOEXCEPT->span& = default;
+
+  GCXX_CXPR auto operator=(span&&) GCXX_NOEXCEPT->span& = default;
 
   // ==========================================================
   //                         Iterators
@@ -291,7 +295,9 @@ class span {
     return size() * sizeof(element_type);
   }
 
-  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool { return size() == 0; }
+  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool {
+    return size() == 0;
+  }
 
   // ==========================================================
   //                          subviews
@@ -359,7 +365,7 @@ class span {
 // █                    Deduction guides                    █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class VT, size_t N>
-span(VT (&)[N]) -> span<VT, N>; //NOLINT
+span(VT (&)[N]) -> span<VT, N>;  // NOLINT
 
 template <class VT, size_t N>
 span(std::array<VT, N>&) -> span<VT, N>;

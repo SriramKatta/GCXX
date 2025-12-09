@@ -3,6 +3,7 @@
 #define GCXX_RUNTIME_ERROR_RUNTIME_ERROR_HPP_
 
 #include <stdio.h>
+#include <iostream>
 #include <cstdlib>
 #include <exception>
 
@@ -17,12 +18,11 @@ GCXX_CXPR auto deviceErrNotReady    = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 
 // TODO : Implement an exception style throw
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
-  fprintf(stderr, "code  %d : %s\n", err, msg);
+  std::cerr << "code " << err << " : " << msg << "\n";
   std::abort();
 }
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
-// #include <gcxx/runtime/details/runtime_error.inl>
 
 #endif

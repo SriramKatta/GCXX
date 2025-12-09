@@ -10,7 +10,7 @@ using datatype = int;
 template <typename VT>
 void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
   for (size_t i = 0; i < h_a.size(); i++) {
-    if ((h_a[i] - checkval) > 0.00001) {
+    if ((h_a[i] - checkval) > std::numeric_limits<VT>::epsilon()) {
       fmt::print("FAILED at index {} : {}\n", i, h_a[i] - checkval);
       exit(1);
     }
