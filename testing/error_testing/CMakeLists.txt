@@ -1,0 +1,1 @@
+add_gcxx_test(error_testing/test_runtime_error)
