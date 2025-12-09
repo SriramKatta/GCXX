@@ -141,7 +141,7 @@ class span {
   // ==========================================================
   template <std::size_t E = Extent,
             typename std::enable_if_t<(E == 0 || E == dynamic_extent), int> = 0>
-  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT {};  // NOLINT
+  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT{};  // NOLINT
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
       : m_storage(first, count) {
@@ -228,8 +228,8 @@ class span {
   GCXX_CXPR GCXX_FHD span(const span<OVT, OtherExtent>& other) GCXX_NOEXCEPT
       : m_storage(other.data(), other.size()) {}
 
-  GCXX_CXPR GCXX_FHD span(const span& other) GCXX_NOEXCEPT  = default;
-  
+  GCXX_CXPR GCXX_FHD span(const span& other) GCXX_NOEXCEPT = default;
+
   GCXX_CXPR GCXX_FHD span(span&& other) GCXX_NOEXCEPT = default;
 
   // ==========================================================
@@ -250,17 +250,15 @@ class span {
   //                         Iterators
   // ==========================================================
 
-  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator { return data(); }
+  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT->iterator { return data(); }
 
-  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT -> iterator {
-    return data() + size();
-  }
+  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT->iterator { return data() + size(); }
 
-  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT -> reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT->reverse_iterator {
     return reverse_iterator(end());
   }
 
-  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT -> reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT->reverse_iterator {
     return reverse_iterator(begin());
   }
 
@@ -279,23 +277,21 @@ class span {
     return *(data() + idx);
   }
 
-  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT -> pointer {
-    return m_storage.start;
-  }
+  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT->pointer { return m_storage.start; }
 
   // ==========================================================
   //                         Observers
   // ==========================================================
 
-  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
+  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT->size_type {
     return m_storage.size();
   }
 
-  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
+  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT->size_type {
     return size() * sizeof(element_type);
   }
 
-  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool {
+  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT->bool {
     return size() == 0;
   }
 

@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
   std::vector<gcxx::Stream> streams;
   streams.reserve(arg.numstreams);
-  for (size_t i =0; i < arg.numstreams; ++i) {
+  for (size_t i = 0; i < arg.numstreams; ++i) {
     streams.emplace_back(gcxx::flags::streamType::syncWithNull);
   }
 

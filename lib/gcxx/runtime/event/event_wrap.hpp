@@ -64,8 +64,9 @@ class event_wrap : public details_::event_wrap {
     -> DurationT;
 
   template <typename DurationT = milliSec>
-  GCXX_FH static auto ElapsedTimeBetween(
-    const event_wrap& startEvent, const event_wrap& endEvent) -> DurationT {
+  GCXX_FH static auto ElapsedTimeBetween(const event_wrap& startEvent,
+                                         const event_wrap& endEvent)
+    -> DurationT {
     return endEvent.ElapsedTimeSince<DurationT>(startEvent);
   }
 };

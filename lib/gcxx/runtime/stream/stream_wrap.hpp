@@ -37,7 +37,7 @@ class stream_wrap {
   stream_wrap(int)            = delete;
   stream_wrap(std::nullptr_t) = delete;
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT -> deviceStream_t {
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->deviceStream_t {
     return stream_;
   }
 

@@ -9,16 +9,17 @@
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
+
 // NOLINTBEGIN
 template <typename VT>
 struct dynamicSharedMemory {
   __device__ inline operator VT*() {
-    extern __shared__ char m_smem[]; 
+    extern __shared__ char m_smem[];
     return (VT*)m_smem;
   }
 
   __device__ inline operator const VT*() const {
-    extern __shared__ char m_smem[]; 
+    extern __shared__ char m_smem[];
     return (VT*)m_smem;
   }
 };
@@ -26,12 +27,12 @@ struct dynamicSharedMemory {
 template <>
 struct dynamicSharedMemory<double> {
   __device__ inline operator double*() {
-    extern __shared__ char m_smem[]; 
+    extern __shared__ char m_smem[];
     return (double*)m_smem;
   }
 
   __device__ inline operator const double*() const {
-    extern __shared__ char m_smem[]; 
+    extern __shared__ char m_smem[];
     return (double*)m_smem;
   }
 };
@@ -39,15 +40,16 @@ struct dynamicSharedMemory<double> {
 template <typename VT, std::size_t N>
 struct staticSharedArray {
   __device__ inline operator VT*() {
-    extern __shared__ VT m_smem[]; 
+    extern __shared__ VT m_smem[];
     return (VT*)m_smem;
   }
 
   __device__ inline operator const VT*() const {
-    extern __shared__ VT m_smem[]; 
+    extern __shared__ VT m_smem[];
     return (VT*)m_smem;
   }
 };
+
 // NOLINTEND
 GCXX_NAMESPACE_MAIN_END
 

@@ -36,8 +36,9 @@ template <typename, typename = void>
 struct has_size_and_data : std::false_type {};
 
 template <typename VT>
-struct has_size_and_data<VT, std::void_t<decltype(gcxx::details_::size(std::declval<VT&>())),
-                                         decltype(gcxx::details_::data(std::declval<VT&>()))>>
+struct has_size_and_data<
+  VT, std::void_t<decltype(gcxx::details_::size(std::declval<VT&>())),
+                  decltype(gcxx::details_::data(std::declval<VT&>()))>>
     : std::true_type {};
 
 template <typename VT>
@@ -57,7 +58,8 @@ struct is_container_element_type_compatible<
       typename std::remove_cv_t<decltype(data(std::declval<T>()))>::type,
       void> &&
     std::is_convertible_v<
-      remove_pointer_t<decltype(data(std::declval<T>()))> (*)[], E (*)[]>>> // NOLINT
+      remove_pointer_t<decltype(data(std::declval<T>()))> (*)[],
+      E (*)[]>>>  // NOLINT
     : std::true_type {};
 
 template <typename VT, typename ET>

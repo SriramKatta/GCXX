@@ -40,7 +40,7 @@ class Stream : public stream_wrap {
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 
 
-  GCXX_FH auto release() GCXX_NOEXCEPT -> stream_wrap;
+  GCXX_FH auto release() GCXX_NOEXCEPT->stream_wrap;
 
 
   GCXX_FH auto getPriority() -> flags::streamPriority;

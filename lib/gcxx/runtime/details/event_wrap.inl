@@ -24,8 +24,9 @@ GCXX_FH auto event_wrap::HasOccurred() const -> bool {
   return false;
 }
 
-GCXX_FH auto event_wrap::RecordInStream(
-  const stream_wrap& stream, const flags::eventRecord recordFlag) -> void {
+GCXX_FH auto event_wrap::RecordInStream(const stream_wrap& stream,
+                                        const flags::eventRecord recordFlag)
+  -> void {
   GCXX_SAFE_RUNTIME_CALL(EventRecordWithFlags,
                          "Failed to recoed GPU Event in GPU Stream", event_,
                          stream.get(), static_cast<flag_t>(recordFlag));

@@ -65,7 +65,7 @@ using flag_t = unsigned int;
   namespace gcxx {                \
     inline namespace v1 {
 #define GCXX_NAMESPACE_MAIN_END \
-  } /* inline namespace v1  */  \
+  }  /* inline namespace v1  */ \
   }  // namespace gcxx
 #endif
 
@@ -84,7 +84,7 @@ using flag_t = unsigned int;
   GCXX_NAMESPACE_MAIN_END
 #endif
 
-#if  defined(__INTEL_COMPILER) 
+#if defined(__INTEL_COMPILER)
 #define GCXX_RESTRICT_KEYWORD __restrict
 #elif defined(__GNUC__) || defined(__clang__)
 #define GCXX_RESTRICT_KEYWORD __restrict__

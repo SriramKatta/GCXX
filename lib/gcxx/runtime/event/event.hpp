@@ -36,7 +36,7 @@ class Event : public event_wrap {
     return *this;
   }
 
-  GCXX_FH auto release() GCXX_NOEXCEPT -> event_wrap;
+  GCXX_FH auto release() GCXX_NOEXCEPT->event_wrap;
 
   operator deviceEvent_t() = delete;
 };

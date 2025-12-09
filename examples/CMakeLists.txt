@@ -5,6 +5,8 @@ set(CMAKE_CUDA_ARCHITECTURES 80 86 # 87 89 90
                              # 100 120
 )
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(cmake/fmt.cmake)
 include(cmake/argparse.cmake)
 

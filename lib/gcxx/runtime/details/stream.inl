@@ -18,7 +18,7 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
                          -static_cast<flag_t>(priorityFlag));
 }
 
-GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
+GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT->Stream& {
   this->stream_ = std::exchange(other.stream_, details_::INVALID_STREAM);
   return *this;
 }
@@ -56,7 +56,7 @@ GCXX_FH auto Stream::Create(const flags::streamType createFlag,
   return {createFlag, priorityFlag};
 }
 
-GCXX_FH auto Stream::release() GCXX_NOEXCEPT -> stream_wrap {
+GCXX_FH auto Stream::release() GCXX_NOEXCEPT->stream_wrap {
   auto oldStream = stream_;
   stream_        = details_::INVALID_STREAM;
   return {oldStream};

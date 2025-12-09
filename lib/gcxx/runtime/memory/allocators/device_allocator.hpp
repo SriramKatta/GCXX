@@ -20,8 +20,7 @@ class device_allocator {
   template <class U>
   constexpr device_allocator(const device_allocator<U>&) noexcept {}
 
-  [[nodiscard]]
-  VT* allocate(std::size_t n) {
+  [[nodiscard]] VT* allocate(std::size_t n) {
     return static_cast<VT*>(details_::device_malloc(n * sizeof(VT)));
   }
 

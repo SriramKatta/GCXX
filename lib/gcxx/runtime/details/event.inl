@@ -23,7 +23,7 @@ GCXX_FH Event::~Event() {
   }
 }
 
-GCXX_FH auto Event::release() GCXX_NOEXCEPT -> event_wrap {
+GCXX_FH auto Event::release() GCXX_NOEXCEPT->event_wrap {
   auto oldEvent = event_;
   event_        = details_::INVALID_EVENT;
   return {oldEvent};

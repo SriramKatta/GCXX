@@ -44,7 +44,7 @@ class event_wrap {
   // Disallow creation from `nullptr`
   event_wrap(std::nullptr_t) = delete;
 
-  GCXX_FHC auto get() GCXX_CONST_NOEXCEPT -> deviceEvent_t { return event_; }
+  GCXX_FHC auto get() GCXX_CONST_NOEXCEPT->deviceEvent_t { return event_; }
 
   GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT { return get(); }
 

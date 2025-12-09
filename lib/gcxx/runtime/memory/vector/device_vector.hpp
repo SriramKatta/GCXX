@@ -9,7 +9,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-template<typename VT>
+template <typename VT>
 using device_vector = std::vector<VT, gcxx::details_::device_allocator<VT>>;
 
 GCXX_NAMESPACE_MAIN_END
