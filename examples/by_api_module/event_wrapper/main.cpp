@@ -3,7 +3,7 @@
 #include <array>
 #include <gcxx/runtime/event.hpp>
 
-void eve_ref_check(gcxx::event_wrap event) {
+void eve_ref_check(gcxx::EventView event) {
   if (event.HasOccurred()) {
     fmt::print("Event has occurred.\n");
   } else {
@@ -22,7 +22,7 @@ int main() {
 
   // auto res = cudaEventQuery(end_event); // an error because Event is a owning
   // reference and cannot be cast to raw event
-  gcxx::event_wrap end_event_ref = end_event;
+  gcxx::EventView end_event_ref = end_event;
   auto res = GCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
 
   if (res == gcxx::details_::deviceErrSuccess) {
@@ -39,7 +39,7 @@ int main() {
   start_event.RecordInStream();
   end_event2.RecordInStream();
 
-  auto dur = gcxx::event_wrap::ElapsedTimeBetween(start_event, end_event2);
+  auto dur = gcxx::Event::ElapsedTimeBetween(start_event, end_event2);
 
   fmt::print("Elapsed time between events: {}\n", dur);
 

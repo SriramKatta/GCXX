@@ -12,7 +12,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
-    : event_wrap(details_::INVALID_EVENT) {
+    : EventView(details_::INVALID_EVENT) {
   GCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags, "Failed to create GPU Event",
                          &event_, static_cast<flag_t>(createFlag));
 }
@@ -23,7 +23,7 @@ GCXX_FH Event::~Event() {
   }
 }
 
-GCXX_FH auto Event::release() GCXX_NOEXCEPT->event_wrap {
+GCXX_FH auto Event::release() GCXX_NOEXCEPT->EventView {
   auto oldEvent = event_;
   event_        = details_::INVALID_EVENT;
   return {oldEvent};

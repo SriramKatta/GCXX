@@ -28,7 +28,7 @@ class EventWrapTest : public ::testing::Test {
 
 // Test default construction
 TEST_F(EventWrapTest, DefaultConstructor) {
-  event_wrap event;
+  EventView event;
 
   // Default constructed event should be invalid
   EXPECT_FALSE(static_cast<bool>(event));
@@ -37,7 +37,7 @@ TEST_F(EventWrapTest, DefaultConstructor) {
 
 // Test construction from raw device event
 TEST_F(EventWrapTest, RawEventConstructor) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
 
   EXPECT_TRUE(static_cast<bool>(event));
   EXPECT_EQ(event.get(), raw_event_);
@@ -46,7 +46,7 @@ TEST_F(EventWrapTest, RawEventConstructor) {
 // Test construction from event_base
 TEST_F(EventWrapTest, EventBaseConstructor) {
   details_::event_wrap base_event(raw_event_);
-  event_wrap event(base_event);
+  EventView event(base_event);
 
   EXPECT_TRUE(static_cast<bool>(event));
   EXPECT_EQ(event.get(), raw_event_);
@@ -55,36 +55,36 @@ TEST_F(EventWrapTest, EventBaseConstructor) {
 
 // Test that construction from int is deleted
 TEST_F(EventWrapTest, IntConstructorDeleted) {
-  EXPECT_FALSE((std::is_constructible_v<event_wrap, int>));
+  EXPECT_FALSE((std::is_constructible_v<EventView, int>));
 }
 
 // Test that construction from nullptr is deleted
 TEST_F(EventWrapTest, NullptrConstructorDeleted) {
-  EXPECT_FALSE((std::is_constructible_v<event_wrap, std::nullptr_t>));
+  EXPECT_FALSE((std::is_constructible_v<EventView, std::nullptr_t>));
 }
 
 // Test inheritance from event_base
 TEST_F(EventWrapTest, InheritsFromEventBase) {
-  EXPECT_TRUE((std::is_base_of_v<details_::event_wrap, event_wrap>));
+  EXPECT_TRUE((std::is_base_of_v<details_::event_wrap, EventView>));
 }
 
 // Test get() method (inherited)
 TEST_F(EventWrapTest, GetMethod) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
   EXPECT_EQ(event.get(), raw_event_);
 }
 
 // Test implicit conversion to deviceEvent_t (inherited)
 TEST_F(EventWrapTest, ImplicitConversion) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
   details_::deviceEvent_t converted = event;
   EXPECT_EQ(converted, raw_event_);
 }
 
 // Test explicit bool conversion (inherited)
 TEST_F(EventWrapTest, BoolConversion) {
-  event_wrap valid_event(raw_event_);
-  event_wrap invalid_event;
+  EventView valid_event(raw_event_);
+  EventView invalid_event;
 
   EXPECT_TRUE(static_cast<bool>(valid_event));
   EXPECT_FALSE(static_cast<bool>(invalid_event));
@@ -92,9 +92,9 @@ TEST_F(EventWrapTest, BoolConversion) {
 
 // Test equality operators (inherited)
 TEST_F(EventWrapTest, EqualityOperators) {
-  event_wrap event1(raw_event_);
-  event_wrap event2(raw_event_);
-  event_wrap invalid_event;
+  EventView event1(raw_event_);
+  EventView event2(raw_event_);
+  EventView invalid_event;
 
   EXPECT_TRUE(event1 == event2);
   EXPECT_FALSE(event1 == invalid_event);
@@ -104,7 +104,7 @@ TEST_F(EventWrapTest, EqualityOperators) {
 
 // Test RecordInStream with default stream
 TEST_F(EventWrapTest, RecordInStreamDefault) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
 
   // Should not throw - recording in default stream
   EXPECT_NO_THROW(event.RecordInStream());
@@ -112,7 +112,7 @@ TEST_F(EventWrapTest, RecordInStreamDefault) {
 
 // Test RecordInStream with specific stream
 TEST_F(EventWrapTest, RecordInStreamSpecific) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
   StreamView test_stream(stream_);
 
   // Should not throw - recording in specific stream
@@ -121,7 +121,7 @@ TEST_F(EventWrapTest, RecordInStreamSpecific) {
 
 // Test RecordInStream with flags
 TEST_F(EventWrapTest, RecordInStreamWithFlags) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
   StreamView test_stream(stream_);
 
   // Test with different record flags
@@ -133,7 +133,7 @@ TEST_F(EventWrapTest, RecordInStreamWithFlags) {
 
 // Test Synchronize
 TEST_F(EventWrapTest, Synchronize) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
 
   // Record the event first
   event.RecordInStream();
@@ -144,7 +144,7 @@ TEST_F(EventWrapTest, Synchronize) {
 
 // Test HasOccurred
 TEST_F(EventWrapTest, HasOccurred) {
-  event_wrap event(raw_event_);
+  EventView event(raw_event_);
 
   // Record the event
   event.RecordInStream();
@@ -160,8 +160,8 @@ TEST_F(EventWrapTest, ElapsedTimeSinceMilliSec) {
   GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &start_raw);
   GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &end_raw);
 
-  event_wrap start_event(start_raw);
-  event_wrap end_event(end_raw);
+  EventView start_event(start_raw);
+  EventView end_event(end_raw);
   StreamView test_stream(stream_);
 
   // Record events in sequence
@@ -187,8 +187,8 @@ TEST_F(EventWrapTest, ElapsedTimeSinceDifferentDurations) {
   GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &start_raw);
   GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &end_raw);
 
-  event_wrap start_event(start_raw);
-  event_wrap end_event(end_raw);
+  EventView start_event(start_raw);
+  EventView end_event(end_raw);
   StreamView test_stream(stream_);
 
   // Record events
@@ -224,8 +224,8 @@ TEST_F(EventWrapTest, ElapsedTimeBetweenStatic) {
   GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &start_raw);
   GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to create GPU Event", &end_raw);
 
-  event_wrap start_event(start_raw);
-  event_wrap end_event(end_raw);
+  EventView start_event(start_raw);
+  EventView end_event(end_raw);
   StreamView test_stream(stream_);
 
   // Record events
@@ -233,12 +233,12 @@ TEST_F(EventWrapTest, ElapsedTimeBetweenStatic) {
   end_event.RecordInStream(test_stream);
 
   // Test static method
-  auto elapsed = event_wrap::ElapsedTimeBetween(start_event, end_event);
+  auto elapsed = EventView::ElapsedTimeBetween(start_event, end_event);
   EXPECT_GE(elapsed.count(), 0.0f);
 
   // Test with different duration type
   auto elapsed_nano =
-    event_wrap::ElapsedTimeBetween<nanoSec>(start_event, end_event);
+    EventView::ElapsedTimeBetween<nanoSec>(start_event, end_event);
   EXPECT_GE(elapsed_nano.count(), 0.0f);
   EXPECT_TRUE((std::is_same_v<decltype(elapsed_nano), nanoSec>));
 
@@ -265,8 +265,8 @@ TEST_F(EventWrapTest, DurationConversion) {
 
 // Test copy constructor
 TEST_F(EventWrapTest, CopyConstructor) {
-  event_wrap original(raw_event_);
-  event_wrap copy(original);
+  EventView original(raw_event_);
+  EventView copy(original);
 
   EXPECT_EQ(original.get(), copy.get());
   EXPECT_TRUE(original == copy);
@@ -274,8 +274,8 @@ TEST_F(EventWrapTest, CopyConstructor) {
 
 // Test copy assignment
 TEST_F(EventWrapTest, CopyAssignment) {
-  event_wrap original(raw_event_);
-  event_wrap assigned;
+  EventView original(raw_event_);
+  EventView assigned;
 
   assigned = original;
 
@@ -285,7 +285,7 @@ TEST_F(EventWrapTest, CopyAssignment) {
 
 // Test type traits
 TEST_F(EventWrapTest, TypeTraits) {
-  using event_type = event_wrap;
+  using event_type = EventView;
 
   // Check basic type traits
   EXPECT_TRUE(std::is_default_constructible_v<event_type>);
@@ -307,7 +307,7 @@ TEST_F(EventWrapTest, TypeTraits) {
 TEST_F(EventWrapTest, ConstexprFunctionality) {
   // Test constexpr constructor with raw event
   constexpr details_::deviceEvent_t null_event = nullptr;
-  constexpr event_wrap const_event(null_event);
+  constexpr EventView const_event(null_event);
   EXPECT_FALSE(static_cast<bool>(const_event));
 }
 

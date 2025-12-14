@@ -11,7 +11,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FH auto event_wrap::HasOccurred() const -> bool {
+GCXX_FH auto EventView::HasOccurred() const -> bool {
   auto err = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
   switch (err) {
     case details_::deviceErrSuccess:
@@ -24,7 +24,7 @@ GCXX_FH auto event_wrap::HasOccurred() const -> bool {
   return false;
 }
 
-GCXX_FH auto event_wrap::RecordInStream(const StreamView& stream,
+GCXX_FH auto EventView::RecordInStream(const StreamView& stream,
                                         const flags::eventRecord recordFlag)
   -> void {
   GCXX_SAFE_RUNTIME_CALL(EventRecordWithFlags,
@@ -32,13 +32,13 @@ GCXX_FH auto event_wrap::RecordInStream(const StreamView& stream,
                          stream.get(), static_cast<flag_t>(recordFlag));
 }
 
-GCXX_FH auto event_wrap::Synchronize() const -> void {
+GCXX_FH auto EventView::Synchronize() const -> void {
   GCXX_SAFE_RUNTIME_CALL(EventSynchronize, "Failed to synchronize GPU Event",
                          event_);
 }
 
 template <typename DurationT>
-GCXX_FH auto event_wrap::ElapsedTimeSince(const event_wrap& startEvent) const
+GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
   -> DurationT {
   this->Synchronize();
   float ms{};

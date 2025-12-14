@@ -9,7 +9,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-class Event : public event_wrap {
+class Event : public EventView {
  private:
   GCXX_FH auto destroy() -> void;
 
@@ -28,7 +28,7 @@ class Event : public event_wrap {
   Event& operator=(const Event&) = delete;
 
   GCXX_FH Event(Event&& other) noexcept
-      : event_wrap(std::exchange(other.event_, details_::INVALID_EVENT)) {}
+      : EventView(std::exchange(other.event_, details_::INVALID_EVENT)) {}
 
   GCXX_FH auto operator=(Event&& other) noexcept -> Event& {
     if (this != &other)
@@ -36,7 +36,7 @@ class Event : public event_wrap {
     return *this;
   }
 
-  GCXX_FH auto release() GCXX_NOEXCEPT->event_wrap;
+  GCXX_FH auto release() GCXX_NOEXCEPT->EventView;
 
   operator deviceEvent_t() = delete;
 };
