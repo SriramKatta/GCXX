@@ -9,7 +9,7 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH Stream::Stream(const flags::streamType createFlag,
                        const flags::streamPriority priorityFlag)
-    : stream_wrap(details_::NULL_STREAM) {
+    : StreamView(details_::NULL_STREAM) {
   if (createFlag == flags::streamType::nullStream) {
     return;
   }
@@ -56,7 +56,7 @@ GCXX_FH auto Stream::Create(const flags::streamType createFlag,
   return {createFlag, priorityFlag};
 }
 
-GCXX_FH auto Stream::release() GCXX_NOEXCEPT->stream_wrap {
+GCXX_FH auto Stream::release() GCXX_NOEXCEPT->StreamView {
   auto oldStream = stream_;
   stream_        = details_::INVALID_STREAM;
   return {oldStream};

@@ -2,7 +2,7 @@
 
 
 #include <gcxx/runtime/event/event.hpp>
-#include <gcxx/runtime/stream/stream_wrap.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 using namespace gcxx;
 
@@ -67,7 +67,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
 TEST_F(EventTest, RecordAndElapsedTime) {
   Event start;
   Event end;
-  stream_wrap s(stream_);
+  StreamView s(stream_);
 
   start.RecordInStream(s);
   GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",

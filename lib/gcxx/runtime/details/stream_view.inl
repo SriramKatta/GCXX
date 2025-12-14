@@ -1,14 +1,14 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_STREAM_WRAP_INL_
-#define GCXX_RUNTIME_DETAILS_STREAM_WRAP_INL_
+#ifndef GCXX_RUNTIME_DETAILS_STREAM_VIEW_INL_
+#define GCXX_RUNTIME_DETAILS_STREAM_VIEW_INL_
 
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
-#include <gcxx/runtime/stream/stream_wrap.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FH auto stream_wrap::HasPendingWork() -> bool {
+GCXX_FH auto StreamView::HasPendingWork() -> bool {
   auto err = GCXX_RUNTIME_BACKEND(StreamQuery)(stream_);
   switch (err) {
     case GCXX_RUNTIME_BACKEND(Success):
@@ -21,12 +21,12 @@ GCXX_FH auto stream_wrap::HasPendingWork() -> bool {
   return false;
 }
 
-GCXX_FH auto stream_wrap::Synchronize() const -> void {
+GCXX_FH auto StreamView::Synchronize() const -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to synchronize GPU Stream",
                          stream_);
 }
 
-GCXX_FH auto stream_wrap::WaitOnEvent(const details_::event_wrap& event,
+GCXX_FH auto StreamView::WaitOnEvent(const details_::event_wrap& event,
                                       const flags::eventWait waitFlag) const
   -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamWaitEvent,

@@ -113,7 +113,7 @@ TEST_F(EventWrapTest, RecordInStreamDefault) {
 // Test RecordInStream with specific stream
 TEST_F(EventWrapTest, RecordInStreamSpecific) {
   event_wrap event(raw_event_);
-  stream_wrap test_stream(stream_);
+  StreamView test_stream(stream_);
 
   // Should not throw - recording in specific stream
   EXPECT_NO_THROW(event.RecordInStream(test_stream));
@@ -122,7 +122,7 @@ TEST_F(EventWrapTest, RecordInStreamSpecific) {
 // Test RecordInStream with flags
 TEST_F(EventWrapTest, RecordInStreamWithFlags) {
   event_wrap event(raw_event_);
-  stream_wrap test_stream(stream_);
+  StreamView test_stream(stream_);
 
   // Test with different record flags
   EXPECT_NO_THROW(event.RecordInStream(test_stream, flags::eventRecord::none));
@@ -162,7 +162,7 @@ TEST_F(EventWrapTest, ElapsedTimeSinceMilliSec) {
 
   event_wrap start_event(start_raw);
   event_wrap end_event(end_raw);
-  stream_wrap test_stream(stream_);
+  StreamView test_stream(stream_);
 
   // Record events in sequence
   start_event.RecordInStream(test_stream);
@@ -189,7 +189,7 @@ TEST_F(EventWrapTest, ElapsedTimeSinceDifferentDurations) {
 
   event_wrap start_event(start_raw);
   event_wrap end_event(end_raw);
-  stream_wrap test_stream(stream_);
+  StreamView test_stream(stream_);
 
   // Record events
   start_event.RecordInStream(test_stream);
@@ -226,7 +226,7 @@ TEST_F(EventWrapTest, ElapsedTimeBetweenStatic) {
 
   event_wrap start_event(start_raw);
   event_wrap end_event(end_raw);
-  stream_wrap test_stream(stream_);
+  StreamView test_stream(stream_);
 
   // Record events
   start_event.RecordInStream(test_stream);

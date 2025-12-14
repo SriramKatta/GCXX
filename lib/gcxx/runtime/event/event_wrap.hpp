@@ -9,7 +9,7 @@
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/event/event_base.hpp>
 #include <gcxx/runtime/flags/eventflags.hpp>
-#include <gcxx/runtime/stream/stream_wrap.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -56,7 +56,7 @@ class event_wrap : public details_::event_wrap {
   GCXX_FH auto Synchronize() const -> void;
 
   GCXX_FH auto RecordInStream(
-    const stream_wrap& stream     = details_::NULL_STREAM,
+    const StreamView& stream     = details_::NULL_STREAM,
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
   template <typename DurationT = milliSec>

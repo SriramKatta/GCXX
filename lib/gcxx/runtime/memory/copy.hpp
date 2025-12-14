@@ -25,7 +25,7 @@ GCXX_FH auto copy(void* destination, const void* source,
 }
 
 GCXX_FH auto copy(void* destination, const void* source,
-                  const std::size_t countinBytes, const stream_wrap& stream)
+                  const std::size_t countinBytes, const StreamView& stream)
   -> void {
   GCXX_SAFE_RUNTIME_CALL(MemcpyAsync, "Failed to perform async GPU copy",
                          destination, source, countinBytes,
@@ -48,7 +48,7 @@ namespace memory {
 
   template <typename VT>
   GCXX_FH auto copy(const VT* destination, const VT* source,
-                    const std::size_t numElements, const stream_wrap& stream)
+                    const std::size_t numElements, const StreamView& stream)
     -> void {
     details_::copy((void*)destination, (const void*)source,
                    numElements * sizeof(VT), stream);
@@ -68,7 +68,7 @@ namespace memory {
   template <typename VT, typename DT>
   GCXX_FH auto copy(gcxx_unique_ptr<VT, DT>& destination,
                     const gcxx_unique_ptr<VT, DT>& source,
-                    const std::size_t numElements, const stream_wrap& stream)
+                    const std::size_t numElements, const StreamView& stream)
     -> void {
     details_::copy(destination.get(), source.get(), numElements * sizeof(VT),
                    stream);
@@ -84,7 +84,7 @@ namespace memory {
 
   template <typename VT>
   GCXX_FH auto copy(const span<VT> destination, const span<VT> source,
-                    const stream_wrap& stream) -> void {
+                    const StreamView& stream) -> void {
     details_::copy(destination.data(), source.data(), destination.size_bytes(),
                    stream);
   }

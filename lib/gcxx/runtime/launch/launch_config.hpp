@@ -4,7 +4,7 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
-#include <gcxx/runtime/stream/stream_wrap.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -14,7 +14,7 @@ class LaunchConfig {
   dim3 gridDim{1, 1, 1};
   dim3 blockDim{1, 1, 1};
   std::size_t smem_bytes{0};
-  stream_wrap stream;
+  StreamView stream;
 };
 
 GCXX_NAMESPACE_MAIN_END
