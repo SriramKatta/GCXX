@@ -57,8 +57,6 @@
 #define GCXX_CONST_NOEXCEPT const noexcept
 #endif
 
-using flag_t = unsigned int;
-
 
 #ifndef GCXX_NAMESPACE_MAIN_BEGIN
 #define GCXX_NAMESPACE_MAIN_BEGIN \
@@ -74,6 +72,11 @@ using flag_t = unsigned int;
 #define GCXX_NAMESPACE_DETAILS_END } /* namespace details_  */
 #endif
 
+#ifndef GCXX_NAMESPACE_FLAGS_BEGIN
+#define GCXX_NAMESPACE_FLAGS_BEGIN namespace flags {
+#define GCXX_NAMESPACE_FLAGS_END } /* namespace flags  */
+#endif
+
 
 #ifndef GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 #define GCXX_NAMESPACE_MAIN_DETAILS_BEGIN \
@@ -83,6 +86,20 @@ using flag_t = unsigned int;
   GCXX_NAMESPACE_DETAILS_END            \
   GCXX_NAMESPACE_MAIN_END
 #endif
+
+#ifndef GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+#define GCXX_NAMESPACE_MAIN_FLAGS_BEGIN \
+  GCXX_NAMESPACE_MAIN_BEGIN             \
+  GCXX_NAMESPACE_FLAGS_BEGIN
+#define GCXX_NAMESPACE_MAIN_FLAGS_END \
+  GCXX_NAMESPACE_FLAGS_END            \
+  GCXX_NAMESPACE_MAIN_END
+#endif
+
+GCXX_NAMESPACE_MAIN_BEGIN
+using flag_t   = unsigned int;
+using device_t = int;
+GCXX_NAMESPACE_MAIN_END
 
 #if defined(__INTEL_COMPILER)
 #define GCXX_RESTRICT_KEYWORD __restrict
