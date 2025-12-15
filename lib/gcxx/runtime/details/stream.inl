@@ -2,7 +2,7 @@
 #ifndef GCXX_RUNTIME_DETAILS_STREAM_INL_
 #define GCXX_RUNTIME_DETAILS_STREAM_INL_
 
-#include <gcxx/runtime/device/ensure_device.hpp>
+#include <gcxx/runtime/device/ensure_current_device.hpp>
 #include <gcxx/runtime/stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN

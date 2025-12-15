@@ -9,11 +9,12 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 class DeviceRef {
  private:
-  using device_t = int;
   device_t deviceId_;
   bool resetOnDestrcut_;
 
  public:
+  using device_t = int;
+
   GCXX_FH explicit DeviceRef(int devId, bool resetondestrcut = false)
       : deviceId_(devId), resetOnDestrcut_(resetondestrcut) {
     GCXX_SAFE_RUNTIME_CALL(SetDevice, (devId));
