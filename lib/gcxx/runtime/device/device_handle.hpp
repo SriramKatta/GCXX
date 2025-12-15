@@ -3,6 +3,4 @@
 #define GCXX_RUNTIME_DEVICE_DEVIEC_HANDLE_HPP_
 
 
-
-
 #endif

@@ -56,12 +56,11 @@ class EventView : public details_::event_wrap {
   GCXX_FH auto Synchronize() const -> void;
 
   GCXX_FH auto RecordInStream(
-    const StreamView& stream     = details_::NULL_STREAM,
+    const StreamView& stream      = details_::NULL_STREAM,
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
   template <typename DurationT = milliSec>
-  GCXX_FH auto ElapsedTimeSince(const EventView& startEvent) const
-    -> DurationT;
+  GCXX_FH auto ElapsedTimeSince(const EventView& startEvent) const -> DurationT;
 
   template <typename DurationT = milliSec>
   GCXX_FH static auto ElapsedTimeBetween(const EventView& startEvent,

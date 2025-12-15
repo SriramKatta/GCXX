@@ -13,8 +13,6 @@ class DeviceRef {
   bool resetOnDestrcut_;
 
  public:
-  using device_t = int;
-
   GCXX_FH explicit DeviceRef(int devId, bool resetondestrcut = false)
       : deviceId_(devId), resetOnDestrcut_(resetondestrcut) {
     GCXX_SAFE_RUNTIME_CALL(SetDevice, (devId));
