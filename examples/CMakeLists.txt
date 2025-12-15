@@ -21,7 +21,6 @@ elseif(GCXX_HIP_MODE)
     # https://github.com/likelovewant/ROCmLibs-for-gfx1103-AMD780M-APU/wiki/AMD-GPU-Arches-Lists-Map 
 endif()
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(cmake/fmt.cmake)
 include(cmake/argparse.cmake)
