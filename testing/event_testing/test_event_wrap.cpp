@@ -45,7 +45,7 @@ TEST_F(EventWrapTest, RawEventConstructor) {
 
 // Test construction from event_base
 TEST_F(EventWrapTest, EventBaseConstructor) {
-  details_::event_wrap base_event(raw_event_);
+  details_::event_base base_event(raw_event_);
   EventView event(base_event);
 
   EXPECT_TRUE(static_cast<bool>(event));
@@ -65,7 +65,7 @@ TEST_F(EventWrapTest, NullptrConstructorDeleted) {
 
 // Test inheritance from event_base
 TEST_F(EventWrapTest, InheritsFromEventBase) {
-  EXPECT_TRUE((std::is_base_of_v<details_::event_wrap, EventView>));
+  EXPECT_TRUE((std::is_base_of_v<details_::event_base, EventView>));
 }
 
 // Test get() method (inherited)
@@ -300,7 +300,7 @@ TEST_F(EventWrapTest, TypeTraits) {
 
   // Check valid constructors
   EXPECT_TRUE((std::is_constructible_v<event_type, details_::deviceEvent_t>));
-  EXPECT_TRUE((std::is_constructible_v<event_type, details_::event_wrap>));
+  EXPECT_TRUE((std::is_constructible_v<event_type, details_::event_base>));
 }
 
 // Test constexpr functionality

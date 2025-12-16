@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_EVENT_EVENT_REF_HPP_
-#define GCXX_RUNTIME_EVENT_EVENT_REF_HPP_
+#ifndef GCXX_RUNTIME_EVENT_EVENT_VIEW_HPP_
+#define GCXX_RUNTIME_EVENT_EVENT_VIEW_HPP_
 
 #include <chrono>
 #include <utility>
@@ -33,17 +33,17 @@ inline auto ConvertDuration(float ms) -> DurationT {
  * and destroying the event object
  *
  */
-class EventView : public details_::event_wrap {
+class EventView : public details_::event_base {
  public:
   /// Default constructor
   EventView() = default;
 
   /// Constructor from raw device event
   GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT
-      : details_::event_wrap(rawEvent) {}
+      : details_::event_base(rawEvent) {}
 
-  GCXX_CXPR EventView(details_::event_wrap eventRef) GCXX_NOEXCEPT
-      : details_::event_wrap(eventRef.get()) {}
+  GCXX_CXPR EventView(details_::event_base eventRef) GCXX_NOEXCEPT
+      : details_::event_base(eventRef.get()) {}
 
   /// Delete constructor from `int`
   EventView(int) = delete;

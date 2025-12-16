@@ -50,7 +50,7 @@ class StreamView {
   GCXX_FH auto Synchronize() const -> void;
 
   GCXX_FH auto WaitOnEvent(
-    const details_::event_wrap& event,
+    const details_::event_base& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
   GCXX_FH auto recordEvent(

@@ -26,7 +26,7 @@ GCXX_FH auto StreamView::Synchronize() const -> void {
                          stream_);
 }
 
-GCXX_FH auto StreamView::WaitOnEvent(const details_::event_wrap& event,
+GCXX_FH auto StreamView::WaitOnEvent(const details_::event_base& event,
                                      const flags::eventWait waitFlag) const
   -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamWaitEvent,

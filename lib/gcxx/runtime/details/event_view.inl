@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_EVENT_REF_INL_
-#define GCXX_RUNTIME_DETAILS_EVENT_REF_INL_
+#ifndef GCXX_RUNTIME_DETAILS_EVENT_VIEW_INL_
+#define GCXX_RUNTIME_DETAILS_EVENT_VIEW_INL_
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
