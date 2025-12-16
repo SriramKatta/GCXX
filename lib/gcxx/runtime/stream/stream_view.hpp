@@ -4,11 +4,9 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
-#include <gcxx/runtime/event/event_base.hpp>
+#include <gcxx/runtime/event/event_view.hpp>
 #include <gcxx/runtime/flags/eventflags.hpp>
 #include <gcxx/runtime/flags/streamflags.hpp>
-
-#include <gcxx/runtime/event/event.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
@@ -28,6 +26,7 @@ class Event;
 class StreamView {
  protected:
   using deviceStream_t = details_::deviceStream_t;
+  deviceStream_t stream_{details_::NULL_STREAM};  // NOLINT
 
  public:
   constexpr StreamView(deviceStream_t rawStream) noexcept
@@ -37,7 +36,7 @@ class StreamView {
   StreamView(int)            = delete;
   StreamView(std::nullptr_t) = delete;
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->deviceStream_t {
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT -> deviceStream_t {
     return stream_;
   }
 
@@ -57,16 +56,12 @@ class StreamView {
     const flags::eventCreate createflag = flags::eventCreate::none,
     const flags::eventRecord recordFlag = flags::eventRecord::none) const
     -> Event;
-
-
- protected:
-  deviceStream_t stream_{details_::NULL_STREAM};  // NOLINT
 };
 
 GCXX_NAMESPACE_MAIN_END
 
 
-#include <gcxx/macros/undefine_macros.hpp>
 #include <gcxx/runtime/details/stream_view.inl>
 
+#include <gcxx/macros/undefine_macros.hpp>
 #endif
