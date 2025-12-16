@@ -7,6 +7,9 @@
 #include <gcxx/runtime/flags/eventflags.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 
+#include <gcxx/runtime/event/event_view.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
+
 #include <utility>
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -22,6 +25,13 @@ GCXX_FH auto EventView::HasOccurred() const -> bool {
       details_::throwGPUError(err, "Failed to query GPU Event");
   }
   return false;
+}
+
+GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
+  -> void {
+  GCXX_SAFE_RUNTIME_CALL(
+    EventRecordWithFlags, "Failed to recoed GPU Event in GPU Stream", event_,
+    details_::NULL_STREAM, static_cast<flag_t>(recordFlag));
 }
 
 GCXX_FH auto EventView::RecordInStream(const StreamView& stream,

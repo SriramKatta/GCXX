@@ -4,8 +4,6 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
-#include <gcxx/runtime/event/event_view.hpp>
-#include <gcxx/runtime/flags/eventflags.hpp>
 #include <gcxx/runtime/flags/streamflags.hpp>
 
 
@@ -36,7 +34,7 @@ class StreamView {
   StreamView(int)            = delete;
   StreamView(std::nullptr_t) = delete;
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT -> deviceStream_t {
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->deviceStream_t {
     return stream_;
   }
 
@@ -49,7 +47,7 @@ class StreamView {
   GCXX_FH auto Synchronize() const -> void;
 
   GCXX_FH auto WaitOnEvent(
-    const details_::event_base& event,
+    const EventView& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
   GCXX_FH auto recordEvent(

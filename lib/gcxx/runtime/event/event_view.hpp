@@ -7,9 +7,14 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
-#include <gcxx/runtime/event/event_base.hpp>
 #include <gcxx/runtime/flags/eventflags.hpp>
-#include <gcxx/runtime/stream/stream_view.hpp>
+
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+
+using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
+inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
+
+GCXX_NAMESPACE_MAIN_DETAILS_END
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -28,22 +33,46 @@ inline auto ConvertDuration(float ms) -> DurationT {
   return std::chrono::duration_cast<DurationT>(milliSec(ms));
 }
 
+class StreamView;
+
 /**
  * @brief a non-owning wrapper for gpu events user is responsible for creating
  * and destroying the event object
  *
  */
-class EventView : public details_::event_base {
+class EventView {
+ protected:
+  using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
+  deviceEvent_t event_{details_::INVALID_EVENT};  // NOLINT
+
  public:
   /// Default constructor
   EventView() = default;
 
   /// Constructor from raw device event
-  GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT
-      : details_::event_base(rawEvent) {}
+  GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {
+  }
 
-  GCXX_CXPR EventView(details_::event_base eventRef) GCXX_NOEXCEPT
-      : details_::event_base(eventRef.get()) {}
+  GCXX_CXPR EventView(const EventView& eventRef) GCXX_NOEXCEPT
+      : event_(eventRef.get()) {}
+
+  GCXX_FHC auto get() GCXX_CONST_NOEXCEPT->deviceEvent_t { return event_; }
+
+  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT { return get(); }
+
+  GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT {
+    return event_ != details_::INVALID_EVENT;
+  }
+
+  GCXX_CXPR friend auto operator==(const EventView lhs,
+                                   const EventView rhs) GCXX_NOEXCEPT->bool {
+    return lhs.event_ == rhs.event_;
+  }
+
+  GCXX_CXPR friend auto operator!=(const EventView& lhs,
+                                   const EventView& rhs) GCXX_NOEXCEPT->bool {
+    return !(lhs == rhs);
+  }
 
   /// Delete constructor from `int`
   EventView(int) = delete;
@@ -56,7 +85,10 @@ class EventView : public details_::event_base {
   GCXX_FH auto Synchronize() const -> void;
 
   GCXX_FH auto RecordInStream(
-    const StreamView& stream      = details_::NULL_STREAM,
+    flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
+
+  GCXX_FH auto RecordInStream(
+    const StreamView& stream,
     flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
 
   template <typename DurationT = milliSec>
