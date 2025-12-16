@@ -5,6 +5,6 @@
 #include <gcxx/runtime/flags/eventflags.hpp>
 
 #include <gcxx/runtime/event/event.hpp>
-#include <gcxx/runtime/event/event_wrap.hpp>
+#include <gcxx/runtime/event/event_view.hpp>
 
 #endif

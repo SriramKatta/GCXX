@@ -72,7 +72,7 @@ class EventView : public details_::event_wrap {
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/event_wrap.inl>
+#include <gcxx/runtime/details/event_view.inl>
 
 #include <gcxx/macros/undefine_macros.hpp>
 
