@@ -15,8 +15,7 @@ class EventViewTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event",
-                           event_);
+    GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", event_);
     GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "Failed to Destroy GPU Stream",
                            stream_);
   }
