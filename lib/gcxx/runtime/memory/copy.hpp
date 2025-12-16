@@ -29,7 +29,7 @@ GCXX_FH auto copy(void* destination, const void* source,
   -> void {
   GCXX_SAFE_RUNTIME_CALL(MemcpyAsync, "Failed to perform async GPU copy",
                          destination, source, countinBytes,
-                         GCXX_RUNTIME_BACKEND(MemcpyDefault), stream.get());
+                         GCXX_RUNTIME_BACKEND(MemcpyDefault), stream.getRawStream());
 }
 
 GCXX_NAMESPACE_DETAILS_END

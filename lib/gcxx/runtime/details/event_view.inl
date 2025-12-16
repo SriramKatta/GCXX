@@ -39,7 +39,7 @@ GCXX_FH auto EventView::RecordInStream(const StreamView& stream,
   -> void {
   GCXX_SAFE_RUNTIME_CALL(EventRecordWithFlags,
                          "Failed to recoed GPU Event in GPU Stream", event_,
-                         stream.get(), static_cast<flag_t>(recordFlag));
+                         stream.getRawStream(), static_cast<flag_t>(recordFlag));
 }
 
 GCXX_FH auto EventView::Synchronize() const -> void {
@@ -54,7 +54,7 @@ GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
   float ms{};
   GCXX_SAFE_RUNTIME_CALL(EventElapsedTime,
                          "Failed to get elapsed time between GPU Events", &ms,
-                         startEvent.get(), this->get());
+                         startEvent.getRawEvent(), this->getRawEvent());
   return ConvertDuration<DurationT>(ms);
 }
 

@@ -34,7 +34,7 @@ GCXX_FH auto StreamView::recordEvent(const flags::eventCreate createflag,
                                      const flags::eventRecord recordFlag) const
   -> Event {
   Event event(createflag);
-  event.RecordInStream(this->get(), recordFlag);
+  event.RecordInStream(this->getRawStream(), recordFlag);
   return event;
 }
 

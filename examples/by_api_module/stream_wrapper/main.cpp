@@ -9,5 +9,8 @@ int main() {
   auto str3        = gcxx::Stream::Create(gflags::streamType::noSyncWithNull);
   auto str4        = gcxx::Stream::Create(gflags::streamType::nullStream,
                                           gflags::streamPriority::veryHigh);
+
+  std::cout << "size of stream obj " << sizeof(str1) << std::endl;
+  std::cout << "size of stream obj " << sizeof(str1.get()) << std::endl;
   return 0;
 }

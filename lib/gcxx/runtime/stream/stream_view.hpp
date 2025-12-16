@@ -34,12 +34,12 @@ class StreamView {
   StreamView(int)            = delete;
   StreamView(std::nullptr_t) = delete;
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->deviceStream_t {
+  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t {
     return stream_;
   }
 
   GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT {
-    return get();
+    return getRawStream();
   }
 
   GCXX_FH auto HasPendingWork() -> bool;
