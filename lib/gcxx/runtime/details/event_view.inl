@@ -37,9 +37,9 @@ GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
 GCXX_FH auto EventView::RecordInStream(const StreamView& stream,
                                        const flags::eventRecord recordFlag)
   -> void {
-  GCXX_SAFE_RUNTIME_CALL(EventRecordWithFlags,
-                         "Failed to recoed GPU Event in GPU Stream", event_,
-                         stream.getRawStream(), static_cast<flag_t>(recordFlag));
+  GCXX_SAFE_RUNTIME_CALL(
+    EventRecordWithFlags, "Failed to recoed GPU Event in GPU Stream", event_,
+    stream.getRawStream(), static_cast<flag_t>(recordFlag));
 }
 
 GCXX_FH auto EventView::Synchronize() const -> void {

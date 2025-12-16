@@ -27,9 +27,9 @@ GCXX_FH auto copy(void* destination, const void* source,
 GCXX_FH auto copy(void* destination, const void* source,
                   const std::size_t countinBytes, const StreamView& stream)
   -> void {
-  GCXX_SAFE_RUNTIME_CALL(MemcpyAsync, "Failed to perform async GPU copy",
-                         destination, source, countinBytes,
-                         GCXX_RUNTIME_BACKEND(MemcpyDefault), stream.getRawStream());
+  GCXX_SAFE_RUNTIME_CALL(
+    MemcpyAsync, "Failed to perform async GPU copy", destination, source,
+    countinBytes, GCXX_RUNTIME_BACKEND(MemcpyDefault), stream.getRawStream());
 }
 
 GCXX_NAMESPACE_DETAILS_END

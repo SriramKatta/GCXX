@@ -29,9 +29,9 @@ GCXX_FH auto StreamView::Synchronize() const -> void {
 GCXX_FH auto StreamView::WaitOnEvent(const EventView& event,
                                      const flags::eventWait waitFlag) const
   -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamWaitEvent,
-                         "Failed to GPU Stream Wait on GPU Event", this->getRawStream(),
-                         event.getRawEvent(), static_cast<flag_t>(waitFlag));
+  GCXX_SAFE_RUNTIME_CALL(
+    StreamWaitEvent, "Failed to GPU Stream Wait on GPU Event",
+    this->getRawStream(), event.getRawEvent(), static_cast<flag_t>(waitFlag));
 }
 
 GCXX_NAMESPACE_MAIN_END

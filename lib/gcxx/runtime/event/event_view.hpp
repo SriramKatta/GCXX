@@ -56,9 +56,13 @@ class EventView {
   GCXX_CXPR EventView(const EventView& eventRef) GCXX_NOEXCEPT
       : event_(eventRef.getRawEvent()) {}
 
-  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t { return event_; }
+  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t {
+    return event_;
+  }
 
-  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT { return getRawEvent(); }
+  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
+    return getRawEvent();
+  }
 
   GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT {
     return event_ != details_::INVALID_EVENT;

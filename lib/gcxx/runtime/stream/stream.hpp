@@ -39,10 +39,7 @@ class Stream : public StreamView {
 
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->StreamView {
-    return *this;
-  }
-
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->StreamView { return *this; }
 
   GCXX_FH auto release() GCXX_NOEXCEPT->StreamView;
 
