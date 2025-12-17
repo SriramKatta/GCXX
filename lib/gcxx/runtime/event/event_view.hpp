@@ -50,33 +50,21 @@ class EventView {
   EventView() = default;
 
   /// Constructor from raw device event
-  GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {
-  }
+  GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT ;
 
-  GCXX_CXPR EventView(const EventView& eventRef) GCXX_NOEXCEPT
-      : event_(eventRef.getRawEvent()) {}
+  GCXX_CXPR EventView(const EventView& eventRef) GCXX_NOEXCEPT;
 
-  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t {
-    return event_;
-  }
+  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t ;
 
-  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
-    return getRawEvent();
-  }
+  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT ;
 
-  GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT {
-    return event_ != details_::INVALID_EVENT;
-  }
+  GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT ;
 
   GCXX_CXPR friend auto operator==(const EventView lhs,
-                                   const EventView rhs) GCXX_NOEXCEPT->bool {
-    return lhs.event_ == rhs.event_;
-  }
+                                   const EventView rhs) GCXX_NOEXCEPT->bool ;
 
   GCXX_CXPR friend auto operator!=(const EventView& lhs,
-                                   const EventView& rhs) GCXX_NOEXCEPT->bool {
-    return !(lhs == rhs);
-  }
+                                   const EventView& rhs) GCXX_NOEXCEPT->bool ;
 
   /// Delete constructor from `int`
   EventView(int) = delete;
@@ -101,9 +89,7 @@ class EventView {
   template <typename DurationT = milliSec>
   GCXX_FH static auto ElapsedTimeBetween(const EventView& startEvent,
                                          const EventView& endEvent)
-    -> DurationT {
-    return endEvent.ElapsedTimeSince<DurationT>(startEvent);
-  }
+    -> DurationT;
 };
 
 GCXX_NAMESPACE_MAIN_END

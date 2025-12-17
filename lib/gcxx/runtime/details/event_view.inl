@@ -14,6 +14,36 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
+GCXX_CXPR EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT
+    : event_(rawEvent) {}
+
+GCXX_CXPR EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT
+    : event_(eventRef.getRawEvent()) {}
+
+GCXX_FHC auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
+  return event_;
+}
+
+GCXX_CXPR EventView::operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
+  return getRawEvent();
+}
+
+GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
+  return event_ != details_::INVALID_EVENT;
+}
+
+GCXX_CXPR auto operator==(const EventView lhs,
+                                            const EventView rhs) GCXX_NOEXCEPT
+  -> bool {
+  return lhs.event_ == rhs.event_;
+}
+
+GCXX_CXPR auto operator!=(const EventView& lhs,
+                                            const EventView& rhs) GCXX_NOEXCEPT
+  -> bool {
+  return !(lhs == rhs);
+}
+
 GCXX_FH auto EventView::HasOccurred() const -> bool {
   auto err = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
   switch (err) {
@@ -56,6 +86,13 @@ GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
                          "Failed to get elapsed time between GPU Events", &ms,
                          startEvent.getRawEvent(), this->getRawEvent());
   return ConvertDuration<DurationT>(ms);
+}
+
+template <typename DurationT>
+GCXX_FH auto EventView::ElapsedTimeBetween(const EventView& startEvent,
+                                           const EventView& endEvent)
+  -> DurationT {
+  return endEvent.ElapsedTimeSince<DurationT>(startEvent);
 }
 
 GCXX_NAMESPACE_MAIN_END
