@@ -11,7 +11,7 @@
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 // Constructor: takes a CUDA stream
-EnsureCurrentDevice::EnsureCurrentDevice(int new_dev) {
+EnsureCurrentDevice::EnsureCurrentDevice(device_t new_dev) {
   // Get current device
   GCXX_SAFE_RUNTIME_CALL(GetDevice, "Failed to get current GPU ID",
                          &old_device_);

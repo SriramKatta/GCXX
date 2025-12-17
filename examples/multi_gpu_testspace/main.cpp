@@ -3,8 +3,7 @@
 #include <vector>
 
 int main() {
-  int numdevices = 0;
-  GCXX_SAFE_RUNTIME_CALL(GetDeviceCount, "Failed to get GPU ID", &numdevices);
+  int numdevices = gcxx::DeviceHandle::count();
 
   fmt::print("numdevices : {}\n", numdevices);
 
@@ -12,7 +11,7 @@ int main() {
   streams.reserve(numdevices);
 
   for (int i = 0; i < numdevices; ++i) {
-    GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to set GPU ID", i);
+    gcxx::DeviceHandle::set(i);
     streams.emplace_back(gcxx::flags::streamType::nullStream,
                          gcxx::flags::streamPriority::veryLow);
   }

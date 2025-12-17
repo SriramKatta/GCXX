@@ -1,6 +1,0 @@
-#pragma once
-#ifndef GCXX_RUNTIME_DETAILS_DEVICE_INL_
-#define GCXX_RUNTIME_DETAILS_DEVICE_INL_
-
-
-#endif

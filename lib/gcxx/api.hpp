@@ -16,6 +16,9 @@
 #include <gcxx/runtime/flags/eventflags.hpp>
 #include <gcxx/runtime/flags/streamflags.hpp>
 
+// section for device handler
+#include <gcxx/runtime/device.hpp>
+
 
 // Section for Runtime API
 // #include <gcxx/runtime/device.hpp>

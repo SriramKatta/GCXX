@@ -14,7 +14,7 @@ class [[maybe_unused]] EnsureCurrentDevice {
   bool changed_{false};
 
  public:
-  GCXX_FH EnsureCurrentDevice(int);
+  GCXX_FH EnsureCurrentDevice(device_t);
 
   // Destructor: restore old device if changed
   GCXX_FH ~EnsureCurrentDevice();
