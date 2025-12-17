@@ -62,6 +62,13 @@ GCXX_FH auto Stream::release() GCXX_NOEXCEPT->StreamView {
   return {oldStream};
 }
 
+GCXX_FH Stream::Stream(Stream&& other) noexcept
+    : StreamView(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
+
+GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT->StreamView {
+  return *this;
+}
+
 GCXX_NAMESPACE_MAIN_END
 
 

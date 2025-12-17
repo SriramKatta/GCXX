@@ -14,6 +14,9 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 class Stream : public StreamView {
+ private:
+  GCXX_FH auto destroy() -> void;
+
  public:
   GCXX_FH Stream(
     const flags::streamType createFlag       = flags::streamType::syncWithNull,
@@ -34,20 +37,15 @@ class Stream : public StreamView {
 
   Stream& operator=(const Stream&) = delete;
 
-  GCXX_FH Stream(Stream&& other) noexcept
-      : StreamView(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
+  GCXX_FH Stream(Stream&& other) noexcept;
 
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->StreamView { return *this; }
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->StreamView;
 
   GCXX_FH auto release() GCXX_NOEXCEPT->StreamView;
 
-
   GCXX_FH auto getPriority() -> flags::streamPriority;
-
- private:
-  GCXX_FH auto destroy() -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END
