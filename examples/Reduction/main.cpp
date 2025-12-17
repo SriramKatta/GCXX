@@ -23,7 +23,6 @@ float time_measure(const gcxx::Stream& str, const Args& arg,
 }
 
 int main(int argc, char** argv) {
-  // using namespace gcxx::details_;
 
   Args arg = parse_args(argc, argv);
 
