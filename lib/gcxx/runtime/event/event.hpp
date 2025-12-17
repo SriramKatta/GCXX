@@ -17,9 +17,7 @@ class Event : public EventView {
   GCXX_FH Event(const flags::eventCreate createFlag = flags::eventCreate::none);
 
   GCXX_FH static auto Create(
-    const flags::eventCreate createFlag = flags::eventCreate::none) -> Event {
-    return {createFlag};
-  };
+    const flags::eventCreate createFlag = flags::eventCreate::none) -> Event;
 
   GCXX_FH ~Event();
 
@@ -27,14 +25,9 @@ class Event : public EventView {
 
   Event& operator=(const Event&) = delete;
 
-  GCXX_FH Event(Event&& other) noexcept
-      : EventView(std::exchange(other.event_, details_::INVALID_EVENT)) {}
+  GCXX_FH Event(Event&& other) noexcept;
 
-  GCXX_FH auto operator=(Event&& other) noexcept -> Event& {
-    if (this != &other)
-      this->event_ = std::exchange(other.event_, details_::INVALID_EVENT);
-    return *this;
-  }
+  GCXX_FH auto operator=(Event&& other) noexcept -> Event&;
 
   GCXX_FH auto release() GCXX_NOEXCEPT->EventView;
 

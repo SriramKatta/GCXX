@@ -11,6 +11,10 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
+GCXX_FH auto Event::Create(const flags::eventCreate createFlag) -> Event {
+  return {createFlag};
+};
+
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : EventView(details_::INVALID_EVENT) {
   GCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags, "Failed to create GPU Event",
@@ -23,10 +27,19 @@ GCXX_FH Event::~Event() {
   }
 }
 
+GCXX_FH Event::Event(Event&& other) noexcept
+    : EventView(std::exchange(other.event_, details_::INVALID_EVENT)) {}
+
 GCXX_FH auto Event::release() GCXX_NOEXCEPT->EventView {
   auto oldEvent = event_;
   event_        = details_::INVALID_EVENT;
   return {oldEvent};
+}
+
+GCXX_FH auto Event::operator=(Event&& other) noexcept -> Event& {
+  if (this != &other)
+    this->event_ = std::exchange(other.event_, details_::INVALID_EVENT);
+  return *this;
 }
 
 // Implementation of recordEvent to break circular dependency
