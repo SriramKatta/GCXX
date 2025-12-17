@@ -20,7 +20,7 @@ GCXX_CXPR EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT
 GCXX_CXPR EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT
     : event_(eventRef.getRawEvent()) {}
 
-GCXX_FHC auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
+GCXX_FHC auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t {
   return event_;
 }
 
@@ -33,14 +33,12 @@ GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
 }
 
 GCXX_CXPR auto operator==(const EventView lhs,
-                                            const EventView rhs) GCXX_NOEXCEPT
-  -> bool {
+                          const EventView rhs) GCXX_NOEXCEPT->bool {
   return lhs.event_ == rhs.event_;
 }
 
 GCXX_CXPR auto operator!=(const EventView& lhs,
-                                            const EventView& rhs) GCXX_NOEXCEPT
-  -> bool {
+                          const EventView& rhs) GCXX_NOEXCEPT->bool {
   return !(lhs == rhs);
 }
 

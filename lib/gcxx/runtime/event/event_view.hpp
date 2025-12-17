@@ -50,21 +50,21 @@ class EventView {
   EventView() = default;
 
   /// Constructor from raw device event
-  GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT ;
+  GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT;
 
   GCXX_CXPR EventView(const EventView& eventRef) GCXX_NOEXCEPT;
 
-  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t ;
+  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t;
 
-  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT ;
+  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT;
 
-  GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT ;
+  GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT;
 
   GCXX_CXPR friend auto operator==(const EventView lhs,
-                                   const EventView rhs) GCXX_NOEXCEPT->bool ;
+                                   const EventView rhs) GCXX_NOEXCEPT->bool;
 
   GCXX_CXPR friend auto operator!=(const EventView& lhs,
-                                   const EventView& rhs) GCXX_NOEXCEPT->bool ;
+                                   const EventView& rhs) GCXX_NOEXCEPT->bool;
 
   /// Delete constructor from `int`
   EventView(int) = delete;
