@@ -26,21 +26,21 @@ class EventViewTest : public ::testing::Test {
 
 TEST_F(EventViewTest, DefaultConstructor) {
   EventView view;
-  EXPECT_EQ(view.get(), details_::INVALID_EVENT);
+  EXPECT_EQ(view.getRawEvent(), details_::INVALID_EVENT);
   EXPECT_FALSE(static_cast<bool>(view));
 }
 
 TEST_F(EventViewTest, ConstructFromRawEvent) {
   EventView view(event_);
-  EXPECT_EQ(view.get(), event_);
+  EXPECT_EQ(view.getRawEvent(), event_);
   EXPECT_TRUE(static_cast<bool>(view));
 }
 
 TEST_F(EventViewTest, CopyConstructor) {
   EventView view1(event_);
   EventView view2(view1);
-  EXPECT_EQ(view1.get(), view2.get());
-  EXPECT_EQ(view2.get(), event_);
+  EXPECT_EQ(view1.getRawEvent(), view2.getRawEvent());
+  EXPECT_EQ(view2.getRawEvent(), event_);
 }
 
 TEST_F(EventViewTest, ImplicitConversionToRaw) {
@@ -49,9 +49,9 @@ TEST_F(EventViewTest, ImplicitConversionToRaw) {
   EXPECT_EQ(raw, event_);
 }
 
-TEST_F(EventViewTest, GetMethod) {
+TEST_F(EventViewTest, getRawEventMethod) {
   EventView view(event_);
-  EXPECT_EQ(view.get(), event_);
+  EXPECT_EQ(view.getRawEvent(), event_);
 }
 
 TEST_F(EventViewTest, BoolConversionValidEvent) {
@@ -220,8 +220,8 @@ TEST_F(EventViewTest, ElapsedTimeWithDifferentDurationTypes) {
 
 TEST_F(EventViewTest, EventViewFromEvent) {
   Event e;
-  EventView view = e.get();
-  EXPECT_EQ(view.get(), e.get());
+  EventView view = e.getRawEvent();
+  EXPECT_EQ(view.getRawEvent(), e.getRawEvent());
 }
 
 TEST_F(EventViewTest, MultipleViewsSameEvent) {
@@ -229,8 +229,8 @@ TEST_F(EventViewTest, MultipleViewsSameEvent) {
   EventView view2(event_);
   EventView view3(view1);
 
-  EXPECT_EQ(view1.get(), view2.get());
-  EXPECT_EQ(view2.get(), view3.get());
+  EXPECT_EQ(view1.getRawEvent(), view2.getRawEvent());
+  EXPECT_EQ(view2.getRawEvent(), view3.getRawEvent());
   EXPECT_TRUE(view1 == view2);
   EXPECT_TRUE(view2 == view3);
 }

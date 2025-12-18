@@ -24,41 +24,41 @@ class EventTest : public ::testing::Test {
 TEST_F(EventTest, ConstructAndDestroy) {
   {
     Event e;
-    EXPECT_NE(e.get(), nullptr);
+    EXPECT_NE(e.getRawEvent(), nullptr);
   }  // auto destroyed here
 }
 
 TEST_F(EventTest, CreateFactory) {
   auto e = Event::Create();
-  EXPECT_NE(e.get(), nullptr);
+  EXPECT_NE(e.getRawEvent(), nullptr);
 }
 
 TEST_F(EventTest, MoveConstructorTransfersOwnership) {
   Event e1;
-  auto raw1 = e1.get();
+  auto raw1 = e1.getRawEvent();
 
   Event e2(std::move(e1));
-  EXPECT_EQ(e1.get(), details_::INVALID_EVENT);
-  EXPECT_EQ(e2.get(), raw1);
+  EXPECT_EQ(e1.getRawEvent(), details_::INVALID_EVENT);
+  EXPECT_EQ(e2.getRawEvent(), raw1);
 }
 
 TEST_F(EventTest, MoveAssignmentTransfersOwnership) {
   Event e1;
   Event e2;
-  auto raw1 = e1.get();
+  auto raw1 = e1.getRawEvent();
 
   e2 = std::move(e1);
-  EXPECT_EQ(e1.get(), nullptr);
-  EXPECT_EQ(e2.get(), raw1);
+  EXPECT_EQ(e1.getRawEvent(), nullptr);
+  EXPECT_EQ(e2.getRawEvent(), raw1);
 }
 
 TEST_F(EventTest, ReleaseTransfersHandle) {
   Event e;
-  auto raw = e.get();
+  auto raw = e.getRawEvent();
 
   EventView ref = e.release();
-  EXPECT_EQ(e.get(), nullptr);
-  EXPECT_EQ(ref.get(), raw);
+  EXPECT_EQ(e.getRawEvent(), nullptr);
+  EXPECT_EQ(ref.getRawEvent(), raw);
 
   // Destroy manually since ownership transferred
   GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", raw);
