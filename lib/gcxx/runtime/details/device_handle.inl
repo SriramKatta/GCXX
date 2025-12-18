@@ -32,6 +32,7 @@ GCXX_FH auto DeviceHandle::Synchronize() const -> void {
 
 GCXX_FH auto DeviceHandle::getAttribute(
   const flags::deviceAttribute& attr) const -> int {
+  details_::EnsureCurrentDevice dev(deviceId_);
   int val{};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute,
                          "Failed to query device attaribute", &val,
