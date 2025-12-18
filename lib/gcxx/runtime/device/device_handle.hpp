@@ -21,10 +21,6 @@ class DeviceHandle {
   GCXX_FH auto Synchronize() const -> void;
 
   GCXX_FH auto id() const -> device_t;
-
-  GCXX_FH static auto set(device_t devId) -> void;
-
-  GCXX_FH static auto count() -> int;
 };
 
 GCXX_NAMESPACE_MAIN_END

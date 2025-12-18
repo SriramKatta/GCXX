@@ -3,7 +3,8 @@
 #include <array>
 #include <gcxx/runtime/event.hpp>
 
-void eve_ref_check(const gcxx::EventView& event) {
+// can also use gcxx::Event with refrence since copy ctor of it marked deleted
+void eve_ref_check(const gcxx::EventView event) {
   if (event.HasOccurred()) {
     fmt::print("Event has occurred.\n");
   } else {

@@ -3,7 +3,7 @@
 #include <vector>
 
 int main() {
-  int numdevices = gcxx::DeviceHandle::count();
+  int numdevices = gcxx::Device::count();
 
   fmt::print("numdevices : {}\n", numdevices);
 
@@ -11,7 +11,7 @@ int main() {
   streams.reserve(numdevices);
 
   for (int i = 0; i < numdevices; ++i) {
-    gcxx::DeviceHandle::set(i);
+    auto devhand = gcxx::Device::set(i);
     streams.emplace_back(gcxx::flags::streamType::nullStream,
                          gcxx::flags::streamPriority::veryLow);
   }
