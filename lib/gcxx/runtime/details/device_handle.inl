@@ -33,9 +33,9 @@ GCXX_FH auto DeviceHandle::Synchronize() const -> void {
 GCXX_FH auto DeviceHandle::getAttribute(
   const flags::deviceAttribute& attr) const -> int {
   int val;
-  GCXX_SAFE_RUNTIME_CALL(
-    DeviceGetAttribute, "Failed to query device attaribute", &val,
-    static_cast<GCXX_RUNTIME_BACKEND(DeviceAttr)>(attr), deviceId_);
+  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute,
+                         "Failed to query device attaribute", &val,
+                         static_cast<ATTRIBUTE_BACKEND_TYPE>(attr), deviceId_);
   return val;
 }
 

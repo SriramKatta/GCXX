@@ -6,6 +6,7 @@
 
 #define RUNTIME_BACKEND cuda
 #define ATTRIBUTE_BACKEND cudaDevAttr
+#define ATTRIBUTE_BACKEND_TYPE cudaDeviceAttr
 
 
 #endif

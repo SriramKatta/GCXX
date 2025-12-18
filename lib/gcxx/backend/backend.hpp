@@ -22,4 +22,13 @@ constexpr auto GCXX_RUNTIME_BACKEND_STR = TOSTRING(RUNTIME_BACKEND);
 #define GCXX_RUNTIME_BACKEND(name) APPEND_NAME(RUNTIME_BACKEND, name)
 #define GCXX_ATTRIBUTE_BACKEND(name) APPEND_NAME(ATTRIBUTE_BACKEND, name)
 
+// Macro to handle attributes with different names between CUDA and HIP
+#if GCXX_CUDA_MODE
+#define GCXX_ATTRIBUTE_BACKEND_ALT(cuda_name, hip_name) \
+  GCXX_ATTRIBUTE_BACKEND(cuda_name)
+#elif GCXX_HIP_MODE
+#define GCXX_ATTRIBUTE_BACKEND_ALT(cuda_name, hip_name) \
+  GCXX_ATTRIBUTE_BACKEND(hip_name)
+#endif
+
 #endif

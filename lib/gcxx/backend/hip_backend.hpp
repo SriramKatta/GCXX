@@ -6,5 +6,6 @@
 
 #define RUNTIME_BACKEND hip
 #define ATTRIBUTE_BACKEND hipDeviceAttribute
+#define ATTRIBUTE_BACKEND_TYPE hipDeviceAttribute_t
 
 #endif
