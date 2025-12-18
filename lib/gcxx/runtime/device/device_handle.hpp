@@ -17,15 +17,19 @@ class DeviceHandle {
   const bool resetOnDestrcut_;
 
  public:
-  GCXX_FH explicit DeviceHandle(int devId, bool resetondestrcut = false);
+  GCXX_FHC explicit DeviceHandle(int dev, bool resetondestrcut = false);
 
   GCXX_FH ~DeviceHandle();
 
   GCXX_FH auto Synchronize() const -> void;
 
-  GCXX_FH auto getAttribute(const flags::deviceAttribute& attr) const -> int;
+  GCXX_FH auto getAttribute(const flags::deviceAttribute&) const -> int;
 
-  GCXX_FH auto id() const -> device_t;
+  GCXX_FH auto getLimit(const flags::deviceLimit&) const -> std::size_t;
+
+  GCXX_FH auto setLimit(const flags::deviceLimit&, std::size_t) const -> void;
+
+  GCXX_FHC auto id() const -> device_t;
 };
 
 GCXX_NAMESPACE_MAIN_END

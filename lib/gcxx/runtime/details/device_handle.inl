@@ -13,7 +13,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetondestrcut)
+GCXX_FHC DeviceHandle::DeviceHandle(int devId, bool resetondestrcut)
     : deviceId_(devId), resetOnDestrcut_(resetondestrcut) {
   GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to Set device", devId);
 }
@@ -32,15 +32,31 @@ GCXX_FH auto DeviceHandle::Synchronize() const -> void {
 
 GCXX_FH auto DeviceHandle::getAttribute(
   const flags::deviceAttribute& attr) const -> int {
-  int val;
+  int val{};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute,
                          "Failed to query device attaribute", &val,
                          static_cast<ATTRIBUTE_BACKEND_TYPE>(attr), deviceId_);
   return val;
 }
 
-GCXX_FH auto DeviceHandle::id() const -> device_t {
+GCXX_FHC auto DeviceHandle::id() const -> device_t {
   return deviceId_;
+}
+
+GCXX_FH auto DeviceHandle::getLimit(const flags::deviceLimit& limattr) const
+  -> std::size_t {
+  details_::EnsureCurrentDevice dev(deviceId_);
+  std::size_t pval{};
+  GCXX_SAFE_RUNTIME_CALL(DeviceGetLimit, "Failed to get the device limit",
+                         &pval, static_cast<LIMIT_BACKEND_TYPE>(limattr));
+  return pval;
+}
+
+GCXX_FH auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
+                                    std::size_t limval) const -> void {
+  details_::EnsureCurrentDevice dev(deviceId_);
+  GCXX_SAFE_RUNTIME_CALL(DeviceSetLimit, "Failed to set the device limit",
+                         static_cast<LIMIT_BACKEND_TYPE>(limattr), limval);
 }
 
 GCXX_NAMESPACE_MAIN_END

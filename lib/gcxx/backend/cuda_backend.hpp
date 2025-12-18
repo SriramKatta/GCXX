@@ -7,6 +7,7 @@
 #define RUNTIME_BACKEND cuda
 #define ATTRIBUTE_BACKEND cudaDevAttr
 #define ATTRIBUTE_BACKEND_TYPE cudaDeviceAttr
+#define LIMIT_BACKEND_TYPE cudaLimit
 
 
 #endif

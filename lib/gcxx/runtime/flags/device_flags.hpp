@@ -7,6 +7,19 @@
 
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
 
+enum class deviceLimit : flag_t {
+  StackSize      = GCXX_RUNTIME_BACKEND(LimitStackSize),
+  PrintfFifoSize = GCXX_RUNTIME_BACKEND(LimitPrintfFifoSize),
+  MallocHeapSize = GCXX_RUNTIME_BACKEND(LimitMallocHeapSize),
+
+#if GCXX_CUDA_MODE
+  DevRuntimeSyncDepth = GCXX_RUNTIME_BACKEND(LimitDevRuntimeSyncDepth),
+  DevRuntimePendingLaunchCount =
+    GCXX_RUNTIME_BACKEND(LimitDevRuntimePendingLaunchCount),
+  MaxL2FetchGranularity = GCXX_RUNTIME_BACKEND(LimitMaxL2FetchGranularity),
+  PersistingL2CacheSize = GCXX_RUNTIME_BACKEND(LimitPersistingL2CacheSize),
+#endif
+};
 
 enum class deviceAttribute : flag_t {
   AsyncEngineCount = GCXX_ATTRIBUTE_BACKEND(AsyncEngineCount),
