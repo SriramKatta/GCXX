@@ -14,6 +14,8 @@ namespace Device {
   GCXX_FH auto set(device_t devId, bool resetondestrcut = false)
     -> DeviceHandle;
 
+  GCXX_FH auto get() -> DeviceHandle;
+
   GCXX_FH auto count() -> int;
 };  // namespace Device
 

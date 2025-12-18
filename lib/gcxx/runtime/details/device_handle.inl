@@ -17,6 +17,7 @@ GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetondestrcut)
 
 GCXX_FH DeviceHandle::~DeviceHandle() {
   if (resetOnDestrcut_) {
+    details_::EnsureCurrentDevice hand(deviceId_);
     GCXX_SAFE_RUNTIME_CALL(DeviceReset, "Failed to reset ");
   }
 }

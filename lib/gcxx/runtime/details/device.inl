@@ -6,15 +6,20 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-#include <gcxx/runtime/device/device_handle.hpp>
 #include <gcxx/runtime/device/device.hpp>
+#include <gcxx/runtime/device/device_handle.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-
-GCXX_FH auto Device::set(device_t devId, bool resetondestrcut ) -> DeviceHandle {
+GCXX_FH auto Device::set(device_t devId, bool resetondestrcut) -> DeviceHandle {
   return DeviceHandle(devId, resetondestrcut);
+}
+
+GCXX_FH auto Device::get() -> DeviceHandle {
+  int dev_Id;
+  GCXX_SAFE_RUNTIME_CALL(GetDevice, "Failed to get device Id", &dev_Id);
+  return DeviceHandle(dev_Id);
 }
 
 GCXX_FH auto Device::count() -> int {

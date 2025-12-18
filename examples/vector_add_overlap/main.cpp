@@ -53,6 +53,8 @@ int main(int argc, char** argv) {
     streams.emplace_back(gcxx::flags::streamType::syncWithNull);
   }
 
+  auto dev = gcxx::Device::get();
+
   for (size_t rep = 0; rep < arg.rep; rep++) {
     size_t base_count = arg.N / arg.numstreams;
     size_t i          = 0;
@@ -69,7 +71,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "FAILED to synchronize the device");
+  dev.Synchronize();
 
   checkdata(h_a_span, static_cast<datatype>(3 * arg.rep));
 
