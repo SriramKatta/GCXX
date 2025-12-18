@@ -17,13 +17,13 @@ GCXX_FH auto Device::set(device_t devId, bool resetondestrcut) -> DeviceHandle {
 }
 
 GCXX_FH auto Device::get() -> DeviceHandle {
-  int dev_Id;
+  int dev_Id{};
   GCXX_SAFE_RUNTIME_CALL(GetDevice, "Failed to get device Id", &dev_Id);
   return DeviceHandle(dev_Id);
 }
 
 GCXX_FH auto Device::count() -> int {
-  int num_dev;
+  int num_dev{};
   GCXX_SAFE_RUNTIME_CALL(GetDeviceCount, "Failed to Get device count",
                          &num_dev);
   return num_dev;
