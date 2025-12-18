@@ -6,6 +6,9 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
+
+#include <gcxx/runtime/flags/device_flags.hpp>
+
 #include <gcxx/runtime/device/ensure_current_device.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -25,6 +28,15 @@ GCXX_FH DeviceHandle::~DeviceHandle() {
 GCXX_FH auto DeviceHandle::Synchronize() const -> void {
   details_::EnsureCurrentDevice hand(deviceId_);
   GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "Failed to synchronize the device");
+}
+
+GCXX_FH auto DeviceHandle::getAttribute(
+  const flags::deviceAttribute& attr) const -> int {
+  int val;
+  GCXX_SAFE_RUNTIME_CALL(
+    DeviceGetAttribute, "Failed to query device attaribute", &val,
+    static_cast<GCXX_RUNTIME_BACKEND(DeviceAttr)>(attr), deviceId_);
+  return val;
 }
 
 GCXX_FH auto DeviceHandle::id() const -> device_t {

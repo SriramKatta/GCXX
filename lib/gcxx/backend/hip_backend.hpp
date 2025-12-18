@@ -5,6 +5,6 @@
 #include <hip/hip_runtime.h>
 
 #define RUNTIME_BACKEND hip
-
+#define ATTRIBUTE_BACKEND hipDeviceAttribute
 
 #endif

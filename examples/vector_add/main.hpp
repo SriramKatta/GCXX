@@ -43,27 +43,10 @@ inline Args parse_args(int argc, char** argv) {
     std::exit(1);
   }
 
-  int SMcount  = 0;
-  int warpSize = 0;
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute, "Failed to get device attributes",
-                         &SMcount,
-#if GCXX_CUDA_MODE
-                         cudaDevAttrMultiProcessorCount
-#else
-                         hipDeviceAttributeMultiprocessorCount
-#endif
-                         ,
-                         0);
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute, "Failed to get device attributes",
-                         &warpSize,
-#if GCXX_CUDA_MODE
-                         cudaDevAttrWarpSize
-#else
-                         hipDeviceAttributeWarpSize
-#endif
-
-                         ,
-                         0);
+  auto devhand = gcxx::Device::get();
+  int SMcount =
+    devhand.getAttribute(gcxx::flags::deviceAttribute::MultiProcessorCount);
+  int warpSize = devhand.getAttribute(gcxx::flags::deviceAttribute::WarpSize);
 
   return {program.get<size_t>("N"), program.get<size_t>("reps"),
           SMcount * program.get<size_t>("blocksmult"),

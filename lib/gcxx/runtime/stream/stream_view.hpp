@@ -4,7 +4,7 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
-#include <gcxx/runtime/flags/streamflags.hpp>
+#include <gcxx/runtime/flags/stream_flags.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

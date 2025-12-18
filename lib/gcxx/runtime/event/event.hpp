@@ -5,7 +5,7 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/event/event_view.hpp>
-#include <gcxx/runtime/flags/eventflags.hpp>
+#include <gcxx/runtime/flags/event_flags.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 

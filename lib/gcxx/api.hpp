@@ -13,8 +13,9 @@
 #include <gcxx/runtime/runtime_error.hpp>
 
 // Section for Runtime Flags
-#include <gcxx/runtime/flags/eventflags.hpp>
-#include <gcxx/runtime/flags/streamflags.hpp>
+#include <gcxx/runtime/flags/device_flags.hpp>
+#include <gcxx/runtime/flags/event_flags.hpp>
+#include <gcxx/runtime/flags/stream_flags.hpp>
 
 // section for device handler
 #include <gcxx/runtime/device.hpp>

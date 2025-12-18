@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 
 #define RUNTIME_BACKEND cuda
+#define ATTRIBUTE_BACKEND cudaDevAttr
 
 
 #endif

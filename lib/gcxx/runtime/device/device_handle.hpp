@@ -6,12 +6,15 @@
 #include <gcxx/macros/define_macros.hpp>
 
 
+#include <gcxx/runtime/flags/device_flags.hpp>
+
+
 GCXX_NAMESPACE_MAIN_BEGIN
 
 class DeviceHandle {
  private:
-  device_t deviceId_;
-  bool resetOnDestrcut_;
+  const device_t deviceId_;
+  const bool resetOnDestrcut_;
 
  public:
   GCXX_FH explicit DeviceHandle(int devId, bool resetondestrcut = false);
@@ -19,6 +22,8 @@ class DeviceHandle {
   GCXX_FH ~DeviceHandle();
 
   GCXX_FH auto Synchronize() const -> void;
+
+  GCXX_FH auto getAttribute(const flags::deviceAttribute& attr) const -> int;
 
   GCXX_FH auto id() const -> device_t;
 };
