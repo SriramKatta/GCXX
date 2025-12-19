@@ -39,8 +39,7 @@ GCXX_FH GraphExec::~GraphExec() GCXX_NOEXCEPT {
 GCXX_FH GraphExec::GraphExec(GraphExec&& other) GCXX_NOEXCEPT
     : GraphExecView(std::exchange(other.exec_, details_::INVALID_GRAPH_EXEC)) {}
 
-GCXX_FH auto GraphExec::operator=(GraphExec&& other) GCXX_NOEXCEPT
-  -> GraphExec& {
+GCXX_FH auto GraphExec::operator=(GraphExec&& other) GCXX_NOEXCEPT->GraphExec& {
   if (this != &other) {
     destroy();
     exec_ = std::exchange(other.exec_, details_::INVALID_GRAPH_EXEC);
@@ -48,7 +47,7 @@ GCXX_FH auto GraphExec::operator=(GraphExec&& other) GCXX_NOEXCEPT
   return *this;
 }
 
-GCXX_FH auto GraphExec::Release() GCXX_NOEXCEPT -> GraphExecView {
+GCXX_FH auto GraphExec::Release() GCXX_NOEXCEPT->GraphExecView {
   auto oldExec = exec_;
   exec_        = details_::INVALID_GRAPH_EXEC;
   return GraphExecView{oldExec};

@@ -4,8 +4,8 @@
 
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/graph/graph_exec_view.hpp>
-#include <gcxx/runtime/stream/stream_view.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -21,13 +21,13 @@ GCXX_FHC GraphExecView::operator deviceGraphExec_t() const GCXX_NOEXCEPT {
 }
 
 GCXX_FH auto GraphExecView::Launch(const StreamView& stream) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphLaunch, "Failed to launch graph",
-                         exec_, stream.getRawStream());
+  GCXX_SAFE_RUNTIME_CALL(GraphLaunch, "Failed to launch graph", exec_,
+                         stream.getRawStream());
 }
 
 GCXX_FH auto GraphExecView::Upload(const StreamView& stream) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphUpload, "Failed to upload graph",
-                         exec_, stream.getRawStream());
+  GCXX_SAFE_RUNTIME_CALL(GraphUpload, "Failed to upload graph", exec_,
+                         stream.getRawStream());
 }
 
 GCXX_NAMESPACE_MAIN_END

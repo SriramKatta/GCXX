@@ -21,7 +21,6 @@ __global__ void kern_F() {
   printf("Print for %s\n", __func__);
 }
 
-
 int main() {
 
   gcxx::Stream str1, str2;
@@ -37,7 +36,9 @@ int main() {
   kern_F<<<1, 1, 0, str1>>>();
   gcxx::Graph gp = str1.EndCapture();
 
-  gp.SaveDotfile("./test_comp.dot", gcxx::flags::graphDebugDot::Handles | gcxx::flags::graphDebugDot::HostNodeParams);
+  gp.SaveDotfile("./test_comp.dot",
+                 gcxx::flags::graphDebugDot::Handles |
+                   gcxx::flags::graphDebugDot::HostNodeParams);
 
   auto exec = gp.Instantiate();
   exec.Launch(str1);

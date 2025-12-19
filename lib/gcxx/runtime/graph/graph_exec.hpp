@@ -14,7 +14,9 @@ class GraphView;
 
 class GraphExec : public GraphExecView {
  private:
-  GCXX_FH GraphExec(deviceGraphExec_t exec) GCXX_NOEXCEPT : GraphExecView(exec) {}
+  GCXX_FH GraphExec(deviceGraphExec_t exec) GCXX_NOEXCEPT
+      : GraphExecView(exec) {}
+
   GCXX_FH auto destroy() -> void;
 
  public:
@@ -28,13 +30,13 @@ class GraphExec : public GraphExecView {
 
   GCXX_FH ~GraphExec() GCXX_NOEXCEPT;
 
-  GraphExec(const GraphExec&) = delete;
+  GraphExec(const GraphExec&)            = delete;
   GraphExec& operator=(const GraphExec&) = delete;
 
   GCXX_FH GraphExec(GraphExec&& other) GCXX_NOEXCEPT;
-  GCXX_FH auto operator=(GraphExec&& other) GCXX_NOEXCEPT -> GraphExec&;
+  GCXX_FH auto operator=(GraphExec&& other) GCXX_NOEXCEPT->GraphExec&;
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT -> GraphExecView;
+  GCXX_FH auto Release() GCXX_NOEXCEPT->GraphExecView;
 
   GCXX_FH auto Update(const GraphView& graph) -> void;
 };
