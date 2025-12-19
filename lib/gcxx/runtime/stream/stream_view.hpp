@@ -27,20 +27,15 @@ class StreamView {
   deviceStream_t stream_{details_::NULL_STREAM};  // NOLINT
 
  public:
-  constexpr StreamView(deviceStream_t rawStream) noexcept
-      : stream_(rawStream) {}
+  GCXX_FHC StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT;
 
   StreamView()               = delete;
   StreamView(int)            = delete;
   StreamView(std::nullptr_t) = delete;
 
-  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t {
-    return stream_;
-  }
+  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t ;
 
-  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT {
-    return getRawStream();
-  }
+  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT ;
 
   GCXX_FH auto HasPendingWork() -> bool;
 
@@ -50,7 +45,7 @@ class StreamView {
     const EventView& event,
     const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
 
-  GCXX_FH auto recordEvent(
+  GCXX_FH auto RecordEvent(
     const flags::eventCreate createflag = flags::eventCreate::none,
     const flags::eventRecord recordFlag = flags::eventRecord::none) const
     -> Event;

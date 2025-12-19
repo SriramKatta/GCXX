@@ -29,7 +29,7 @@ class Event : public EventView {
 
   GCXX_FH auto operator=(Event&& other) noexcept -> Event&;
 
-  GCXX_FH auto release() GCXX_NOEXCEPT->EventView;
+  GCXX_FH auto Release() GCXX_NOEXCEPT->EventView;
 
   operator deviceEvent_t() = delete;
 };

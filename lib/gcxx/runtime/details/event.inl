@@ -30,7 +30,7 @@ GCXX_FH Event::~Event() {
 GCXX_FH Event::Event(Event&& other) noexcept
     : EventView(std::exchange(other.event_, details_::INVALID_EVENT)) {}
 
-GCXX_FH auto Event::release() GCXX_NOEXCEPT->EventView {
+GCXX_FH auto Event::Release() GCXX_NOEXCEPT->EventView {
   auto oldEvent = event_;
   event_        = details_::INVALID_EVENT;
   return {oldEvent};
@@ -43,7 +43,7 @@ GCXX_FH auto Event::operator=(Event&& other) noexcept -> Event& {
 }
 
 // Implementation of recordEvent to break circular dependency
-GCXX_FH auto StreamView::recordEvent(const flags::eventCreate createflag,
+GCXX_FH auto StreamView::RecordEvent(const flags::eventCreate createflag,
                                      const flags::eventRecord recordFlag) const
   -> Event {
   Event event(createflag);

@@ -43,7 +43,7 @@ class Stream : public StreamView {
 
   GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->StreamView;
 
-  GCXX_FH auto release() GCXX_NOEXCEPT->StreamView;
+  GCXX_FH auto Release() GCXX_NOEXCEPT->StreamView;
 
   GCXX_FH auto getPriority() -> flags::streamPriority;
 };

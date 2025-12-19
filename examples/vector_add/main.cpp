@@ -22,11 +22,11 @@ template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
   str.Synchronize();
-  auto kernelstart = str.recordEvent();
+  auto kernelstart = str.RecordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.recordEvent();
+  auto kernelend = str.RecordEvent();
   str.Synchronize();
   float kerneltime =
     (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
@@ -50,9 +50,9 @@ int main(int argc, char** argv) {
 
   gcxx::Stream str(gcxx::flags::streamType::noSyncWithNull);
 
-  auto H2Dstart = str.recordEvent();
+  auto H2Dstart = str.RecordEvent();
   gcxx::memory::copy(d_a_span, h_a_span, str);
-  auto H2Dend = str.recordEvent();
+  auto H2Dend = str.RecordEvent();
 
   auto scalar_kern_time =
     time_measure(str, arg, d_a_span, launch_scalar_kernel<datatype>);
@@ -62,9 +62,9 @@ int main(int argc, char** argv) {
     time_measure(str, arg, d_a_span, launch_vec4_kernel<datatype>);
 
 
-  auto D2Hstart = str.recordEvent();
+  auto D2Hstart = str.RecordEvent();
   gcxx::memory::copy(h_a_span, d_a_span, str);
-  auto D2Hend = str.recordEvent();
+  auto D2Hend = str.RecordEvent();
 
   D2Hend.Synchronize();
 

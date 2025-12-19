@@ -22,11 +22,11 @@ template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
   str.Synchronize();
-  auto kernelstart = str.recordEvent();
+  auto kernelstart = str.RecordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.recordEvent();
+  auto kernelend = str.RecordEvent();
   str.Synchronize();
   float kerneltime =
     (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
@@ -34,6 +34,11 @@ float time_measure(const gcxx::Stream& str, const Args& arg,
 }
 
 int main(int argc, char** argv) {
+
+  auto dev  = gcxx::Device::get();
+  auto prop = dev.getDeviceProp();
+
+  fmt::print("name of the device is {}\n", prop.name);
 
   Args arg = parse_args(argc, argv);
 
@@ -53,7 +58,6 @@ int main(int argc, char** argv) {
     streams.emplace_back(gcxx::flags::streamType::syncWithNull);
   }
 
-  auto dev = gcxx::Device::get();
 
   for (size_t rep = 0; rep < arg.rep; rep++) {
     size_t base_count = arg.N / arg.numstreams;
@@ -72,6 +76,7 @@ int main(int argc, char** argv) {
   }
 
   dev.Synchronize();
+
 
   checkdata(h_a_span, static_cast<datatype>(3 * arg.rep));
 

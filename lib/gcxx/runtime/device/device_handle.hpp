@@ -6,6 +6,7 @@
 #include <gcxx/macros/define_macros.hpp>
 
 
+#include <gcxx/runtime/device/device_structs.hpp>
 #include <gcxx/runtime/flags/device_flags.hpp>
 
 
@@ -17,11 +18,17 @@ class DeviceHandle {
   const bool resetOnDestrcut_;
 
  public:
-  GCXX_FHC explicit DeviceHandle(int dev, bool resetondestrcut = false);
+  DeviceHandle() = delete;
+
+  GCXX_FH explicit DeviceHandle(int dev, bool resetondestrcut = false);
 
   GCXX_FH ~DeviceHandle();
 
+  GCXX_FH auto makeCurrent() const -> void;
+
   GCXX_FH auto Synchronize() const -> void;
+
+  GCXX_FH auto getDeviceProp() const -> DeviceProp;
 
   GCXX_FH auto getAttribute(const flags::deviceAttribute&) const -> int;
 

@@ -56,7 +56,7 @@ GCXX_FH auto Stream::Create(const flags::streamType createFlag,
   return {createFlag, priorityFlag};
 }
 
-GCXX_FH auto Stream::release() GCXX_NOEXCEPT->StreamView {
+GCXX_FH auto Stream::Release() GCXX_NOEXCEPT->StreamView {
   auto oldStream = stream_;
   stream_        = details_::INVALID_STREAM;
   return {oldStream};

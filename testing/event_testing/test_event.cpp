@@ -56,7 +56,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
   Event e;
   auto raw = e.getRawEvent();
 
-  EventView ref = e.release();
+  EventView ref = e.Release();
   EXPECT_EQ(e.getRawEvent(), nullptr);
   EXPECT_EQ(ref.getRawEvent(), raw);
 

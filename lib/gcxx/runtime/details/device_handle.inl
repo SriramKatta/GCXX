@@ -6,16 +6,14 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-
-#include <gcxx/runtime/flags/device_flags.hpp>
-
 #include <gcxx/runtime/device/ensure_current_device.hpp>
+#include <gcxx/runtime/flags/device_flags.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FHC DeviceHandle::DeviceHandle(int devId, bool resetondestrcut)
+GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetondestrcut)
     : deviceId_(devId), resetOnDestrcut_(resetondestrcut) {
-  GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to Set device", devId);
+  makeCurrent();
 }
 
 GCXX_FH DeviceHandle::~DeviceHandle() {
@@ -23,6 +21,10 @@ GCXX_FH DeviceHandle::~DeviceHandle() {
     details_::EnsureCurrentDevice hand(deviceId_);
     GCXX_SAFE_RUNTIME_CALL(DeviceReset, "Failed to reset ");
   }
+}
+
+GCXX_FH auto DeviceHandle::makeCurrent() const -> void {
+  GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to Set device", deviceId_);
 }
 
 GCXX_FH auto DeviceHandle::Synchronize() const -> void {
@@ -58,6 +60,14 @@ GCXX_FH auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
   details_::EnsureCurrentDevice dev(deviceId_);
   GCXX_SAFE_RUNTIME_CALL(DeviceSetLimit, "Failed to set the device limit",
                          static_cast<LIMIT_BACKEND_TYPE>(limattr), limval);
+}
+
+GCXX_FH auto DeviceHandle::getDeviceProp() const -> DeviceProp {
+  DeviceProp handle;
+  GCXX_SAFE_RUNTIME_CALL(GetDeviceProperties,
+                         "Failed to query device properties", &handle,
+                         deviceId_);
+  return handle;
 }
 
 GCXX_NAMESPACE_MAIN_END
