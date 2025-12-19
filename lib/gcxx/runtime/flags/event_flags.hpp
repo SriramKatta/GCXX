@@ -42,7 +42,8 @@ enum class eventCreate : flag_t {
  * @param rhs Right-hand side eventCreate flag.
  * @return Combined eventCreate flags.
  */
-inline eventCreate operator|(const eventCreate& lhs, const eventCreate& rhs) {
+inline auto operator|(const eventCreate& lhs, const eventCreate& rhs)
+  -> eventCreate {
   return static_cast<eventCreate>(static_cast<flag_t>(lhs) |
                                   static_cast<flag_t>(rhs));
 }
