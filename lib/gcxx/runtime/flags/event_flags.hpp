@@ -47,21 +47,6 @@ inline eventCreate operator|(const eventCreate& lhs, const eventCreate& rhs) {
                                   static_cast<flag_t>(rhs));
 }
 
-/**
- * @enum streamCapture
- * @brief Flags for controlling stream capture dependency behavior.
- *
- * These flags determine how dependencies are handled during stream capture
- * operations in CUDA graphs.
- */
-enum class streamCapture : flag_t {
-  add = GCXX_RUNTIME_BACKEND(
-    StreamAddCaptureDependencies), /**< Add to existing capture dependencies.
-                                    */
-  set = GCXX_RUNTIME_BACKEND(
-    StreamSetCaptureDependencies), /**< Replace existing capture dependencies.
-                                    */
-};
 
 /**
  * @enum eventRecord

@@ -91,6 +91,32 @@ enum class streamPriority : flag_t {
   critical = 5U,
 };
 
+/**
+ * @enum streamCaptureMode
+ * @brief Flags for controlling stream capture mode behavior.
+ *
+ * These flags determine how stream capture interacts with other streams
+ * and threads during CUDA/HIP graph capture operations.
+ */
+enum class streamCaptureMode : flag_t {
+  global = GCXX_RUNTIME_BACKEND(
+    StreamCaptureModeGlobal), /**< Capture affects all threads; any unsafe API
+                                 call results in an error. */
+  threadLocal = GCXX_RUNTIME_BACKEND(
+    StreamCaptureModeThreadLocal), /**< Capture is local to the thread; other
+                                      threads can use unsafe APIs. */
+  relaxed = GCXX_RUNTIME_BACKEND(
+    StreamCaptureModeRelaxed), /**< No safety checks; application must ensure
+                                  correctness. */
+};
+
+enum class streamCaptureStatus : flag_t {
+  none         = GCXX_RUNTIME_BACKEND(StreamCaptureStatusNone),
+  active       = GCXX_RUNTIME_BACKEND(StreamCaptureStatusActive),
+  invalidataed = GCXX_RUNTIME_BACKEND(StreamCaptureStatusInvalidated),
+};
+
+
 GCXX_NAMESPACE_MAIN_FLAGS_END
 
 #endif

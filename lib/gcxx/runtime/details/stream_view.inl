@@ -3,6 +3,7 @@
 #define GCXX_RUNTIME_DETAILS_STREAM_VIEW_INL_
 
 #include <gcxx/macros/define_macros.hpp>
+#include <gcxx/runtime/graph/graph.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
@@ -44,6 +45,20 @@ GCXX_FH auto StreamView::WaitOnEvent(const EventView& event,
   GCXX_SAFE_RUNTIME_CALL(
     StreamWaitEvent, "Failed to GPU Stream Wait on GPU Event",
     this->getRawStream(), event.getRawEvent(), static_cast<flag_t>(waitFlag));
+}
+
+GCXX_FH auto StreamView::BeginCapture(const flags::streamCaptureMode createflag)
+  -> void {
+  GCXX_SAFE_RUNTIME_CALL(
+    StreamBeginCapture, "Failed to begin Stream Capture", this->getRawStream(),
+    static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
+}
+
+GCXX_FH auto StreamView::EndCapture() -> Graph {
+  details_::deviceGraph_t pgraph{nullptr};
+  GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to begin Stream Capture",
+                         this->getRawStream(), &pgraph);
+  return Graph::CreateFromRaw(pgraph);
 }
 
 GCXX_NAMESPACE_MAIN_END

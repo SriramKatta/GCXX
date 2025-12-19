@@ -20,6 +20,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 
 GCXX_NAMESPACE_MAIN_BEGIN
 class Event;
+class Graph;
 
 class StreamView {
  protected:
@@ -49,6 +50,10 @@ class StreamView {
     const flags::eventCreate createflag = flags::eventCreate::none,
     const flags::eventRecord recordFlag = flags::eventRecord::none) const
     -> Event;
+
+  GCXX_FH auto BeginCapture(const flags::streamCaptureMode createflag) -> void;
+
+  GCXX_FH auto EndCapture() -> Graph;
 };
 
 GCXX_NAMESPACE_MAIN_END
