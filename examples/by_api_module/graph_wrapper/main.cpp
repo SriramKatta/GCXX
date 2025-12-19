@@ -23,22 +23,24 @@ __global__ void kern_F() {
 
 int main() {
 
-  gcxx::Stream str1, str2;
+  gcxx::Stream str1(gcxx::flags::streamType::syncWithNull, gcxx::flags::streamPriority::low);
+  gcxx::Stream str2(gcxx::flags::streamType::syncWithNull, gcxx::flags::streamPriority::critical);
+  gcxx::Event eve_after_A(gcxx::flags::eventCreate::disableTiming);
+  gcxx::Event eve_after_C(gcxx::flags::eventCreate::disableTiming);
+
   str1.BeginCapture(gcxx::flags::streamCaptureMode::global);
+
   kern_A<<<1, 1, 0, str1>>>();
-  auto eve_after_A = str1.RecordEvent(gcxx::flags::eventCreate::disableTiming);
+  eve_after_A.RecordInStream(str1);
   kern_B<<<1, 1, 0, str1>>>();
   str2.WaitOnEvent(eve_after_A);
   kern_C<<<1, 1, 0, str2>>>();
-  auto eve_after_C = str2.RecordEvent(gcxx::flags::eventCreate::disableTiming);
+  eve_after_C.RecordInStream(str2);
   kern_D<<<1, 1, 0, str1>>>();
   str1.WaitOnEvent(eve_after_C);
   kern_F<<<1, 1, 0, str1>>>();
-  gcxx::Graph gp = str1.EndCapture();
 
-  gp.SaveDotfile("./test_comp.dot",
-                 gcxx::flags::graphDebugDot::Handles |
-                   gcxx::flags::graphDebugDot::HostNodeParams);
+  gcxx::Graph gp = str1.EndCapture();
 
   auto exec = gp.Instantiate();
   exec.Launch(str1);
