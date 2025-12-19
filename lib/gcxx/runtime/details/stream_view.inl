@@ -8,16 +8,17 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-  GCXX_FHC StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
-      : stream_(rawStream) {}
+GCXX_FHC StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
+    : stream_(rawStream) {}
 
-  GCXX_FH constexpr auto StreamView::getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t {
-    return stream_;
-  }
+GCXX_FH constexpr auto StreamView::getRawStream()
+  GCXX_CONST_NOEXCEPT->deviceStream_t {
+  return stream_;
+}
 
-  GCXX_FH constexpr StreamView::operator deviceStream_t() GCXX_CONST_NOEXCEPT {
-    return getRawStream();
-  }
+GCXX_FH constexpr StreamView::operator deviceStream_t() GCXX_CONST_NOEXCEPT {
+  return getRawStream();
+}
 
 GCXX_FH auto StreamView::HasPendingWork() -> bool {
   auto err = GCXX_RUNTIME_BACKEND(StreamQuery)(stream_);
