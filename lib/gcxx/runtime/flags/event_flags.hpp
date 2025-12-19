@@ -1,3 +1,11 @@
+/**
+ * @file event_flags.hpp
+ * @brief Event-related flags for GPU runtime operations.
+ *
+ * This header defines enumerations for controlling event creation, recording,
+ * waiting, and stream capture behavior in a backend-agnostic manner (CUDA/HIP).
+ */
+
 #pragma once
 #ifndef GCXX_RUNTIME_FLAGS_EVENT_FLAGS_HPP_
 #define GCXX_RUNTIME_FLAGS_EVENT_FLAGS_HPP_
@@ -7,37 +15,85 @@
 
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
 
+/**
+ * @enum eventCreate
+ * @brief Flags for controlling GPU event creation behavior.
+ *
+ * These flags specify how an event should be created, including synchronization
+ * behavior, timing capabilities, and inter-process sharing.
+ */
 enum class eventCreate : flag_t {
-  none          = GCXX_RUNTIME_BACKEND(EventDefault),
-  blockingSync  = GCXX_RUNTIME_BACKEND(EventBlockingSync),
-  disableTiming = GCXX_RUNTIME_BACKEND(EventDisableTiming),
-  interprocess  = GCXX_RUNTIME_BACKEND(EventInterprocess) |
-                 GCXX_RUNTIME_BACKEND(EventDisableTiming),
+  none = GCXX_RUNTIME_BACKEND(EventDefault), /**< Default event creation. */
+  blockingSync =
+    GCXX_RUNTIME_BACKEND(EventBlockingSync), /**< CPU thread blocks on
+                                                synchronization. */
+  disableTiming =
+    GCXX_RUNTIME_BACKEND(EventDisableTiming), /**< Disable timing to improve
+                                                 performance. */
+  interprocess =
+    GCXX_RUNTIME_BACKEND(EventInterprocess) |
+    GCXX_RUNTIME_BACKEND(EventDisableTiming), /**< Enable inter-process sharing
+                                                 (timing disabled). */
 };
 
+/**
+ * @brief Bitwise OR operator for combining eventCreate flags.
+ * @param lhs Left-hand side eventCreate flag.
+ * @param rhs Right-hand side eventCreate flag.
+ * @return Combined eventCreate flags.
+ */
 inline eventCreate operator|(const eventCreate& lhs, const eventCreate& rhs) {
   return static_cast<eventCreate>(static_cast<flag_t>(lhs) |
                                   static_cast<flag_t>(rhs));
 }
 
+/**
+ * @enum streamCapture
+ * @brief Flags for controlling stream capture dependency behavior.
+ *
+ * These flags determine how dependencies are handled during stream capture
+ * operations in CUDA graphs.
+ */
 enum class streamCapture : flag_t {
-  add = GCXX_RUNTIME_BACKEND(StreamAddCaptureDependencies),
-  set = GCXX_RUNTIME_BACKEND(StreamSetCaptureDependencies),
+  add = GCXX_RUNTIME_BACKEND(
+    StreamAddCaptureDependencies), /**< Add to existing capture dependencies.
+                                    */
+  set = GCXX_RUNTIME_BACKEND(
+    StreamSetCaptureDependencies), /**< Replace existing capture dependencies.
+                                    */
 };
 
+/**
+ * @enum eventRecord
+ * @brief Flags for controlling event recording behavior.
+ *
+ * These flags specify how an event should be recorded in a stream.
+ */
 enum class eventRecord : flag_t {
-  none     = GCXX_RUNTIME_BACKEND(EventRecordDefault),
-  external = GCXX_RUNTIME_BACKEND(EventRecordExternal),
+  none = GCXX_RUNTIME_BACKEND(EventRecordDefault),      /**< Default recording
+                                                           behavior. */
+  external = GCXX_RUNTIME_BACKEND(EventRecordExternal), /**< Record for external
+                                                           synchronization. */
 };
 
+/**
+ * @enum eventWait
+ * @brief Flags for controlling event wait behavior.
+ *
+ * These flags specify how a stream should wait on an event.
+ *
+ * @note HIP does not currently implement these flags despite documentation
+ *       claiming support. For HIP, both values default to 0.
+ */
 enum class eventWait : flag_t {
 #if defined(GCXX_CUDA_MODE)
-  none     = GCXX_RUNTIME_BACKEND(EventWaitDefault),
-  external = GCXX_RUNTIME_BACKEND(EventWaitExternal),
-#else  // its stupid!! these are supposedly defined as per documentation but not
+  none = GCXX_RUNTIME_BACKEND(EventWaitDefault), /**< Default wait behavior. */
+  external =
+    GCXX_RUNTIME_BACKEND(EventWaitExternal), /**< Wait on external event. */
+#else  // HIP: these are supposedly defined as per documentation but not
        // implemented in the actual code
-  none     = 0,
-  external = 0,
+  none     = 0, /**< Default wait behavior (HIP fallback). */
+  external = 0, /**< External wait (HIP fallback, not implemented). */
 #endif
 };
 
