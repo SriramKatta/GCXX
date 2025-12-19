@@ -56,7 +56,7 @@ GCXX_FH auto StreamView::BeginCapture(const flags::streamCaptureMode createflag)
 
 GCXX_FH auto StreamView::EndCapture() -> Graph {
   details_::deviceGraph_t pgraph{nullptr};
-  GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to begin Stream Capture",
+  GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
                          this->getRawStream(), &pgraph);
   return Graph::CreateFromRaw(pgraph);
 }

@@ -11,7 +11,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 namespace Device {
-  GCXX_FH auto set(device_t devId, bool resetondestrcut = false)
+  GCXX_FH auto set(device_t devId, bool resetOnDestruct = false)
     -> DeviceHandle;
 
   GCXX_FH auto get() -> DeviceHandle;

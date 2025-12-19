@@ -12,8 +12,8 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FH auto Device::set(device_t devId, bool resetondestrcut) -> DeviceHandle {
-  return DeviceHandle(devId, resetondestrcut);
+GCXX_FH auto Device::set(device_t devId, bool resetOnDestruct) -> DeviceHandle {
+  return DeviceHandle(devId, resetOnDestruct);
 }
 
 GCXX_FH auto Device::get() -> DeviceHandle {

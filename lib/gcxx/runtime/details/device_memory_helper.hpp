@@ -19,7 +19,7 @@ GCXX_CXPR auto device_malloc = [](std::size_t numbytes) {
 GCXX_CXPR auto device_managed_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(
-    MallocManaged, "Failed to allocate manged device memory", &ptr, numbytes);
+    MallocManaged, "Failed to allocate managed device memory", &ptr, numbytes);
   return ptr;
 };
 

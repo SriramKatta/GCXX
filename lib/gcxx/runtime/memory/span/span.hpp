@@ -104,13 +104,13 @@ class span {
   // █                     Static Asserts                     █
   // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
   static_assert(std::is_object_v<VT>,
-                "An refrence is not supported"
-                " need an fully declared type");
+                "A reference is not supported,"
+                " need a fully declared type");
   static_assert(!std::is_abstract_v<VT>,
                 "An abstract class type is not supported");
   static_assert(details_::is_complete_v<VT>,
-                "A forward declaration is not supported"
-                " need an fully declared type");
+                "A forward declaration is not supported,"
+                " need a fully declared type");
 
   using storage_type = details_::span_storage<VT, Extent>;
 
@@ -134,7 +134,7 @@ class span {
   using reverse_iterator = std::reverse_iterator<iterator>;
 
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-  // █                    Memeber Function                    █
+  // █                    Member Function                     █
   // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
   // ==========================================================
   //                        Constructors

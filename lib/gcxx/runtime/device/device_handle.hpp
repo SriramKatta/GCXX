@@ -15,12 +15,12 @@ GCXX_NAMESPACE_MAIN_BEGIN
 class DeviceHandle {
  private:
   const device_t deviceId_;
-  const bool resetOnDestrcut_;
+  const bool resetOnDestruct_;
 
  public:
   DeviceHandle() = delete;
 
-  GCXX_FH explicit DeviceHandle(int dev, bool resetondestrcut = false);
+  GCXX_FH explicit DeviceHandle(int dev, bool resetOnDestruct = false);
 
   GCXX_FH ~DeviceHandle();
 

@@ -24,7 +24,6 @@ class Graph : public GraphView {
   GCXX_FH static auto Create(
     const flags::graphCreate createFlag = flags::graphCreate::none) -> Graph;
 
-  
 
   GCXX_FH ~Graph() GCXX_NOEXCEPT;
 
@@ -39,7 +38,7 @@ class Graph : public GraphView {
   GCXX_FH static auto CreateFromRaw(deviceGraph_t graph) -> Graph;
 
   GCXX_FH auto Instantiate() const -> GraphExec;
-  
+
   GCXX_FH auto Clone() const -> Graph;
 };
 

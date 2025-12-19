@@ -54,8 +54,8 @@ GCXX_FH auto GraphExec::Release() GCXX_NOEXCEPT->GraphExecView {
 }
 
 GCXX_FH auto GraphExec::Update(const GraphView& graph) -> void {
-  // TODO hip needs the 4th arg and the last arg has diffrent datatypenames in
-  // cuda nd hip
+  // TODO hip needs the 4th arg and the last arg has different datatype names in
+  // cuda and hip
   // GCXX_RUNTIME_BACKEND(GraphExecUpdateResultInfo) updateResult;
   GCXX_SAFE_RUNTIME_CALL(GraphExecUpdate, "Failed to update graph exec", exec_,
                          graph.getRawGraph(),

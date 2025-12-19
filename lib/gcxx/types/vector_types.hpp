@@ -15,9 +15,8 @@ inline constexpr bool is_always_false_v = false;
 
 template <typename VT, int N, int ALIGN = 0>
 struct vec {
-  GCXX_STATIC_EXPECT(
-    is_always_false_v<VT>,
-    "vec: unsupported type and/or dimension and/or alaignment");
+  GCXX_STATIC_EXPECT(is_always_false_v<VT>,
+                     "vec: unsupported type and/or dimension and/or alignment");
 };
 
 #define DEFINE_VEC(VTYPE, N, NAME) \

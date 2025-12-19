@@ -11,13 +11,13 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetondestrcut)
-    : deviceId_(devId), resetOnDestrcut_(resetondestrcut) {
+GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
+    : deviceId_(devId), resetOnDestruct_(resetOnDestruct) {
   makeCurrent();
 }
 
 GCXX_FH DeviceHandle::~DeviceHandle() {
-  if (resetOnDestrcut_) {
+  if (resetOnDestruct_) {
     details_::EnsureCurrentDevice hand(deviceId_);
     GCXX_SAFE_RUNTIME_CALL(DeviceReset, "Failed to reset ");
   }
@@ -36,9 +36,9 @@ GCXX_FH auto DeviceHandle::getAttribute(
   const flags::deviceAttribute& attr) const -> int {
   details_::EnsureCurrentDevice dev(deviceId_);
   int val{};
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute,
-                         "Failed to query device attaribute", &val,
-                         static_cast<ATTRIBUTE_BACKEND_TYPE>(attr), deviceId_);
+  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute, "Failed to query device attribute",
+                         &val, static_cast<ATTRIBUTE_BACKEND_TYPE>(attr),
+                         deviceId_);
   return val;
 }
 

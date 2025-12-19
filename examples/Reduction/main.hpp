@@ -74,7 +74,7 @@ GCXX_FD VT thread_partial_sum(const gcxx::span<VT> a) {
 
 // need to improve since huge thread divergence and should use the warp shuffles
 // to utilize the registers in place of shared memory since they would be even
-// quicker acesss
+// quicker access
 template <typename VT>
 GCXX_FD void in_block_reduction(VT* smem, size_t N) {
   const auto tid = threadIdx.x;
@@ -86,7 +86,7 @@ GCXX_FD void in_block_reduction(VT* smem, size_t N) {
   }
 }
 
-// okay for now but not pssible in terms of old cuda with no atomic support for
+// okay for now but not possible in terms of old cuda with no atomic support for
 // doubles
 template <typename VT>
 GCXX_FDC void inter_block_reduction(VT* smem, VT* res) {

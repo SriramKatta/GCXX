@@ -145,8 +145,10 @@ void CUDART_CB myHostNodeCallback(void* data) {
   *result = 0.0;  // reset the result
 }
 
-// void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
-//                       double* result_d, size_t inputSize, size_t numOfBlocks) {
+// void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double*
+// outputVec_d,
+//                       double* result_d, size_t inputSize, size_t numOfBlocks)
+//                       {
 //   cudaStream_t streamForGraph;
 //   cudaGraph_t graph;
 //   std::vector<cudaGraphNode_t> nodeDependencies;
@@ -173,9 +175,8 @@ void CUDART_CB myHostNodeCallback(void* data) {
 //   memsetParams.dst         = (void*)outputVec_d;
 //   memsetParams.value       = 0;
 //   memsetParams.pitch       = 0;
-//   memsetParams.elementSize = sizeof(float);  // elementSize can be max 4 bytes
-//   memsetParams.width       = numOfBlocks * 2;
-//   memsetParams.height      = 1;
+//   memsetParams.elementSize = sizeof(float);  // elementSize can be max 4
+//   bytes memsetParams.width       = numOfBlocks * 2; memsetParams.height = 1;
 
 //   checkCudaErrors(cudaGraphCreate(&graph, 0));
 //   checkCudaErrors(
@@ -219,8 +220,8 @@ void CUDART_CB myHostNodeCallback(void* data) {
 //   kernelNodeParams.gridDim        = dim3(1, 1, 1);
 //   kernelNodeParams.blockDim       = dim3(THREADS_PER_BLOCK, 1, 1);
 //   kernelNodeParams.sharedMemBytes = 0;
-//   void* kernelArgs2[3] = {(void*)&outputVec_d, (void*)&result_d, &numOfBlocks};
-//   kernelNodeParams.kernelParams = kernelArgs2;
+//   void* kernelArgs2[3] = {(void*)&outputVec_d, (void*)&result_d,
+//   &numOfBlocks}; kernelNodeParams.kernelParams = kernelArgs2;
 //   kernelNodeParams.extra        = NULL;
 
 //   checkCudaErrors(
@@ -233,13 +234,12 @@ void CUDART_CB myHostNodeCallback(void* data) {
 
 //   memcpyParams.srcArray = NULL;
 //   memcpyParams.srcPos   = make_cudaPos(0, 0, 0);
-//   memcpyParams.srcPtr   = make_cudaPitchedPtr(result_d, sizeof(double), 1, 1);
-//   memcpyParams.dstArray = NULL;
-//   memcpyParams.dstPos   = make_cudaPos(0, 0, 0);
-//   memcpyParams.dstPtr   = make_cudaPitchedPtr(&result_h, sizeof(double), 1, 1);
-//   memcpyParams.extent   = make_cudaExtent(sizeof(double), 1, 1);
-//   memcpyParams.kind     = cudaMemcpyDeviceToHost;
-//   checkCudaErrors(
+//   memcpyParams.srcPtr   = make_cudaPitchedPtr(result_d, sizeof(double), 1,
+//   1); memcpyParams.dstArray = NULL; memcpyParams.dstPos   = make_cudaPos(0,
+//   0, 0); memcpyParams.dstPtr   = make_cudaPitchedPtr(&result_h,
+//   sizeof(double), 1, 1); memcpyParams.extent   =
+//   make_cudaExtent(sizeof(double), 1, 1); memcpyParams.kind     =
+//   cudaMemcpyDeviceToHost; checkCudaErrors(
 //     cudaGraphAddMemcpyNode(&memcpyNode, graph, nodeDependencies.data(),
 //                            nodeDependencies.size(), &memcpyParams));
 //   nodeDependencies.clear();
@@ -255,7 +255,8 @@ void CUDART_CB myHostNodeCallback(void* data) {
 
 //   checkCudaErrors(cudaGraphAddHostNode(&hostNode, graph,
 //                                        nodeDependencies.data(),
-//                                        nodeDependencies.size(), &hostParams));
+//                                        nodeDependencies.size(),
+//                                        &hostParams));
 
 //   cudaGraphNode_t* nodes = NULL;
 //   size_t numNodes        = 0;
