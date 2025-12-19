@@ -42,7 +42,7 @@ GCXX_FH auto GraphView::GetNumEdges() const -> size_t {
   return numEdges;
 }
 
-GCXX_FH auto GraphView::Clone() const -> deviceGraph_t {
+GCXX_FH auto GraphView::Clone() const -> GraphView {
   deviceGraph_t clonedGraph;
   GCXX_SAFE_RUNTIME_CALL(GraphClone, "Failed to clone graph", &clonedGraph,
                          graph_);

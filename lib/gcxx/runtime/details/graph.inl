@@ -33,7 +33,7 @@ GCXX_FH Graph::~Graph() GCXX_NOEXCEPT {
 GCXX_FH Graph::Graph(Graph&& other) GCXX_NOEXCEPT
     : GraphView(std::exchange(other.graph_, details_::INVALID_GRAPH)) {}
 
-GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT->Graph& {
+GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT -> Graph& {
   if (this != &other) {
     destroy();
     graph_ = std::exchange(other.graph_, details_::INVALID_GRAPH);
@@ -41,7 +41,7 @@ GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT->Graph& {
   return *this;
 }
 
-GCXX_FH auto Graph::Release() GCXX_NOEXCEPT->GraphView {
+GCXX_FH auto Graph::Release() GCXX_NOEXCEPT -> GraphView {
   auto oldGraph = graph_;
   graph_        = details_::INVALID_GRAPH;
   return GraphView{oldGraph};
@@ -53,6 +53,10 @@ GCXX_FH auto Graph::CreateFromRaw(deviceGraph_t graph) -> Graph {
 
 GCXX_FH auto Graph::Instantiate() const -> GraphExec {
   return GraphExec{*this};
+}
+
+GCXX_FH auto Graph::Clone() const -> Graph {
+  return Graph::CreateFromRaw(GraphView::Clone().getRawGraph());
 }
 
 GCXX_NAMESPACE_MAIN_END

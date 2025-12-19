@@ -31,7 +31,7 @@ class GraphView {
     -> void;
   GCXX_FH auto GetNumNodes() const -> size_t;
   GCXX_FH auto GetNumEdges() const -> size_t;
-  GCXX_FH auto Clone() const -> deviceGraph_t;
+  GCXX_FH auto Clone() const -> GraphView;
 };
 
 GCXX_NAMESPACE_MAIN_END
