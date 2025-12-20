@@ -25,10 +25,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cooperative_groups.h>
 #include <stdio.h>
-#include <gcxx/api.hpp>
 #include <vector>
+
+
+#include <gcxx/api.hpp>
+#include <gcxx/cooperative_groups.hpp>
+
 
 namespace cg = cooperative_groups;
 
@@ -335,10 +338,10 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   //                                 cudaMemcpyDefault, stream1));
   gcxx::memory::copy(&result_h, result_d, 1, stream1);
 
-  callBackData_t hostFnData = {0};
-  hostFnData.data           = &result_h;
-  hostFnData.fn_name        = "cudaGraphsUsingStreamCapture";
-  cudaHostFn_t fn           = myHostNodeCallback;
+  callBackData_t hostFnData         = {0};
+  hostFnData.data                   = &result_h;
+  hostFnData.fn_name                = "cudaGraphsUsingStreamCapture";
+  GCXX_RUNTIME_BACKEND(HostFn_t) fn = myHostNodeCallback;
   GCXX_SAFE_RUNTIME_CALL(LaunchHostFunc, "Failed to launch hostfunc", stream1,
                          fn, &hostFnData);
 
@@ -383,23 +386,29 @@ int main(int argc, char** argv) {
   size_t maxBlocks = 512;
 
   // This will pick the best possible CUDA capable device
-  int devID = 0;  // findCudaDevice(argc, (const char**)argv);
+  // int devID = 0;  // findCudaDevice(argc, (const char**)argv);
 
   printf("%zu elements\n", size);
   printf("threads per block  = %d\n", THREADS_PER_BLOCK);
   printf("Graph Launch iterations = %d\n", GRAPH_LAUNCH_ITERATIONS);
 
-  float *inputVec_d = NULL, *inputVec_h = NULL;
-  double *outputVec_d = NULL, *result_d;
+  // GCXX_SAFE_RUNTIME_CALL(MallocHost, "Failed to allocate Host memory",
+  // (void**)&inputVec_h, sizeof(float) * size);
+  float* inputVec_h = (float*)gcxx::details_::host_malloc(size * sizeof(float));
 
-  GCXX_SAFE_RUNTIME_CALL(MallocHost, "Failed to allocate Host memory",
-                         &inputVec_h, sizeof(float) * size);
-  GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
-                         &inputVec_d, sizeof(float) * size);
-  GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
-                         &outputVec_d, sizeof(double) * maxBlocks);
-  GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory", &result_d,
-                         sizeof(double));
+  // GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
+  // &inputVec_d, sizeof(float) * size);
+  float* inputVec_d =
+    (float*)gcxx::details_::device_malloc(size * sizeof(float));
+
+  // GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
+  // &outputVec_d, sizeof(double) * maxBlocks);
+  double* outputVec_d =
+    (double*)gcxx::details_::device_malloc(sizeof(double) * maxBlocks);
+
+  // GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
+  // &result_d, sizeof(double));
+  double* result_d = (double*)gcxx::details_::device_malloc(sizeof(double));
 
   init_input(inputVec_h, size);
 
@@ -408,9 +417,11 @@ int main(int argc, char** argv) {
   cudaGraphsUsingStreamCapture(inputVec_h, inputVec_d, outputVec_d, result_d,
                                size, maxBlocks);
 
-  GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Device data", inputVec_d);
-  GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Device data", outputVec_d);
-  GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Device data", result_d);
-  GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Host data", inputVec_h);
+
+  gcxx::details_::device_free(inputVec_d);
+  gcxx::details_::device_free(outputVec_d);
+  gcxx::details_::device_free(result_d);
+  gcxx::details_::host_free(inputVec_h);
+
   return EXIT_SUCCESS;
 }
