@@ -19,7 +19,7 @@ endif()
 set(GCXX_TOPLEVEL_PROJECT OFF)
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_LIST_DIR)
   set(GCXX_TOPLEVEL_PROJECT ON)
-  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  include(cmake/clangd_compileinfo.cmake)
 endif()
 
 option(GCXX_CUDA_MODE "to compile for CUDA programming language" OFF)
