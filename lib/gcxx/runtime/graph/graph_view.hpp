@@ -66,7 +66,8 @@ class GraphView {
     flags::graphConditionalHandle flag = flags::graphConditionalHandle::None)
     -> deviceGraphConditionalHandle_t;
 
-  GCXX_FD static auto SetConditional(deviceGraphConditionalHandle_t, unsigned int) -> void;
+  GCXX_FD static auto SetConditional(deviceGraphConditionalHandle_t,
+                                     unsigned int) -> void;
 
   // ════════════════════════════════════════════════════════════════════════
   // Graph Node Addition Methods
