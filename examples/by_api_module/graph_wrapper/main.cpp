@@ -196,8 +196,7 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   kernelNodeParams.kernelParams   = (void**)kernelArgs;
   kernelNodeParams.extra          = NULL;
 
-  kernelNode = graph.AddKernelNode(nodeDependencies.data(),
-                                   nodeDependencies.size(), &kernelNodeParams);
+  kernelNode = graph.AddKernelNode(nodeDependencies, &kernelNodeParams);
 
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
@@ -221,8 +220,7 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   kernelNodeParams.kernelParams = kernelArgs2;
   kernelNodeParams.extra        = NULL;
 
-  kernelNode = graph.AddKernelNode(nodeDependencies.data(),
-                                   nodeDependencies.size(), &kernelNodeParams);
+  kernelNode = graph.AddKernelNode(nodeDependencies, &kernelNodeParams);
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
 
@@ -235,10 +233,9 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   memcpyParams.dstPos   = make_cudaPos(0, 0, 0);
   memcpyParams.dstPtr   = make_cudaPitchedPtr(&result_h, sizeof(double), 1, 1);
   memcpyParams.extent   = make_cudaExtent(sizeof(double), 1, 1);
-  memcpyParams.kind     = cudaMemcpyDeviceToHost;
+  memcpyParams.kind     = cudaMemcpyDefault;
 
-  memcpyNode = graph.AddMemcpyNode(nodeDependencies.data(),
-                                   nodeDependencies.size(), &memcpyParams);
+  memcpyNode = graph.AddMemcpyNode(nodeDependencies, &memcpyParams);
   nodeDependencies.clear();
   nodeDependencies.push_back(memcpyNode);
 
@@ -250,8 +247,7 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   hostParams.userData = &hostFnData;
 
 
-  auto hostNode = graph.AddHostNode(nodeDependencies.data(),
-                                    nodeDependencies.size(), &hostParams);
+  auto hostNode = graph.AddHostNode(nodeDependencies, &hostParams);
 
   size_t numNodes = graph.GetNumNodes();
   printf("\nNum of nodes in the graph created manually = %zu\n", numNodes);
@@ -270,6 +266,9 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
     clonedGraphExec.Launch(streamForGraph);
   }
   streamForGraph.Synchronize();
+
+  // graph.SaveDotfile("./test_manual.dot",
+  //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
 void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
@@ -278,8 +277,9 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::Stream stream1, stream2, stream3, stream4, streamForGraph;
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
+  gcxx::Graph graph;
 
-  stream1.BeginCapture(gcxx::flags::streamCaptureMode::global);
+  stream1.BeginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::global);
 
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
@@ -311,8 +311,7 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
 
   gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
 
-
-  gcxx::Graph graph = stream1.EndCapture();
+  stream1.EndCaptureToGraph(graph);
 
 
   size_t numNodes = graph.GetNumNodes();
@@ -335,7 +334,8 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   }
 
   streamForGraph.Synchronize();
-  // graph.SaveDotfile("./test.dot", gcxx::flags::graphDebugDot::EventNodeParams);
+  // graph.SaveDotfile("./test_stream_capture.dot",
+  //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
 int main(int argc, char** argv) {
