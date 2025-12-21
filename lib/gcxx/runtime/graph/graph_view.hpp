@@ -37,11 +37,11 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
+using deviceGraphNode_t = details_::deviceGraphNode_t;
 
 class GraphView {
  protected:
   using deviceGraph_t     = details_::deviceGraph_t;
-  using deviceGraphNode_t = details_::deviceGraphNode_t;
   using deviceEvent_t     = details_::deviceEvent_t;
   using deviceMemcpyKind  = details_::deviceMemcpyKind;
 
