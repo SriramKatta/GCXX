@@ -279,7 +279,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
 
-  stream1.BeginCapture(gcxx::flags::streamCaptureMode::global);
+  stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
 
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
@@ -347,7 +347,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   double result_h = 0.0;
   gcxx::Graph graph;
 
-  stream1.BeginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::global);
+  stream1.BeginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
 
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
@@ -406,6 +406,64 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
+__global__ void loopCondtionKernel(cudaGraphConditionalHandle handle,
+                                   char* dPtr) {
+  // set the condition value to 0 once dPtr is 0
+  if (*dPtr == 0) {
+    cudaGraphSetConditional(handle, 0);
+  }
+}
+
+__global__ void decrementKernel(char* dPtr) {
+  printf("current value is %d\n", (*dPtr)--);
+}
+
+void loopgraph() {
+  gcxx::Stream streamForGraph;
+
+  // Allocate a byte of device memory to use as input
+  auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  char* dPtr     = dptr_raii.get();
+
+  // Create the graph
+  // cudaGraphCreate(&graph, 0);
+  gcxx::Graph graph;
+
+  // Create the conditional handle with a default value of 1
+  auto handle = graph.createConditionalHandle(
+    1, gcxx::flags::graphConditionalHandle::Default);
+  // cudaGraphConditionalHandleCreate(&handle, graph, 1,
+  //                                  cudaGraphCondAssignDefault);
+
+  // Create and add the WHILE conditional node
+  cudaGraphNodeParams cParams = {cudaGraphNodeTypeConditional};
+  cParams.conditional.handle  = handle;
+  cParams.conditional.type    = cudaGraphCondTypeWhile;
+  cParams.conditional.size    = 1;
+  // cudaGraphAddNode(&node, graph, NULL, 0, &cParams);
+  graph.AddNode(NULL, 0, &cParams);
+
+  // Get the body graph of the conditional node
+  gcxx::GraphView bodyGraph = cParams.conditional.phGraph_out[0];
+
+  streamForGraph.BeginCaptureToGraph(bodyGraph,
+                                     gcxx::flags::streamCaptureMode::Global);
+  gcxx::launch::Kernel(streamForGraph, {1, 1, 1}, {1, 1, 1}, 0,
+                       loopCondtionKernel, handle, dPtr);
+  gcxx::launch::Kernel(streamForGraph, {1, 1, 1}, {1, 1, 1}, 0, decrementKernel,
+                       dPtr);
+  streamForGraph.EndCaptureToGraph(bodyGraph);
+
+  // graph.SaveDotfile("./test.dot", gcxx::flags::graphDebugDot::Verbose);
+
+  // Initialize device memory, instantiate, and launch the graph
+  char val = 10;
+  gcxx::memory::copy(dPtr, &val, 1);
+  auto graphExec = graph.Instantiate();
+  graphExec.Launch(streamForGraph);
+  streamForGraph.Synchronize();
+}
+
 int main(int argc, char** argv) {
   size_t size      = 1 << 24;  // number of elements to reduce
   size_t maxBlocks = 512;
@@ -438,6 +496,8 @@ int main(int argc, char** argv) {
 
   deviceGraphsUsingStreamCaptureToGraph(inputVec_h, inputVec_d, outputVec_d,
                                         result_d, size, maxBlocks);
+
+  loopgraph();
 
   return EXIT_SUCCESS;
 }
