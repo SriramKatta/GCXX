@@ -18,13 +18,8 @@ class LaunchConfig {
   deviceLaunchConfig_t config = {0};
 
  public:
-  class Builder {
-   private:
-    deviceLaunchConfig_t config = {0};
+};
 
-   public:
-  };
-
-  GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END
 
 #endif

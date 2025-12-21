@@ -27,6 +27,7 @@
 #include <gcxx/runtime/event.hpp>
 #include <gcxx/runtime/stream.hpp>
 #include <gcxx/runtime/graph.hpp>
+#include <gcxx/runtime/launch.hpp>
 
 
 // section for memory API
