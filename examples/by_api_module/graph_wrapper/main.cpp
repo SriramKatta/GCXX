@@ -319,58 +319,29 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
 
-
-  GCXX_RUNTIME_BACKEND(LaunchConfig_t) configReduce = {0};
-  configReduce.gridDim                              = numOfBlocks;
-  configReduce.blockDim                             = THREADS_PER_BLOCK;
-  configReduce.stream                               = stream1;
-
-  GCXX_RUNTIME_BACKEND(LaunchConfig_t) configReduceFinal = {0};
-  configReduceFinal.gridDim                              = 1;
-  configReduceFinal.blockDim                             = THREADS_PER_BLOCK;
-  configReduceFinal.stream                               = stream1;
-
   stream1.BeginCapture(gcxx::flags::streamCaptureMode::global);
 
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
-
-  // checkCudaErrors(cudaMemcpyAsync(inputVec_d, inputVec_h,
-  //                                 sizeof(float) * inputSize,
-  //                                 cudaMemcpyDefault, stream1));
   gcxx::memory::copy(inputVec_d, inputVec_h, inputSize, stream1);
-
-  GCXX_SAFE_RUNTIME_CALL(MemsetAsync, "Failed to memset", outputVec_d, 0,
-                         sizeof(double) * numOfBlocks, stream2);
+  gcxx::memory::memset(outputVec_d, 0, numOfBlocks, stream2);
 
   memsetEvent1.RecordInStream(stream2);
 
-  GCXX_SAFE_RUNTIME_CALL(MemsetAsync, "Failed to memset", result_d, 0,
-                         sizeof(double), stream3);
+  gcxx::memory::memset(result_d, 0, 1, stream3);
 
-  // checkCudaErrors(cudaEventRecord(memsetEvent2, stream3));
   memsetEvent2.RecordInStream(stream3);
 
-  // checkCudaErrors(cudaStreamWaitEvent(stream1, memsetEvent1, 0));
   stream1.WaitOnEvent(memsetEvent1);
 
-  GCXX_SAFE_RUNTIME_CALL(LaunchKernelEx, "Failed to launch kernel",
-                         &configReduce, reduce, inputVec_d, outputVec_d,
-                         inputSize, numOfBlocks);
+  gcxx::launch::Kernel(stream1, numOfBlocks, THREADS_PER_BLOCK, 0, reduce,
+                       inputVec_d, outputVec_d, inputSize, numOfBlocks);
 
-  // reduce<<<numOfBlocks, THREADS_PER_BLOCK, 0, stream1>>>(
-  //   inputVec_d, outputVec_d, inputSize, numOfBlocks);
-
-  // checkCudaErrors(cudaStreamWaitEvent(stream1, memsetEvent2, 0));
   stream1.WaitOnEvent(memsetEvent2);
 
-
-  GCXX_SAFE_RUNTIME_CALL(LaunchKernelEx, "Failed to launch kernel",
-                         &configReduceFinal, reduceFinal, outputVec_d, result_d,
-                         numOfBlocks);
-  // checkCudaErrors(cudaMemcpyAsync(&result_h, result_d, sizeof(double),
-  //                                 cudaMemcpyDefault, stream1));
+  gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
+                       outputVec_d, result_d, numOfBlocks);
 
   gcxx::memory::copy(&result_h, result_d, 1, stream1);
 
@@ -381,7 +352,6 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   GCXX_SAFE_RUNTIME_CALL(LaunchHostFunc, "Failed to launch hostfunc", stream1,
                          fn, &hostFnData);
 
-  // checkCudaErrors(cudaStreamEndCapture(stream1, &graph));
   gcxx::Graph graph = stream1.EndCapture();
 
 
@@ -389,32 +359,23 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
          numNodes);
 
-  //  checkCudaErrors(cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0));
   auto graphExec = graph.Instantiate();
 
-
-  // cudaGraph_t clonedGraph;
-  // cudaGraphExec_t clonedGraphExec;
-  // checkCudaErrors(cudaGraphClone(&clonedGraph, graph));
-  auto clonedGraph = graph.Clone();
-  // checkCudaErrors(
-  //   cudaGraphInstantiate(&clonedGraphExec, clonedGraph, NULL, NULL, 0));
+  auto clonedGraph     = graph.Clone();
   auto clonedGraphExec = clonedGraph.Instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
     graphExec.Launch(streamForGraph);
   }
-
-  // checkCudaErrors(cudaStreamSynchronize(streamForGraph));
   streamForGraph.Synchronize();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    // checkCudaErrors(cudaGraphLaunch(clonedGraphExec, streamForGraph));
     clonedGraphExec.Launch(streamForGraph);
   }
 
   streamForGraph.Synchronize();
+  graph.SaveDotfile("./test.dot", gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
 int main(int argc, char** argv) {
