@@ -25,12 +25,16 @@ namespace memory {
 
   template <typename VT>
   auto make_device_unique_ptr(std::size_t numElem) -> device_ptr<VT> {
-    return device_ptr<VT>{details_::device_malloc(numElem * sizeof(VT))};
+    return device_ptr<VT>{
+      static_cast<VT*>(details_::device_malloc(numElem * sizeof(VT))),
+      details_::device_free};
   }
 
   template <typename VT>
-  auto make_device_unique_ptr(std::size_t numElem) -> host_pinned_ptr<VT> {
-    return host_pinned_ptr<VT>{details_::host_malloc(numElem * sizeof(VT))};
+  auto make_host_pinned_unique_ptr(std::size_t numElem) -> host_pinned_ptr<VT> {
+    return host_pinned_ptr<VT>{
+      static_cast<VT*>(details_::host_malloc(numElem * sizeof(VT))),
+      details_::host_free};
   }
 
 

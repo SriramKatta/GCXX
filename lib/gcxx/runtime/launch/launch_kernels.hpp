@@ -18,8 +18,7 @@ namespace launch {
   GCXX_FH void CooperativeKernel(LaunchConfig&, void (*)(ExpTypes...),
                                  ActTypes&&...);
 
-  template <typename... HostFuncArgs>
-  GCXX_FH void HostFunc(const StreamView, gcxxHostFn_t, HostFuncArgs...);
+  GCXX_FH void HostFunc(const StreamView, gcxxHostFn_t, void*);
 
   // TODO : add sfinae to check if the kernel is __global__
   template <typename... ExpTypes, typename... ActTypes>

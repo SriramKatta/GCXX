@@ -24,14 +24,10 @@ namespace launch {
     //                        config.)
   }
 
-  template <typename... HostFuncArgs>
   GCXX_FH void HostFunc(const StreamView sview, gcxxHostFn_t fn,
-                        HostFuncArgs... userData) {
-    // TODO : no the thing i wanted to do
-    //                             void* kernelArgs[] = {(void*)&userData...};
-    // GCXX_SAFE_RUNTIME_CALL(LaunchHostFunc, "Failed to launch hostfunc",
-    // stream1,
-    //                        fn, &hostFnData);
+                        void* userData) {
+    GCXX_SAFE_RUNTIME_CALL(LaunchHostFunc, "Failed to launch hostfunc",
+                           sview.getRawStream(), fn, userData);
   }
 
   // TODO : add sfinae to check if the kernel is __global__
