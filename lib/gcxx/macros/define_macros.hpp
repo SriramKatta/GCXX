@@ -57,6 +57,11 @@
 #define GCXX_CONST_NOEXCEPT const noexcept
 #endif
 
+#if GCXX_CUDA_MODE
+#define GCXXRT_CB CUDART_CB
+#else
+#define GCXXRT_CB
+#endif
 
 #ifndef GCXX_NAMESPACE_MAIN_BEGIN
 #define GCXX_NAMESPACE_MAIN_BEGIN \
