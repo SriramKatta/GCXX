@@ -7,12 +7,12 @@
 
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
 
-enum class graphCreate : flag_t {
+enum class graphCreate : details_::flag_t {
   none = 0  // as per cuda decumentation they may make new flags in future so
             // for now just set this
 };
 
-enum class graphDebugDot : flag_t {
+enum class graphDebugDot : details_::flag_t {
   Verbose          = GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsVerbose),
   KernelNodeParams = GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsKernelNodeParams),
   MemcpyNodeParams = GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsMemcpyNodeParams),
@@ -34,8 +34,8 @@ enum class graphDebugDot : flag_t {
 
 inline auto operator|(const graphDebugDot& lhs, const graphDebugDot& rhs)
   -> graphDebugDot {
-  return static_cast<graphDebugDot>(static_cast<flag_t>(lhs) |
-                                    static_cast<flag_t>(rhs));
+  return static_cast<graphDebugDot>(static_cast<details_::flag_t>(lhs) |
+                                    static_cast<details_::flag_t>(rhs));
 }
 
 GCXX_NAMESPACE_MAIN_FLAGS_END

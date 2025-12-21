@@ -17,7 +17,7 @@ GCXX_FH auto Graph::Create(const flags::graphCreate createFlag) -> Graph {
 GCXX_FH Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT
     : GraphView(details_::INVALID_GRAPH) {
   GCXX_SAFE_RUNTIME_CALL(GraphCreate, "Failed to create the graph", &graph_,
-                         static_cast<flag_t>(createFlag));
+                         static_cast<details_::flag_t>(createFlag));
 }
 
 GCXX_FH auto Graph::destroy() -> void {

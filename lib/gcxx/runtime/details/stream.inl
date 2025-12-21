@@ -14,8 +14,8 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
     return;
   }
   GCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority, "Failed to Create Stream",
-                         &stream_, static_cast<flag_t>(createFlag),
-                         -static_cast<flag_t>(priorityFlag));
+                         &stream_, static_cast<details_::flag_t>(createFlag),
+                         -static_cast<details_::flag_t>(priorityFlag));
 }
 
 GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT->Stream& {

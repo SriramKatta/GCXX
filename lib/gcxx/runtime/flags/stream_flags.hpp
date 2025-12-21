@@ -27,7 +27,7 @@ GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
  * These flags are useful when tuning execution overlap and synchronization
  * behavior for kernels, memory copies, and host-device interactions.
  */
-enum class streamType : flag_t {
+enum class streamType : details_::flag_t {
   /**
    * @brief Stream that synchronizes with the NULL stream.
    *
@@ -54,7 +54,7 @@ enum class streamType : flag_t {
    * typically synchronizes with most other streams unless `noSyncWithNull`
    * semantics are used.
    */
-  nullStream = std::numeric_limits<flag_t>::max()
+  nullStream = std::numeric_limits<details_::flag_t>::max()
 };
 
 /**
@@ -71,7 +71,7 @@ enum class streamType : flag_t {
  * - The values defined here are relative hints; the runtime maps them to the
  *   actual priority range supported by the device.
  */
-enum class streamPriority : flag_t {
+enum class streamPriority : details_::flag_t {
   /// No priority hint; runtime chooses the default scheduling behavior.
   none = 0U,
 
@@ -98,7 +98,7 @@ enum class streamPriority : flag_t {
  * These flags determine how stream capture interacts with other streams
  * and threads during CUDA/HIP graph capture operations.
  */
-enum class streamCaptureMode : flag_t {
+enum class streamCaptureMode : details_::flag_t {
   global = GCXX_RUNTIME_BACKEND(
     StreamCaptureModeGlobal), /**< Capture affects all threads; any unsafe API
                                  call results in an error. */
@@ -110,7 +110,7 @@ enum class streamCaptureMode : flag_t {
                                   correctness. */
 };
 
-enum class streamCaptureStatus : flag_t {
+enum class streamCaptureStatus : details_::flag_t {
   none         = GCXX_RUNTIME_BACKEND(StreamCaptureStatusNone),
   active       = GCXX_RUNTIME_BACKEND(StreamCaptureStatusActive),
   invalidataed = GCXX_RUNTIME_BACKEND(StreamCaptureStatusInvalidated),

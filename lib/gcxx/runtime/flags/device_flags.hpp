@@ -7,7 +7,7 @@
 
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
 
-enum class deviceLimit : flag_t {
+enum class deviceLimit : details_::flag_t {
   StackSize      = GCXX_RUNTIME_BACKEND(LimitStackSize),
   PrintfFifoSize = GCXX_RUNTIME_BACKEND(LimitPrintfFifoSize),
   MallocHeapSize = GCXX_RUNTIME_BACKEND(LimitMallocHeapSize),
@@ -21,7 +21,7 @@ enum class deviceLimit : flag_t {
 #endif
 };
 
-enum class deviceAttribute : flag_t {
+enum class deviceAttribute : details_::flag_t {
   AsyncEngineCount = GCXX_ATTRIBUTE_BACKEND(AsyncEngineCount),
   CanMapHostMemory = GCXX_ATTRIBUTE_BACKEND(CanMapHostMemory),
   CanUseHostPointerForRegisteredMem =

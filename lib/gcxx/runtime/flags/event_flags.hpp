@@ -22,7 +22,7 @@ GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
  * These flags specify how an event should be created, including synchronization
  * behavior, timing capabilities, and inter-process sharing.
  */
-enum class eventCreate : flag_t {
+enum class eventCreate : details_::flag_t {
   none = GCXX_RUNTIME_BACKEND(EventDefault), /**< Default event creation. */
   blockingSync =
     GCXX_RUNTIME_BACKEND(EventBlockingSync), /**< CPU thread blocks on
@@ -44,8 +44,8 @@ enum class eventCreate : flag_t {
  */
 inline auto operator|(const eventCreate& lhs, const eventCreate& rhs)
   -> eventCreate {
-  return static_cast<eventCreate>(static_cast<flag_t>(lhs) |
-                                  static_cast<flag_t>(rhs));
+  return static_cast<eventCreate>(static_cast<details_::flag_t>(lhs) |
+                                  static_cast<details_::flag_t>(rhs));
 }
 
 
@@ -55,7 +55,7 @@ inline auto operator|(const eventCreate& lhs, const eventCreate& rhs)
  *
  * These flags specify how an event should be recorded in a stream.
  */
-enum class eventRecord : flag_t {
+enum class eventRecord : details_::flag_t {
   none = GCXX_RUNTIME_BACKEND(EventRecordDefault),      /**< Default recording
                                                            behavior. */
   external = GCXX_RUNTIME_BACKEND(EventRecordExternal), /**< Record for external
@@ -71,7 +71,7 @@ enum class eventRecord : flag_t {
  * @note HIP does not currently implement these flags despite documentation
  *       claiming support. For HIP, both values default to 0.
  */
-enum class eventWait : flag_t {
+enum class eventWait : details_::flag_t {
 #if defined(GCXX_CUDA_MODE)
   none = GCXX_RUNTIME_BACKEND(EventWaitDefault), /**< Default wait behavior. */
   external =

@@ -18,7 +18,7 @@ GCXX_FH auto Event::Create(const flags::eventCreate createFlag) -> Event {
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : EventView(details_::INVALID_EVENT) {
   GCXX_SAFE_RUNTIME_CALL(EventCreateWithFlags, "Failed to create GPU Event",
-                         &event_, static_cast<flag_t>(createFlag));
+                         &event_, static_cast<details_::flag_t>(createFlag));
 }
 
 GCXX_FH Event::~Event() {

@@ -25,7 +25,7 @@ GCXX_FH auto GraphView::SaveDotfile(std::string_view fname,
   // TODO : Add checks to prevent illegal file name and check folder existance
   GCXX_SAFE_RUNTIME_CALL(GraphDebugDotPrint,
                          "Failed to output the dot file of the graph", graph_,
-                         fname.data(), static_cast<flag_t>(flag));
+                         fname.data(), static_cast<details_::flag_t>(flag));
 }
 
 GCXX_FH auto GraphView::GetNumNodes() const -> size_t {

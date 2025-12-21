@@ -102,9 +102,12 @@
 #endif
 
 GCXX_NAMESPACE_MAIN_BEGIN
-using flag_t   = unsigned int;
 using device_t = int;
 GCXX_NAMESPACE_MAIN_END
+
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+using flag_t = unsigned int;
+GCXX_NAMESPACE_MAIN_DETAILS_END
 
 #if defined(__INTEL_COMPILER)
 #define GCXX_RESTRICT_KEYWORD __restrict
