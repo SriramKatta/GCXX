@@ -159,7 +159,6 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   cudaKernelNodeParams kernelNodeParams = {0};
   cudaMemcpy3DParms memcpyParams        = {0};
   cudaMemsetParams memsetParams         = {0};
-  cudaGraphNodeParams param;
 
   memcpyParams.srcArray = NULL;
   memcpyParams.srcPos   = make_cudaPos(0, 0, 0);
