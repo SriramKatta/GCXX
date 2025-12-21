@@ -80,6 +80,11 @@ GCXX_FH auto GraphView::AddEmptyNode(const deviceGraphNode_t* pDependencies,
   return node;
 }
 
+GCXX_FH auto GraphView::AddEmptyNode(
+  gcxx::span<deviceGraphNode_t> pDependencies) -> deviceGraphNode_t {
+  return AddEmptyNode(pDependencies.data(), pDependencies.size());
+}
+
 GCXX_FH auto GraphView::AddEventRecordNode(
   const deviceGraphNode_t* pDependencies, size_t numDependencies,
   deviceEvent_t event) -> deviceGraphNode_t {
@@ -88,6 +93,12 @@ GCXX_FH auto GraphView::AddEventRecordNode(
                          "Failed to add event record node to graph", &node,
                          graph_, pDependencies, numDependencies, event);
   return node;
+}
+
+GCXX_FH auto GraphView::AddEventRecordNode(
+  gcxx::span<deviceGraphNode_t> pDependencies, deviceEvent_t event)
+  -> deviceGraphNode_t {
+  return AddEventRecordNode(pDependencies.data(), pDependencies.size(), event);
 }
 
 GCXX_FH auto GraphView::AddEventWaitNode(const deviceGraphNode_t* pDependencies,
@@ -101,29 +112,35 @@ GCXX_FH auto GraphView::AddEventWaitNode(const deviceGraphNode_t* pDependencies,
   return node;
 }
 
-GCXX_FH auto GraphView::AddExternalSemaphoresSignalNode(
-  const deviceGraphNode_t* pDependencies, size_t numDependencies,
-  const details_::deviceExternalSemaphoreSignalNodeParams_t* nodeParams)
+GCXX_FH auto GraphView::AddEventWaitNode(
+  gcxx::span<deviceGraphNode_t> pDependencies, deviceEvent_t event)
   -> deviceGraphNode_t {
-  deviceGraphNode_t node;
-  GCXX_SAFE_RUNTIME_CALL(
-    GraphAddExternalSemaphoresSignalNode,
-    "Failed to add external semaphores signal node to graph", &node, graph_,
-    pDependencies, numDependencies, nodeParams);
-  return node;
+  return AddEventWaitNode(pDependencies.data(), pDependencies.size(), event);
 }
 
-GCXX_FH auto GraphView::AddExternalSemaphoresWaitNode(
-  const deviceGraphNode_t* pDependencies, size_t numDependencies,
-  const details_::deviceExternalSemaphoreWaitNodeParams_t* nodeParams)
-  -> deviceGraphNode_t {
-  deviceGraphNode_t node;
-  GCXX_SAFE_RUNTIME_CALL(GraphAddExternalSemaphoresWaitNode,
-                         "Failed to add external semaphores wait node to graph",
-                         &node, graph_, pDependencies, numDependencies,
-                         nodeParams);
-  return node;
-}
+// GCXX_FH auto GraphView::AddExternalSemaphoresSignalNode(
+//   const deviceGraphNode_t* pDependencies, size_t numDependencies,
+//   const details_::deviceExternalSemaphoreSignalNodeParams_t* nodeParams)
+//   -> deviceGraphNode_t {
+//   deviceGraphNode_t node;
+//   GCXX_SAFE_RUNTIME_CALL(
+//     GraphAddExternalSemaphoresSignalNode,
+//     "Failed to add external semaphores signal node to graph", &node, graph_,
+//     pDependencies, numDependencies, nodeParams);
+//   return node;
+// }
+
+// GCXX_FH auto GraphView::AddExternalSemaphoresWaitNode(
+//   const deviceGraphNode_t* pDependencies, size_t numDependencies,
+//   const details_::deviceExternalSemaphoreWaitNodeParams_t* nodeParams)
+//   -> deviceGraphNode_t {
+//   deviceGraphNode_t node;
+//   GCXX_SAFE_RUNTIME_CALL(GraphAddExternalSemaphoresWaitNode,
+//                          "Failed to add external semaphores wait node to
+//                          graph", &node, graph_, pDependencies,
+//                          numDependencies, nodeParams);
+//   return node;
+// }
 
 GCXX_FH auto GraphView::AddHostNode(
   const deviceGraphNode_t* pDependencies, size_t numDependencies,
@@ -133,6 +150,12 @@ GCXX_FH auto GraphView::AddHostNode(
                          &node, graph_, pDependencies, numDependencies,
                          nodeParams);
   return node;
+}
+
+GCXX_FH auto GraphView::AddHostNode(
+  gcxx::span<deviceGraphNode_t> pDependencies,
+  const details_::deviceHostNodeParams_t* nodeParams) -> deviceGraphNode_t {
+  return AddHostNode(pDependencies.data(), pDependencies.size(), nodeParams);
 }
 
 GCXX_FH auto GraphView::AddKernelNode(
@@ -145,6 +168,12 @@ GCXX_FH auto GraphView::AddKernelNode(
   return node;
 }
 
+GCXX_FH auto GraphView::AddKernelNode(
+  gcxx::span<deviceGraphNode_t> pDependencies,
+  const details_::deviceKernelNodeParams_t* nodeParams) -> deviceGraphNode_t {
+  return AddKernelNode(pDependencies.data(), pDependencies.size(), nodeParams);
+}
+
 GCXX_FH auto GraphView::AddMemAllocNode(
   const deviceGraphNode_t* pDependencies, size_t numDependencies,
   details_::deviceMemAllocNodeParams_t* nodeParams) -> deviceGraphNode_t {
@@ -153,6 +182,13 @@ GCXX_FH auto GraphView::AddMemAllocNode(
                          "Failed to add memory allocation node to graph", &node,
                          graph_, pDependencies, numDependencies, nodeParams);
   return node;
+}
+
+GCXX_FH auto GraphView::AddMemAllocNode(
+  gcxx::span<deviceGraphNode_t> pDependencies,
+  details_::deviceMemAllocNodeParams_t* nodeParams) -> deviceGraphNode_t {
+  return AddMemAllocNode(pDependencies.data(), pDependencies.size(),
+                         nodeParams);
 }
 
 GCXX_FH auto GraphView::AddMemFreeNode(const deviceGraphNode_t* pDependencies,
@@ -165,6 +201,12 @@ GCXX_FH auto GraphView::AddMemFreeNode(const deviceGraphNode_t* pDependencies,
   return node;
 }
 
+GCXX_FH auto GraphView::AddMemFreeNode(
+  gcxx::span<deviceGraphNode_t> pDependencies, void* dptr)
+  -> deviceGraphNode_t {
+  return AddMemFreeNode(pDependencies.data(), pDependencies.size(), dptr);
+}
+
 GCXX_FH auto GraphView::AddMemcpyNode(
   const deviceGraphNode_t* pDependencies, size_t numDependencies,
   const details_::deviceMemcpy3DParms_t* copyParams) -> deviceGraphNode_t {
@@ -173,6 +215,12 @@ GCXX_FH auto GraphView::AddMemcpyNode(
                          "Failed to add memcpy node to graph", &node, graph_,
                          pDependencies, numDependencies, copyParams);
   return node;
+}
+
+GCXX_FH auto GraphView::AddMemcpyNode(
+  gcxx::span<deviceGraphNode_t> pDependencies,
+  const details_::deviceMemcpy3DParms_t* copyParams) -> deviceGraphNode_t {
+  return AddMemcpyNode(pDependencies.data(), pDependencies.size(), copyParams);
 }
 
 GCXX_FH auto GraphView::AddMemcpyNode1D(const deviceGraphNode_t* pDependencies,
@@ -187,6 +235,13 @@ GCXX_FH auto GraphView::AddMemcpyNode1D(const deviceGraphNode_t* pDependencies,
   return node;
 }
 
+GCXX_FH auto GraphView::AddMemcpyNode1D(
+  gcxx::span<deviceGraphNode_t> pDependencies, void* dst, const void* src,
+  size_t count, deviceMemcpyKind kind) -> deviceGraphNode_t {
+  return AddMemcpyNode1D(pDependencies.data(), pDependencies.size(), dst, src,
+                         count, kind);
+}
+
 GCXX_FH auto GraphView::AddMemcpyNodeFromSymbol(
   const deviceGraphNode_t* pDependencies, size_t numDependencies, void* dst,
   const void* symbol, size_t count, size_t offset, deviceMemcpyKind kind)
@@ -197,6 +252,13 @@ GCXX_FH auto GraphView::AddMemcpyNodeFromSymbol(
                          &node, graph_, pDependencies, numDependencies, dst,
                          symbol, count, offset, kind);
   return node;
+}
+
+GCXX_FH auto GraphView::AddMemcpyNodeFromSymbol(
+  gcxx::span<deviceGraphNode_t> pDependencies, void* dst, const void* symbol,
+  size_t count, size_t offset, deviceMemcpyKind kind) -> deviceGraphNode_t {
+  return AddMemcpyNodeFromSymbol(pDependencies.data(), pDependencies.size(),
+                                 dst, symbol, count, offset, kind);
 }
 
 GCXX_FH auto GraphView::AddMemcpyNodeToSymbol(
@@ -211,6 +273,14 @@ GCXX_FH auto GraphView::AddMemcpyNodeToSymbol(
   return node;
 }
 
+GCXX_FH auto GraphView::AddMemcpyNodeToSymbol(
+  gcxx::span<deviceGraphNode_t> pDependencies, const void* symbol,
+  const void* src, size_t count, size_t offset, deviceMemcpyKind kind)
+  -> deviceGraphNode_t {
+  return AddMemcpyNodeToSymbol(pDependencies.data(), pDependencies.size(),
+                               symbol, src, count, offset, kind);
+}
+
 GCXX_FH auto GraphView::AddMemsetNode(
   const deviceGraphNode_t* pDependencies, size_t numDependencies,
   const details_::deviceMemsetParams_t* memsetParams) -> deviceGraphNode_t {
@@ -221,6 +291,13 @@ GCXX_FH auto GraphView::AddMemsetNode(
   return node;
 }
 
+GCXX_FH auto GraphView::AddMemsetNode(
+  gcxx::span<deviceGraphNode_t> pDependencies,
+  const details_::deviceMemsetParams_t* memsetParams) -> deviceGraphNode_t {
+  return AddMemsetNode(pDependencies.data(), pDependencies.size(),
+                       memsetParams);
+}
+
 GCXX_FH auto GraphView::AddNode(const deviceGraphNode_t* pDependencies,
                                 size_t numDependencies,
                                 details_::deviceGraphNodeParams_t* nodeParams)
@@ -229,6 +306,12 @@ GCXX_FH auto GraphView::AddNode(const deviceGraphNode_t* pDependencies,
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add node to graph", &node,
                          graph_, pDependencies, numDependencies, nodeParams);
   return node;
+}
+
+GCXX_FH auto GraphView::AddNode(gcxx::span<deviceGraphNode_t> pDependencies,
+                                details_::deviceGraphNodeParams_t* nodeParams)
+  -> deviceGraphNode_t {
+  return AddNode(pDependencies.data(), pDependencies.size(), nodeParams);
 }
 
 GCXX_NAMESPACE_MAIN_END
