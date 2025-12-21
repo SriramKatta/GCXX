@@ -2,9 +2,13 @@ cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
 
 project(
   GCXX
-  VERSION 0.0
+  VERSION 1.0
   LANGUAGES CXX
 )
+
+set(GCXX_CXX_STANDARD 17)
+set(GCXX_MIN_CUDA_VERSION 12.8)
+set(GCXX_MIN_HIP_VERSION 7.1)
 
 # ---- Include guards ----
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
@@ -62,14 +66,20 @@ endif()
 message(STATUS "GPU back-end selected: ${GCXX_GPU_LANG}")
 
 enable_language(${GCXX_GPU_LANG})
-set(CMAKE_${GCXX_GPU_LANG}_STANDARD 17)
+set(CMAKE_${GCXX_GPU_LANG}_STANDARD ${GCXX_CXX_STANDARD})
 set(CMAKE_${GCXX_GPU_LANG}_EXTENSIONS OFF)
 set(CMAKE_${GCXX_GPU_LANG}_STANDARD_REQUIRED ON)
 
 if(GCXX_CUDA_MODE)
   find_package(CUDAToolkit REQUIRED)
+  if(CUDAToolkit_VERSION VERSION_LESS ${GCXX_MIN_CUDA_VERSION})
+    message(FATAL_ERROR "CUDA version ${CUDAToolkit_VERSION} is too old. Minimum required is ${GCXX_MIN_CUDA_VERSION}")
+  endif()
 elseif(GCXX_HIP_MODE)
   find_package(hip REQUIRED)
+  if(hip_VERSION VERSION_LESS ${GCXX_MIN_HIP_VERSION})
+    message(FATAL_ERROR "HIP version ${hip_VERSION} is too old. Minimum required is ${GCXX_MIN_HIP_VERSION}")
+  endif()
 endif()
 
 include(cmake/CPM.cmake)
