@@ -20,6 +20,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 
 GCXX_NAMESPACE_MAIN_BEGIN
 class Event;
+class GraphView;
 class Graph;
 
 class StreamView {
@@ -53,7 +54,17 @@ class StreamView {
 
   GCXX_FH auto BeginCapture(const flags::streamCaptureMode createflag) -> void;
 
+  GCXX_FH auto BeginCaptureToGraph(GraphView& graph_view,
+                                   const flags::streamCaptureMode createflag)
+    -> void;
+
   GCXX_FH auto EndCapture() -> Graph;
+
+  /// @brief End stream capture and update the graph that was passed to
+  /// BeginCaptureToGraph. Use this instead of EndCapture() when using
+  /// BeginCaptureToGraph to avoid ownership issues.
+  /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
+  GCXX_FH auto EndCaptureToGraph(GraphView& graph) -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END

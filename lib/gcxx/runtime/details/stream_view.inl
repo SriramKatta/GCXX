@@ -54,11 +54,33 @@ GCXX_FH auto StreamView::BeginCapture(const flags::streamCaptureMode createflag)
     static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
 }
 
+GCXX_FH auto StreamView::BeginCaptureToGraph(
+  GraphView& graph_view, const flags::streamCaptureMode createflag) -> void {
+  GCXX_SAFE_RUNTIME_CALL(
+    StreamBeginCaptureToGraph, "Failed to begin Stream Capture to graph",
+    this->getRawStream(), graph_view.getRawGraph(), NULL, NULL, 0,
+    static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
+}
+
 GCXX_FH auto StreamView::EndCapture() -> Graph {
   details_::deviceGraph_t pgraph{nullptr};
   GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
                          this->getRawStream(), &pgraph);
   return Graph::CreateFromRaw(pgraph);
+}
+
+GCXX_FH auto StreamView::EndCaptureToGraph(GraphView& graph) -> void {
+  // When using BeginCaptureToGraph, the capture happens into the existing
+  // graph, so the returned handle from EndCapture is the same as
+  // graph.getRawGraph(). We just need to call EndCapture to finalize the
+  // capture.
+  details_::deviceGraph_t pgraph{nullptr};
+  GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
+                         this->getRawStream(), &pgraph);
+  // Assert that the returned graph is indeed the same as the one we passed in
+  assert(pgraph == graph.getRawGraph() &&
+         "EndCapture returned unexpected graph handle");
+  (void)pgraph;  // Silence unused variable warning in release builds
 }
 
 GCXX_NAMESPACE_MAIN_END
