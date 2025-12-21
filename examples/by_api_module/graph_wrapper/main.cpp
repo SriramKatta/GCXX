@@ -137,7 +137,7 @@ void init_input(float* a, size_t size) {
     a[i] = (rand() & 0xFF) / (float)RAND_MAX;
 }
 
-void CUDART_CB myHostNodeCallback(void* data) {
+void GCXXRT_CB myHostNodeCallback(void* data) {
   // Check status of GPU after stream operations are done
   callBackData_t* tmp = (callBackData_t*)(data);
   // checkCudaErrors(tmp->status);
@@ -319,6 +319,17 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
 
+
+  GCXX_RUNTIME_BACKEND(LaunchConfig_t) configReduce = {0};
+  configReduce.gridDim                              = numOfBlocks;
+  configReduce.blockDim                             = THREADS_PER_BLOCK;
+  configReduce.stream                               = stream1;
+
+  GCXX_RUNTIME_BACKEND(LaunchConfig_t) configReduceFinal = {0};
+  configReduceFinal.gridDim                              = 1;
+  configReduceFinal.blockDim                             = THREADS_PER_BLOCK;
+  configReduceFinal.stream                               = stream1;
+
   stream1.BeginCapture(gcxx::flags::streamCaptureMode::global);
 
   forkStreamEvent.RecordInStream(stream1);
@@ -344,16 +355,23 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   // checkCudaErrors(cudaStreamWaitEvent(stream1, memsetEvent1, 0));
   stream1.WaitOnEvent(memsetEvent1);
 
-  reduce<<<numOfBlocks, THREADS_PER_BLOCK, 0, stream1>>>(
-    inputVec_d, outputVec_d, inputSize, numOfBlocks);
+  GCXX_SAFE_RUNTIME_CALL(LaunchKernelEx, "Failed to launch kernel",
+                         &configReduce, reduce, inputVec_d, outputVec_d,
+                         inputSize, numOfBlocks);
+
+  // reduce<<<numOfBlocks, THREADS_PER_BLOCK, 0, stream1>>>(
+  //   inputVec_d, outputVec_d, inputSize, numOfBlocks);
 
   // checkCudaErrors(cudaStreamWaitEvent(stream1, memsetEvent2, 0));
   stream1.WaitOnEvent(memsetEvent2);
 
-  reduceFinal<<<1, THREADS_PER_BLOCK, 0, stream1>>>(outputVec_d, result_d,
-                                                    numOfBlocks);
+
+  GCXX_SAFE_RUNTIME_CALL(LaunchKernelEx, "Failed to launch kernel",
+                         &configReduceFinal, reduceFinal, outputVec_d, result_d,
+                         numOfBlocks);
   // checkCudaErrors(cudaMemcpyAsync(&result_h, result_d, sizeof(double),
   //                                 cudaMemcpyDefault, stream1));
+
   gcxx::memory::copy(&result_h, result_d, 1, stream1);
 
   callBackData_t hostFnData         = {0};
@@ -430,8 +448,8 @@ int main(int argc, char** argv) {
 
   init_input(inputVec_h, size);
 
-  // cudaGraphsManual(inputVec_h, inputVec_d, outputVec_d, result_d, size,
-  //                  maxBlocks);
+  cudaGraphsManual(inputVec_h, inputVec_d, outputVec_d, result_d, size,
+                   maxBlocks);
   cudaGraphsUsingStreamCapture(inputVec_h, inputVec_d, outputVec_d, result_d,
                                size, maxBlocks);
 
