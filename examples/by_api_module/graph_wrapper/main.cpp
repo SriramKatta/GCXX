@@ -148,12 +148,12 @@ void GCXXRT_CB myHostNodeCallback(void* data) {
   *result = 0.0;  // reset the result
 }
 
-void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
+void deviceGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
                       double* result_d, size_t inputSize, size_t numOfBlocks) {
   gcxx::Stream streamForGraph;
   gcxx::Graph graph;
-  std::vector<cudaGraphNode_t> nodeDependencies;
-  cudaGraphNode_t memcpyNode, kernelNode, memsetNode;
+  std::vector<gcxx::deviceGraphNode_t> nodeDependencies;
+  gcxx::deviceGraphNode_t memcpyNode, kernelNode, memsetNode;
   double result_h = 0.0;
 
   cudaKernelNodeParams kernelNodeParams = {0};
@@ -243,7 +243,7 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   hostParams.fn                 = myHostNodeCallback;
   callBackData_t hostFnData;
   hostFnData.data     = &result_h;
-  hostFnData.fn_name  = "cudaGraphsManual";
+  hostFnData.fn_name  = "deviceGraphsManual";
   hostParams.userData = &hostFnData;
 
 
@@ -271,7 +271,73 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
-void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
+void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
+                                  double* outputVec_d, double* result_d,
+                                  size_t inputSize, size_t numOfBlocks) {
+  gcxx::Stream stream1, stream2, stream3, stream4, streamForGraph;
+  gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
+  double result_h = 0.0;
+
+  stream1.BeginCapture(gcxx::flags::streamCaptureMode::global);
+
+  forkStreamEvent.RecordInStream(stream1);
+  stream2.WaitOnEvent(forkStreamEvent);
+  stream3.WaitOnEvent(forkStreamEvent);
+  gcxx::memory::copy(inputVec_d, inputVec_h, inputSize, stream1);
+
+  gcxx::memory::memset(outputVec_d, 0, numOfBlocks, stream2);
+  memsetEvent1.RecordInStream(stream2);
+
+  gcxx::memory::memset(result_d, 0, 1, stream3);
+  memsetEvent2.RecordInStream(stream3);
+
+  stream1.WaitOnEvent(memsetEvent1);
+
+  gcxx::launch::Kernel(stream1, numOfBlocks, THREADS_PER_BLOCK, 0, reduce,
+                       inputVec_d, outputVec_d, inputSize, numOfBlocks);
+
+  stream1.WaitOnEvent(memsetEvent2);
+
+  gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
+                       outputVec_d, result_d, numOfBlocks);
+
+  gcxx::memory::copy(&result_h, result_d, 1, stream1);
+
+
+  callBackData_t hostFnData = {0};
+  hostFnData.data           = &result_h;
+  hostFnData.fn_name        = "deviceGraphsUsingStreamCapture";
+
+  gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
+
+  auto graph = stream1.EndCapture();
+
+
+  size_t numNodes = graph.GetNumNodes();
+  printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
+         numNodes);
+
+  auto graphExec = graph.Instantiate();
+
+  auto clonedGraph     = graph.Clone();
+  auto clonedGraphExec = clonedGraph.Instantiate();
+
+  for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
+    graphExec.Launch(streamForGraph);
+  }
+  streamForGraph.Synchronize();
+
+  printf("Cloned Graph Output.. \n");
+  for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
+    clonedGraphExec.Launch(streamForGraph);
+  }
+
+  streamForGraph.Synchronize();
+  // graph.SaveDotfile("./test_stream_capture.dot",
+  //                   gcxx::flags::graphDebugDot::EventNodeParams);
+}
+
+void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
                                   double* outputVec_d, double* result_d,
                                   size_t inputSize, size_t numOfBlocks) {
   gcxx::Stream stream1, stream2, stream3, stream4, streamForGraph;
@@ -307,7 +373,7 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
 
   callBackData_t hostFnData = {0};
   hostFnData.data           = &result_h;
-  hostFnData.fn_name        = "cudaGraphsUsingStreamCapture";
+  hostFnData.fn_name        = "deviceGraphsUsingStreamCaptureToGraph";
 
   gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
 
@@ -362,9 +428,13 @@ int main(int argc, char** argv) {
 
   init_input(inputVec_h, size);
 
-  cudaGraphsManual(inputVec_h, inputVec_d, outputVec_d, result_d, size,
+  deviceGraphsManual(inputVec_h, inputVec_d, outputVec_d, result_d, size,
                    maxBlocks);
-  cudaGraphsUsingStreamCapture(inputVec_h, inputVec_d, outputVec_d, result_d,
+
+  deviceGraphsUsingStreamCapture(inputVec_h, inputVec_d, outputVec_d, result_d,
+                               size, maxBlocks);
+
+  deviceGraphsUsingStreamCaptureToGraph(inputVec_h, inputVec_d, outputVec_d, result_d,
                                size, maxBlocks);
 
   return EXIT_SUCCESS;
