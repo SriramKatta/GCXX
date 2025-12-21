@@ -47,8 +47,7 @@ namespace memory {
   GCXX_FH auto memset(const VT* dev_ptr, const int value,
                       const std::size_t numElements, const StreamView& stream)
     -> void {
-    details_::memset((void*)dev_ptr, value, numElements * sizeof(VT),
-                     stream);
+    details_::memset((void*)dev_ptr, value, numElements * sizeof(VT), stream);
   }
 
   // ╔════════════════════════════════════════════════════════╗
