@@ -171,8 +171,6 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   memcpyParams.extent = make_cudaExtent(sizeof(float) * inputSize, 1, 1);
   memcpyParams.kind   = cudaMemcpyDefault;
 
-  // checkCudaErrors(
-  //   cudaGraphAddMemcpyNode(&memcpyNode, graph, NULL, 0, &memcpyParams));
   memcpyNode = graph.AddMemcpyNode(NULL, 0, &memcpyParams);
 
 
@@ -183,8 +181,6 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   memsetParams.width       = numOfBlocks * 2;
   memsetParams.height      = 1;
 
-  // checkCudaErrors(
-  // cudaGraphAddMemsetNode(&memsetNode, graph, NULL, 0, &memsetParams));
   memsetNode = graph.AddMemsetNode(NULL, 0, &memsetParams);
 
   nodeDependencies.push_back(memsetNode);
@@ -200,9 +196,6 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   kernelNodeParams.kernelParams   = (void**)kernelArgs;
   kernelNodeParams.extra          = NULL;
 
-  // checkCudaErrors(
-  //   cudaGraphAddKernelNode(&kernelNode, graph, nodeDependencies.data(),
-  //                          nodeDependencies.size(), &kernelNodeParams));
   kernelNode = graph.AddKernelNode(nodeDependencies.data(),
                                    nodeDependencies.size(), &kernelNodeParams);
 
@@ -215,8 +208,7 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   memsetParams.elementSize = sizeof(float);
   memsetParams.width       = 2;
   memsetParams.height      = 1;
-  // checkCudaErrors(
-  //   cudaGraphAddMemsetNode(&memsetNode, graph, NULL, 0, &memsetParams));
+
   memsetNode = graph.AddMemsetNode(NULL, 0, &memsetParams);
   nodeDependencies.push_back(memsetNode);
 
@@ -229,9 +221,6 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   kernelNodeParams.kernelParams = kernelArgs2;
   kernelNodeParams.extra        = NULL;
 
-  // checkCudaErrors(
-  //   cudaGraphAddKernelNode(&kernelNode, graph, nodeDependencies.data(),
-  //                          nodeDependencies.size(), &kernelNodeParams));
   kernelNode = graph.AddKernelNode(nodeDependencies.data(),
                                    nodeDependencies.size(), &kernelNodeParams);
   nodeDependencies.clear();
@@ -247,9 +236,7 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   memcpyParams.dstPtr   = make_cudaPitchedPtr(&result_h, sizeof(double), 1, 1);
   memcpyParams.extent   = make_cudaExtent(sizeof(double), 1, 1);
   memcpyParams.kind     = cudaMemcpyDeviceToHost;
-  // checkCudaErrors(
-  //   cudaGraphAddMemcpyNode(&memcpyNode, graph, nodeDependencies.data(),
-  //                          nodeDependencies.size(), &memcpyParams));
+
   memcpyNode = graph.AddMemcpyNode(nodeDependencies.data(),
                                    nodeDependencies.size(), &memcpyParams);
   nodeDependencies.clear();
@@ -262,54 +249,27 @@ void cudaGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
   hostFnData.fn_name  = "cudaGraphsManual";
   hostParams.userData = &hostFnData;
 
-  // checkCudaErrors(cudaGraphAddHostNode(&hostNode, graph,
-  //                                      nodeDependencies.data(),
-  //                                      nodeDependencies.size(),
-  //                                      &hostParams));
 
   auto hostNode = graph.AddHostNode(nodeDependencies.data(),
                                     nodeDependencies.size(), &hostParams);
 
-  // cudaGraphNode_t* nodes = NULL;
-  // checkCudaErrors(cudaGraphGetNodes(graph, nodes, &numNodes));
   size_t numNodes = graph.GetNumNodes();
   printf("\nNum of nodes in the graph created manually = %zu\n", numNodes);
 
-  // cudaGraphExec_t graphExec;
-  // checkCudaErrors(cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0));
-
-  auto graphExec = graph.Instantiate();
-
-  // cudaGraph_t clonedGraph;
-  // cudaGraphExec_t clonedGraphExec;
-  // checkCudaErrors(cudaGraphClone(&clonedGraph, graph));
-  // checkCudaErrors(
-  //   cudaGraphInstantiate(&clonedGraphExec, clonedGraph, NULL, NULL, 0));
-
+  auto graphExec       = graph.Instantiate();
   auto clonesGraph     = graph.Clone();
   auto clonedGraphExec = graph.Instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    // checkCudaErrors(cudaGraphLaunch(graphExec, streamForGraph));
     graphExec.Launch(streamForGraph);
   }
-
-  // checkCudaErrors(cudaStreamSynchronize(streamForGraph));
   streamForGraph.Synchronize();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    // checkCudaErrors(cudaGraphLaunch(clonedGraphExec, streamForGraph));
     clonedGraphExec.Launch(streamForGraph);
   }
-  // checkCudaErrors(cudaStreamSynchronize(streamForGraph));
   streamForGraph.Synchronize();
-
-  // checkCudaErrors(cudaGraphExecDestroy(graphExec));
-  // checkCudaErrors(cudaGraphExecDestroy(clonedGraphExec));
-  // checkCudaErrors(cudaGraphDestroy(graph));
-  // checkCudaErrors(cudaGraphDestroy(clonedGraph));
-  // checkCudaErrors(cudaStreamDestroy(streamForGraph));
 }
 
 void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
@@ -325,12 +285,11 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
   gcxx::memory::copy(inputVec_d, inputVec_h, inputSize, stream1);
-  gcxx::memory::memset(outputVec_d, 0, numOfBlocks, stream2);
 
+  gcxx::memory::memset(outputVec_d, 0, numOfBlocks, stream2);
   memsetEvent1.RecordInStream(stream2);
 
   gcxx::memory::memset(result_d, 0, 1, stream3);
-
   memsetEvent2.RecordInStream(stream3);
 
   stream1.WaitOnEvent(memsetEvent1);
@@ -345,12 +304,13 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
 
   gcxx::memory::copy(&result_h, result_d, 1, stream1);
 
-  callBackData_t hostFnData         = {0};
-  hostFnData.data                   = &result_h;
-  hostFnData.fn_name                = "cudaGraphsUsingStreamCapture";
-  GCXX_RUNTIME_BACKEND(HostFn_t) fn = myHostNodeCallback;
-  GCXX_SAFE_RUNTIME_CALL(LaunchHostFunc, "Failed to launch hostfunc", stream1,
-                         fn, &hostFnData);
+
+  callBackData_t hostFnData = {0};
+  hostFnData.data           = &result_h;
+  hostFnData.fn_name        = "cudaGraphsUsingStreamCapture";
+
+  gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
+
 
   gcxx::Graph graph = stream1.EndCapture();
 
@@ -389,23 +349,16 @@ int main(int argc, char** argv) {
   printf("threads per block  = %d\n", THREADS_PER_BLOCK);
   printf("Graph Launch iterations = %d\n", GRAPH_LAUNCH_ITERATIONS);
 
-  // GCXX_SAFE_RUNTIME_CALL(MallocHost, "Failed to allocate Host memory",
-  // (void**)&inputVec_h, sizeof(float) * size);
-  float* inputVec_h = (float*)gcxx::details_::host_malloc(size * sizeof(float));
+  auto inVec_h_raii  = gcxx::memory::make_host_pinned_unique_ptr<float>(size);
+  auto inVec_d_raii  = gcxx::memory::make_device_unique_ptr<float>(size);
+  auto outVec_d_raii = gcxx::memory::make_device_unique_ptr<double>(maxBlocks);
+  auto result_d_raii = gcxx::memory::make_device_unique_ptr<double>(1);
 
-  // GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
-  // &inputVec_d, sizeof(float) * size);
-  float* inputVec_d =
-    (float*)gcxx::details_::device_malloc(size * sizeof(float));
 
-  // GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
-  // &outputVec_d, sizeof(double) * maxBlocks);
-  double* outputVec_d =
-    (double*)gcxx::details_::device_malloc(sizeof(double) * maxBlocks);
-
-  // GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate Device memory",
-  // &result_d, sizeof(double));
-  double* result_d = (double*)gcxx::details_::device_malloc(sizeof(double));
+  float* inputVec_h   = inVec_h_raii.get();
+  float* inputVec_d   = inVec_d_raii.get();
+  double* outputVec_d = outVec_d_raii.get();
+  double* result_d    = result_d_raii.get();
 
   init_input(inputVec_h, size);
 
@@ -413,12 +366,6 @@ int main(int argc, char** argv) {
                    maxBlocks);
   cudaGraphsUsingStreamCapture(inputVec_h, inputVec_d, outputVec_d, result_d,
                                size, maxBlocks);
-
-
-  gcxx::details_::device_free(inputVec_d);
-  gcxx::details_::device_free(outputVec_d);
-  gcxx::details_::device_free(result_d);
-  gcxx::details_::host_free(inputVec_h);
 
   return EXIT_SUCCESS;
 }
