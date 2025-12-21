@@ -148,8 +148,9 @@ void GCXXRT_CB myHostNodeCallback(void* data) {
   *result = 0.0;  // reset the result
 }
 
-void deviceGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_d,
-                      double* result_d, size_t inputSize, size_t numOfBlocks) {
+void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
+                        double* outputVec_d, double* result_d, size_t inputSize,
+                        size_t numOfBlocks) {
   gcxx::Stream streamForGraph;
   gcxx::Graph graph;
   std::vector<gcxx::deviceGraphNode_t> nodeDependencies;
@@ -272,8 +273,8 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d, double* outputVec_
 }
 
 void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
-                                  double* outputVec_d, double* result_d,
-                                  size_t inputSize, size_t numOfBlocks) {
+                                    double* outputVec_d, double* result_d,
+                                    size_t inputSize, size_t numOfBlocks) {
   gcxx::Stream stream1, stream2, stream3, stream4, streamForGraph;
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
@@ -338,8 +339,9 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
 }
 
 void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
-                                  double* outputVec_d, double* result_d,
-                                  size_t inputSize, size_t numOfBlocks) {
+                                           double* outputVec_d,
+                                           double* result_d, size_t inputSize,
+                                           size_t numOfBlocks) {
   gcxx::Stream stream1, stream2, stream3, stream4, streamForGraph;
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
@@ -429,13 +431,13 @@ int main(int argc, char** argv) {
   init_input(inputVec_h, size);
 
   deviceGraphsManual(inputVec_h, inputVec_d, outputVec_d, result_d, size,
-                   maxBlocks);
+                     maxBlocks);
 
   deviceGraphsUsingStreamCapture(inputVec_h, inputVec_d, outputVec_d, result_d,
-                               size, maxBlocks);
+                                 size, maxBlocks);
 
-  deviceGraphsUsingStreamCaptureToGraph(inputVec_h, inputVec_d, outputVec_d, result_d,
-                               size, maxBlocks);
+  deviceGraphsUsingStreamCaptureToGraph(inputVec_h, inputVec_d, outputVec_d,
+                                        result_d, size, maxBlocks);
 
   return EXIT_SUCCESS;
 }

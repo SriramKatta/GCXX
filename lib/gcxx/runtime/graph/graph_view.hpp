@@ -41,9 +41,9 @@ using deviceGraphNode_t = details_::deviceGraphNode_t;
 
 class GraphView {
  protected:
-  using deviceGraph_t     = details_::deviceGraph_t;
-  using deviceEvent_t     = details_::deviceEvent_t;
-  using deviceMemcpyKind  = details_::deviceMemcpyKind;
+  using deviceGraph_t    = details_::deviceGraph_t;
+  using deviceEvent_t    = details_::deviceEvent_t;
+  using deviceMemcpyKind = details_::deviceMemcpyKind;
 
   deviceGraph_t graph_{details_::INVALID_GRAPH};
 
