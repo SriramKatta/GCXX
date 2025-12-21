@@ -410,7 +410,7 @@ __global__ void loopCondtionKernel(cudaGraphConditionalHandle handle,
                                    char* dPtr) {
   // set the condition value to 0 once dPtr is 0
   if (*dPtr == 0) {
-    cudaGraphSetConditional(handle, 0);
+    gcxx::Graph::SetConditional(handle, 0);
   }
 }
 
@@ -430,10 +430,12 @@ void loopgraph() {
   gcxx::Graph graph;
 
   // Create the conditional handle with a default value of 1
-  auto handle = graph.createConditionalHandle(
+  auto handle = graph.CreateConditionalHandle(
     1, gcxx::flags::graphConditionalHandle::Default);
   // cudaGraphConditionalHandleCreate(&handle, graph, 1,
   //                                  cudaGraphCondAssignDefault);
+
+  graph.SaveDotfile("./test1.dot", gcxx::flags::graphDebugDot::Verbose);
 
   // Create and add the WHILE conditional node
   cudaGraphNodeParams cParams = {cudaGraphNodeTypeConditional};
@@ -442,6 +444,9 @@ void loopgraph() {
   cParams.conditional.size    = 1;
   // cudaGraphAddNode(&node, graph, NULL, 0, &cParams);
   graph.AddNode(NULL, 0, &cParams);
+
+  graph.SaveDotfile("./test2.dot", gcxx::flags::graphDebugDot::Verbose);
+
 
   // Get the body graph of the conditional node
   gcxx::GraphView bodyGraph = cParams.conditional.phGraph_out[0];
@@ -454,7 +459,7 @@ void loopgraph() {
                        dPtr);
   streamForGraph.EndCaptureToGraph(bodyGraph);
 
-  // graph.SaveDotfile("./test.dot", gcxx::flags::graphDebugDot::Verbose);
+  graph.SaveDotfile("./test3.dot", gcxx::flags::graphDebugDot::Verbose);
 
   // Initialize device memory, instantiate, and launch the graph
   char val = 10;
