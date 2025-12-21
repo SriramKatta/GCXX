@@ -21,13 +21,13 @@ inline constexpr deviceGraph_t INVALID_GRAPH{nullptr};
 inline constexpr deviceGraphNode_t INVALID_GRAPH_NODE{nullptr};
 
 // Type aliases for CUDA graph node parameter structures
-using deviceKernelNodeParams_t    = GCXX_RUNTIME_BACKEND(KernelNodeParams);
-using deviceMemcpy3DParms_t       = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
-using deviceMemsetParams_t        = GCXX_RUNTIME_BACKEND(MemsetParams);
-using deviceHostNodeParams_t      = GCXX_RUNTIME_BACKEND(HostNodeParams);
-using deviceMemAllocNodeParams_t  = GCXX_RUNTIME_BACKEND(MemAllocNodeParams);
-using deviceGraphEdgeData_t       = GCXX_RUNTIME_BACKEND(GraphEdgeData);
-using deviceGraphNodeParams_t     = GCXX_RUNTIME_BACKEND(GraphNodeParams);
+using deviceKernelNodeParams_t   = GCXX_RUNTIME_BACKEND(KernelNodeParams);
+using deviceMemcpy3DParms_t      = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
+using deviceMemsetParams_t       = GCXX_RUNTIME_BACKEND(MemsetParams);
+using deviceHostNodeParams_t     = GCXX_RUNTIME_BACKEND(HostNodeParams);
+using deviceMemAllocNodeParams_t = GCXX_RUNTIME_BACKEND(MemAllocNodeParams);
+using deviceGraphEdgeData_t      = GCXX_RUNTIME_BACKEND(GraphEdgeData);
+using deviceGraphNodeParams_t    = GCXX_RUNTIME_BACKEND(GraphNodeParams);
 using deviceExternalSemaphoreSignalNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreSignalNodeParams);
 using deviceExternalSemaphoreWaitNodeParams_t =
@@ -100,8 +100,8 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddEventRecordNode(const deviceGraphNode_t* pDependencies,
-                                  size_t numDependencies,
-                                  deviceEvent_t event) -> deviceGraphNode_t;
+                                  size_t numDependencies, deviceEvent_t event)
+    -> deviceGraphNode_t;
 
   /**
    * @brief Creates an event wait node and adds it to a graph.
@@ -111,8 +111,8 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddEventWaitNode(const deviceGraphNode_t* pDependencies,
-                                size_t numDependencies,
-                                deviceEvent_t event) -> deviceGraphNode_t;
+                                size_t numDependencies, deviceEvent_t event)
+    -> deviceGraphNode_t;
 
   /**
    * @brief Creates an external semaphore signal node and adds it to a graph.
@@ -122,8 +122,7 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddExternalSemaphoresSignalNode(
-    const deviceGraphNode_t* pDependencies,
-    size_t numDependencies,
+    const deviceGraphNode_t* pDependencies, size_t numDependencies,
     const details_::deviceExternalSemaphoreSignalNodeParams_t* nodeParams)
     -> deviceGraphNode_t;
 
@@ -135,8 +134,7 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddExternalSemaphoresWaitNode(
-    const deviceGraphNode_t* pDependencies,
-    size_t numDependencies,
+    const deviceGraphNode_t* pDependencies, size_t numDependencies,
     const details_::deviceExternalSemaphoreWaitNodeParams_t* nodeParams)
     -> deviceGraphNode_t;
 
@@ -160,8 +158,7 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddKernelNode(
-    const deviceGraphNode_t* pDependencies,
-    size_t numDependencies,
+    const deviceGraphNode_t* pDependencies, size_t numDependencies,
     const details_::deviceKernelNodeParams_t* nodeParams) -> deviceGraphNode_t;
 
   /**
@@ -171,10 +168,10 @@ class GraphView {
    * @param nodeParams The memory allocation node parameters
    * @return The created graph node
    */
-  GCXX_FH auto AddMemAllocNode(
-    const deviceGraphNode_t* pDependencies,
-    size_t numDependencies,
-    details_::deviceMemAllocNodeParams_t* nodeParams) -> deviceGraphNode_t;
+  GCXX_FH auto AddMemAllocNode(const deviceGraphNode_t* pDependencies,
+                               size_t numDependencies,
+                               details_::deviceMemAllocNodeParams_t* nodeParams)
+    -> deviceGraphNode_t;
 
   /**
    * @brief Creates a memory free node and adds it to a graph.
@@ -184,8 +181,8 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddMemFreeNode(const deviceGraphNode_t* pDependencies,
-                              size_t numDependencies,
-                              void* dptr) -> deviceGraphNode_t;
+                              size_t numDependencies, void* dptr)
+    -> deviceGraphNode_t;
 
   /**
    * @brief Creates a memcpy node and adds it to a graph.
@@ -194,10 +191,10 @@ class GraphView {
    * @param copyParams The 3D memcpy parameters
    * @return The created graph node
    */
-  GCXX_FH auto AddMemcpyNode(
-    const deviceGraphNode_t* pDependencies,
-    size_t numDependencies,
-    const details_::deviceMemcpy3DParms_t* copyParams) -> deviceGraphNode_t;
+  GCXX_FH auto AddMemcpyNode(const deviceGraphNode_t* pDependencies,
+                             size_t numDependencies,
+                             const details_::deviceMemcpy3DParms_t* copyParams)
+    -> deviceGraphNode_t;
 
   /**
    * @brief Creates a 1D memcpy node and adds it to a graph.
@@ -210,10 +207,8 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddMemcpyNode1D(const deviceGraphNode_t* pDependencies,
-                               size_t numDependencies,
-                               void* dst,
-                               const void* src,
-                               size_t count,
+                               size_t numDependencies, void* dst,
+                               const void* src, size_t count,
                                deviceMemcpyKind kind) -> deviceGraphNode_t;
 
   /**
@@ -228,12 +223,9 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddMemcpyNodeFromSymbol(const deviceGraphNode_t* pDependencies,
-                                       size_t numDependencies,
-                                       void* dst,
-                                       const void* symbol,
-                                       size_t count,
-                                       size_t offset,
-                                       deviceMemcpyKind kind)
+                                       size_t numDependencies, void* dst,
+                                       const void* symbol, size_t count,
+                                       size_t offset, deviceMemcpyKind kind)
     -> deviceGraphNode_t;
 
   /**
@@ -248,12 +240,9 @@ class GraphView {
    * @return The created graph node
    */
   GCXX_FH auto AddMemcpyNodeToSymbol(const deviceGraphNode_t* pDependencies,
-                                     size_t numDependencies,
-                                     const void* symbol,
-                                     const void* src,
-                                     size_t count,
-                                     size_t offset,
-                                     deviceMemcpyKind kind)
+                                     size_t numDependencies, const void* symbol,
+                                     const void* src, size_t count,
+                                     size_t offset, deviceMemcpyKind kind)
     -> deviceGraphNode_t;
 
   /**
@@ -263,10 +252,10 @@ class GraphView {
    * @param memsetParams The memset parameters
    * @return The created graph node
    */
-  GCXX_FH auto AddMemsetNode(
-    const deviceGraphNode_t* pDependencies,
-    size_t numDependencies,
-    const details_::deviceMemsetParams_t* memsetParams) -> deviceGraphNode_t;
+  GCXX_FH auto AddMemsetNode(const deviceGraphNode_t* pDependencies,
+                             size_t numDependencies,
+                             const details_::deviceMemsetParams_t* memsetParams)
+    -> deviceGraphNode_t;
 
   /**
    * @brief Adds a node of arbitrary type to a graph.
