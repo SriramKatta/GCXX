@@ -111,7 +111,7 @@ class EventView {
    * @param recordFlag Optional flags to control event recording behavior
    */
   GCXX_FH auto RecordInStream(
-    flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
+    flags::eventRecord recordFlag = flags::eventRecord::None) -> void;
 
   /**
    * @brief Records the event in the specified stream with optional recording
@@ -121,7 +121,7 @@ class EventView {
    */
   GCXX_FH auto RecordInStream(
     const StreamView& stream,
-    flags::eventRecord recordFlag = flags::eventRecord::none) -> void;
+    flags::eventRecord recordFlag = flags::eventRecord::None) -> void;
 
   /**
    * @brief Computes the elapsed time from startEvent to this event

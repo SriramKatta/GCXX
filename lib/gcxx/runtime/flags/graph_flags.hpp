@@ -8,8 +8,13 @@
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
 
 enum class graphCreate : details_::flag_t {
-  none = 0  // as per cuda decumentation they may make new flags in future so
+  None = 0  // as per cuda decumentation they may make new flags in future so
             // for now just set this
+};
+
+enum class graphConditionalHandle : details_::flag_t {
+  None    = 0,
+  Default = cudaGraphCondAssignDefault,
 };
 
 enum class graphDebugDot : details_::flag_t {

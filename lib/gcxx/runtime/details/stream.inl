@@ -10,7 +10,7 @@ GCXX_NAMESPACE_MAIN_BEGIN
 GCXX_FH Stream::Stream(const flags::streamType createFlag,
                        const flags::streamPriority priorityFlag)
     : StreamView(details_::NULL_STREAM) {
-  if (createFlag == flags::streamType::nullStream) {
+  if (createFlag == flags::streamType::NullStream) {
     return;
   }
   GCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority, "Failed to Create Stream",

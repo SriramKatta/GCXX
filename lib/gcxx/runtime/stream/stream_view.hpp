@@ -45,11 +45,11 @@ class StreamView {
 
   GCXX_FH auto WaitOnEvent(
     const EventView& event,
-    const flags::eventWait waitFlag = flags::eventWait::none) const -> void;
+    const flags::eventWait waitFlag = flags::eventWait::None) const -> void;
 
   GCXX_FH auto RecordEvent(
-    const flags::eventCreate createflag = flags::eventCreate::none,
-    const flags::eventRecord recordFlag = flags::eventRecord::none) const
+    const flags::eventCreate createflag = flags::eventCreate::None,
+    const flags::eventRecord recordFlag = flags::eventRecord::None) const
     -> Event;
 
   GCXX_FH auto BeginCapture(const flags::streamCaptureMode createflag) -> void;

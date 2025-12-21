@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
   std::fill(h_a.begin(), h_a.end(), 1.0);
 
-  gcxx::Stream str(gcxx::flags::streamType::noSyncWithNull);
+  gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
   auto H2Dstart = str.RecordEvent();
   gcxx::memory::copy(d_a_span, h_a_span, str);

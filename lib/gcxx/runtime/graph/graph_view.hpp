@@ -33,11 +33,15 @@ using deviceExternalSemaphoreSignalNodeParams_t =
 using deviceExternalSemaphoreWaitNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreWaitNodeParams);
 
+using deviceGraphConditionalHandle_t =
+  GCXX_RUNTIME_BACKEND(GraphConditionalHandle);
+
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
-using deviceGraphNode_t = details_::deviceGraphNode_t;
+using deviceGraphNode_t              = details_::deviceGraphNode_t;
+using deviceGraphConditionalHandle_t = details_::deviceGraphConditionalHandle_t;
 
 class GraphView {
  protected:
@@ -56,6 +60,18 @@ class GraphView {
   GCXX_FH auto GetNumNodes() const -> size_t;
   GCXX_FH auto GetNumEdges() const -> size_t;
   GCXX_FH auto Clone() const -> GraphView;
+
+  GCXX_FH auto createConditionalHandle(
+    unsigned int defaultLaunchValue,
+    flags::graphConditionalHandle flag = flags::graphConditionalHandle::None)
+    -> deviceGraphConditionalHandle_t {
+    deviceGraphConditionalHandle_t out{0};
+    GCXX_SAFE_RUNTIME_CALL(GraphConditionalHandleCreate,
+                           "Failed to create conditional handle in graph", &out,
+                           graph_, defaultLaunchValue,
+                           static_cast<details_::flag_t>(flag));
+    return out;
+  }
 
   // ════════════════════════════════════════════════════════════════════════
   // Graph Node Addition Methods

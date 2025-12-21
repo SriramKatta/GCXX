@@ -12,8 +12,8 @@ int main() {
 
   for (int i = 0; i < numdevices; ++i) {
     auto devhand = gcxx::Device::set(i);
-    streams.emplace_back(gcxx::flags::streamType::nullStream,
-                         gcxx::flags::streamPriority::veryLow);
+    streams.emplace_back(gcxx::flags::streamType::NullStream,
+                         gcxx::flags::streamPriority::VeryLow);
   }
 
   return 0;

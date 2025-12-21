@@ -18,11 +18,11 @@ GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
  *
  * In CUDA:
  * - The NULL stream executes all operations sequentially with respect to
- *   *all* other streams that use `syncWithNull`.
- * - Streams created with `noSyncWithNull` are independent and may run
+ *   *all* other streams that use `SyncWithNull`.
+ * - Streams created with `NoSyncWithNull` are independent and may run
  *   concurrently with both the NULL stream and each other, subject to device
  *   resources.
- * - The `nullStream` flag provides explicit access to stream 0 itself.
+ * - The `NullStream` flag provides explicit access to stream 0 itself.
  *
  * These flags are useful when tuning execution overlap and synchronization
  * behavior for kernels, memory copies, and host-device interactions.
@@ -35,7 +35,7 @@ enum class streamType : details_::flag_t {
    * stream will serialize with operations in stream 0/NULL stream, ensuring
    * ordering but limiting concurrency.
    */
-  syncWithNull = GCXX_RUNTIME_BACKEND(StreamDefault),
+  SyncWithNull = GCXX_RUNTIME_BACKEND(StreamDefault),
 
   /**
    * @brief Stream that does not synchronize with the NULL stream.
@@ -44,17 +44,17 @@ enum class streamType : details_::flag_t {
    * enabling overlap of kernels and memory transfers when hardware resources
    * permit.
    */
-  noSyncWithNull = GCXX_RUNTIME_BACKEND(StreamNonBlocking),
+  NoSyncWithNull = GCXX_RUNTIME_BACKEND(StreamNonBlocking),
 
   /**
    * @brief Explicit handle to the NULL stream (stream 0).
    *
    * This special sentinel value directly identifies the backend’s implicit
    * default stream. All work enqueued here executes in program order and
-   * typically synchronizes with most other streams unless `noSyncWithNull`
+   * typically synchronizes with most other streams unless `NoSyncWithNull`
    * semantics are used.
    */
-  nullStream = std::numeric_limits<details_::flag_t>::max()
+  NullStream = std::numeric_limits<details_::flag_t>::max()
 };
 
 /**
@@ -73,22 +73,22 @@ enum class streamType : details_::flag_t {
  */
 enum class streamPriority : details_::flag_t {
   /// No priority hint; runtime chooses the default scheduling behavior.
-  none = 0U,
+  None = 0U,
 
   /// Hint for the lowest available priority (background work).
-  veryLow = 1U,
+  VeryLow = 1U,
 
   /// Hint for a slightly reduced priority compared to default.
-  low = 2U,
+  Low = 2U,
 
   /// Hint for elevated priority; work may preempt lower-priority streams.
-  high = 3U,
+  High = 3U,
 
-  /// Hint for very high priority, just below critical tasks.
-  veryHigh = 4U,
+  /// Hint for very High priority, just below Critical tasks.
+  VeryHigh = 4U,
 
-  /// Hint for the absolute highest available priority (latency critical).
-  critical = 5U,
+  /// Hint for the absolute highest available priority (latency Critical).
+  Critical = 5U,
 };
 
 /**
@@ -99,21 +99,21 @@ enum class streamPriority : details_::flag_t {
  * and threads during CUDA/HIP graph capture operations.
  */
 enum class streamCaptureMode : details_::flag_t {
-  global = GCXX_RUNTIME_BACKEND(
+  Global = GCXX_RUNTIME_BACKEND(
     StreamCaptureModeGlobal), /**< Capture affects all threads; any unsafe API
                                  call results in an error. */
-  threadLocal = GCXX_RUNTIME_BACKEND(
+  ThreadLocal = GCXX_RUNTIME_BACKEND(
     StreamCaptureModeThreadLocal), /**< Capture is local to the thread; other
                                       threads can use unsafe APIs. */
-  relaxed = GCXX_RUNTIME_BACKEND(
+  Relaxed = GCXX_RUNTIME_BACKEND(
     StreamCaptureModeRelaxed), /**< No safety checks; application must ensure
                                   correctness. */
 };
 
 enum class streamCaptureStatus : details_::flag_t {
-  none         = GCXX_RUNTIME_BACKEND(StreamCaptureStatusNone),
-  active       = GCXX_RUNTIME_BACKEND(StreamCaptureStatusActive),
-  invalidataed = GCXX_RUNTIME_BACKEND(StreamCaptureStatusInvalidated),
+  None        = GCXX_RUNTIME_BACKEND(StreamCaptureStatusNone),
+  Active      = GCXX_RUNTIME_BACKEND(StreamCaptureStatusActive),
+  Invalidated = GCXX_RUNTIME_BACKEND(StreamCaptureStatusInvalidated),
 };
 
 

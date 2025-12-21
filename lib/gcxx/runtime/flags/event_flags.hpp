@@ -23,7 +23,7 @@ GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
  * behavior, timing capabilities, and inter-process sharing.
  */
 enum class eventCreate : details_::flag_t {
-  none = GCXX_RUNTIME_BACKEND(EventDefault), /**< Default event creation. */
+  None = GCXX_RUNTIME_BACKEND(EventDefault), /**< Default event creation. */
   blockingSync =
     GCXX_RUNTIME_BACKEND(EventBlockingSync), /**< CPU thread blocks on
                                                 synchronization. */
@@ -56,7 +56,7 @@ inline auto operator|(const eventCreate& lhs, const eventCreate& rhs)
  * These flags specify how an event should be recorded in a stream.
  */
 enum class eventRecord : details_::flag_t {
-  none = GCXX_RUNTIME_BACKEND(EventRecordDefault),      /**< Default recording
+  None = GCXX_RUNTIME_BACKEND(EventRecordDefault),      /**< Default recording
                                                            behavior. */
   external = GCXX_RUNTIME_BACKEND(EventRecordExternal), /**< Record for external
                                                            synchronization. */
@@ -73,12 +73,12 @@ enum class eventRecord : details_::flag_t {
  */
 enum class eventWait : details_::flag_t {
 #if defined(GCXX_CUDA_MODE)
-  none = GCXX_RUNTIME_BACKEND(EventWaitDefault), /**< Default wait behavior. */
+  None = GCXX_RUNTIME_BACKEND(EventWaitDefault), /**< Default wait behavior. */
   external =
     GCXX_RUNTIME_BACKEND(EventWaitExternal), /**< Wait on external event. */
 #else  // HIP: these are supposedly defined as per documentation but not
        // implemented in the actual code
-  none     = 0, /**< Default wait behavior (HIP fallback). */
+  None     = 0, /**< Default wait behavior (HIP fallback). */
   external = 0, /**< External wait (HIP fallback, not implemented). */
 #endif
 };

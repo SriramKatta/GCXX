@@ -19,12 +19,12 @@ class Stream : public StreamView {
 
  public:
   GCXX_FH Stream(
-    const flags::streamType createFlag       = flags::streamType::syncWithNull,
-    const flags::streamPriority priorityFlag = flags::streamPriority::none);
+    const flags::streamType createFlag       = flags::streamType::SyncWithNull,
+    const flags::streamPriority priorityFlag = flags::streamPriority::None);
 
   GCXX_FH static auto Create(
-    const flags::streamType createFlag       = flags::streamType::syncWithNull,
-    const flags::streamPriority priorityFlag = flags::streamPriority::none)
+    const flags::streamType createFlag       = flags::streamType::SyncWithNull,
+    const flags::streamPriority priorityFlag = flags::streamPriority::None)
     -> Stream;
 
   GCXX_FH ~Stream();

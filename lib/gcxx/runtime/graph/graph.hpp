@@ -18,11 +18,11 @@ class Graph : public GraphView {
   GCXX_FH auto destroy() -> void;
 
  public:
-  GCXX_FH Graph(const flags::graphCreate createFlag = flags::graphCreate::none)
+  GCXX_FH Graph(const flags::graphCreate createFlag = flags::graphCreate::None)
     GCXX_NOEXCEPT;
 
   GCXX_FH static auto Create(
-    const flags::graphCreate createFlag = flags::graphCreate::none) -> Graph;
+    const flags::graphCreate createFlag = flags::graphCreate::None) -> Graph;
 
 
   GCXX_FH ~Graph() GCXX_NOEXCEPT;

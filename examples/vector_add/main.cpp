@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
   std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
 
-  gcxx::Stream str(gcxx::flags::streamType::noSyncWithNull);
+  gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
   auto H2Dstart = str.RecordEvent();
   gcxx::memory::copy(d_a_span, h_a_span, str);
