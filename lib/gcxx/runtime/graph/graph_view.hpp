@@ -61,17 +61,12 @@ class GraphView {
   GCXX_FH auto GetNumEdges() const -> size_t;
   GCXX_FH auto Clone() const -> GraphView;
 
-  GCXX_FH auto createConditionalHandle(
+  GCXX_FH auto CreateConditionalHandle(
     unsigned int defaultLaunchValue,
     flags::graphConditionalHandle flag = flags::graphConditionalHandle::None)
-    -> deviceGraphConditionalHandle_t {
-    deviceGraphConditionalHandle_t out{0};
-    GCXX_SAFE_RUNTIME_CALL(GraphConditionalHandleCreate,
-                           "Failed to create conditional handle in graph", &out,
-                           graph_, defaultLaunchValue,
-                           static_cast<details_::flag_t>(flag));
-    return out;
-  }
+    -> deviceGraphConditionalHandle_t;
+
+  GCXX_FD static auto SetConditional(deviceGraphConditionalHandle_t, unsigned int) -> void;
 
   // ════════════════════════════════════════════════════════════════════════
   // Graph Node Addition Methods

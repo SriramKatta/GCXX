@@ -49,6 +49,23 @@ GCXX_FH auto GraphView::Clone() const -> GraphView {
   return clonedGraph;
 }
 
+  GCXX_FH auto GraphView::CreateConditionalHandle(
+    unsigned int defaultLaunchValue,
+    flags::graphConditionalHandle flag)
+    -> deviceGraphConditionalHandle_t {
+    deviceGraphConditionalHandle_t out{0};
+    GCXX_SAFE_RUNTIME_CALL(GraphConditionalHandleCreate,
+                           "Failed to create conditional handle in graph", &out,
+                           graph_, defaultLaunchValue,
+                           static_cast<details_::flag_t>(flag));
+    return out;
+  }
+
+
+  GCXX_FD auto GraphView::SetConditional(deviceGraphConditionalHandle_t handle, unsigned int value) -> void{
+    GCXX_RUNTIME_BACKEND(GraphSetConditional)(handle, value);
+  }
+
 // ════════════════════════════════════════════════════════════════════════════
 // Graph Node Addition Implementations
 // ════════════════════════════════════════════════════════════════════════════
