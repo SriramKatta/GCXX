@@ -30,15 +30,15 @@ GCXX_FH auto GraphView::SaveDotfile(std::string_view fname,
 
 GCXX_FH auto GraphView::GetNumNodes() const -> size_t {
   size_t numNodes = 0;
-  GCXX_SAFE_RUNTIME_CALL(GraphGetNodes, "Failed to get graph nodes", graph_,
-                         nullptr, &numNodes);
+  GCXX_SAFE_RUNTIME_CALL(GraphGetNodes, "Failed to get Count of Graph nodes",
+                         graph_, nullptr, &numNodes);
   return numNodes;
 }
 
 GCXX_FH auto GraphView::GetNumEdges() const -> size_t {
   size_t numEdges = 0;
-  GCXX_SAFE_RUNTIME_CALL(GraphGetEdges, "Failed to get graph edges", graph_,
-                         nullptr, nullptr, &numEdges);
+  GCXX_SAFE_RUNTIME_CALL(GraphGetEdges, "Failed to get count of Graph edges",
+                         graph_, nullptr, nullptr, &numEdges);
   return numEdges;
 }
 

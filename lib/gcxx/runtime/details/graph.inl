@@ -23,6 +23,7 @@ GCXX_FH Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT
 GCXX_FH auto Graph::destroy() -> void {
   if (graph_ != details_::INVALID_GRAPH) {
     GCXX_SAFE_RUNTIME_CALL(GraphDestroy, "Failed to destroy the graph", graph_);
+    graph_ = details_::INVALID_GRAPH;
   }
 }
 

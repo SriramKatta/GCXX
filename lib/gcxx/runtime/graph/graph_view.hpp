@@ -122,7 +122,8 @@ class GraphView {
 
   // /**
   //  * @brief Creates an external semaphore signal node and adds it to a graph.
-  //  * @param pDependencies Pointer to array of dependent nodes (can be nullptr)
+  //  * @param pDependencies Pointer to array of dependent nodes (can be
+  //  nullptr)
   //  * @param numDependencies Number of dependencies
   //  * @param nodeParams The external semaphore signal node parameters
   //  * @return The created graph node
@@ -134,7 +135,8 @@ class GraphView {
 
   // /**
   //  * @brief Creates an external semaphore wait node and adds it to a graph.
-  //  * @param pDependencies Pointer to array of dependent nodes (can be nullptr)
+  //  * @param pDependencies Pointer to array of dependent nodes (can be
+  //  nullptr)
   //  * @param numDependencies Number of dependencies
   //  * @param nodeParams The external semaphore wait node parameters
   //  * @return The created graph node
@@ -143,8 +145,8 @@ class GraphView {
   //   const deviceGraphNode_t* pDependencies, size_t numDependencies,
   //   const details_::deviceExternalSemaphoreWaitNodeParams_t* nodeParams)
   //   -> deviceGraphNode_t;
-  
-    GCXX_FH auto AddEventWaitNode(gcxx::span<deviceGraphNode_t> pDependencies,
+
+  GCXX_FH auto AddEventWaitNode(gcxx::span<deviceGraphNode_t> pDependencies,
                                 deviceEvent_t event) -> deviceGraphNode_t;
 
   /**
