@@ -335,7 +335,7 @@ void cudaGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   }
 
   streamForGraph.Synchronize();
-  graph.SaveDotfile("./test.dot", gcxx::flags::graphDebugDot::EventNodeParams);
+  // graph.SaveDotfile("./test.dot", gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
 int main(int argc, char** argv) {
