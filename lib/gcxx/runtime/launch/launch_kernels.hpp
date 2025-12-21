@@ -5,15 +5,30 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
-using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
-GCXX_NAMESPACE_MAIN_DETAILS_END
 
+#include <gcxx/runtime/launch/launch_config.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-namspace launch {}
+namespace launch {
+  using gcxxHostFn_t = GCXX_RUNTIME_BACKEND(HostFn_t);
+
+  template <typename... ExpTypes, typename... ActTypes>
+  GCXX_FH void CooperativeKernel(LaunchConfig&, void (*)(ExpTypes...),
+                                 ActTypes&&...);
+
+  template <typename... HostFuncArgs>
+  GCXX_FH void HostFunc(const StreamView, gcxxHostFn_t, HostFuncArgs...);
+
+  // TODO : add sfinae to check if the kernel is __global__
+  template <typename... ExpTypes, typename... ActTypes>
+  GCXX_FH void Kernel(StreamView, dim3, dim3, std::size_t smem_bytes,
+                      void (*)(ExpTypes...), ActTypes&&...);
+}  // namespace launch
 
 GCXX_NAMESPACE_MAIN_END
+
+#include <gcxx/runtime/details/launch_kernels.inl>
 
 #endif
