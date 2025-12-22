@@ -49,6 +49,7 @@ GCXX_FH auto GraphView::Clone() const -> GraphView {
   return clonedGraph;
 }
 
+#if GCXX_CUDA_MODE
 GCXX_FH auto GraphView::CreateConditionalHandle(
   unsigned int defaultLaunchValue, flags::graphConditionalHandle flag)
   -> deviceGraphConditionalHandle_t {
@@ -62,8 +63,14 @@ GCXX_FH auto GraphView::CreateConditionalHandle(
 
 GCXX_FD auto GraphView::SetConditional(deviceGraphConditionalHandle_t handle,
                                        unsigned int value) -> void {
+#if GCXX_CUDA_MODE
   GCXX_RUNTIME_BACKEND(GraphSetConditional)(handle, value);
+#elif GCXX_HIP_MODE
+#warning "Conditional nodes are not implemented in HIP yet"
+#endif
 }
+
+#endif
 
 // ════════════════════════════════════════════════════════════════════════════
 // Graph Node Addition Implementations
