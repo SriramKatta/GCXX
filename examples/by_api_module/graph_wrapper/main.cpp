@@ -154,12 +154,11 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   gcxx::Stream streamForGraph;
   gcxx::Graph graph;
   std::vector<gcxx::deviceGraphNode_t> nodeDependencies;
-  gcxx::deviceGraphNode_t memcpyNode, kernelNode, memsetNode;
+  gcxx::deviceGraphNode_t memcpyNode, memsetNode;
   double result_h = 0.0;
 
-  GCXX_RUNTIME_BACKEND(KernelNodeParams) kernelNodeParams = {0};
-  GCXX_RUNTIME_BACKEND(Memcpy3DParms) memcpyParams        = {0};
-  GCXX_RUNTIME_BACKEND(MemsetParams) memsetParams         = {0};
+  GCXX_RUNTIME_BACKEND(Memcpy3DParms) memcpyParams = {0};
+  GCXX_RUNTIME_BACKEND(MemsetParams) memsetParams  = {0};
 
   memcpyParams.srcArray = NULL;
   memcpyParams.srcPos   = gcxx::memory::makePos(0, 0, 0);
@@ -188,17 +187,16 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   nodeDependencies.push_back(memsetNode);
   nodeDependencies.push_back(memcpyNode);
 
-  void* kernelArgs[4] = {(void*)&inputVec_d, (void*)&outputVec_d, &inputSize,
-                         &numOfBlocks};
+  auto k1build = gcxx::KernelParamsBuilder()
+                   .setKernel(reduce)
+                   .setBlockDim(numOfBlocks)
+                   .setGridDim(THREADS_PER_BLOCK)
+                   .setArgs(inputVec_d, outputVec_d, inputSize, numOfBlocks)
+                   .build<4>();
 
-  kernelNodeParams.func           = (void*)reduce;
-  kernelNodeParams.gridDim        = dim3(numOfBlocks, 1, 1);
-  kernelNodeParams.blockDim       = dim3(THREADS_PER_BLOCK, 1, 1);
-  kernelNodeParams.sharedMemBytes = 0;
-  kernelNodeParams.kernelParams   = (void**)kernelArgs;
-  kernelNodeParams.extra          = NULL;
+  auto k1 = k1build.getRawParams();
 
-  kernelNode = graph.AddKernelNode(nodeDependencies, &kernelNodeParams);
+  auto kernelNode = graph.AddKernelNode(nodeDependencies, &k1);
 
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
@@ -213,16 +211,14 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   memsetNode = graph.AddMemsetNode(NULL, 0, &memsetParams);
   nodeDependencies.push_back(memsetNode);
 
-  memset(&kernelNodeParams, 0, sizeof(kernelNodeParams));
-  kernelNodeParams.func           = (void*)reduceFinal;
-  kernelNodeParams.gridDim        = dim3(1, 1, 1);
-  kernelNodeParams.blockDim       = dim3(THREADS_PER_BLOCK, 1, 1);
-  kernelNodeParams.sharedMemBytes = 0;
-  void* kernelArgs2[3] = {(void*)&outputVec_d, (void*)&result_d, &numOfBlocks};
-  kernelNodeParams.kernelParams = kernelArgs2;
-  kernelNodeParams.extra        = NULL;
+  auto k2builder = gcxx::KernelParamsBuilder()
+                     .setKernel(reduceFinal)
+                     .setBlockDim(THREADS_PER_BLOCK)
+                     .setArgs(outputVec_d, result_d, numOfBlocks)
+                     .build<3>();
+  auto k2 = k2builder.getRawParams();
 
-  kernelNode = graph.AddKernelNode(nodeDependencies, &kernelNodeParams);
+  kernelNode = graph.AddKernelNode(nodeDependencies, &k2);
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
 
@@ -440,7 +436,7 @@ void loopgraph() {
   // cudaGraphConditionalHandleCreate(&handle, graph, 1,
   //                                  cudaGraphCondAssignDefault);
 
-  graph.SaveDotfile("./test1.dot", gcxx::flags::graphDebugDot::Verbose);
+  // graph.SaveDotfile("./test1.dot", gcxx::flags::graphDebugDot::Verbose);
 
   // Create and add the WHILE conditional node
   cudaGraphNodeParams cParams = {cudaGraphNodeTypeConditional};
@@ -450,7 +446,7 @@ void loopgraph() {
   // cudaGraphAddNode(&node, graph, NULL, 0, &cParams);
   graph.AddNode(NULL, 0, &cParams);
 
-  graph.SaveDotfile("./test2.dot", gcxx::flags::graphDebugDot::Verbose);
+  // graph.SaveDotfile("./test2.dot", gcxx::flags::graphDebugDot::Verbose);
 
 
   // Get the body graph of the conditional node
@@ -464,7 +460,7 @@ void loopgraph() {
                        dPtr);
   streamForGraph.EndCaptureToGraph(bodyGraph);
 
-  graph.SaveDotfile("./test3.dot", gcxx::flags::graphDebugDot::Verbose);
+  // graph.SaveDotfile("./test3.dot", gcxx::flags::graphDebugDot::Verbose);
 
   // Initialize device memory, instantiate, and launch the graph
   char val = 10;
