@@ -157,22 +157,19 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   gcxx::deviceGraphNode_t memcpyNode, memsetNode;
   double result_h = 0.0;
 
-  GCXX_RUNTIME_BACKEND(Memcpy3DParms) memcpyParams = {0};
-  GCXX_RUNTIME_BACKEND(MemsetParams) memsetParams  = {0};
+  GCXX_RUNTIME_BACKEND(MemsetParams) memsetParams = {0};
 
-  memcpyParams.srcArray = NULL;
-  memcpyParams.srcPos   = gcxx::memory::makePos(0, 0, 0);
-  memcpyParams.srcPtr   = gcxx::memory::makePitchedPtr(
-    inputVec_h, sizeof(float) * inputSize, inputSize, 1);
-  memcpyParams.dstArray = NULL;
-  memcpyParams.dstPos   = gcxx::memory::makePos(0, 0, 0);
-  memcpyParams.dstPtr   = gcxx::memory::makePitchedPtr(
-    inputVec_d, sizeof(float) * inputSize, inputSize, 1);
-  memcpyParams.extent =
-    gcxx::memory::makeExtent(sizeof(float) * inputSize, 1, 1);
-  memcpyParams.kind = GCXX_RUNTIME_BACKEND(MemcpyDefault);
+  auto memcpy3d1 =
+    gcxx::Memcpy3DParamsBuilder()
+      .setSrcPtr(gcxx::memory::makePitchedPtr(
+        inputVec_h, sizeof(float) * inputSize, inputSize, 1))
+      .setDstPtr(gcxx::memory::makePitchedPtr(
+        inputVec_d, sizeof(float) * inputSize, inputSize, 1))
+      .setExtent(gcxx::memory::makeExtent(sizeof(float) * inputSize, 1, 1))
+      .build();
 
-  memcpyNode = graph.AddMemcpyNode(NULL, 0, &memcpyParams);
+
+  memcpyNode = graph.AddMemcpyNode(NULL, 0, &(memcpy3d1.getRawParams()));
 
 
   memsetParams.dst         = (void*)outputVec_d;
@@ -222,20 +219,14 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
 
-  memset(&memcpyParams, 0, sizeof(memcpyParams));
+  auto memcpy3d2 =
+    gcxx::Memcpy3DParamsBuilder()
+      .setSrcPtr(gcxx::memory::makePitchedPtr(result_d, sizeof(double), 1, 1))
+      .setDstPtr(gcxx::memory::makePitchedPtr(&result_h, sizeof(double), 1, 1))
+      .setExtent(gcxx::memory::makeExtent(sizeof(double), 1, 1))
+      .build();
 
-  memcpyParams.srcArray = NULL;
-  memcpyParams.srcPos   = gcxx::memory::makePos(0, 0, 0);
-  memcpyParams.srcPtr =
-    gcxx::memory::makePitchedPtr(result_d, sizeof(double), 1, 1);
-  memcpyParams.dstArray = NULL;
-  memcpyParams.dstPos   = gcxx::memory::makePos(0, 0, 0);
-  memcpyParams.dstPtr =
-    gcxx::memory::makePitchedPtr(&result_h, sizeof(double), 1, 1);
-  memcpyParams.extent = gcxx::memory::makeExtent(sizeof(double), 1, 1);
-  memcpyParams.kind   = GCXX_RUNTIME_BACKEND(MemcpyDefault);
-
-  memcpyNode = graph.AddMemcpyNode(nodeDependencies, &memcpyParams);
+  memcpyNode = graph.AddMemcpyNode(nodeDependencies, &(memcpy3d2.getRawParams()));
   nodeDependencies.clear();
   nodeDependencies.push_back(memcpyNode);
 
