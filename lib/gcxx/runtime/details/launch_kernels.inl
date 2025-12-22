@@ -35,14 +35,15 @@ namespace launch {
   GCXX_FH void Kernel(StreamView sv, dim3 griddim, dim3 blockdim,
                       std::size_t smem_bytes, void (*kernel)(ExpTypes...),
                       ActTypes&&... args) {
-    void* kernelArgs[sizeof...(args) > 0 ? sizeof...(args) : 1] = {
-      ((void*)&args)...};
+
+    std::array<void*, sizeof...(ActTypes)> kernelArgs{
+      static_cast<void*>(&args)...};
     GCXX_SAFE_RUNTIME_CALL(LaunchKernel, "Failed to launch GPU kernel",
 #if GCXX_HIP_MODE
                            (void*)
 #endif
                              kernel,
-                           griddim, blockdim, kernelArgs, smem_bytes,
+                           griddim, blockdim, kernelArgs.data(), smem_bytes,
                            sv.getRawStream());
   }
 }  // namespace launch
