@@ -218,7 +218,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                      .build<3>();
   auto k2 = k2builder.getRawParams();
 
-  kernelNode = graph.AddKernelNode(nodeDependencies, &k2);
+  kernelNode = graph.AddKernelNode(nodeDependencies, &k2builder.getRawParams());
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
 

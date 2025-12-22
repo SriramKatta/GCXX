@@ -65,10 +65,11 @@ class GraphNode {
   virtual ~GraphNode() = default;
 };
 
-
-// // ════════════════════════════════════════════════════════════════════════════
+// //
+// ════════════════════════════════════════════════════════════════════════════
 // // KernelNodeParams Wrapper
-// // ════════════════════════════════════════════════════════════════════════════
+// //
+// ════════════════════════════════════════════════════════════════════════════
 
 // /**
 //  * @brief RAII wrapper for kernel node parameters with builder pattern.
@@ -109,9 +110,11 @@ class GraphNode {
 //   KernelNodeParams(const KernelNodeParams&)            = delete;
 //   KernelNodeParams& operator=(const KernelNodeParams&) = delete;
 
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 //   // Factory Methods
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 
 //   /**
 //    * @brief Create kernel node params from a kernel function pointer.
@@ -135,9 +138,11 @@ class GraphNode {
 //     return p;
 //   }
 
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 //   // Builder Pattern Setters
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 
 //   GCXX_FH auto setFunc(void* func) & -> KernelNodeParams& {
 //     params_.func = func;
@@ -248,9 +253,11 @@ class GraphNode {
 //     return std::move(*this);
 //   }
 
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 //   // Getters
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 
 //   GCXX_FHC auto getFunc() const -> void* { return params_.func; }
 
@@ -276,9 +283,11 @@ class GraphNode {
 //   }
 // };
 
-// // ════════════════════════════════════════════════════════════════════════════
+// //
+// ════════════════════════════════════════════════════════════════════════════
 // // KernelNodeView - Non-owning view of a kernel node
-// // ════════════════════════════════════════════════════════════════════════════
+// //
+// ════════════════════════════════════════════════════════════════════════════
 
 // /**
 //  * @brief Non-owning view of a kernel graph node.
@@ -295,9 +304,11 @@ class GraphNode {
 //   GCXX_FHC explicit KernelNodeView(details_::deviceGraphNode_t node)
 //       : GraphNode(flags::graphNodeType::kernel, node) {}
 
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 //   // Host API: Parameter Getters/Setters
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 
 //   /**
 //    * @brief Get kernel node parameters.
@@ -327,9 +338,11 @@ class GraphNode {
 
 //   GCXX_FH auto SetParams(const KernelNodeParams& params) -> KernelNodeView&;
 
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 //   // Host API: Attributes
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 
 //   /**
 //    * @brief Get a kernel node attribute.
@@ -362,11 +375,14 @@ class GraphNode {
 //    *
 //    * Wraps: cudaGraphKernelNodeCopyAttributes
 //    */
-//   GCXX_FH auto CopyAttributesFrom(const KernelNodeView& src) -> KernelNodeView&;
+//   GCXX_FH auto CopyAttributesFrom(const KernelNodeView& src) ->
+//   KernelNodeView&;
 
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 //   // GraphExec Update Methods (for use with GraphExec)
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 
 //   /**
 //    * @brief Update kernel node parameters in an executable graph.
@@ -376,7 +392,8 @@ class GraphNode {
 //    * Wraps: cudaGraphExecKernelNodeSetParams
 //    */
 //   GCXX_FH auto SetParamsInExec(details_::deviceGraphExec_t exec,
-//                                const details_::deviceKernelNodeParams_t* params)
+//                                const details_::deviceKernelNodeParams_t*
+//                                params)
 //     -> KernelNodeView&;
 
 //   GCXX_FH auto SetParamsInExec(details_::deviceGraphExec_t exec,
@@ -384,9 +401,11 @@ class GraphNode {
 //     -> KernelNodeView&;
 
 // #if GCXX_CUDA_MODE
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 //   // Device API (CUDA only) - For use from device code in device graphs
-//   // ──────────────────────────────────────────────────────────────────────────
+//   //
+//   ──────────────────────────────────────────────────────────────────────────
 
 //   /**
 //    * @brief Enable or disable a kernel node (device API).
@@ -395,7 +414,8 @@ class GraphNode {
 //    *
 //    * Wraps: cudaGraphKernelNodeSetEnabled
 //    */
-//   GCXX_FD static auto SetEnabled(details_::deviceGraphDeviceNode_t deviceNode,
+//   GCXX_FD static auto SetEnabled(details_::deviceGraphDeviceNode_t
+//   deviceNode,
 //                                  bool enable) -> void;
 
 //   /**
@@ -405,7 +425,8 @@ class GraphNode {
 //    *
 //    * Wraps: cudaGraphKernelNodeSetGridDim
 //    */
-//   GCXX_FD static auto SetGridDim(details_::deviceGraphDeviceNode_t deviceNode,
+//   GCXX_FD static auto SetGridDim(details_::deviceGraphDeviceNode_t
+//   deviceNode,
 //                                  dim3 gridDim) -> void;
 
 //   /**
@@ -449,9 +470,11 @@ class GraphNode {
 // #endif
 // };
 
-// // ════════════════════════════════════════════════════════════════════════════
+// //
+// ════════════════════════════════════════════════════════════════════════════
 // // KernelNode - Owning wrapper (if needed for future RAII node management)
-// // ════════════════════════════════════════════════════════════════════════════
+// //
+// ════════════════════════════════════════════════════════════════════════════
 
 // /**
 //  * @brief Owning wrapper for a kernel graph node.
@@ -469,7 +492,8 @@ class GraphNode {
 //       : KernelNodeView(node) {}
 
 //   // Factory method to create from raw node
-//   GCXX_FH static auto FromRaw(details_::deviceGraphNode_t node) -> KernelNode {
+//   GCXX_FH static auto FromRaw(details_::deviceGraphNode_t node) -> KernelNode
+//   {
 //     return KernelNode(node);
 //   }
 // };
