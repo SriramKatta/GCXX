@@ -50,6 +50,8 @@ GCXX_FH auto GraphView::Clone() const -> GraphView {
 }
 
 #if GCXX_CUDA_MODE
+// Create the conditional handle; no default value arg is provided, since i dont
+// want the condition value to be undefined at the start of each graph execution
 GCXX_FH auto GraphView::CreateConditionalHandle(
   unsigned int defaultLaunchValue, flags::graphConditionalHandle flag)
   -> deviceGraphConditionalHandle_t {
