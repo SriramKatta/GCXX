@@ -11,11 +11,12 @@ enum class graphCreate : details_::flag_t {
   None = 0  // as per cuda decumentation they may make new flags in future so
             // for now just set this
 };
-
+#if GCXX_CUDA_MODE
 enum class graphConditionalHandle : details_::flag_t {
   None    = 0,
   Default = cudaGraphCondAssignDefault,
 };
+#endif
 
 enum class graphDebugDot : details_::flag_t {
   Verbose          = GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsVerbose),

@@ -33,15 +33,20 @@ using deviceExternalSemaphoreSignalNodeParams_t =
 using deviceExternalSemaphoreWaitNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreWaitNodeParams);
 
+#if GCXX_CUDA_MODE
 using deviceGraphConditionalHandle_t =
   GCXX_RUNTIME_BACKEND(GraphConditionalHandle);
+#endif
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
-using deviceGraphNode_t              = details_::deviceGraphNode_t;
+using deviceGraphNode_t = details_::deviceGraphNode_t;
+
+#if GCXX_CUDA_MODE
 using deviceGraphConditionalHandle_t = details_::deviceGraphConditionalHandle_t;
+#endif
 
 class GraphView {
  protected:
@@ -61,6 +66,7 @@ class GraphView {
   GCXX_FH auto GetNumEdges() const -> size_t;
   GCXX_FH auto Clone() const -> GraphView;
 
+#if GCXX_CUDA_MODE
   GCXX_FH auto CreateConditionalHandle(
     unsigned int defaultLaunchValue,
     flags::graphConditionalHandle flag = flags::graphConditionalHandle::None)
@@ -68,7 +74,7 @@ class GraphView {
 
   GCXX_FD static auto SetConditional(deviceGraphConditionalHandle_t,
                                      unsigned int) -> void;
-
+#endif
   // ════════════════════════════════════════════════════════════════════════
   // Graph Node Addition Methods
   // ════════════════════════════════════════════════════════════════════════
