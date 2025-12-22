@@ -11,11 +11,36 @@ enum class graphCreate : details_::flag_t {
   None = 0  // as per cuda decumentation they may make new flags in future so
             // for now just set this
 };
+
+enum class graphNodeType {
+  kernel       = 0,
+  memcpy       = 1,
+  memset       = 2,
+  host         = 3,
+  graph        = 4,
+  eventWait    = 5,
+  eventRecord  = 6,
+  extSemSignal = 7,
+  extSemWait   = 8,
+  alloc        = 9,
+  free         = 10,
+#if GCXX_CUDA_MODE
+  conditional = 11,
+#endif
+};
+
 #if GCXX_CUDA_MODE
 enum class graphConditionalHandle : details_::flag_t {
   None    = 0,
   Default = cudaGraphCondAssignDefault,
 };
+
+enum class graphConditionalNode : details_::flag_t {
+  If     = GCXX_RUNTIME_BACKEND(GraphCondTypeIf),
+  While  = GCXX_RUNTIME_BACKEND(GraphCondTypeWhile),
+  Switch = GCXX_RUNTIME_BACKEND(GraphCondTypeSwitch),
+};
+
 #endif
 
 enum class graphDebugDot : details_::flag_t {

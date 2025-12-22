@@ -10,6 +10,18 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
+// Primary template: not a void function pointer
+template <typename VT>
+struct is_void_function_pointer : std::false_type {};
+
+// Specialization for function pointers returning void
+template <typename... Args>
+struct is_void_function_pointer<void (*)(Args...)> : std::true_type {};
+
+template <typename VT>
+GCXX_CXPR inline bool is_void_function_pointer_v =
+  is_void_function_pointer<VT>::value;
+
 template <typename, typename = size_t>
 struct is_complete : std::false_type {};
 
