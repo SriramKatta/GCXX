@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_GRAPH_INL_
-#define GCXX_RUNTIME_DETAILS_GRAPH_INL_
+#ifndef GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_INL_
+#define GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_INL_
 
 #include <gcxx/runtime/graph/graph.hpp>
 #include <gcxx/runtime/graph/graph_exec.hpp>

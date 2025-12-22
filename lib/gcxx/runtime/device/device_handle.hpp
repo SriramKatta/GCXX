@@ -41,6 +41,6 @@ class DeviceHandle {
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/device_handle.inl>
+#include <gcxx/runtime/details/device/device_handle.inl>
 
 #endif

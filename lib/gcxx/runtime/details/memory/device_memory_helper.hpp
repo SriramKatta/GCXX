@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_DEVICE_MEMORY_HELPER_HPP
-#define GCXX_RUNTIME_DETAILS_DEVICE_MEMORY_HELPER_HPP
+#ifndef GCXX_RUNTIME_DETAILS_MEMORY_DEVICE_MEMORY_HELPER_HPP
+#define GCXX_RUNTIME_DETAILS_MEMORY_DEVICE_MEMORY_HELPER_HPP
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>

@@ -5,7 +5,7 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
-#include <gcxx/runtime/details/device_memory_helper.hpp>
+#include <gcxx/runtime/details/memory/device_memory_helper.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

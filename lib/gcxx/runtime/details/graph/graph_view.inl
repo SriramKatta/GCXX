@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_GRAPH_VIEW_INL_
-#define GCXX_RUNTIME_DETAILS_GRAPH_VIEW_INL_
+#ifndef GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_VIEW_INL_
+#define GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_VIEW_INL_
 
 #include <cstddef>
 #include <filesystem>

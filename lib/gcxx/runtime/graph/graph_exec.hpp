@@ -43,7 +43,7 @@ class GraphExec : public GraphExecView {
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/graph_exec.inl>
+#include <gcxx/runtime/details/graph/graph_exec.inl>
 
 #include <gcxx/macros/undefine_macros.hpp>
 

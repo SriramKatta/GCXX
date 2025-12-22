@@ -21,6 +21,6 @@ namespace Device {
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/device.inl>
+#include <gcxx/runtime/details/device/device.inl>
 
 #endif

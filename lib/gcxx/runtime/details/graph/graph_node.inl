@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_GRAPH_NODE_INL_
-#define GCXX_RUNTIME_DETAILS_GRAPH_NODE_INL_
+#ifndef GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_NODE_INL_
+#define GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_NODE_INL_
 
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/graph/graph_node.hpp>

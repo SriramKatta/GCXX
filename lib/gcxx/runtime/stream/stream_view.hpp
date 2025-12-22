@@ -70,7 +70,7 @@ class StreamView {
 GCXX_NAMESPACE_MAIN_END
 
 
-#include <gcxx/runtime/details/stream_view.inl>
+#include <gcxx/runtime/details/stream/stream_view.inl>
 
 #include <gcxx/macros/undefine_macros.hpp>
 #endif

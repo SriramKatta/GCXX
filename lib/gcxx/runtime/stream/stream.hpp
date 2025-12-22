@@ -50,7 +50,7 @@ class Stream : public StreamView {
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/stream.inl>
+#include <gcxx/runtime/details/stream/stream.inl>
 
 #include <gcxx/macros/undefine_macros.hpp>
 

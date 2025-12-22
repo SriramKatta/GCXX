@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_STREAM_VIEW_INL_
-#define GCXX_RUNTIME_DETAILS_STREAM_VIEW_INL_
+#ifndef GCXX_RUNTIME_DETAILS_STREAM_STREAM_VIEW_INL_
+#define GCXX_RUNTIME_DETAILS_STREAM_STREAM_VIEW_INL_
 
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/graph/graph.hpp>

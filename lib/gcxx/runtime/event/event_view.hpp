@@ -151,7 +151,7 @@ class EventView {
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/event_view.inl>
+#include <gcxx/runtime/details/event/event_view.inl>
 
 #include <gcxx/macros/undefine_macros.hpp>
 

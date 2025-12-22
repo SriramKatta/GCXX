@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_DEVICE_INL_
-#define GCXX_RUNTIME_DETAILS_DEVICE_INL_
+#ifndef GCXX_RUNTIME_DETAILS_DEVICE_DEVICE_INL_
+#define GCXX_RUNTIME_DETAILS_DEVICE_DEVICE_INL_
 
 
 #include <gcxx/backend/backend.hpp>

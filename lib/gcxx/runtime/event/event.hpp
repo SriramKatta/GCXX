@@ -36,6 +36,6 @@ class Event : public EventView {
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/event.inl>
+#include <gcxx/runtime/details/event/event.inl>
 
 #endif

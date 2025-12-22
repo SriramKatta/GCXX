@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_DETAILS_GRAPH_EXEC_VIEW_INL_
-#define GCXX_RUNTIME_DETAILS_GRAPH_EXEC_VIEW_INL_
+#ifndef GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_EXEC_VIEW_INL_
+#define GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_EXEC_VIEW_INL_
 
 #include <gcxx/macros/define_macros.hpp>
 #include <gcxx/runtime/graph/graph_exec_view.hpp>

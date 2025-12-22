@@ -28,7 +28,7 @@ class [[maybe_unused]] EnsureCurrentDevice {
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
-#include <gcxx/runtime/details/ensure_device.inl>
+#include <gcxx/runtime/details/device/ensure_device.inl>
 
 
 #endif

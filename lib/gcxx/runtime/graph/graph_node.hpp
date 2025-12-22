@@ -500,7 +500,7 @@ class GraphNode {
 
 GCXX_NAMESPACE_MAIN_END
 
-// #include <gcxx/runtime/details/graph_node.inl>
+// #include <gcxx/runtime/details/graph/graph_node.inl>
 
 #include <gcxx/macros/undefine_macros.hpp>
 
