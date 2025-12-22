@@ -157,20 +157,21 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   gcxx::deviceGraphNode_t memcpyNode, kernelNode, memsetNode;
   double result_h = 0.0;
 
-  cudaKernelNodeParams kernelNodeParams = {0};
-  cudaMemcpy3DParms memcpyParams        = {0};
-  cudaMemsetParams memsetParams         = {0};
+  GCXX_RUNTIME_BACKEND(KernelNodeParams) kernelNodeParams = {0};
+  GCXX_RUNTIME_BACKEND(Memcpy3DParms) memcpyParams        = {0};
+  GCXX_RUNTIME_BACKEND(MemsetParams) memsetParams         = {0};
 
   memcpyParams.srcArray = NULL;
-  memcpyParams.srcPos   = make_cudaPos(0, 0, 0);
-  memcpyParams.srcPtr =
-    make_cudaPitchedPtr(inputVec_h, sizeof(float) * inputSize, inputSize, 1);
+  memcpyParams.srcPos   = gcxx::memory::makePos(0, 0, 0);
+  memcpyParams.srcPtr   = gcxx::memory::makePitchedPtr(
+    inputVec_h, sizeof(float) * inputSize, inputSize, 1);
   memcpyParams.dstArray = NULL;
-  memcpyParams.dstPos   = make_cudaPos(0, 0, 0);
-  memcpyParams.dstPtr =
-    make_cudaPitchedPtr(inputVec_d, sizeof(float) * inputSize, inputSize, 1);
-  memcpyParams.extent = make_cudaExtent(sizeof(float) * inputSize, 1, 1);
-  memcpyParams.kind   = cudaMemcpyDefault;
+  memcpyParams.dstPos   = gcxx::memory::makePos(0, 0, 0);
+  memcpyParams.dstPtr   = gcxx::memory::makePitchedPtr(
+    inputVec_d, sizeof(float) * inputSize, inputSize, 1);
+  memcpyParams.extent =
+    gcxx::memory::makeExtent(sizeof(float) * inputSize, 1, 1);
+  memcpyParams.kind = GCXX_RUNTIME_BACKEND(MemcpyDefault);
 
   memcpyNode = graph.AddMemcpyNode(NULL, 0, &memcpyParams);
 
@@ -228,20 +229,22 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   memset(&memcpyParams, 0, sizeof(memcpyParams));
 
   memcpyParams.srcArray = NULL;
-  memcpyParams.srcPos   = make_cudaPos(0, 0, 0);
-  memcpyParams.srcPtr   = make_cudaPitchedPtr(result_d, sizeof(double), 1, 1);
+  memcpyParams.srcPos   = gcxx::memory::makePos(0, 0, 0);
+  memcpyParams.srcPtr =
+    gcxx::memory::makePitchedPtr(result_d, sizeof(double), 1, 1);
   memcpyParams.dstArray = NULL;
-  memcpyParams.dstPos   = make_cudaPos(0, 0, 0);
-  memcpyParams.dstPtr   = make_cudaPitchedPtr(&result_h, sizeof(double), 1, 1);
-  memcpyParams.extent   = make_cudaExtent(sizeof(double), 1, 1);
-  memcpyParams.kind     = cudaMemcpyDefault;
+  memcpyParams.dstPos   = gcxx::memory::makePos(0, 0, 0);
+  memcpyParams.dstPtr =
+    gcxx::memory::makePitchedPtr(&result_h, sizeof(double), 1, 1);
+  memcpyParams.extent = gcxx::memory::makeExtent(sizeof(double), 1, 1);
+  memcpyParams.kind   = GCXX_RUNTIME_BACKEND(MemcpyDefault);
 
   memcpyNode = graph.AddMemcpyNode(nodeDependencies, &memcpyParams);
   nodeDependencies.clear();
   nodeDependencies.push_back(memcpyNode);
 
-  cudaHostNodeParams hostParams = {0};
-  hostParams.fn                 = myHostNodeCallback;
+  GCXX_RUNTIME_BACKEND(HostNodeParams) hostParams = {0};
+  hostParams.fn                                   = myHostNodeCallback;
   callBackData_t hostFnData;
   hostFnData.data     = &result_h;
   hostFnData.fn_name  = "deviceGraphsManual";
@@ -406,6 +409,8 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
+#if GCXX_CUDA_MODE
+
 __global__ void loopCondtionKernel(cudaGraphConditionalHandle handle,
                                    char* dPtr) {
   // set the condition value to 0 once dPtr is 0
@@ -469,6 +474,8 @@ void loopgraph() {
   streamForGraph.Synchronize();
 }
 
+#endif
+
 int main(int argc, char** argv) {
   size_t size      = 1 << 24;  // number of elements to reduce
   size_t maxBlocks = 512;
@@ -501,8 +508,9 @@ int main(int argc, char** argv) {
 
   deviceGraphsUsingStreamCaptureToGraph(inputVec_h, inputVec_d, outputVec_d,
                                         result_d, size, maxBlocks);
-
+#if GCXX_CUDA_MODE
   loopgraph();
+#endif
 
   return EXIT_SUCCESS;
 }
