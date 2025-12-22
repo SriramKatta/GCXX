@@ -17,15 +17,15 @@ using deviceKernelNodeParams_t = GCXX_RUNTIME_BACKEND(KernelNodeParams);
 
 template <std::size_t N>
 class KernelNodeParams {
-  private:
+ private:
   deviceKernelNodeParams_t params_{};
   std::array<void*, N> kernelargs_{};
-  
+
 
  public:
   template <typename... Args>
   KernelNodeParams(void* func, dim3 grid, dim3 block, unsigned int shmem,
-                   Args&... args)  {
+                   Args&... args) {
     static_assert(sizeof...(args) == N, "Arg count mismatch!");
 
     std::size_t i = 0;
@@ -42,7 +42,7 @@ class KernelNodeParams {
   // Constructor from pre-built array of void* pointers (used by builder)
   KernelNodeParams(void* func, dim3 grid, dim3 block, unsigned int shmem,
                    std::array<void*, N> arg_ptrs)
-    : kernelargs_(arg_ptrs) {
+      : kernelargs_(arg_ptrs) {
     params_.func           = func;
     params_.gridDim        = grid;
     params_.blockDim       = block;
@@ -93,7 +93,8 @@ class KernelParamsBuilder {
   template <typename Kernel>
   KernelParamsBuilder& setKernel(Kernel k) {
     static_assert(details_::is_void_function_pointer<Kernel>::value,
-                  "Kernel must be a function pointer and function should return void");
+                  "Passed value must be a function pointer and function should "
+                  "return void");
     kernel_ = reinterpret_cast<void*>(k);
     return *this;
   }
