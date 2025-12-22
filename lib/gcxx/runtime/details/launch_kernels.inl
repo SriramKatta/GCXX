@@ -37,7 +37,11 @@ namespace launch {
                       ActTypes&&... args) {
     void* kernelArgs[sizeof...(args) > 0 ? sizeof...(args) : 1] = {
       ((void*)&args)...};
-    GCXX_SAFE_RUNTIME_CALL(LaunchKernel, "Failed to launch GPU kernel", kernel,
+    GCXX_SAFE_RUNTIME_CALL(LaunchKernel, "Failed to launch GPU kernel",
+#if GCXX_HIP_MODE
+                           (void*)
+#endif
+                             kernel,
                            griddim, blockdim, kernelArgs, smem_bytes,
                            sv.getRawStream());
   }
