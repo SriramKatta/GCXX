@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_GRAPH_GRAPH_KERNEL_PARAMS_HPP_
-#define GCXX_RUNTIME_GRAPH_GRAPH_KERNEL_PARAMS_HPP_
+#ifndef GCXX_RUNTIME_GRAPH_PARAMS_GRAPH_KERNEL_PARAMS_HPP_
+#define GCXX_RUNTIME_GRAPH_PARAMS_GRAPH_KERNEL_PARAMS_HPP_
 
 #include <algorithm>
 #include <array>
@@ -15,6 +15,9 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 using deviceKernelNodeParams_t = GCXX_RUNTIME_BACKEND(KernelNodeParams);
 
+// KernelNodeParamsView is a non-owning view. It assumes that
+// params_.kernelParams (and any memory it points to) remains valid for the
+// lifetime of the view. No mutation is allowed through this interface.
 class KernelNodeParamsView {
  protected:
   deviceKernelNodeParams_t params_{};
@@ -23,6 +26,22 @@ class KernelNodeParamsView {
   GCXX_FHC auto getRawParams() const -> const deviceKernelNodeParams_t& {
     return params_;
   }
+
+  GCXX_FHC auto getFunc() const -> void* { return params_.func; }
+
+  GCXX_FHC auto getGridDim() const -> dim3 { return params_.gridDim; }
+
+  GCXX_FHC auto getBlockDim() const -> dim3 { return params_.blockDim; }
+
+  GCXX_FHC auto getSharedMemBytes() const -> unsigned int {
+    return params_.sharedMemBytes;
+  }
+
+  GCXX_FHC auto getKernelParams() const -> void* const* {
+    return params_.kernelParams;
+  }
+
+  GCXX_FHC auto getExtraArgs() const -> void* { return params_.extra; }
 };
 
 template <std::size_t N>
