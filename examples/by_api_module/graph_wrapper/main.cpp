@@ -157,8 +157,6 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   gcxx::deviceGraphNode_t memcpyNode, memsetNode;
   double result_h = 0.0;
 
-  GCXX_RUNTIME_BACKEND(MemsetParams) memsetParams = {0};
-
   auto memcpy3d1 =
     gcxx::Memcpy3DParamsBuilder()
       .setSrcPtr(gcxx::memory::makePitchedPtr(
@@ -171,15 +169,13 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
 
   memcpyNode = graph.AddMemcpyNode(NULL, 0, &(memcpy3d1.getRawParams()));
 
+  auto memset1 = gcxx::MemsetParamsBuilder()
+                   .setPtr(outputVec_d)
+                   .setElemetSize(sizeof(float))
+                   .setWidth(numOfBlocks * 2)
+                   .build();
 
-  memsetParams.dst         = (void*)outputVec_d;
-  memsetParams.value       = 0;
-  memsetParams.pitch       = 0;
-  memsetParams.elementSize = sizeof(float);  // elementSize can be max 4 bytes
-  memsetParams.width       = numOfBlocks * 2;
-  memsetParams.height      = 1;
-
-  memsetNode = graph.AddMemsetNode(NULL, 0, &memsetParams);
+  memsetNode = graph.AddMemsetNode(NULL, 0, &(memset1.getRawParams()));
 
   nodeDependencies.push_back(memsetNode);
   nodeDependencies.push_back(memcpyNode);
@@ -198,14 +194,13 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
 
-  memset(&memsetParams, 0, sizeof(memsetParams));
-  memsetParams.dst         = result_d;
-  memsetParams.value       = 0;
-  memsetParams.elementSize = sizeof(float);
-  memsetParams.width       = 2;
-  memsetParams.height      = 1;
+  auto memset2 = gcxx::MemsetParamsBuilder()
+                   .setElemetSize(sizeof(float))
+                   .setPtr(result_d)
+                   .setWidth(2)
+                   .build();
 
-  memsetNode = graph.AddMemsetNode(NULL, 0, &memsetParams);
+  memsetNode = graph.AddMemsetNode(NULL, 0, &(memset2.getRawParams()));
   nodeDependencies.push_back(memsetNode);
 
   auto k2builder = gcxx::KernelParamsBuilder()
@@ -226,7 +221,8 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
       .setExtent(gcxx::memory::makeExtent(sizeof(double), 1, 1))
       .build();
 
-  memcpyNode = graph.AddMemcpyNode(nodeDependencies, &(memcpy3d2.getRawParams()));
+  memcpyNode =
+    graph.AddMemcpyNode(nodeDependencies, &(memcpy3d2.getRawParams()));
   nodeDependencies.clear();
   nodeDependencies.push_back(memcpyNode);
 

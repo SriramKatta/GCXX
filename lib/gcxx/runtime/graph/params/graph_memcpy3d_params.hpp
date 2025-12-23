@@ -22,6 +22,7 @@ class Memcpy3DNodeParamsView {
   deviceMemcpy3DNodeParams_t params_{};
 
   GCXX_FHC Memcpy3DNodeParamsView() { memset(&params_, 0, sizeof(params_)); }
+
  public:
   GCXX_FHC auto getRawParams() const -> const deviceMemcpy3DNodeParams_t& {
     return params_;
@@ -76,9 +77,9 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 class Memcpy3DParamsBuilder {
  private:
   gcxx::memory::devicePitchedPtr srcPtr_{};
-  gcxx::memory::devicePos srcPos_{0,0,0};
+  gcxx::memory::devicePos srcPos_{0, 0, 0};
   gcxx::memory::devicePitchedPtr dstPtr_{};
-  gcxx::memory::devicePos dstPos_{0,0,0};
+  gcxx::memory::devicePos dstPos_{0, 0, 0};
   gcxx::memory::deviceExtent extent_{};
 
  public:
