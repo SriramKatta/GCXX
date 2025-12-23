@@ -43,12 +43,12 @@ class MemsetParamsView {
   GCXX_FHC auto getHeight() const -> const size_t { return params_.height; }
 };
 
-class MemsetNodeParams : public MemsetParamsView {
+class MemsetParams : public MemsetParamsView {
 
  public:
-  GCXX_FHC MemsetNodeParams() = default;
+  GCXX_FHC MemsetParams() = default;
 
-  GCXX_FHC MemsetNodeParams(void* dst, size_t pitch, unsigned int value,
+  GCXX_FHC MemsetParams(void* dst, size_t pitch, unsigned int value,
                             unsigned int elementSize, size_t width,
                             size_t height) {
     params_.dst         = dst;
@@ -60,9 +60,9 @@ class MemsetNodeParams : public MemsetParamsView {
   }
 
   // Disable move/copy to ensure params_ remains stable
-  MemsetNodeParams(const MemsetNodeParams&) = delete;
+  MemsetParams(const MemsetParams&) = delete;
 
-  MemsetNodeParams(MemsetNodeParams&&) = delete;
+  MemsetParams(MemsetParams&&) = delete;
 };
 
 GCXX_NAMESPACE_DETAILS_BEGIN
@@ -114,8 +114,8 @@ class MemsetParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC gcxx::MemsetNodeParams build() {
-    return MemsetNodeParams(dst_, pitch_, value_, elementSize_, width_,
+  GCXX_FHC gcxx::MemsetParams build() {
+    return MemsetParams(dst_, pitch_, value_, elementSize_, width_,
                             height_);
   }
 };

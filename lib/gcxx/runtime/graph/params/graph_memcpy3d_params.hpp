@@ -15,16 +15,16 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-using deviceMemcpy3DNodeParams_t = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
+using deviceMemcpy3DParams_t = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
 
-class Memcpy3DNodeParamsView {
+class Memcpy3DParamsView {
  protected:
-  deviceMemcpy3DNodeParams_t params_{};
+  deviceMemcpy3DParams_t params_{};
 
-  GCXX_FHC Memcpy3DNodeParamsView() { memset(&params_, 0, sizeof(params_)); }
+  GCXX_FHC Memcpy3DParamsView() { memset(&params_, 0, sizeof(params_)); }
 
  public:
-  GCXX_FHC auto getRawParams() const -> const deviceMemcpy3DNodeParams_t& {
+  GCXX_FHC auto getRawParams() const -> const deviceMemcpy3DParams_t& {
     return params_;
   }
 
@@ -49,12 +49,12 @@ class Memcpy3DNodeParamsView {
   }
 };
 
-class Memcpy3DNodeParams : public Memcpy3DNodeParamsView {
+class Memcpy3DParams : public Memcpy3DParamsView {
 
  public:
-  GCXX_FHC Memcpy3DNodeParams() = default;
+  GCXX_FHC Memcpy3DParams() = default;
 
-  GCXX_FHC Memcpy3DNodeParams(const gcxx::memory::devicePitchedPtr& srcPtr,
+  GCXX_FHC Memcpy3DParams(const gcxx::memory::devicePitchedPtr& srcPtr,
                               gcxx::memory::devicePos srcPos,
                               const gcxx::memory::devicePitchedPtr& dstPtr,
                               gcxx::memory::devicePos dstPos,
@@ -68,8 +68,8 @@ class Memcpy3DNodeParams : public Memcpy3DNodeParamsView {
   }
 
   // Disable move/copy to ensure params_ remains stable
-  Memcpy3DNodeParams(const Memcpy3DNodeParams&) = delete;
-  Memcpy3DNodeParams(Memcpy3DNodeParams&&)      = delete;
+  Memcpy3DParams(const Memcpy3DParams&) = delete;
+  Memcpy3DParams(Memcpy3DParams&&)      = delete;
 };
 
 GCXX_NAMESPACE_DETAILS_BEGIN
@@ -115,8 +115,8 @@ class Memcpy3DParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC gcxx::Memcpy3DNodeParams build() {
-    return Memcpy3DNodeParams(srcPtr_, srcPos_, dstPtr_, dstPos_, extent_);
+  GCXX_FHC gcxx::Memcpy3DParams build() {
+    return Memcpy3DParams(srcPtr_, srcPos_, dstPtr_, dstPos_, extent_);
   }
 };
 

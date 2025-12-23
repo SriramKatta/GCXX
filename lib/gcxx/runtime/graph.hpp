@@ -5,7 +5,7 @@
 #include <gcxx/runtime/flags/graph_flags.hpp>
 
 
-#include <gcxx/runtime/graph/params/graph_kernel_params.hpp>
+#include <gcxx/runtime/graph/params/graph_kernel_node_params.hpp>
 #include <gcxx/runtime/graph/params/graph_memcpy3d_params.hpp>
 #include <gcxx/runtime/graph/params/graph_memset_params.hpp>
 
