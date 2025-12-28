@@ -226,15 +226,21 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   nodeDependencies.clear();
   nodeDependencies.push_back(memcpyNode);
 
-  GCXX_RUNTIME_BACKEND(HostNodeParams) hostParams = {0};
-  hostParams.fn                                   = myHostNodeCallback;
   callBackData_t hostFnData;
-  hostFnData.data     = &result_h;
-  hostFnData.fn_name  = "deviceGraphsManual";
-  hostParams.userData = &hostFnData;
+  hostFnData.data    = &result_h;
+  hostFnData.fn_name = "deviceGraphsManual";
+  // GCXX_RUNTIME_BACKEND(HostNodeParams) hostParams = {0};
+  // hostParams.fn                                   = myHostNodeCallback;
+  // hostParams.userData = &hostFnData;
+
+  auto hostparambuilder = gcxx::HostNodeParamsBuilder()
+                            .setHostCallbackFn(myHostNodeCallback)
+                            .setUserData(&hostFnData)
+                            .build();
 
 
-  auto hostNode = graph.AddHostNode(nodeDependencies, &hostParams);
+  auto hostNode =
+    graph.AddHostNode(nodeDependencies, &(hostparambuilder.getRawParams()));
 
   size_t numNodes = graph.GetNumNodes();
   printf("\nNum of nodes in the graph created manually = %zu\n", numNodes);
