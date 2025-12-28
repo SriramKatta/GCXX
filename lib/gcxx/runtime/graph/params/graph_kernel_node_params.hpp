@@ -143,13 +143,13 @@ class KernelParamsBuilder {
     return setBlockDim({x, y, z});
   }
 
-  GCXX_FHC auto setSharedMem(unsigned s) -> KernelParamsBuilder& {
+  GCXX_FHC auto setSharedMemBytes(unsigned s) -> KernelParamsBuilder& {
     shmem_ = s;
     return *this;
   }
 
   template <typename VT>
-  GCXX_FHC auto setSharedMemBytes(std::size_t numElems)
+  GCXX_FHC auto setSharedMem(std::size_t numElems)
     -> KernelParamsBuilder& {
     return setSharedMemBytes(numElems * sizeof(VT));
   }
