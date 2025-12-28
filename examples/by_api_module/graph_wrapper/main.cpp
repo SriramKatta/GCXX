@@ -229,7 +229,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   callBackData_t hostFnData;
   hostFnData.data    = &result_h;
   hostFnData.fn_name = "deviceGraphsManual";
-  // GCXX_RUNTIME_BACKEND(HostNodeParams) hostParams = {0};
+  // cudaHostNodeParams hostParams = {0};
   // hostParams.fn                                   = myHostNodeCallback;
   // hostParams.userData = &hostFnData;
 
