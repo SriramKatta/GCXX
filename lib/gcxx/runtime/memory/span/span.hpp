@@ -43,6 +43,8 @@ template <>
 struct size_holder<dynamic_extent> {
   std::size_t m_size{0};
 
+  GCXX_FHDC size_holder() noexcept = default;
+
   GCXX_FHDC size_holder(std::size_t n) noexcept : m_size(n) {}
 
   GCXX_FHDC std::size_t size() const noexcept { return m_size; }
