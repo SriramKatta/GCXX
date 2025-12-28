@@ -55,10 +55,10 @@ class Memcpy3DParams : public Memcpy3DParamsView {
   GCXX_FHC Memcpy3DParams() = default;
 
   GCXX_FHC Memcpy3DParams(const gcxx::memory::devicePitchedPtr& srcPtr,
-                              gcxx::memory::devicePos srcPos,
-                              const gcxx::memory::devicePitchedPtr& dstPtr,
-                              gcxx::memory::devicePos dstPos,
-                              gcxx::memory::deviceExtent extent) {
+                          gcxx::memory::devicePos srcPos,
+                          const gcxx::memory::devicePitchedPtr& dstPtr,
+                          gcxx::memory::devicePos dstPos,
+                          gcxx::memory::deviceExtent extent) {
     params_.srcPtr = srcPtr;
     params_.srcPos = srcPos;
     params_.dstPtr = dstPtr;

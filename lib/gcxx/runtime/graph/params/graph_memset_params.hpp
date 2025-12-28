@@ -28,7 +28,7 @@ class MemsetParamsView {
     return params_;
   }
 
-  GCXX_FHC auto getPtr() const -> const void *const { return params_.dst; }
+  GCXX_FHC auto getPtr() const -> const void* const { return params_.dst; }
 
   GCXX_FHC auto getPitch() const -> const size_t { return params_.pitch; }
 
@@ -49,8 +49,7 @@ class MemsetParams : public MemsetParamsView {
   GCXX_FHC MemsetParams() = default;
 
   GCXX_FHC MemsetParams(void* dst, size_t pitch, unsigned int value,
-                            unsigned int elementSize, size_t width,
-                            size_t height) {
+                        unsigned int elementSize, size_t width, size_t height) {
     params_.dst         = dst;
     params_.pitch       = pitch;
     params_.value       = value;
@@ -79,8 +78,7 @@ class MemsetParamsBuilder {
  public:
   GCXX_FH static auto create() -> MemsetParamsBuilder { return {}; }
 
-  GCXX_FHC auto setPtr(void* ptr)
-    -> MemsetParamsBuilder& {
+  GCXX_FHC auto setPtr(void* ptr) -> MemsetParamsBuilder& {
     dst_ = ptr;
     return *this;
   }
@@ -90,8 +88,7 @@ class MemsetParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC auto setValue(unsigned int value)
-    -> MemsetParamsBuilder& {
+  GCXX_FHC auto setValue(unsigned int value) -> MemsetParamsBuilder& {
     value_ = value;
     return *this;
   }
@@ -101,22 +98,18 @@ class MemsetParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC auto setWidth(size_t width)
-    -> MemsetParamsBuilder& {
+  GCXX_FHC auto setWidth(size_t width) -> MemsetParamsBuilder& {
     width_ = width;
     return *this;
   }
 
-
-  GCXX_FHC auto setHeight(size_t height)
-    -> MemsetParamsBuilder& {
+  GCXX_FHC auto setHeight(size_t height) -> MemsetParamsBuilder& {
     height_ = height;
     return *this;
   }
 
   GCXX_FHC gcxx::MemsetParams build() {
-    return MemsetParams(dst_, pitch_, value_, elementSize_, width_,
-                            height_);
+    return MemsetParams(dst_, pitch_, value_, elementSize_, width_, height_);
   }
 };
 
