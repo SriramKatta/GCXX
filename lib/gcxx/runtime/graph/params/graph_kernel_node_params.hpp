@@ -108,7 +108,7 @@ class KernelParamsBuilder {
   dim3 grid_{1, 1, 1};
   dim3 block_{1, 1, 1};
   unsigned shmem_{0};
-  std::vector<void*> arg_ptrs_;
+  std::vector<void*> arg_ptrs_{};
 
  public:
   GCXX_FH static auto create() -> KernelParamsBuilder { return {}; }
@@ -129,8 +129,8 @@ class KernelParamsBuilder {
 
   GCXX_FHC auto setGridDim(unsigned int x = 1, unsigned int y = 1,
                            unsigned int z = 1) -> KernelParamsBuilder& {
-    grid_ = {x, y, z};
-    return *this;
+
+    return setGridDim({x, y, z});
   }
 
   GCXX_FHC auto setBlockDim(dim3 b) -> KernelParamsBuilder& {
@@ -140,11 +140,10 @@ class KernelParamsBuilder {
 
   GCXX_FHC auto setBlockDim(unsigned int x = 1, unsigned int y = 1,
                             unsigned int z = 1) -> KernelParamsBuilder& {
-    block_ = {x, y, z};
-    return *this;
+    return setBlockDim({x, y, z});
   }
 
-  GCXX_FHC auto setSharedMemBytes(unsigned s) -> KernelParamsBuilder& {
+  GCXX_FHC auto setSharedMem(unsigned s) -> KernelParamsBuilder& {
     shmem_ = s;
     return *this;
   }
@@ -152,8 +151,17 @@ class KernelParamsBuilder {
   template <typename VT>
   GCXX_FHC auto setSharedMemBytes(std::size_t numElems)
     -> KernelParamsBuilder& {
-    shmem_ = numElems * sizeof(VT);
+    return setSharedMemBytes(numElems * sizeof(VT));
+  }
+
+  GCXX_FHC auto addSharedMemBytes(unsigned s) -> KernelParamsBuilder& {
+    shmem_ += s;
     return *this;
+  }
+
+  template <typename VT>
+  GCXX_FHC auto addSharedMem(std::size_t numElems) -> KernelParamsBuilder& {
+    return addSharedMemBytes(numElems * sizeof(VT));
   }
 
   template <typename... Args>
