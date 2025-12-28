@@ -122,7 +122,7 @@ void stream_capture_tograph() {
 
   stream1.EndCaptureToGraph(graph);
   graph.SaveDotfile("./test_stream_capture_to.dot",
-                 gcxx::flags::graphDebugDot::Verbose);
+                    gcxx::flags::graphDebugDot::Verbose);
   auto exec = graph.Instantiate();
   exec.Launch(StreamforGraph);
 }
