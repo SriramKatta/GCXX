@@ -144,30 +144,30 @@ void manual_graph_build() {
   auto KX = gcxx::KernelParamsBuilder().setKernel(kern_X).build<0>();
   auto KY = gcxx::KernelParamsBuilder().setKernel(kern_Y).build<0>();
 
-  auto KAnode = graph.AddKernelNode(NULL, 0, &(KA.getRawParams()));
+  auto KAnode = graph.AddKernelNode(&(KA.getRawParams()));
 
   deps.push_back(KAnode);
-  auto KBnode = graph.AddKernelNode(deps, &(KB.getRawParams()));
-  auto KXnode = graph.AddKernelNode(deps, &(KX.getRawParams()));
+  auto KBnode = graph.AddKernelNode(KB, deps);
+  auto KXnode = graph.AddKernelNode(KX, deps);
 
   deps.clear();
   deps.push_back(KBnode);
-  auto KCnode = graph.AddKernelNode(deps, &(KC.getRawParams()));
-  auto KDnode = graph.AddKernelNode(deps, &(KD.getRawParams()));
+  auto KCnode = graph.AddKernelNode(KC, deps);
+  auto KDnode = graph.AddKernelNode(KD, deps);
 
   deps.clear();
   deps.push_back(KCnode);
   deps.push_back(KDnode);
-  auto KEnode = graph.AddKernelNode(deps, &(KE.getRawParams()));
+  auto KEnode = graph.AddKernelNode(KE, deps);
 
   deps.clear();
   deps.push_back(KXnode);
-  auto KYnode = graph.AddKernelNode(deps, &(KY.getRawParams()));
+  auto KYnode = graph.AddKernelNode(KY, deps);
 
   deps.clear();
   deps.push_back(KEnode);
   deps.push_back(KYnode);
-  auto KFnode = graph.AddKernelNode(deps, &(KF.getRawParams()));
+  auto KFnode = graph.AddKernelNode(KF, deps);
 
   graph.SaveDotfile("./test_manual.dot", gcxx::flags::graphDebugDot::Verbose);
   auto exec = graph.Instantiate();
