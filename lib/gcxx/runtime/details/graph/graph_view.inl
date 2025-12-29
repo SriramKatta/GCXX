@@ -81,7 +81,7 @@ GCXX_FD auto GraphView::SetConditional(deviceGraphConditionalHandle_t handle,
 
 GCXX_FH auto GraphView::AddChildGraphNode(
   const GraphView& childGraph, const deviceGraphNode_t* pDependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
+  std::size_t numDependencies) -> ChildGraphNodeView {
   deviceGraphNode_t node;
   GCXX_SAFE_RUNTIME_CALL(
     GraphAddChildGraphNode, "Failed to Add Child graph Node to Graph", &node,
@@ -197,7 +197,7 @@ GCXX_FH auto GraphView::AddMemsetNode(const deviceMemsetParams_t* params,
 /// CPP STYLE
 GCXX_FH auto GraphView::AddChildGraphNode(
   const GraphView& childGraph,
-  gcxx::span<const deviceGraphNode_t> pDependencies) -> deviceGraphNode_t {
+  gcxx::span<const deviceGraphNode_t> pDependencies) -> ChildGraphNodeView {
   return AddChildGraphNode(childGraph, pDependencies.data(),
                            pDependencies.size());
 }
