@@ -6,11 +6,14 @@
 #include <gcxx/macros/define_macros.hpp>
 
 
-#include <gcxx/runtime/graph/grap_exec.hpp>
+#include <gcxx/runtime/graph/graph_exec_view.hpp>
 #include <gcxx/runtime/graph/graph_view.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
+
+GCXX_FHC ChildGraphNodeView::ChildGraphNodeView(deviceGraphNode_t node)
+    : GraphNodeView(node) {}
 
 GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
   deviceGraph_t graph;

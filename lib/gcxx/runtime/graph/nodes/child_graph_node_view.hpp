@@ -6,7 +6,7 @@
 #include <gcxx/macros/define_macros.hpp>
 
 
-#include <gcxx/runtime/graph/nodes/node_view.hpp>
+#include <gcxx/runtime/graph/nodes/graph_node_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -15,12 +15,12 @@ class GraphExecView;
 
 class ChildGraphNodeView : public GraphNodeView {
  public:
+  GCXX_FHC ChildGraphNodeView(deviceGraphNode_t node);
+
   GCXX_FH auto getGraph() -> GraphView;
   GCXX_FH auto setParams(GraphExecView exec, GraphView graph) -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END
-
-#include <gcxx/runtime/details/graph/nodes/child_graph_node_view.inl>
 
 #endif
