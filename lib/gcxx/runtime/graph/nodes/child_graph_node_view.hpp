@@ -23,4 +23,10 @@ class ChildGraphNodeView : public GraphNodeView {
 
 GCXX_NAMESPACE_MAIN_END
 
+// this needs to be added in gcxx/runtime/graph/graph_view.hpp to prevent the
+// circular dependecy problem MAYBE modules can solve this
+
+// #include <gcxx/runtime/details/graph/nodes/child_graph_node_view.inl>
+
+
 #endif
