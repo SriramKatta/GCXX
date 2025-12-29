@@ -16,6 +16,8 @@ class GraphNodeView {
   deviceGraphNode_t node_;
 
  public:
+  GCXX_FHC GraphNodeView(deviceGraphNode_t node) : node_(node) {}
+
   GCXX_FHC auto getRawNode() -> deviceGraphNode_t { return node_; }
 };
 
