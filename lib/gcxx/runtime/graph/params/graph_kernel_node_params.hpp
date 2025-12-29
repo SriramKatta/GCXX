@@ -46,16 +46,16 @@ class KernelNodeParamsView {
   GCXX_FHC auto getExtraArgs() const -> void* { return params_.extra; }
 };
 
-template <std::size_t N>
+template <std::size_t NumParams>
 class KernelNodeParams : public KernelNodeParamsView {
  private:
-  std::array<void*, N> kernelargs_{};
+  std::array<void*, NumParams> kernelargs_{};
 
  public:
   template <typename... Args>
   GCXX_FHC KernelNodeParams(void* func, dim3 grid, dim3 block,
                             unsigned int shmem, Args&... args) {
-    static_assert(sizeof...(args) == N, "Arg count mismatch!");
+    static_assert(sizeof...(args) == NumParams, "Arg count mismatch!");
 
     std::size_t i = 0;
     ((kernelargs_[i++] = static_cast<void*>(&args)), ...);
@@ -70,7 +70,7 @@ class KernelNodeParams : public KernelNodeParamsView {
 
   // Constructor from pre-built array of void* pointers (used by builder)
   GCXX_FHC KernelNodeParams(void* func, dim3 grid, dim3 block,
-                            unsigned int shmem, std::array<void*, N> arg_ptrs)
+                            unsigned int shmem, std::array<void*, NumParams> arg_ptrs)
       : kernelargs_(arg_ptrs) {
     params_.func           = func;
     params_.gridDim        = grid;
@@ -177,16 +177,16 @@ class KernelParamsBuilder {
     return *this;
   }
 
-  template <std::size_t N>
-  GCXX_FHC gcxx::KernelNodeParams<N> build() {
-    // static_assert(N > 0, "Kernel must have at least one argument");
-    assert(arg_ptrs_.size() == N);
+  template <std::size_t NumParams>
+  GCXX_FHC gcxx::KernelNodeParams<NumParams> build() {
+    // static_assert(NumParams > 0, "Kernel must have at least one argument");
+    assert(arg_ptrs_.size() == NumParams);
     assert(kernel_ != nullptr);
 
-    std::array<void*, N> final_args{};
-    std::copy_n(arg_ptrs_.begin(), N, final_args.begin());
+    std::array<void*, NumParams> final_args{};
+    std::copy_n(arg_ptrs_.begin(), NumParams, final_args.begin());
 
-    return KernelNodeParams<N>(kernel_, grid_, block_, shmem_, final_args);
+    return KernelNodeParams<NumParams>(kernel_, grid_, block_, shmem_, final_args);
   }
 };
 
