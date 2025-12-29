@@ -167,7 +167,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
       .build();
 
 
-  memcpyNode = graph.AddMemcpyNode(NULL, 0, &(memcpy3d1.getRawParams()));
+  memcpyNode = graph.AddMemcpyNode(memcpy3d1);
 
   auto memset1 = gcxx::MemsetParamsBuilder()
                    .setPtr(outputVec_d)
@@ -175,7 +175,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                    .setWidth(numOfBlocks * 2)
                    .build();
 
-  memsetNode = graph.AddMemsetNode(NULL, 0, &(memset1.getRawParams()));
+  memsetNode = graph.AddMemsetNode(memset1);
 
   nodeDependencies.push_back(memsetNode);
   nodeDependencies.push_back(memcpyNode);
@@ -187,9 +187,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                    .setArgs(inputVec_d, outputVec_d, inputSize, numOfBlocks)
                    .build<4>();
 
-  auto k1 = k1build.getRawParams();
-
-  auto kernelNode = graph.AddKernelNode(nodeDependencies, &k1);
+  auto kernelNode = graph.AddKernelNode(k1build, nodeDependencies);
 
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
@@ -200,7 +198,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                    .setWidth(2)
                    .build();
 
-  memsetNode = graph.AddMemsetNode(NULL, 0, &(memset2.getRawParams()));
+  memsetNode = graph.AddMemsetNode(memset2);
   nodeDependencies.push_back(memsetNode);
 
   auto k2builder = gcxx::KernelParamsBuilder()
@@ -210,7 +208,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                      .build<3>();
   auto k2 = k2builder.getRawParams();
 
-  kernelNode = graph.AddKernelNode(nodeDependencies, &k2builder.getRawParams());
+  kernelNode = graph.AddKernelNode(k2builder, nodeDependencies);
   nodeDependencies.clear();
   nodeDependencies.push_back(kernelNode);
 
@@ -221,8 +219,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
       .setExtent(gcxx::memory::makeExtent(sizeof(double), 1, 1))
       .build();
 
-  memcpyNode =
-    graph.AddMemcpyNode(nodeDependencies, &(memcpy3d2.getRawParams()));
+  memcpyNode = graph.AddMemcpyNode(memcpy3d2, nodeDependencies);
   nodeDependencies.clear();
   nodeDependencies.push_back(memcpyNode);
 
@@ -239,8 +236,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                             .build();
 
 
-  auto hostNode =
-    graph.AddHostNode(nodeDependencies, &(hostparambuilder.getRawParams()));
+  auto hostNode = graph.AddHostNode(hostparambuilder, nodeDependencies);
 
   size_t numNodes = graph.GetNumNodes();
   printf("\nNum of nodes in the graph created manually = %zu\n", numNodes);
@@ -398,73 +394,6 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
-#if GCXX_CUDA_MODE
-
-__global__ void loopCondtionKernel(cudaGraphConditionalHandle handle,
-                                   char* dPtr) {
-  // set the condition value to 0 once dPtr is 0
-  if (*dPtr == 0) {
-    gcxx::Graph::SetConditional(handle, 0);
-  }
-}
-
-__global__ void decrementKernel(char* dPtr) {
-  printf("current value is %d\n", (*dPtr)--);
-}
-
-void loopgraph() {
-  gcxx::Stream streamForGraph;
-
-  // Allocate a byte of device memory to use as input
-  auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
-  char* dPtr     = dptr_raii.get();
-
-  // Create the graph
-  // cudaGraphCreate(&graph, 0);
-  gcxx::Graph graph;
-
-  // Create the conditional handle with a default value of 1
-  auto handle = graph.CreateConditionalHandle(
-    1, gcxx::flags::graphConditionalHandle::Default);
-  // cudaGraphConditionalHandleCreate(&handle, graph, 1,
-  //                                  cudaGraphCondAssignDefault);
-
-  // graph.SaveDotfile("./test1.dot", gcxx::flags::graphDebugDot::Verbose);
-
-  // Create and add the WHILE conditional node
-  cudaGraphNodeParams cParams = {cudaGraphNodeTypeConditional};
-  cParams.conditional.handle  = handle;
-  cParams.conditional.type    = cudaGraphCondTypeWhile;
-  cParams.conditional.size    = 1;
-  // cudaGraphAddNode(&node, graph, NULL, 0, &cParams);
-  graph.AddNode(NULL, 0, &cParams);
-
-  // graph.SaveDotfile("./test2.dot", gcxx::flags::graphDebugDot::Verbose);
-
-
-  // Get the body graph of the conditional node
-  gcxx::GraphView bodyGraph = cParams.conditional.phGraph_out[0];
-
-  streamForGraph.BeginCaptureToGraph(bodyGraph,
-                                     gcxx::flags::streamCaptureMode::Global);
-  gcxx::launch::Kernel(streamForGraph, {1, 1, 1}, {1, 1, 1}, 0,
-                       loopCondtionKernel, handle, dPtr);
-  gcxx::launch::Kernel(streamForGraph, {1, 1, 1}, {1, 1, 1}, 0, decrementKernel,
-                       dPtr);
-  streamForGraph.EndCaptureToGraph(bodyGraph);
-
-  // graph.SaveDotfile("./test3.dot", gcxx::flags::graphDebugDot::Verbose);
-
-  // Initialize device memory, instantiate, and launch the graph
-  char val = 10;
-  gcxx::memory::copy(dPtr, &val, 1);
-  auto graphExec = graph.Instantiate();
-  graphExec.Launch(streamForGraph);
-  streamForGraph.Synchronize();
-}
-
-#endif
-
 int main(int argc, char** argv) {
   size_t size      = 1 << 24;  // number of elements to reduce
   size_t maxBlocks = 512;
@@ -497,9 +426,6 @@ int main(int argc, char** argv) {
 
   deviceGraphsUsingStreamCaptureToGraph(inputVec_h, inputVec_d, outputVec_d,
                                         result_d, size, maxBlocks);
-#if GCXX_CUDA_MODE
-  loopgraph();
-#endif
-
+                                        
   return EXIT_SUCCESS;
 }
