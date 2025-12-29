@@ -70,7 +70,8 @@ class KernelNodeParams : public KernelNodeParamsView {
 
   // Constructor from pre-built array of void* pointers (used by builder)
   GCXX_FHC KernelNodeParams(void* func, dim3 grid, dim3 block,
-                            unsigned int shmem, std::array<void*, NumParams> arg_ptrs)
+                            unsigned int shmem,
+                            std::array<void*, NumParams> arg_ptrs)
       : kernelargs_(arg_ptrs) {
     params_.func           = func;
     params_.gridDim        = grid;
@@ -186,7 +187,8 @@ class KernelParamsBuilder {
     std::array<void*, NumParams> final_args{};
     std::copy_n(arg_ptrs_.begin(), NumParams, final_args.begin());
 
-    return KernelNodeParams<NumParams>(kernel_, grid_, block_, shmem_, final_args);
+    return KernelNodeParams<NumParams>(kernel_, grid_, block_, shmem_,
+                                       final_args);
   }
 };
 
