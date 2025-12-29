@@ -6,6 +6,7 @@
 
 
 #include <gcxx/macros/define_macros.hpp>
+#include <gcxx/runtime/details/helper_function.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
