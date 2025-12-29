@@ -25,8 +25,7 @@ class HostNodeParamsView {
   GCXX_FHC HostNodeParamsView() { memset(&params_, 0, sizeof(params_)); }
 
  public:
-
-   GCXX_FHC auto getRawParams() const -> const deviceHostNodeParams_t& {
+  GCXX_FHC auto getRawParams() const -> const deviceHostNodeParams_t& {
     return params_;
   }
 
@@ -64,7 +63,8 @@ class HostNodeParamsBuilder {
  public:
   GCXX_FH static auto create() -> HostNodeParamsBuilder { return {}; }
 
-  GCXX_FHC auto setHostCallbackFn(deviceCallBackFn_t func) -> HostNodeParamsBuilder& {
+  GCXX_FHC auto setHostCallbackFn(deviceCallBackFn_t func)
+    -> HostNodeParamsBuilder& {
     func_ = func;
     return *this;
   }
@@ -73,6 +73,7 @@ class HostNodeParamsBuilder {
     Udata_ = udata;
     return *this;
   }
+
   GCXX_FHC gcxx::HostNodeParams build() {
     return HostNodeParams(func_, Udata_);
   }

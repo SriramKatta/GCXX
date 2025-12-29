@@ -149,8 +149,7 @@ class KernelParamsBuilder {
   }
 
   template <typename VT>
-  GCXX_FHC auto setSharedMem(std::size_t numElems)
-    -> KernelParamsBuilder& {
+  GCXX_FHC auto setSharedMem(std::size_t numElems) -> KernelParamsBuilder& {
     return setSharedMemBytes(numElems * sizeof(VT));
   }
 
