@@ -4,17 +4,13 @@
 
 #include <gcxx/runtime/flags/graph_flags.hpp>
 
+#include <gcxx/runtime/graph/graph_params.hpp>
 
-#include <gcxx/runtime/graph/params/graph_host_node_params.hpp>
-#include <gcxx/runtime/graph/params/graph_kernel_node_params.hpp>
-#include <gcxx/runtime/graph/params/graph_memcpy3d_params.hpp>
-#include <gcxx/runtime/graph/params/graph_memset_params.hpp>
-
+#include <gcxx/runtime/graph/graph_nodes.hpp>
 
 #include <gcxx/runtime/graph/graph.hpp>
 #include <gcxx/runtime/graph/graph_exec.hpp>
 #include <gcxx/runtime/graph/graph_exec_view.hpp>
-#include <gcxx/runtime/graph/graph_node.hpp>
 #include <gcxx/runtime/graph/graph_view.hpp>
 
 #endif
