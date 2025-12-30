@@ -29,7 +29,7 @@ GCXX_FH auto DeviceHandle::makeCurrent() const -> void {
 
 GCXX_FH auto DeviceHandle::Synchronize() const -> void {
   details_::EnsureCurrentDevice hand(deviceId_);
-  GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "Failed to synchronize the device");
+  gcxx::Device::Synchronize();
 }
 
 GCXX_FH auto DeviceHandle::getAttribute(

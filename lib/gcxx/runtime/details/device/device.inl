@@ -6,7 +6,6 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-#include <gcxx/runtime/device/device.hpp>
 #include <gcxx/runtime/device/device_handle.hpp>
 
 

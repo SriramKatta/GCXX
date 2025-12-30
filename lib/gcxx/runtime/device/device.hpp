@@ -5,10 +5,9 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-#include <gcxx/runtime/device/device_handle.hpp>
-
-
 GCXX_NAMESPACE_MAIN_BEGIN
+
+class DeviceHandle;
 
 namespace Device {
   GCXX_FH auto set(device_t devId, bool resetOnDestruct = false)
