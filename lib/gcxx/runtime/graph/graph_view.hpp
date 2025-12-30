@@ -35,6 +35,13 @@ using deviceGraph_t     = details_::deviceGraph_t;
 using deviceGraphConditionalHandle_t = details_::deviceGraphConditionalHandle_t;
 #endif
 
+class GraphView;
+/// Result struct for AddIfNode with named fields
+struct IfNodeResult;
+struct IfElseNodeResult;
+struct WhileNodeResult;
+struct SwitchNodeResult;
+
 class GraphView {
  protected:
   deviceGraph_t graph_{details_::INVALID_GRAPH};
@@ -57,6 +64,18 @@ class GraphView {
 
   GCXX_FD static auto SetConditional(deviceGraphConditionalHandle_t,
                                      unsigned int) -> void;
+
+  GCXX_FH auto AddIfNode(deviceGraphConditionalHandle_t condHand)
+    -> IfNodeResult;
+
+  GCXX_FH auto AddIfElseNode(deviceGraphConditionalHandle_t condHand)
+    -> IfElseNodeResult;
+
+  GCXX_FH auto AddWhileNode(deviceGraphConditionalHandle_t condHand)
+    -> WhileNodeResult;
+
+  GCXX_FH auto AddSwitchNode(deviceGraphConditionalHandle_t condHand,
+                             std::size_t numCases) -> SwitchNodeResult;
 #endif
   // ════════════════════════════════════════════════════════════════════════
   // Graph Node Addition Methods
@@ -129,7 +148,6 @@ class GraphView {
   // // general version to Add anything will make a staic dispatch with diffrent
   // // parameters
   // GCXX_FH auto AddNode() -> deviceGraphNode_t;
-
 
   // ════════════════════════════════════════════════════════════════════════
   // CPP style Graph Node Addition Methods

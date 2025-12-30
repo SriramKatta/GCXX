@@ -14,6 +14,27 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
+struct IfNodeResult {
+  deviceGraphNode_t conditionalNode;
+  GraphView IfbodyGraph;
+};
+
+struct IfElseNodeResult {
+  deviceGraphNode_t conditionalNode;
+  GraphView IfbodyGraph;
+  GraphView ElsebodyGraph;
+};
+
+struct WhileNodeResult {
+  deviceGraphNode_t conditionalNode;
+  GraphView whilebodyGraph;
+};
+
+struct SwitchNodeResult {
+  deviceGraphNode_t conditionalNode;
+  std::vector<GraphView> CasesbodyGraph;
+};
+
 GCXX_FHC GraphView::GraphView(deviceGraph_t rawgraph) : graph_(rawgraph) {}
 
 GCXX_FHC auto GraphView::getRawGraph() const -> deviceGraph_t {
@@ -70,6 +91,84 @@ GCXX_FD auto GraphView::SetConditional(deviceGraphConditionalHandle_t handle,
 #elif GCXX_HIP_MODE
 #warning "Conditional nodes are not implemented in HIP yet"
 #endif
+}
+
+GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle)
+  -> IfNodeResult {
+  deviceGraphNode_t node;
+  GCXX_RUNTIME_BACKEND(GraphNodeParams)
+  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  cParams.conditional.handle = condHandle;
+  cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeIf);
+  cParams.conditional.size   = 1;
+
+  GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If node to graph", &node,
+                         graph_, nullptr, 0, &cParams);
+
+  // Extract the body graph from the conditional node parameters
+  deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
+
+  return IfNodeResult{node, GraphView(bodyGraph)};
+}
+
+GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle)
+  -> IfElseNodeResult {
+  deviceGraphNode_t node;
+  GCXX_RUNTIME_BACKEND(GraphNodeParams)
+  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  cParams.conditional.handle = condHandle;
+  cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeIf);
+  cParams.conditional.size   = 2;
+
+  GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If-Else node to graph",
+                         &node, graph_, nullptr, 0, &cParams);
+
+  // Extract both body graphs from the conditional node parameters
+  deviceGraph_t ifBodyGraph = cParams.conditional.phGraph_out[0];
+  deviceGraph_t elseBodyGraph = cParams.conditional.phGraph_out[1];
+
+  return IfElseNodeResult{node, GraphView(ifBodyGraph),
+                          GraphView(elseBodyGraph)};
+}
+
+GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand)
+  -> WhileNodeResult {
+  deviceGraphNode_t node;
+  GCXX_RUNTIME_BACKEND(GraphNodeParams)
+  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  cParams.conditional.handle = condHand;
+  cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeWhile);
+  cParams.conditional.size   = 1;
+
+  GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add While node to graph",
+                         &node, graph_, nullptr, 0, &cParams);
+
+  // Extract the body graph from the conditional node parameters
+  deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
+
+  return WhileNodeResult{node, GraphView(bodyGraph)};
+}
+
+GCXX_FH auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
+                                      std::size_t numCases)
+  -> SwitchNodeResult {
+  deviceGraphNode_t node;
+  GCXX_RUNTIME_BACKEND(GraphNodeParams)
+  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  cParams.conditional.handle = condHand;
+  cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeSwitch);
+  cParams.conditional.size   = numCases;
+
+  GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add Switch node to graph",
+                         &node, graph_, nullptr, 0, &cParams);
+
+  // Extract all case body graphs from the conditional node parameters
+  std::vector<GraphView> caseGraphs;
+  for (std::size_t i = 0; i < numCases; ++i) {
+    caseGraphs.emplace_back(GraphView(cParams.conditional.phGraph_out[i]));
+  }
+
+  return SwitchNodeResult{node, caseGraphs};
 }
 
 #endif
