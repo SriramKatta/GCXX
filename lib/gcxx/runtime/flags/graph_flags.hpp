@@ -69,6 +69,14 @@ inline auto operator|(const graphDebugDot& lhs, const graphDebugDot& rhs)
                                     static_cast<details_::flag_t>(rhs));
 }
 
+enum class graphInstantiate : details_::flag_t {
+  None         = 0U,
+  AutoFree     = GCXX_RUNTIME_BACKEND(GraphInstantiateFlagAutoFreeOnLaunch),
+  Upload       = GCXX_RUNTIME_BACKEND(GraphInstantiateFlagUpload),
+  DeviceLaunch = GCXX_RUNTIME_BACKEND(GraphInstantiateFlagDeviceLaunch),
+  NodePriority = GCXX_RUNTIME_BACKEND(GraphInstantiateFlagUseNodePriority),
+};
+
 GCXX_NAMESPACE_MAIN_FLAGS_END
 
 #endif
