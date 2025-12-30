@@ -274,10 +274,10 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   stream3.WaitOnEvent(forkStreamEvent);
   gcxx::memory::copy(inputVec_d, inputVec_h, inputSize, stream1);
 
-  gcxx::memory::memset(outputVec_d, 0, numOfBlocks, stream2);
+  gcxx::memory::Memset(outputVec_d, 0, numOfBlocks, stream2);
   memsetEvent1.RecordInStream(stream2);
 
-  gcxx::memory::memset(result_d, 0, 1, stream3);
+  gcxx::memory::Memset(result_d, 0, 1, stream3);
   memsetEvent2.RecordInStream(stream3);
 
   stream1.WaitOnEvent(memsetEvent1);
@@ -342,10 +342,10 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   stream3.WaitOnEvent(forkStreamEvent);
   gcxx::memory::copy(inputVec_d, inputVec_h, inputSize, stream1);
 
-  gcxx::memory::memset(outputVec_d, 0, numOfBlocks, stream2);
+  gcxx::memory::Memset(outputVec_d, 0, numOfBlocks, stream2);
   memsetEvent1.RecordInStream(stream2);
 
-  gcxx::memory::memset(result_d, 0, 1, stream3);
+  gcxx::memory::Memset(result_d, 0, 1, stream3);
   memsetEvent2.RecordInStream(stream3);
 
   stream1.WaitOnEvent(memsetEvent1);
@@ -426,6 +426,6 @@ int main(int argc, char** argv) {
 
   deviceGraphsUsingStreamCaptureToGraph(inputVec_h, inputVec_d, outputVec_d,
                                         result_d, size, maxBlocks);
-                                        
+
   return EXIT_SUCCESS;
 }
