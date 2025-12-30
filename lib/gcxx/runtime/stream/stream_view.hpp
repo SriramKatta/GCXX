@@ -65,6 +65,8 @@ class StreamView {
   /// BeginCaptureToGraph to avoid ownership issues.
   /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
   GCXX_FH auto EndCaptureToGraph(GraphView& graph) -> void;
+
+  GCXX_FH auto StreamIsCapturing() -> gcxx::flags::streamCaptureStatus;
 };
 
 GCXX_NAMESPACE_MAIN_END

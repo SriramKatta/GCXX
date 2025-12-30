@@ -12,8 +12,8 @@ GCXX_NAMESPACE_MAIN_BEGIN
 GCXX_FHC StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
     : stream_(rawStream) {}
 
-GCXX_FH constexpr auto StreamView::getRawStream()
-  GCXX_CONST_NOEXCEPT->deviceStream_t {
+GCXX_FH constexpr auto StreamView::getRawStream() GCXX_CONST_NOEXCEPT
+  -> deviceStream_t {
   return stream_;
 }
 
@@ -82,6 +82,15 @@ GCXX_FH auto StreamView::EndCaptureToGraph(GraphView& graph) -> void {
   assert(pgraph == graph.getRawGraph() &&
          "EndCapture returned unexpected graph handle");
   (void)pgraph;  // Silence unused variable warning in release builds
+}
+
+GCXX_FH auto StreamView::StreamIsCapturing()
+  -> gcxx::flags::streamCaptureStatus {
+  GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
+  GCXX_SAFE_RUNTIME_CALL(StreamIsCapturing,
+                         "Failed to query if the Stream is capturing", stream_,
+                         &status);
+  return flags::to_streamCaptureStatus(status);
 }
 
 GCXX_NAMESPACE_MAIN_END

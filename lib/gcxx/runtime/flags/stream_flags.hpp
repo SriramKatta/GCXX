@@ -116,6 +116,19 @@ enum class streamCaptureStatus : details_::flag_t {
   Invalidated = GCXX_RUNTIME_BACKEND(StreamCaptureStatusInvalidated),
 };
 
+inline streamCaptureStatus
+to_streamCaptureStatus(cudaStreamCaptureStatus status) {
+  switch (status) {
+    case cudaStreamCaptureStatusNone:
+      return streamCaptureStatus::None;
+    case cudaStreamCaptureStatusActive:
+      return streamCaptureStatus::Active;
+    case cudaStreamCaptureStatusInvalidated:
+      return streamCaptureStatus::Invalidated;
+    default:
+      return streamCaptureStatus::None; // or handle error
+  }
+}
 
 GCXX_NAMESPACE_MAIN_FLAGS_END
 
