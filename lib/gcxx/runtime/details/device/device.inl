@@ -29,6 +29,10 @@ GCXX_FH auto Device::count() -> int {
   return num_dev;
 }
 
+GCXX_FH auto Device::Synchronize() -> void {
+  GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "Failed to synchronize the device");
+}
+
 GCXX_NAMESPACE_MAIN_END
 
 #endif

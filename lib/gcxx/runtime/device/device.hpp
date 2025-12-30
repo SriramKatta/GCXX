@@ -17,6 +17,8 @@ namespace Device {
   GCXX_FH auto get() -> DeviceHandle;
 
   GCXX_FH auto count() -> int;
+
+  GCXX_FH auto Synchronize() -> void;
 };  // namespace Device
 
 GCXX_NAMESPACE_MAIN_END
