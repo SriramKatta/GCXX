@@ -22,6 +22,7 @@ GCXX_NAMESPACE_MAIN_BEGIN
 class Event;
 class GraphView;
 class Graph;
+struct CaptureInfo;
 
 class StreamView {
  protected:
@@ -66,7 +67,9 @@ class StreamView {
   /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
   GCXX_FH auto EndCaptureToGraph(GraphView& graph) -> void;
 
-  GCXX_FH auto StreamIsCapturing() -> gcxx::flags::streamCaptureStatus;
+  GCXX_FH auto IsCapturing() -> gcxx::flags::streamCaptureStatus;
+
+  GCXX_FH auto GetCaptureInfo() -> CaptureInfo;
 };
 
 GCXX_NAMESPACE_MAIN_END

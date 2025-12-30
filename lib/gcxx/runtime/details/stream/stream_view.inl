@@ -9,6 +9,14 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
+struct CaptureInfo {
+  flags::streamCaptureStatus status{};
+  unsigned long long Unique_ID{};
+  GraphView graph{};
+  const deviceGraphNode_t* pDependencies;
+  std::size_t pDependenciescount;
+};
+
 GCXX_FHC StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
     : stream_(rawStream) {}
 
@@ -84,13 +92,27 @@ GCXX_FH auto StreamView::EndCaptureToGraph(GraphView& graph) -> void {
   (void)pgraph;  // Silence unused variable warning in release builds
 }
 
-GCXX_FH auto StreamView::StreamIsCapturing()
-  -> gcxx::flags::streamCaptureStatus {
+GCXX_FH auto StreamView::IsCapturing() -> gcxx::flags::streamCaptureStatus {
   GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
   GCXX_SAFE_RUNTIME_CALL(StreamIsCapturing,
                          "Failed to query if the Stream is capturing", stream_,
                          &status);
   return flags::to_streamCaptureStatus(status);
+}
+
+GCXX_FH auto StreamView::GetCaptureInfo() -> CaptureInfo {
+  GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
+  unsigned long long id{};
+  deviceGraph_t graph{};
+  const deviceGraphNode_t* pDependencies;
+  std::size_t numdeps;
+
+  GCXX_SAFE_RUNTIME_CALL(StreamGetCaptureInfo,
+                         "Failed to get Capture info of stream", stream_,
+                         &status, &id, &graph, &pDependencies, &numdeps);
+
+  return {flags::to_streamCaptureStatus(status), id, GraphView(graph),
+          pDependencies, numdeps};
 }
 
 GCXX_NAMESPACE_MAIN_END

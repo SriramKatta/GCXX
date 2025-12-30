@@ -117,7 +117,7 @@ enum class streamCaptureStatus : details_::flag_t {
 };
 
 inline streamCaptureStatus
-to_streamCaptureStatus(cudaStreamCaptureStatus status) {
+to_streamCaptureStatus(GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status) {
   switch (status) {
     case cudaStreamCaptureStatusNone:
       return streamCaptureStatus::None;
