@@ -25,6 +25,9 @@ class Graph;
 struct CaptureInfo;
 
 class StreamView {
+ private:
+  using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
+
  protected:
   using deviceStream_t = details_::deviceStream_t;
   deviceStream_t stream_{details_::NULL_STREAM};  // NOLINT
@@ -65,11 +68,15 @@ class StreamView {
   /// BeginCaptureToGraph. Use this instead of EndCapture() when using
   /// BeginCaptureToGraph to avoid ownership issues.
   /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
-  GCXX_FH auto EndCaptureToGraph(GraphView& graph) -> void;
+  GCXX_FH auto EndCaptureToGraph(const GraphView& graph) -> void;
 
   GCXX_FH auto IsCapturing() -> gcxx::flags::streamCaptureStatus;
 
   GCXX_FH auto GetCaptureInfo() -> CaptureInfo;
+
+  GCXX_FH auto UpdateCaptureDependencies(
+    flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
+    std::size_t numdeps) -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END

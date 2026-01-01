@@ -20,8 +20,8 @@ struct CaptureInfo {
 GCXX_FHC StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
     : stream_(rawStream) {}
 
-GCXX_FH constexpr auto StreamView::getRawStream() GCXX_CONST_NOEXCEPT
-  -> deviceStream_t {
+GCXX_FH constexpr auto StreamView::getRawStream()
+  GCXX_CONST_NOEXCEPT->deviceStream_t {
   return stream_;
 }
 
@@ -78,7 +78,8 @@ GCXX_FH auto StreamView::EndCapture() -> Graph {
   return Graph::CreateFromRaw(pgraph);
 }
 
-GCXX_FH auto StreamView::EndCaptureToGraph(GraphView& graph) -> void {
+GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {})
+  -> void {
   // When using BeginCaptureToGraph, the capture happens into the existing
   // graph, so the returned handle from EndCapture is the same as
   // graph.getRawGraph(). We just need to call EndCapture to finalize the
@@ -113,6 +114,15 @@ GCXX_FH auto StreamView::GetCaptureInfo() -> CaptureInfo {
 
   return {flags::to_streamCaptureStatus(status), id, GraphView(graph),
           pDependencies, numdeps};
+}
+
+GCXX_FH auto StreamView::UpdateCaptureDependencies(
+  flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
+  std::size_t numdeps) -> void {
+  GCXX_SAFE_RUNTIME_CALL(StreamUpdateCaptureDependencies,
+                         "Failed to update Dependencies to the cpatured graph",
+                         stream_, nodes, numdeps,
+                         static_cast<details_::flag_t>(flag));
 }
 
 GCXX_NAMESPACE_MAIN_END
