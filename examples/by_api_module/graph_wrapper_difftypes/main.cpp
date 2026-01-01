@@ -38,6 +38,7 @@
 // System includes
 #include <cassert>
 #include <cstdio>
+#include <utility>
 
 #include <gcxx/api.hpp>
 
@@ -186,13 +187,14 @@ void simpleDoWhileGraph(void) {
   // Allocate a byte of device memory to use as input
   // checkCudaErrors(cudaMalloc((void**)&dPtr, 1));
   auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
-  char* dPtr = dPtr_raii.get();
+  char* dPtr     = dPtr_raii.get();
 
   printf("simpleDoWhileGraph: Building graph...\n");
   // checkCudaErrors(cudaGraphCreate(&graph, 0));
   gcxx::Graph graph;
 
-  auto handle = graph.CreateConditionalHandle(1, gcxx::flags::graphConditionalHandle::Default);
+  auto handle = graph.CreateConditionalHandle(
+    1, gcxx::flags::graphConditionalHandle::Default);
   // checkCudaErrors(cudaGraphConditionalHandleCreate(&handle, graph, 1,
   //                                                  cudaGraphCondAssignDefault));
 
@@ -200,7 +202,8 @@ void simpleDoWhileGraph(void) {
   // cParams.conditional.handle  = handle;
   // cParams.conditional.type    = cudaGraphCondTypeWhile;
   // cParams.conditional.size    = 1;
-  // checkCudaErrors(cudaGraphAddNode(&conditionalNode, graph, NULL, 0, &cParams));
+  // checkCudaErrors(cudaGraphAddNode(&conditionalNode, graph, NULL, 0,
+  // &cParams));
 
   auto [conditionalNode, bodyGraph] = graph.AddWhileNode(handle);
 
@@ -212,14 +215,16 @@ void simpleDoWhileGraph(void) {
   // checkCudaErrors(cudaStreamBeginCaptureToGraph(captureStream, bodyGraph,
   //                                               nullptr, nullptr, 0,
   //                                               cudaStreamCaptureModeGlobal));
-  captureStream.BeginCaptureToGraph(bodyGraph, gcxx::flags::streamCaptureMode::Global);
+  captureStream.BeginCaptureToGraph(bodyGraph,
+                                    gcxx::flags::streamCaptureMode::Global);
   // doWhileEmptyKernel<<<1, 1, 0, captureStream>>>();
   // doWhileEmptyKernel<<<1, 1, 0, captureStream>>>();
   // doWhileLoopKernel<<<1, 1, 0, captureStream>>>(dPtr, handle);
   gcxx::launch::Kernel(captureStream, {1}, {1}, 0, doWhileEmptyKernel);
   gcxx::launch::Kernel(captureStream, {1}, {1}, 0, doWhileEmptyKernel);
-  gcxx::launch::Kernel(captureStream, {1}, {1}, 0, doWhileLoopKernel, dPtr, handle);
-  
+  gcxx::launch::Kernel(captureStream, {1}, {1}, 0, doWhileLoopKernel, dPtr,
+                       handle);
+
   // checkCudaErrors(cudaStreamEndCapture(captureStream, nullptr));
   captureStream.EndCaptureToGraph(bodyGraph);
   // checkCudaErrors(cudaStreamDestroy(captureStream));
@@ -263,8 +268,8 @@ void simpleDoWhileGraph(void) {
  * value to initialize the conditional value.
  */
 
-__global__ void capturedWhileKernel(char* dPtr,
-                                    gcxx::deviceGraphConditionalHandle_t handle) {
+__global__ void capturedWhileKernel(
+  char* dPtr, gcxx::deviceGraphConditionalHandle_t handle) {
   printf("GPU: counter = %d\n", *dPtr);
   if (*dPtr) {
     (*dPtr)--;
@@ -278,92 +283,84 @@ __global__ void capturedWhileEmptyKernel(void) {
 }
 
 void capturedWhileGraph(void) {
-  cudaGraph_t graph;
-  cudaGraphExec_t graphExec;
-
-  cudaStreamCaptureStatus status;
-  const cudaGraphNode_t* dependencies;
-  size_t numDependencies;
+  gcxx::deviceGraphConditionalHandle_t handle;
+  // cudaGraph_t graph;
+  // cudaGraphExec_t graphExec;
 
   // Allocate a byte of device memory to use as input
-  char* dPtr;
-  checkCudaErrors(cudaMalloc((void**)&dPtr, 1));
+  // checkCudaErrors(cudaMalloc((void **)&dPtr, 1));
+  auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  char* dPtr     = dPtr_raii.get();
 
   printf("capturedWhileGraph: Building graph...\n");
-  cudaStream_t captureStream;
-  checkCudaErrors(cudaStreamCreate(&captureStream));
+  // cudaStream_t captureStream;
+  // checkCudaErrors(cudaStreamCreate(&captureStream));
+  gcxx::Stream captureStream;
 
-  checkCudaErrors(
-    cudaStreamBeginCapture(captureStream, cudaStreamCaptureModeGlobal));
+  // checkCudaErrors(cudaStreamBeginCapture(captureStream,
+  // cudaStreamCaptureModeGlobal));
+  captureStream.BeginCapture(gcxx::flags::streamCaptureMode::Global);
 
   // Obtain the handle of the graph
-  checkCudaErrors(cudaStreamGetCaptureInfo(captureStream, &status, NULL, &graph,
-                                           &dependencies, &numDependencies));
+  // checkCudaErrors(cudaStreamGetCaptureInfo(captureStream, &status, NULL,
+  // &graph.getRawGraph(), &dependencies, &numDependencies));
+  // const deviceGraphNode_t* pDependencies;
+  {
+    auto [status, uniqueID, graph, dependencies, numDependencies] =
+      captureStream.GetCaptureInfo();
+    [[maybe_unused]] auto _ = uniqueID;  // Suppress unused warning
 
-  // Create the conditional handle
-  cudaGraphConditionalHandle handle;
-  checkCudaErrors(cudaGraphConditionalHandleCreate(&handle, graph));
+    // Create the conditional handle
+    // checkCudaErrors(cudaGraphConditionalHandleCreate(&handle, graph));
+    handle = graph.CreateConditionalHandle(
+      0, gcxx::flags::graphConditionalHandle::Default);
+    capturedWhileKernel<<<1, 1, 0, captureStream>>>(dPtr, handle);
+  }
 
   // Insert kernel node A
-  capturedWhileKernel<<<1, 1, 0, captureStream>>>(dPtr, handle);
 
-  // Obtain the handle for node A
-  checkCudaErrors(cudaStreamGetCaptureInfo(captureStream, &status, NULL, &graph,
-                                           &dependencies, &numDependencies));
+  // Obtain the handle for node A (get updated dependencies after kernel launch)
+  auto captureInfo2    = captureStream.GetCaptureInfo();
+  auto dependencies    = captureInfo2.pDependencies;
+  auto numDependencies = captureInfo2.pDependenciescount;
 
   // Insert conditional node B
-  cudaGraphNode_t conditionalNode;
-  cudaGraphNodeParams cParams = {cudaGraphNodeTypeConditional};
-  cParams.conditional.handle  = handle;
-  cParams.conditional.type    = cudaGraphCondTypeWhile;
-  cParams.conditional.size    = 1;
-  checkCudaErrors(cudaGraphAddNode(&conditionalNode, graph, dependencies,
-                                   numDependencies, &cParams));
+  auto [conditionalNode, bodyGraph] =
+    captureInfo2.graph.AddWhileNode(handle, dependencies, numDependencies);
 
-  cudaGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
-
-  // Update stream capture dependencies to account for the node we manually
-  // added
-  checkCudaErrors(cudaStreamUpdateCaptureDependencies(
-    captureStream, &conditionalNode, 1, cudaStreamSetCaptureDependencies));
+  // checkCudaErrors(cudaStreamUpdateCaptureDependencies(
+  // captureStream, &conditionalNode, 1, cudaStreamSetCaptureDependencies));
+  captureStream.UpdateCaptureDependencies(
+    gcxx::flags::StreamUpdateCaptureDependencies::Set, &conditionalNode, 1);
 
   // Insert kernel node D
   capturedWhileEmptyKernel<<<1, 1, 0, captureStream>>>();
 
-  checkCudaErrors(cudaStreamEndCapture(captureStream, &graph));
-  checkCudaErrors(cudaStreamDestroy(captureStream));
+  auto graph = captureStream.EndCapture();
 
   // Populate conditional body graph using stream capture
-  cudaStream_t bodyStream;
-  checkCudaErrors(cudaStreamCreate(&bodyStream));
+  gcxx::Stream bodyStream;
 
-  checkCudaErrors(cudaStreamBeginCaptureToGraph(
-    bodyStream, bodyGraph, nullptr, nullptr, 0, cudaStreamCaptureModeGlobal));
+  bodyStream.BeginCaptureToGraph(bodyGraph,
+                                 gcxx::flags::streamCaptureMode::Global);
 
   // Insert kernel node C
   capturedWhileKernel<<<1, 1, 0, bodyStream>>>(dPtr, handle);
-  checkCudaErrors(cudaStreamEndCapture(bodyStream, nullptr));
-  checkCudaErrors(cudaStreamDestroy(bodyStream));
 
-  checkCudaErrors(cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0));
+  bodyStream.EndCaptureToGraph(bodyGraph);
 
-  // Initialize device memory and launch the graph
-  // Device memory is zero, so the conditional node will not execute
-  checkCudaErrors(cudaMemset(dPtr, 0, 1));  // Set dPtr to 0
+  auto graphExec = graph.Instantiate();
+
+  gcxx::memory::Memset(dPtr, 0, 1);
   printf("Host: Launching graph with loop counter set to 0\n");
-  checkCudaErrors(cudaGraphLaunch(graphExec, 0));
-  checkCudaErrors(cudaDeviceSynchronize());
+  graphExec.Launch();
+  gcxx::Device::Synchronize();
 
-  // Initialize device memory and launch the graph
-  checkCudaErrors(cudaMemset(dPtr, 10, 1));  // Set dPtr to 10
-  printf("Host: Launching graph with loop counter set to 10\n");
-  checkCudaErrors(cudaGraphLaunch(graphExec, 0));
-  checkCudaErrors(cudaDeviceSynchronize());
-
-  // Cleanup
-  checkCudaErrors(cudaGraphExecDestroy(graphExec));
-  checkCudaErrors(cudaGraphDestroy(graph));
-  checkCudaErrors(cudaFree(dPtr));
+  int n = 6;
+  gcxx::memory::Memset(dPtr, n, 1);
+  printf("Host: Launching graph with loop counter set to %d\n", n);
+  graphExec.Launch();
+  gcxx::Device::Synchronize();
 
   printf("capturedWhileGraph: Complete\n\n");
 }

@@ -65,17 +65,24 @@ class GraphView {
   GCXX_FD static auto SetConditional(deviceGraphConditionalHandle_t,
                                      unsigned int) -> void;
 
-  GCXX_FH auto AddIfNode(deviceGraphConditionalHandle_t condHand)
-    -> IfNodeResult;
+  GCXX_FH auto AddIfNode(deviceGraphConditionalHandle_t condHand,
+                         const deviceGraphNode_t* pDependencies = nullptr,
+                         std::size_t numDependencies = 0) -> IfNodeResult;
 
-  GCXX_FH auto AddIfElseNode(deviceGraphConditionalHandle_t condHand)
+  GCXX_FH auto AddIfElseNode(deviceGraphConditionalHandle_t condHand,
+                             const deviceGraphNode_t* pDependencies = nullptr,
+                             std::size_t numDependencies            = 0)
     -> IfElseNodeResult;
 
-  GCXX_FH auto AddWhileNode(deviceGraphConditionalHandle_t condHand)
-    -> WhileNodeResult;
+  GCXX_FH auto AddWhileNode(deviceGraphConditionalHandle_t condHand,
+                            const deviceGraphNode_t* pDependencies = nullptr,
+                            std::size_t numDependencies = 0) -> WhileNodeResult;
 
   GCXX_FH auto AddSwitchNode(deviceGraphConditionalHandle_t condHand,
-                             std::size_t numCases) -> SwitchNodeResult;
+                             std::size_t numCases,
+                             const deviceGraphNode_t* pDependencies = nullptr,
+                             std::size_t numDependencies            = 0)
+    -> SwitchNodeResult;
 #endif
   // ════════════════════════════════════════════════════════════════════════
   // Graph Node Addition Methods

@@ -93,8 +93,9 @@ GCXX_FD auto GraphView::SetConditional(deviceGraphConditionalHandle_t handle,
 #endif
 }
 
-GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle)
-  -> IfNodeResult {
+GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle,
+                                  const deviceGraphNode_t* pDependencies,
+                                  std::size_t numDependencies) -> IfNodeResult {
   deviceGraphNode_t node;
   GCXX_RUNTIME_BACKEND(GraphNodeParams)
   cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
@@ -103,7 +104,7 @@ GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle)
   cParams.conditional.size   = 1;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If node to graph", &node,
-                         graph_, nullptr, 0, &cParams);
+                         graph_, pDependencies, numDependencies, &cParams);
 
   // Extract the body graph from the conditional node parameters
   deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
@@ -111,7 +112,9 @@ GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle)
   return IfNodeResult{node, GraphView(bodyGraph)};
 }
 
-GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle)
+GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
+                                      const deviceGraphNode_t* pDependencies,
+                                      std::size_t numDependencies)
   -> IfElseNodeResult {
   deviceGraphNode_t node;
   GCXX_RUNTIME_BACKEND(GraphNodeParams)
@@ -121,17 +124,20 @@ GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle)
   cParams.conditional.size   = 2;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If-Else node to graph",
-                         &node, graph_, nullptr, 0, &cParams);
+                         &node, graph_, pDependencies, numDependencies,
+                         &cParams);
 
   // Extract both body graphs from the conditional node parameters
-  deviceGraph_t ifBodyGraph = cParams.conditional.phGraph_out[0];
+  deviceGraph_t ifBodyGraph   = cParams.conditional.phGraph_out[0];
   deviceGraph_t elseBodyGraph = cParams.conditional.phGraph_out[1];
 
   return IfElseNodeResult{node, GraphView(ifBodyGraph),
                           GraphView(elseBodyGraph)};
 }
 
-GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand)
+GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand,
+                                     const deviceGraphNode_t* pDependencies,
+                                     std::size_t numDependencies)
   -> WhileNodeResult {
   deviceGraphNode_t node;
   GCXX_RUNTIME_BACKEND(GraphNodeParams)
@@ -141,7 +147,8 @@ GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand)
   cParams.conditional.size   = 1;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add While node to graph",
-                         &node, graph_, nullptr, 0, &cParams);
+                         &node, graph_, pDependencies, numDependencies,
+                         &cParams);
 
   // Extract the body graph from the conditional node parameters
   deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
@@ -150,7 +157,9 @@ GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand)
 }
 
 GCXX_FH auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
-                                      std::size_t numCases)
+                                      std::size_t numCases,
+                                      const deviceGraphNode_t* pDependencies,
+                                      std::size_t numDependencies)
   -> SwitchNodeResult {
   deviceGraphNode_t node;
   GCXX_RUNTIME_BACKEND(GraphNodeParams)
@@ -160,7 +169,8 @@ GCXX_FH auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
   cParams.conditional.size   = numCases;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add Switch node to graph",
-                         &node, graph_, nullptr, 0, &cParams);
+                         &node, graph_, pDependencies, numDependencies,
+                         &cParams);
 
   // Extract all case body graphs from the conditional node parameters
   std::vector<GraphView> caseGraphs;
