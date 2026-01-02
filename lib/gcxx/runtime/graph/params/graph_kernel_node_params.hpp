@@ -22,7 +22,7 @@ using deviceKernelNodeParams_t = GCXX_RUNTIME_BACKEND(KernelNodeParams);
 // lifetime of the view. No mutation is allowed through this interface.
 class KernelNodeParamsView {
  protected:
-  deviceKernelNodeParams_t params_{}; // NOLINT
+  deviceKernelNodeParams_t params_{};  // NOLINT
 
  public:
   GCXX_FHC auto getRawParams() const -> const deviceKernelNodeParams_t& {
@@ -126,7 +126,7 @@ class KernelParamsBuilder {
     static_assert(details_::is_void_function_pointer<Kernel>::value,
                   "Passed value must be a function pointer and function should "
                   "return void");
-    kernel_ = reinterpret_cast<void*>(k); // NOLINT
+    kernel_ = reinterpret_cast<void*>(k);  // NOLINT
     return *this;
   }
 

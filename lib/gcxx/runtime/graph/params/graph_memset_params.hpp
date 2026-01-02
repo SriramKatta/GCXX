@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstring>
 #include <utility>
 #include <vector>
-#include <cstring>
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
@@ -20,7 +20,7 @@ using deviceMemsetParams_t = GCXX_RUNTIME_BACKEND(MemsetParams);
 
 class MemsetParamsView {
  protected:
-  deviceMemsetParams_t params_{}; // NOLINT
+  deviceMemsetParams_t params_{};  // NOLINT
 
   GCXX_FHC MemsetParamsView() { std::memset(&params_, 0, sizeof(params_)); }
 
@@ -60,10 +60,10 @@ class MemsetParams : public MemsetParamsView {
   }
 
   // Disable move/copy to ensure params_ remains stable
-  MemsetParams(const MemsetParams&) = delete;
+  MemsetParams(const MemsetParams&)           = delete;
   MemsetParams operator=(const MemsetParams&) = delete;
 
-  MemsetParams(MemsetParams&&) = delete;
+  MemsetParams(MemsetParams&&)           = delete;
   MemsetParams operator=(MemsetParams&&) = delete;
 
   ~MemsetParams() = default;

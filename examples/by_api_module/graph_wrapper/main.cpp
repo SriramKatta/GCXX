@@ -36,10 +36,7 @@
 
 namespace cg = cooperative_groups;
 
-enum {
-THREADS_PER_BLOCK = 512,
-GRAPH_LAUNCH_ITERATIONS = 3
-};
+enum { THREADS_PER_BLOCK = 512, GRAPH_LAUNCH_ITERATIONS = 3 };
 
 using callBackData_t = struct callBackData {
   const char* fn_name;
@@ -145,7 +142,7 @@ void GCXXRT_CB myHostNodeCallback(void* data) {
   auto* tmp = (callBackData_t*)(data);
   // checkCudaErrors(tmp->status);
 
-  auto* result = (double*)(tmp->data);
+  auto* result   = (double*)(tmp->data);
   char* function = (char*)(tmp->fn_name);
   printf("[%s] Host callback final reduced sum = %lf\n", function, *result);
   *result = 0.0;  // reset the result

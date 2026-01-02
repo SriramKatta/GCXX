@@ -107,7 +107,7 @@ GCXX_FH auto StreamView::GetCaptureInfo() -> CaptureInfo {
   unsigned long long id{};
   deviceGraph_t graph{};
   const deviceGraphNode_t* pDependencies = nullptr;
-  std::size_t numdeps = 0;
+  std::size_t numdeps                    = 0;
 
   GCXX_SAFE_RUNTIME_CALL(StreamGetCaptureInfo,
                          "Failed to get Capture info of stream", stream_,

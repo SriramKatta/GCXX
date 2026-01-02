@@ -18,7 +18,7 @@ class StreamView;
 class GraphExecView {
  protected:
   using deviceGraphExec_t = details_::deviceGraphExec_t;
-  deviceGraphExec_t exec_{details_::INVALID_GRAPH_EXEC}; // NOLINT
+  deviceGraphExec_t exec_{details_::INVALID_GRAPH_EXEC};  // NOLINT
 
  public:
   GCXX_FHC GraphExecView() = default;
