@@ -42,21 +42,6 @@
 
 #include <gcxx/api.hpp>
 
-#define checkCudaErrors(err) __checkCudaErrors(err, __FILE__, __LINE__)
-
-// These are the inline versions for all of the SDK helper functions
-inline void __checkCudaErrors(cudaError_t err, const char* file,
-                              const int line) {
-  if (cudaSuccess != err) {
-    const char* errorStr = cudaGetErrorString(err);
-    fprintf(stderr,
-            "checkCudaErrors() Driver API error = %04d \"%s\" from file <%s>, "
-            "line %i.\n",
-            err, errorStr, file, line);
-    exit(EXIT_FAILURE);
-  }
-}
-
 __global__ void ifGraphKernelA(char* dPtr,
                                gcxx::deviceGraphConditionalHandle_t handle) {
   // In this example, condition is set if *dPtr is odd
@@ -72,12 +57,6 @@ __global__ void ifGraphKernelC(void) {
 
 // Setup and launch the graph
 void simpleIfGraph(void) {
-  // cudaGraph_t     graph;
-  // cudaGraphExec_t graphExec;
-  // cudaGraphNode_t kernelNode;
-  // cudaGraphNode_t conditionalNode;
-
-  // void* kernelArgs[2];
 
   // Allocate a byte of device memory to use as input
   auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
@@ -387,81 +366,48 @@ __global__ void ifGraphKernelD(void) {
 
 // Setup and launch the graph
 void simpleIfElseGraph(void) {
-  cudaGraph_t graph;
-  cudaGraphExec_t graphExec;
-  cudaGraphNode_t kernelNode;
-  cudaGraphNode_t conditionalNode;
+  gcxx::Graph graph;
 
-  void* kernelArgs[2];
-
-  // Allocate a byte of device memory to use as input
-  char* dPtr;
-  checkCudaErrors(cudaMalloc((void**)&dPtr, 1));
+  auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  char* dPtr     = dptr_raii.get();
 
   printf("simpleIfElseGraph: Building graph...\n");
-  cudaGraphCreate(&graph, 0);
 
   // Create conditional handle.
-  cudaGraphConditionalHandle handle;
-  cudaGraphConditionalHandleCreate(&handle, graph);
+  auto handle = graph.CreateConditionalHandle(0);
 
   // Use a kernel upstream of the conditional to set the handle value
-  cudaGraphNodeParams params = {cudaGraphNodeTypeKernel};
-  params.kernel.func         = (void*)ifGraphKernelA;
-  params.kernel.blockDim.x   = params.kernel.blockDim.y =
-    params.kernel.blockDim.z = 1;
-  params.kernel.gridDim.x = params.kernel.gridDim.y = params.kernel.gridDim.z =
-    1;
-  params.kernel.kernelParams = kernelArgs;
-  kernelArgs[0]              = &dPtr;
-  kernelArgs[1]              = &handle;
-  checkCudaErrors(cudaGraphAddNode(&kernelNode, graph, NULL, 0, &params));
+  auto kernparam = gcxx::KernelParamsBuilder()
+                     .setKernel(ifGraphKernelA)
+                     .setArgs(dPtr, handle)
+                     .build<2>();
+  auto kernnode = graph.AddKernelNode(kernparam);
 
-  cudaGraphNodeParams cParams = {cudaGraphNodeTypeConditional};
-  cParams.conditional.handle  = handle;
-  cParams.conditional.type    = cudaGraphCondTypeIf;
-  cParams.conditional.size =
-    2;  // Set size to 2 to indicate an ELSE graph will be used
-  checkCudaErrors(
-    cudaGraphAddNode(&conditionalNode, graph, &kernelNode, 1, &cParams));
-
-  cudaGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
+  auto [ifelsenode, IfGraphBody, Elsegraphbody] =
+    graph.AddIfElseNode(handle, &kernnode, 1);
 
   // Populate the body of the first graph in the conditional node, executed if
-  // the condition is true
-  cudaGraphNode_t trueBodyNode;
-  params.kernel.func         = (void*)ifGraphKernelC;
-  params.kernel.kernelParams = nullptr;
-  checkCudaErrors(cudaGraphAddNode(&trueBodyNode, bodyGraph, NULL, 0, &params));
+  auto kern2 = gcxx::KernelParamsBuilder().setKernel(ifGraphKernelC).build<0>();
+  auto truenode = IfGraphBody.AddKernelNode(kern2);
 
-  // Populate the body of the second graph in the conditional node, executed if
-  // the condition is false
-  bodyGraph = cParams.conditional.phGraph_out[1];
+  auto falsekern =
+    gcxx::KernelParamsBuilder().setKernel(ifGraphKernelD).build<0>();
+  auto falsenode = Elsegraphbody.AddKernelNode(falsekern);
 
-  cudaGraphNode_t falseBodyNode;
-  params.kernel.func         = (void*)ifGraphKernelD;
-  params.kernel.kernelParams = nullptr;
-  checkCudaErrors(
-    cudaGraphAddNode(&falseBodyNode, bodyGraph, NULL, 0, &params));
+  auto graphExec = graph.Instantiate();
 
-  checkCudaErrors(cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0));
+  // // Initialize device memory and launch the graph
+  gcxx::memory::Memset(dPtr, 0, 1);
+  printf("Host: Launching graph with loop counter set to 0\n");
+  graphExec.Launch();
+  gcxx::Device::Synchronize();
 
-  // Initialize device memory and launch the graph
-  checkCudaErrors(cudaMemset(dPtr, 0, 1));  // Set dPtr to 0
-  printf("Host: Launching graph with device memory set to 0\n");
-  checkCudaErrors(cudaGraphLaunch(graphExec, 0));
-  checkCudaErrors(cudaDeviceSynchronize());
+  int n = 1;
+  gcxx::memory::Memset(dPtr, n, 1);
+  printf("Host: Launching graph with loop counter set to %d\n", n);
+  graphExec.Launch();
+  gcxx::Device::Synchronize();
 
-  // Initialize device memory and launch the graph
-  checkCudaErrors(cudaMemset(dPtr, 1, 1));  // Set dPtr to 1
-  printf("Host: Launching graph with device memory set to 1\n");
-  checkCudaErrors(cudaGraphLaunch(graphExec, 0));
-  checkCudaErrors(cudaDeviceSynchronize());
-
-  // Cleanup
-  checkCudaErrors(cudaGraphExecDestroy(graphExec));
-  checkCudaErrors(cudaGraphDestroy(graph));
-  checkCudaErrors(cudaFree(dPtr));
 
   printf("simpleIfElseGraph: Complete\n\n");
 }
@@ -506,73 +452,50 @@ __global__ void switchGraphKernelF(void) {
 
 // Setup and launch the graph
 void simpleSwitchGraph(void) {
-  cudaGraph_t graph;
-  cudaGraphExec_t graphExec;
-  cudaGraphNode_t kernelNode;
-  cudaGraphNode_t conditionalNode;
+  gcxx::Graph graph;
 
-  void* kernelArgs[2];
-
-  // Allocate a byte of device memory to use as input
-  char* dPtr;
-  checkCudaErrors(cudaMalloc((void**)&dPtr, 1));
+  auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  char* dPtr     = dptr_raii.get();
 
   printf("simpleSwitchGraph: Building graph...\n");
-  cudaGraphCreate(&graph, 0);
 
-  // Create conditional handle.
-  cudaGraphConditionalHandle handle;
-  cudaGraphConditionalHandleCreate(&handle, graph);
+  auto handle = graph.CreateConditionalHandle(
+    0, gcxx::flags::graphConditionalHandle::Default);
 
   // Use a kernel upstream of the conditional to set the handle value
-  cudaGraphNodeParams params = {cudaGraphNodeTypeKernel};
-  params.kernel.func         = (void*)switchGraphKernelA;
-  params.kernel.blockDim.x   = params.kernel.blockDim.y =
-    params.kernel.blockDim.z = 1;
-  params.kernel.gridDim.x = params.kernel.gridDim.y = params.kernel.gridDim.z =
-    1;
-  params.kernel.kernelParams = kernelArgs;
-  kernelArgs[0]              = &dPtr;
-  kernelArgs[1]              = &handle;
-  checkCudaErrors(cudaGraphAddNode(&kernelNode, graph, NULL, 0, &params));
+  auto kern1 = gcxx::KernelParamsBuilder()
+                 .setKernel(switchGraphKernelA)
+                 .setArgs(dPtr, handle)
+                 .build<2>();
+  auto kernelNode = graph.AddKernelNode(kern1);
 
-  cudaGraphNodeParams cParams = {cudaGraphNodeTypeConditional};
-  cParams.conditional.handle  = handle;
-  cParams.conditional.type    = cudaGraphCondTypeSwitch;
-  cParams.conditional.size    = 4;
-  checkCudaErrors(
-    cudaGraphAddNode(&conditionalNode, graph, &kernelNode, 1, &cParams));
+  auto [condNode, casevector] = graph.AddSwitchNode(handle, 4);
 
   // Populate the four graph bodies within the SWITCH conditional graph
-  cudaGraphNode_t bodyNode;
-  params.kernel.kernelParams = nullptr;
-  params.kernel.func         = (void*)switchGraphKernelC;
-  checkCudaErrors(cudaGraphAddNode(
-    &bodyNode, cParams.conditional.phGraph_out[0], NULL, 0, &params));
-  params.kernel.func = (void*)switchGraphKernelD;
-  checkCudaErrors(cudaGraphAddNode(
-    &bodyNode, cParams.conditional.phGraph_out[1], NULL, 0, &params));
-  params.kernel.func = (void*)switchGraphKernelE;
-  checkCudaErrors(cudaGraphAddNode(
-    &bodyNode, cParams.conditional.phGraph_out[2], NULL, 0, &params));
-  params.kernel.func = (void*)switchGraphKernelF;
-  checkCudaErrors(cudaGraphAddNode(
-    &bodyNode, cParams.conditional.phGraph_out[3], NULL, 0, &params));
+  auto kernswitchC =
+    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelC).build<0>();
+  std::ignore = casevector[0].AddKernelNode(kernswitchC);
 
-  checkCudaErrors(cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0));
+  auto kernswitchD =
+    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelD).build<0>();
+  std::ignore = casevector[1].AddKernelNode(kernswitchD);
+
+  auto kernswitchE =
+    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelE).build<0>();
+  std::ignore = casevector[2].AddKernelNode(kernswitchE);
+
+  auto kernswitchF =
+    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelF).build<0>();
+  std::ignore = casevector[3].AddKernelNode(kernswitchF);
+
+  auto graphExec = graph.Instantiate();
 
   for (char i = 0; i < 5; i++) {
-    // Initialize device memory and launch the graph
-    checkCudaErrors(cudaMemset(dPtr, i, 1));
+    gcxx::memory::Memset(dPtr, i, 1);
     printf("Host: Launching graph with device memory set to %d\n", i);
-    checkCudaErrors(cudaGraphLaunch(graphExec, 0));
-    checkCudaErrors(cudaDeviceSynchronize());
+    graphExec.Launch();
+    gcxx::Device::Synchronize();
   }
-
-  // Cleanup
-  checkCudaErrors(cudaGraphExecDestroy(graphExec));
-  checkCudaErrors(cudaGraphDestroy(graph));
-  checkCudaErrors(cudaFree(dPtr));
 
   printf("simpleSwitchGraph: Complete\n\n");
 }
