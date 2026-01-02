@@ -47,6 +47,9 @@ inline Args parse_args(int argc, char** argv) {
           program.get<size_t>("blocks"), program.get<size_t>("threads")};
 }
 
+// prefer using vec2 types in case of double to improve
+// bandwidth also test with vec4_32a and vec4_16a to get
+// an idea of if they improve the performance
 template <typename VT>
 GCXX_FD VT thread_partial_sum(const gcxx::span<VT> a) {
   VT sum{};
@@ -69,6 +72,9 @@ GCXX_FD VT thread_partial_sum(const gcxx::span<VT> a) {
   return sum;
 }
 
+// need to improve since huge thread divergence and should use the warp shuffles
+// to utilize the registers in place of shared memory since they would be even
+// quicker access
 template <typename VT>
 GCXX_FD void in_block_reduction(VT* smem, size_t N) {
   const auto tid = threadIdx.x;
@@ -80,6 +86,8 @@ GCXX_FD void in_block_reduction(VT* smem, size_t N) {
   }
 }
 
+// okay for now but not possible in terms of old cuda with no atomic support for
+// doubles
 template <typename VT>
 GCXX_FDC void inter_block_reduction(VT* smem, VT* res) {
   if (threadIdx.x == 0) {
@@ -102,13 +110,16 @@ template <typename VT>
 VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
                            gcxx::span<VT>& ptr) {
   VT* res;
-  cudaMalloc(&res, sizeof(VT));
-  cudaMemset(res, 0, sizeof(VT));
+  GCXX_SAFE_RUNTIME_CALL(Malloc, "Device malloc failed", &res, sizeof(VT));
+  GCXX_SAFE_RUNTIME_CALL(Memset, "Device memset failed", res, 0, sizeof(VT));
+  // auto ev_start = str.recordEvent();
   kernel_reduction<<<arg.blocks, arg.threads, arg.threads * sizeof(VT),
                      str.get()>>>(ptr, res);
+  // auto ev_end = str.recordEvent();
   VT res_host{};
   VT* res_host_ptr = &res_host;
   gcxx::memory::copy(res_host_ptr, res, 1, str.get());
-  cudaFree(res);
+  str.Synchronize();
+  GCXX_SAFE_RUNTIME_CALL(Free, "Device memory free failed", res);
   return res_host;
 }

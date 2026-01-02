@@ -25,14 +25,14 @@ inline Args parse_args(int argc, char** argv) {
     .default_value<size_t>(10)
     .scan<'i', std::size_t>();
 
-  program.add_argument("-B", "--blocks")
-    .help("Number of blocks")
-    .default_value<size_t>(3456)
+  program.add_argument("-B", "--blocksmult")
+    .help("Number of blocks multiple of SMS")
+    .default_value<size_t>(32)
     .scan<'i', std::size_t>();
 
-  program.add_argument("-T", "--threads")
-    .help("Threads per block")
-    .default_value<size_t>(256)
+  program.add_argument("-T", "--threadsmult")
+    .help("Threads per block multiple of warpsize")
+    .default_value<size_t>(8)
     .scan<'i', std::size_t>();
 
   try {
@@ -43,8 +43,14 @@ inline Args parse_args(int argc, char** argv) {
     std::exit(1);
   }
 
+  auto devhand = gcxx::Device::get();
+  int SMcount =
+    devhand.getAttribute(gcxx::flags::deviceAttribute::MultiProcessorCount);
+  int warpSize = devhand.getAttribute(gcxx::flags::deviceAttribute::WarpSize);
+
   return {program.get<size_t>("N"), program.get<size_t>("reps"),
-          program.get<size_t>("blocks"), program.get<size_t>("threads")};
+          SMcount * program.get<size_t>("blocksmult"),
+          warpSize * program.get<size_t>("threadsmult")};
 }
 
 template <typename VT>
@@ -91,18 +97,18 @@ __global__ void kernel_4vec(const gcxx::span<VT> a) {
 
 template <typename VT>
 void launch_scalar_kernel(const Args& arg, const gcxx::Stream& str,
-                          gcxx::span<VT>& ptr) {
+                          gcxx::span<VT> ptr) {
   kernel_scalar<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }
 
 template <typename VT>
 void launch_vec2_kernel(const Args& arg, const gcxx::Stream& str,
-                        gcxx::span<VT>& ptr) {
+                        gcxx::span<VT> ptr) {
   kernel_2vec<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }
 
 template <typename VT>
-void launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
-                             gcxx::span<VT>& ptr) {
+void launch_vec4_kernel(const Args& arg, const gcxx::Stream& str,
+                        gcxx::span<VT> ptr) {
   kernel_4vec<<<arg.blocks, arg.threads, 0, str.get()>>>(ptr);
 }

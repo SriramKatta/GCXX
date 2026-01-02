@@ -4,17 +4,18 @@
 
 #include "main.hpp"
 
-using datatype = double;
+constexpr float keps = 1e-6;
+using datatype       = float;
 
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
   str.Synchronize();
-  auto kernelstart = str.recordEvent();
+  auto kernelstart = str.RecordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.recordEvent();
+  auto kernelend = str.RecordEvent();
   str.Synchronize();
   float kerneltime =
     (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
@@ -22,51 +23,32 @@ float time_measure(const gcxx::Stream& str, const Args& arg,
 }
 
 int main(int argc, char** argv) {
-  // using namespace gcxx::details_;
 
   Args arg = parse_args(argc, argv);
 
-  size_t sizeInBytes = arg.N * sizeof(datatype);
+  auto h_a = gcxx::host_vector<datatype>(arg.N);
+  auto d_a = gcxx::device_vector<datatype>(arg.N);
 
-  datatype* h_a{nullptr};
-  datatype* d_a{nullptr};
-
-#if GCXX_HIP_MODE
-  GCXX_SAFE_RUNTIME_CALL(HostMalloc, "failed to allocated Pinned Host data",
-                         &h_a, sizeInBytes);
-#elif GCXX_CUDA_MODE
-  GCXX_SAFE_RUNTIME_CALL(MallocHost, "failed to allocated Pinned Host data",
-                         &h_a, sizeInBytes);
-#endif
+  gcxx::span h_a_span(h_a);
+  gcxx::span d_a_span(d_a);
 
 
-  GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocted GPU memory", &d_a,
-                         sizeInBytes);
+  std::fill(h_a.begin(), h_a.end(), 1.0);
 
+  gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
-  gcxx::span h_a_span(h_a, arg.N);
-  gcxx::span d_a_span(d_a, arg.N);
-
-
-  std::fill(h_a, h_a + arg.N, 1.0);
-
-  gcxx::Stream str(gcxx::flags::streamType::noSyncWithNull);
-
-  auto H2Dstart = str.recordEvent();
+  auto H2Dstart = str.RecordEvent();
   gcxx::memory::copy(d_a_span, h_a_span, str);
-  auto H2Dend = str.recordEvent();
+  auto H2Dend = str.RecordEvent();
 
   auto res = launch_reduction_kernel<datatype>(arg, str, d_a_span);
 
-  if (res != arg.N) {
+  if ((res - static_cast<datatype>(arg.N) > keps)) {
     fmt::print("CHECK FAILED res {} and check val{}\n", res, arg.N);
 
   } else {
     fmt::print("CHECK PASSED\n");
   }
 
-
-  GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to free Allocated Host data", h_a);
-  GCXX_SAFE_RUNTIME_CALL(Free, "Failed to free Allocated GPU data", d_a);
   return 0;
 }

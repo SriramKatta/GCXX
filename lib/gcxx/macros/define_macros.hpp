@@ -57,21 +57,29 @@
 #define GCXX_CONST_NOEXCEPT const noexcept
 #endif
 
-using flag_t = unsigned int;
-
+#if GCXX_CUDA_MODE
+#define GCXXRT_CB CUDART_CB
+#else
+#define GCXXRT_CB
+#endif
 
 #ifndef GCXX_NAMESPACE_MAIN_BEGIN
 #define GCXX_NAMESPACE_MAIN_BEGIN \
   namespace gcxx {                \
     inline namespace v1 {
 #define GCXX_NAMESPACE_MAIN_END \
-  } /* inline namespace v1  */  \
+  }  /* inline namespace v1  */ \
   }  // namespace gcxx
 #endif
 
 #ifndef GCXX_NAMESPACE_DETAILS_BEGIN
 #define GCXX_NAMESPACE_DETAILS_BEGIN namespace details_ {
 #define GCXX_NAMESPACE_DETAILS_END } /* namespace details_  */
+#endif
+
+#ifndef GCXX_NAMESPACE_FLAGS_BEGIN
+#define GCXX_NAMESPACE_FLAGS_BEGIN namespace flags {
+#define GCXX_NAMESPACE_FLAGS_END } /* namespace flags  */
 #endif
 
 
@@ -84,7 +92,24 @@ using flag_t = unsigned int;
   GCXX_NAMESPACE_MAIN_END
 #endif
 
-#if  defined(__INTEL_COMPILER) 
+#ifndef GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+#define GCXX_NAMESPACE_MAIN_FLAGS_BEGIN \
+  GCXX_NAMESPACE_MAIN_BEGIN             \
+  GCXX_NAMESPACE_FLAGS_BEGIN
+#define GCXX_NAMESPACE_MAIN_FLAGS_END \
+  GCXX_NAMESPACE_FLAGS_END            \
+  GCXX_NAMESPACE_MAIN_END
+#endif
+
+GCXX_NAMESPACE_MAIN_BEGIN
+using device_t = int;
+GCXX_NAMESPACE_MAIN_END
+
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+using flag_t = unsigned int;
+GCXX_NAMESPACE_MAIN_DETAILS_END
+
+#if defined(__INTEL_COMPILER)
 #define GCXX_RESTRICT_KEYWORD __restrict
 #elif defined(__GNUC__) || defined(__clang__)
 #define GCXX_RESTRICT_KEYWORD __restrict__

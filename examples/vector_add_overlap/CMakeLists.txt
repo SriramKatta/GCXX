@@ -8,10 +8,6 @@ set(LIB_NAME ${EXE_NAME}_lib)
 
 add_library(${LIB_NAME} INTERFACE)
 
-set_target_properties(
-  ${LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX POSITION_INDEPENDENT_CODE ON
-)
-
 target_link_libraries(
   ${LIB_NAME} INTERFACE gcxx::gcxx fmt::fmt argparse::argparse
 )

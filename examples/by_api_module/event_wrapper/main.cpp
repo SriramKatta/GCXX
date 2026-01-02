@@ -3,7 +3,8 @@
 #include <array>
 #include <gcxx/runtime/event.hpp>
 
-void eve_ref_check(gcxx::event_wrap event) {
+// can also use gcxx::Event with refrence since copy ctor of it marked deleted
+void eve_ref_check(const gcxx::EventView event) {
   if (event.HasOccurred()) {
     fmt::print("Event has occurred.\n");
   } else {
@@ -22,16 +23,13 @@ int main() {
 
   // auto res = cudaEventQuery(end_event); // an error because Event is a owning
   // reference and cannot be cast to raw event
-  gcxx::event_wrap end_event_ref = end_event;
-  auto res = GCXX_RUNTIME_BACKEND(EventQuery)(end_event_ref);
+  gcxx::EventView end_event_ref = end_event;
+  auto res                      = end_event_ref.HasOccurred();
 
-  if (res == gcxx::details_::deviceErrSuccess) {
+  if (res) {
     fmt::print("Event query successful.\n");
-  } else if (res == gcxx::details_::deviceErrNotReady) {
-    fmt::print("Event not ready.\n");
   } else {
-    fmt::print("Event query failed with error code: {}\n",
-               static_cast<int>(res));
+    fmt::print("Event not ready.\n");
   }
 
   gcxx::Event end_event2;
@@ -39,7 +37,7 @@ int main() {
   start_event.RecordInStream();
   end_event2.RecordInStream();
 
-  auto dur = gcxx::event_wrap::ElapsedTimeBetween(start_event, end_event2);
+  auto dur = gcxx::Event::ElapsedTimeBetween(start_event, end_event2);
 
   fmt::print("Elapsed time between events: {}\n", dur);
 

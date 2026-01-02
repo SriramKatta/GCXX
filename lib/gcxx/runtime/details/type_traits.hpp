@@ -6,9 +6,22 @@
 
 
 #include <gcxx/macros/define_macros.hpp>
+#include <gcxx/runtime/details/helper_function.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+
+// Primary template: not a void function pointer
+template <typename VT>
+struct is_void_function_pointer : std::false_type {};
+
+// Specialization for function pointers returning void
+template <typename... Args>
+struct is_void_function_pointer<void (*)(Args...)> : std::true_type {};
+
+template <typename VT>
+GCXX_CXPR inline bool is_void_function_pointer_v =
+  is_void_function_pointer<VT>::value;
 
 template <typename, typename = size_t>
 struct is_complete : std::false_type {};
@@ -36,8 +49,9 @@ template <typename, typename = void>
 struct has_size_and_data : std::false_type {};
 
 template <typename VT>
-struct has_size_and_data<VT, std::void_t<decltype(size(std::declval<VT>())),
-                                         decltype(data(std::declval<VT>()))>>
+struct has_size_and_data<
+  VT, std::void_t<decltype(gcxx::details_::size(std::declval<VT&>())),
+                  decltype(gcxx::details_::data(std::declval<VT&>()))>>
     : std::true_type {};
 
 template <typename VT>
@@ -57,7 +71,8 @@ struct is_container_element_type_compatible<
       typename std::remove_cv_t<decltype(data(std::declval<T>()))>::type,
       void> &&
     std::is_convertible_v<
-      remove_pointer_t<decltype(data(std::declval<T>()))> (*)[], E (*)[]>>>
+      remove_pointer_t<decltype(data(std::declval<T>()))> (*)[],
+      E (*)[]>>>  // NOLINT
     : std::true_type {};
 
 template <typename VT, typename ET>

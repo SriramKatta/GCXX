@@ -10,6 +10,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
+// NOLINTBEGIN
 template <typename VT>
 struct dynamicSharedMemory {
   __device__ inline operator VT*() {
@@ -49,6 +50,7 @@ struct staticSharedArray {
   }
 };
 
+// NOLINTEND
 GCXX_NAMESPACE_MAIN_END
 
 

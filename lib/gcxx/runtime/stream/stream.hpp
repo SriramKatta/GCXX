@@ -4,24 +4,27 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
-#include <gcxx/runtime/flags/eventflags.hpp>
-#include <gcxx/runtime/flags/streamflags.hpp>
-#include <gcxx/runtime/stream/stream_wrap.hpp>
+#include <gcxx/runtime/flags/event_flags.hpp>
+#include <gcxx/runtime/flags/stream_flags.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 #include <cstddef>
 #include <utility>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-class Stream : public stream_wrap {
+class Stream : public StreamView {
+ private:
+  GCXX_FH auto destroy() -> void;
+
  public:
   GCXX_FH Stream(
-    const flags::streamType createFlag       = flags::streamType::syncWithNull,
-    const flags::streamPriority priorityFlag = flags::streamPriority::none);
+    const flags::streamType createFlag       = flags::streamType::SyncWithNull,
+    const flags::streamPriority priorityFlag = flags::streamPriority::None);
 
   GCXX_FH static auto Create(
-    const flags::streamType createFlag       = flags::streamType::syncWithNull,
-    const flags::streamPriority priorityFlag = flags::streamPriority::none)
+    const flags::streamType createFlag       = flags::streamType::SyncWithNull,
+    const flags::streamPriority priorityFlag = flags::streamPriority::None)
     -> Stream;
 
   GCXX_FH ~Stream();
@@ -34,24 +37,20 @@ class Stream : public stream_wrap {
 
   Stream& operator=(const Stream&) = delete;
 
-  GCXX_FH Stream(Stream&& other) noexcept
-      : stream_wrap(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
+  GCXX_FH Stream(Stream&& other) noexcept;
 
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->StreamView;
 
-  GCXX_FH auto release() GCXX_NOEXCEPT -> stream_wrap;
-
+  GCXX_FH auto Release() GCXX_NOEXCEPT->StreamView;
 
   GCXX_FH auto getPriority() -> flags::streamPriority;
-
- private:
-  GCXX_FH auto destroy() -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END
 
-#include <gcxx/runtime/details/stream.inl>
+#include <gcxx/runtime/details/stream/stream.inl>
 
 #include <gcxx/macros/undefine_macros.hpp>
 

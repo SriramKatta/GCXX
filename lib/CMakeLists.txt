@@ -17,9 +17,6 @@ target_compile_features(${LIB_INTERNAL_NAME} INTERFACE cxx_std_17)
 target_compile_definitions(
   ${LIB_INTERNAL_NAME} INTERFACE "GCXX_${GCXX_GPU_LANG}_MODE"
 )
-set_target_properties(
-  ${LIB_INTERNAL_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON
-)
 
 if(GCXX_CUDA_MODE)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)

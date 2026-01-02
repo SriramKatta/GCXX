@@ -9,10 +9,10 @@
   do {                                                               \
     const auto err_state = GCXX_RUNTIME_BACKEND(FUNC)(__VA_ARGS__);  \
     switch (err_state) {                                             \
-      case gcxx::details_::deviceErrSuccess:                            \
+      case gcxx::details_::deviceErrSuccess:                         \
         break;                                                       \
       default:                                                       \
-        const auto err_state = gcxx::details_::deviceGetLastError(); \
+        const auto err_state = GCXX_RUNTIME_BACKEND(GetLastError)(); \
         gcxx::details_::throwGPUError(err_state, MSG);               \
     }                                                                \
   } while (0)

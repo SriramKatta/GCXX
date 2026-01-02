@@ -4,7 +4,7 @@
     {
       "name": "base_configue",
       "hidden": true,
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CPM_SOURCE_CACHE": "$env{HOME}/.cache/CPM"
