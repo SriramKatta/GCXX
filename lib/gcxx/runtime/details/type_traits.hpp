@@ -71,7 +71,7 @@ struct is_container_element_type_compatible<
       typename std::remove_cv_t<decltype(data(std::declval<T>()))>::type,
       void> &&
     std::is_convertible_v<
-      remove_pointer_t<decltype(data(std::declval<T>()))> (*)[],
+      remove_pointer_t<decltype(data(std::declval<T>()))> (*)[], // NOLINT
       E (*)[]>>>  // NOLINT
     : std::true_type {};
 

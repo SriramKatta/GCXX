@@ -173,12 +173,9 @@ GCXX_FH auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
                          &cParams);
 
   // Extract all case body graphs from the conditional node parameters
-  std::vector<GraphView> caseGraphs;
-  for (std::size_t i = 0; i < numCases; ++i) {
-    caseGraphs.emplace_back(cParams.conditional.phGraph_out[i]);
-  }
-
-  return SwitchNodeResult{node, caseGraphs};
+  return SwitchNodeResult{node,
+                          {&cParams.conditional.phGraph_out[0],
+                           &cParams.conditional.phGraph_out[numCases]}};
 }
 
 #endif

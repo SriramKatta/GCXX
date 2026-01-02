@@ -44,7 +44,7 @@ struct SwitchNodeResult;
 
 class GraphView {
  protected:
-  deviceGraph_t graph_{details_::INVALID_GRAPH};
+  deviceGraph_t graph_{details_::INVALID_GRAPH}; // NOLINT
 
  public:
   GCXX_FHC GraphView() = default;

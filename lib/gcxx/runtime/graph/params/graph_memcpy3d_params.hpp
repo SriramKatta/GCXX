@@ -19,7 +19,7 @@ using deviceMemcpy3DParams_t = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
 
 class Memcpy3DParamsView {
  protected:
-  deviceMemcpy3DParams_t params_{};
+  deviceMemcpy3DParams_t params_{}; // NOLINT
 
   GCXX_FHC Memcpy3DParamsView() { memset(&params_, 0, sizeof(params_)); }
 
@@ -70,6 +70,10 @@ class Memcpy3DParams : public Memcpy3DParamsView {
   // Disable move/copy to ensure params_ remains stable
   Memcpy3DParams(const Memcpy3DParams&) = delete;
   Memcpy3DParams(Memcpy3DParams&&)      = delete;
+
+  Memcpy3DParams operator=(const Memcpy3DParams&) = delete;
+  Memcpy3DParams operator=(Memcpy3DParams&&)      = delete;
+  ~Memcpy3DParams() = default;
 };
 
 GCXX_NAMESPACE_DETAILS_BEGIN
@@ -116,7 +120,7 @@ class Memcpy3DParamsBuilder {
   }
 
   GCXX_FHC gcxx::Memcpy3DParams build() {
-    return Memcpy3DParams(srcPtr_, srcPos_, dstPtr_, dstPos_, extent_);
+    return {srcPtr_, srcPos_, dstPtr_, dstPos_, extent_};
   }
 };
 

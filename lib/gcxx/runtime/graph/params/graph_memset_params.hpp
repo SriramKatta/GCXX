@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <utility>
 #include <vector>
+#include <cstring>
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
@@ -19,9 +20,9 @@ using deviceMemsetParams_t = GCXX_RUNTIME_BACKEND(MemsetParams);
 
 class MemsetParamsView {
  protected:
-  deviceMemsetParams_t params_{};
+  deviceMemsetParams_t params_{}; // NOLINT
 
-  GCXX_FHC MemsetParamsView() { memset(&params_, 0, sizeof(params_)); }
+  GCXX_FHC MemsetParamsView() { std::memset(&params_, 0, sizeof(params_)); }
 
  public:
   GCXX_FHC auto getRawParams() const -> const deviceMemsetParams_t& {
@@ -60,8 +61,12 @@ class MemsetParams : public MemsetParamsView {
 
   // Disable move/copy to ensure params_ remains stable
   MemsetParams(const MemsetParams&) = delete;
+  MemsetParams operator=(const MemsetParams&) = delete;
 
   MemsetParams(MemsetParams&&) = delete;
+  MemsetParams operator=(MemsetParams&&) = delete;
+
+  ~MemsetParams() = default;
 };
 
 GCXX_NAMESPACE_DETAILS_BEGIN

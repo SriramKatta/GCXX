@@ -58,6 +58,7 @@ class EventView {
    * event */
   EventView() = default;
 
+
   /** @brief Constructor from raw device event - wraps an existing GPU event
    * handle */
   GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT;
@@ -65,6 +66,8 @@ class EventView {
   /** @brief Copy constructor - creates a shallow copy sharing the same
    * underlying event */
   GCXX_CXPR EventView(const EventView& eventRef) GCXX_NOEXCEPT;
+
+  GCXX_CXPR auto operator=(const EventView& eventRef) GCXX_NOEXCEPT ->EventView&;
 
   /** @brief Returns the underlying raw GPU event handle */
   GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t;

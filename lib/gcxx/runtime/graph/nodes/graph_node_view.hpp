@@ -13,7 +13,7 @@ using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
 
 class GraphNodeView {
  protected:
-  deviceGraphNode_t node_;
+  deviceGraphNode_t node_; //NOLINT
 
  public:
   GCXX_FHC GraphNodeView(deviceGraphNode_t node) : node_(node) {}

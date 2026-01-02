@@ -17,8 +17,7 @@ namespace launch {
   GCXX_FH void CooperativeKernel(LaunchConfig& config,
                                  void (*kernel)(ExpTypes...),
                                  ActTypes&&... args) {
-    void* kernelArgs[sizeof...(args) > 0 ? sizeof...(args) : 1] = {
-      ((void*)&args)...};
+    std::array<void*, sizeof...(args)> kernelArgs = {((void*)&args)...};
     // GCXX_SAFE_RUNTIME_CALL(LaunchCooperativeKernel,
     //                        "failed to launch Cooprative kernel", kernel,
     //                        config.)

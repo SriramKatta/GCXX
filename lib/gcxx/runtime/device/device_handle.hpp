@@ -24,6 +24,8 @@ class DeviceHandle {
 
   GCXX_FH ~DeviceHandle();
 
+  
+
   GCXX_FH auto makeCurrent() const -> void;
 
   GCXX_FH auto Synchronize() const -> void;

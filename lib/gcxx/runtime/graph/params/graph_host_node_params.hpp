@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstring>
 #include <utility>
 #include <vector>
-#include <cstring>
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
@@ -21,7 +21,7 @@ using deviceHostNodeParams_t = GCXX_RUNTIME_BACKEND(HostNodeParams);
 
 class HostNodeParamsView {
  protected:
-  deviceHostNodeParams_t params_{};
+  deviceHostNodeParams_t params_{};  // NOLINT
 
   GCXX_FHC HostNodeParamsView() { std::memset(&params_, 0, sizeof(params_)); }
 
@@ -49,8 +49,12 @@ class HostNodeParams : public HostNodeParamsView {
 
   // Disable move/copy to ensure params_ remains stable
   HostNodeParams(const HostNodeParams&) = delete;
+  HostNodeParams(HostNodeParams&&)      = delete;
 
-  HostNodeParams(HostNodeParams&&) = delete;
+  HostNodeParams operator=(const HostNodeParams&) = delete;
+  HostNodeParams operator=(HostNodeParams&&)      = delete;
+
+  ~HostNodeParams() = default;
 };
 
 GCXX_NAMESPACE_DETAILS_BEGIN
@@ -75,9 +79,7 @@ class HostNodeParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC gcxx::HostNodeParams build() {
-    return {func_, Udata_};
-  }
+  GCXX_FHC gcxx::HostNodeParams build() { return {func_, Udata_}; }
 };
 
 GCXX_NAMESPACE_DETAILS_END
