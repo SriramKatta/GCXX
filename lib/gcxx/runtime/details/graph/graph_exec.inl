@@ -62,7 +62,7 @@ GCXX_FH auto GraphExec::Update(const GraphView& graph) -> void {
 #if GCXX_HIP_MODE
                          NULL,
 #endif
-                         NULL);
+                         nullptr);
 }
 
 GCXX_NAMESPACE_MAIN_END

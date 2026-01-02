@@ -25,7 +25,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#include <math.h>
+#include <cstdio>
 #include <vector>
 
 
@@ -35,13 +36,15 @@
 
 namespace cg = cooperative_groups;
 
-#define THREADS_PER_BLOCK 512
-#define GRAPH_LAUNCH_ITERATIONS 3
+enum {
+THREADS_PER_BLOCK = 512,
+GRAPH_LAUNCH_ITERATIONS = 3
+};
 
-typedef struct callBackData {
+using callBackData_t = struct callBackData {
   const char* fn_name;
   double* data;
-} callBackData_t;
+};
 
 __global__ void reduce(float* inputVec, double* outputVec, size_t inputSize,
                        size_t outputSize) {
@@ -61,7 +64,7 @@ __global__ void reduce(float* inputVec, double* outputVec, size_t inputSize,
   cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
   double beta = temp_sum;
-  double temp;
+  double temp = NAN;
 
   for (int i = tile32.size() / 2; i > 0; i >>= 1) {
     if (tile32.thread_rank() < i) {
@@ -139,10 +142,10 @@ void init_input(float* a, size_t size) {
 
 void GCXXRT_CB myHostNodeCallback(void* data) {
   // Check status of GPU after stream operations are done
-  callBackData_t* tmp = (callBackData_t*)(data);
+  auto* tmp = (callBackData_t*)(data);
   // checkCudaErrors(tmp->status);
 
-  double* result = (double*)(tmp->data);
+  auto* result = (double*)(tmp->data);
   char* function = (char*)(tmp->fn_name);
   printf("[%s] Host callback final reduced sum = %lf\n", function, *result);
   *result = 0.0;  // reset the result
@@ -154,7 +157,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   gcxx::Stream streamForGraph;
   gcxx::Graph graph;
   std::vector<gcxx::deviceGraphNode_t> nodeDependencies;
-  gcxx::deviceGraphNode_t memcpyNode, memsetNode;
+  gcxx::deviceGraphNode_t memcpyNode = nullptr, memsetNode = nullptr;
   double result_h = 0.0;
 
   auto memcpy3d1 =
@@ -293,7 +296,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::memory::copy(&result_h, result_d, 1, stream1);
 
 
-  callBackData_t hostFnData = {0};
+  callBackData_t hostFnData = {nullptr};
   hostFnData.data           = &result_h;
   hostFnData.fn_name        = "deviceGraphsUsingStreamCapture";
 
@@ -361,7 +364,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   gcxx::memory::copy(&result_h, result_d, 1, stream1);
 
 
-  callBackData_t hostFnData = {0};
+  callBackData_t hostFnData = {nullptr};
   hostFnData.data           = &result_h;
   hostFnData.fn_name        = "deviceGraphsUsingStreamCaptureToGraph";
 

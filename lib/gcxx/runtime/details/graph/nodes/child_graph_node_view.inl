@@ -16,7 +16,7 @@ GCXX_FHC ChildGraphNodeView::ChildGraphNodeView(deviceGraphNode_t node)
     : GraphNodeView(node) {}
 
 GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
-  deviceGraph_t graph;
+  deviceGraph_t graph = nullptr;
   GCXX_SAFE_RUNTIME_CALL(GraphChildGraphNodeGetGraph,
                          "Failed to get the graph of given Node", node_,
                          &graph);

@@ -109,7 +109,7 @@ class MemsetParamsBuilder {
   }
 
   GCXX_FHC gcxx::MemsetParams build() {
-    return MemsetParams(dst_, pitch_, value_, elementSize_, width_, height_);
+    return {dst_, pitch_, value_, elementSize_, width_, height_};
   }
 };
 

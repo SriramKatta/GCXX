@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <utility>
 #include <vector>
+#include <cstring>
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
@@ -22,7 +23,7 @@ class HostNodeParamsView {
  protected:
   deviceHostNodeParams_t params_{};
 
-  GCXX_FHC HostNodeParamsView() { memset(&params_, 0, sizeof(params_)); }
+  GCXX_FHC HostNodeParamsView() { std::memset(&params_, 0, sizeof(params_)); }
 
  public:
   GCXX_FHC auto getRawParams() const -> const deviceHostNodeParams_t& {
@@ -56,7 +57,7 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 
 class HostNodeParamsBuilder {
  private:
-  deviceCallBackFn_t func_;
+  deviceCallBackFn_t func_{};
   void* Udata_{nullptr};
 
 
@@ -75,7 +76,7 @@ class HostNodeParamsBuilder {
   }
 
   GCXX_FHC gcxx::HostNodeParams build() {
-    return HostNodeParams(func_, Udata_);
+    return {func_, Udata_};
   }
 };
 

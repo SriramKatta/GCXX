@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include <gcxx/api.hpp>
 
 __global__ void kern_A() {

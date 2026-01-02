@@ -51,12 +51,12 @@ __global__ void ifGraphKernelA(char* dPtr,
 }
 
 // This kernel will only be executed if the condition is true
-__global__ void ifGraphKernelC(void) {
+__global__ void ifGraphKernelC() {
   printf("GPU: Hello from the GPU! The condition was true.\n");
 }
 
 // Setup and launch the graph
-void simpleIfGraph(void) {
+void simpleIfGraph() {
 
   // Allocate a byte of device memory to use as input
   auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
@@ -145,7 +145,7 @@ void simpleIfGraph(void) {
  */
 
 // This kernel will only be executed if the condition is true
-__global__ void doWhileEmptyKernel(void) {
+__global__ void doWhileEmptyKernel() {
   printf("GPU: doWhileEmptyKernel()\n");
   return;
 }
@@ -158,7 +158,7 @@ __global__ void doWhileLoopKernel(char* dPtr,
   printf("GPU: counter = %d\n", *dPtr);
 }
 
-void simpleDoWhileGraph(void) {
+void simpleDoWhileGraph() {
   // cudaGraph_t graph;
   // cudaGraphExec_t graphExec;
   // cudaGraphNode_t conditionalNode;
@@ -256,13 +256,13 @@ __global__ void capturedWhileKernel(
   cudaGraphSetConditional(handle, *dPtr);
 }
 
-__global__ void capturedWhileEmptyKernel(void) {
+__global__ void capturedWhileEmptyKernel() {
   printf("GPU: capturedWhileEmptyKernel()\n");
   return;
 }
 
-void capturedWhileGraph(void) {
-  gcxx::deviceGraphConditionalHandle_t handle;
+void capturedWhileGraph() {
+  gcxx::deviceGraphConditionalHandle_t handle = 0;
   // cudaGraph_t graph;
   // cudaGraphExec_t graphExec;
 
@@ -360,12 +360,12 @@ void capturedWhileGraph(void) {
  */
 
 // This kernel will only be executed if the condition is false
-__global__ void ifGraphKernelD(void) {
+__global__ void ifGraphKernelD() {
   printf("GPU: Hello from the GPU! The condition was false.\n");
 }
 
 // Setup and launch the graph
-void simpleIfElseGraph(void) {
+void simpleIfElseGraph() {
   gcxx::Graph graph;
 
   auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
@@ -434,24 +434,24 @@ __global__ void switchGraphKernelA(char* dPtr,
   printf("GPU: Handle set to %d\n", value);
 }
 
-__global__ void switchGraphKernelC(void) {
+__global__ void switchGraphKernelC() {
   printf("GPU: Hello from switchGraphKernelC(), running on the GPU!\n");
 }
 
-__global__ void switchGraphKernelD(void) {
+__global__ void switchGraphKernelD() {
   printf("GPU: Hello from switchGraphKernelD(), running on the GPU!\n");
 }
 
-__global__ void switchGraphKernelE(void) {
+__global__ void switchGraphKernelE() {
   printf("GPU: Hello from switchGraphKernelE(), running on the GPU!\n");
 }
 
-__global__ void switchGraphKernelF(void) {
+__global__ void switchGraphKernelF() {
   printf("GPU: Hello from switchGraphKernelF(), running on the GPU!\n");
 }
 
 // Setup and launch the graph
-void simpleSwitchGraph(void) {
+void simpleSwitchGraph() {
   gcxx::Graph graph;
 
   auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);

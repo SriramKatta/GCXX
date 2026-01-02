@@ -13,8 +13,8 @@ struct CaptureInfo {
   flags::streamCaptureStatus status{};
   unsigned long long Unique_ID{};
   GraphView graph{};
-  const deviceGraphNode_t* pDependencies;
-  std::size_t pDependenciescount;
+  const deviceGraphNode_t* pDependencies{};
+  std::size_t pDependenciescount{};
 };
 
 GCXX_FHC StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
@@ -67,7 +67,7 @@ GCXX_FH auto StreamView::BeginCaptureToGraph(
   GraphView& graph_view, const flags::streamCaptureMode createflag) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     StreamBeginCaptureToGraph, "Failed to begin Stream Capture to graph",
-    this->getRawStream(), graph_view.getRawGraph(), NULL, NULL, 0,
+    this->getRawStream(), graph_view.getRawGraph(), nullptr, nullptr, 0,
     static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
 }
 
@@ -106,8 +106,8 @@ GCXX_FH auto StreamView::GetCaptureInfo() -> CaptureInfo {
   GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
   unsigned long long id{};
   deviceGraph_t graph{};
-  const deviceGraphNode_t* pDependencies;
-  std::size_t numdeps;
+  const deviceGraphNode_t* pDependencies = nullptr;
+  std::size_t numdeps = 0;
 
   GCXX_SAFE_RUNTIME_CALL(StreamGetCaptureInfo,
                          "Failed to get Capture info of stream", stream_,
