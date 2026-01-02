@@ -116,6 +116,7 @@ enum class streamCaptureStatus : details_::flag_t {
   Invalidated = GCXX_RUNTIME_BACKEND(StreamCaptureStatusInvalidated),
 };
 
+#if GCXX_CUDA_MODE
 inline streamCaptureStatus to_streamCaptureStatus(
   GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status) {
   switch (status) {
@@ -134,7 +135,7 @@ enum class StreamUpdateCaptureDependencies : details_::flag_t {
   Add = GCXX_RUNTIME_BACKEND(StreamAddCaptureDependencies),
   Set = GCXX_RUNTIME_BACKEND(StreamSetCaptureDependencies),
 };
-
+#endif
 GCXX_NAMESPACE_MAIN_FLAGS_END
 
 #endif

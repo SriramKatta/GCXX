@@ -501,6 +501,7 @@ void simpleSwitchGraph(void) {
 }
 
 int main(int argc, char** argv) {
+#if GCXX_CUDA_MODE
   int driverVersion = 0;
 
   cudaDriverGetVersion(&driverVersion);
@@ -527,6 +528,9 @@ int main(int argc, char** argv) {
 
   simpleIfElseGraph();
   simpleSwitchGraph();
+#else
+#warning "Hip doesn't have conditional graph support"
+#endif
 
   return 0;
 }

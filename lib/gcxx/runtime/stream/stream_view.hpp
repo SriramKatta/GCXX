@@ -39,7 +39,7 @@ class StreamView {
   StreamView(int)            = delete;
   StreamView(std::nullptr_t) = delete;
 
-  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t;
+  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
   GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;
 
@@ -70,6 +70,7 @@ class StreamView {
   /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
   GCXX_FH auto EndCaptureToGraph(const GraphView& graph) -> void;
 
+#if GCXX_CUDA_MODE
   GCXX_FH auto IsCapturing() -> gcxx::flags::streamCaptureStatus;
 
   GCXX_FH auto GetCaptureInfo() -> CaptureInfo;
@@ -77,6 +78,7 @@ class StreamView {
   GCXX_FH auto UpdateCaptureDependencies(
     flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
     std::size_t numdeps) -> void;
+#endif
 };
 
 GCXX_NAMESPACE_MAIN_END

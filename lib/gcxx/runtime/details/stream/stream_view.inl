@@ -93,6 +93,7 @@ GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {})
   (void)pgraph;  // Silence unused variable warning in release builds
 }
 
+#if GCXX_CUDA_MODE
 GCXX_FH auto StreamView::IsCapturing() -> gcxx::flags::streamCaptureStatus {
   GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
   GCXX_SAFE_RUNTIME_CALL(StreamIsCapturing,
@@ -124,7 +125,7 @@ GCXX_FH auto StreamView::UpdateCaptureDependencies(
                          stream_, nodes, numdeps,
                          static_cast<details_::flag_t>(flag));
 }
-
+#endif
 GCXX_NAMESPACE_MAIN_END
 
 #include <gcxx/macros/undefine_macros.hpp>
