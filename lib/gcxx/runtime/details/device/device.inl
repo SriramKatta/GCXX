@@ -73,6 +73,22 @@ GCXX_FH auto Device::GetDefaultMemPool() -> MemPoolView {
   return {pool};
 }
 
+GCXX_FH auto Device::SetMemPool(const MemPoolView& pool) -> void {
+  auto deviceId_ = get().id();
+  GCXX_SAFE_RUNTIME_CALL(DeviceSetMemPool,
+                         "Failed to get the mempool of  the device", deviceId_,
+                         pool.getRawMemPool());
+}
+
+GCXX_FH auto Device::GetMemPool() -> MemPoolView {
+  auto deviceId_ = get().id();
+  deviceMemPool_t pool{};
+  GCXX_SAFE_RUNTIME_CALL(DeviceGetMemPool,
+                         "Failed to get the mempool of  the device", &pool,
+                         deviceId_);
+  return {pool};
+}
+
 GCXX_NAMESPACE_MAIN_END
 
 #endif

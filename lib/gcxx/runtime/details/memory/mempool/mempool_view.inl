@@ -8,13 +8,13 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
+GCXX_FH auto MemPoolView::getRawMemPool() const -> deviceMemPool_t {
+  return pool_;
+};
+
 GCXX_FH auto MemPoolView::GetDefaultMempool(const DeviceHandle& hand)
   -> MemPoolView {
-    deviceMemPool_t pool;
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetDefaultMemPool,
-                         "failed to get the default memory pool for device",
-                         &pool, hand.id());
-  return {pool};
+  return hand.GetDefaultMemPool();
 }
 
 GCXX_NAMESPACE_MAIN_END

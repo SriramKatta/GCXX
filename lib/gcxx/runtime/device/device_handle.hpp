@@ -39,6 +39,10 @@ class DeviceHandle {
   GCXX_FHC auto id() const -> device_t;
 
   GCXX_FH auto GetDefaultMemPool() const -> MemPoolView;
+
+  GCXX_FH auto SetMemPool(const MemPoolView&) -> void;
+
+  GCXX_FH auto GetMemPool() -> MemPoolView;
 };
 
 GCXX_NAMESPACE_MAIN_END

@@ -32,6 +32,10 @@ namespace Device {
 
   GCXX_FH auto GetDefaultMemPool() -> MemPoolView;
 
+  GCXX_FH auto SetMemPool(const MemPoolView&) -> void;
+
+  GCXX_FH auto GetMemPool() -> MemPoolView;
+
 };  // namespace Device
 
 GCXX_NAMESPACE_MAIN_END

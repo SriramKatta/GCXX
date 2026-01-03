@@ -64,6 +64,16 @@ GCXX_FH auto DeviceHandle::GetDefaultMemPool() const -> MemPoolView {
   return gcxx::Device::GetDefaultMemPool();
 }
 
+GCXX_FH auto DeviceHandle::SetMemPool(const MemPoolView& pool) -> void {
+  details_::EnsureCurrentDevice dev(deviceId_);
+  return gcxx::Device::SetMemPool(pool);
+}
+
+GCXX_FH auto DeviceHandle::GetMemPool() -> MemPoolView {
+  details_::EnsureCurrentDevice dev(deviceId_);
+  return gcxx::Device::GetMemPool();
+}
+
 GCXX_NAMESPACE_MAIN_END
 
 #endif

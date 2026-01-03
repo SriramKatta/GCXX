@@ -17,6 +17,8 @@ class MemPoolView {
  public:
   MemPoolView(deviceMemPool_t pool) : pool_(pool) {}
 
+  GCXX_FH auto getRawMemPool() const -> deviceMemPool_t;
+
   GCXX_FH static auto GetDefaultMempool(const DeviceHandle&) -> MemPoolView;
 };
 
