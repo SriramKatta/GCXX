@@ -8,8 +8,9 @@
 #include <gcxx/runtime/device/device_structs.hpp>
 #include <gcxx/runtime/flags/device_flags.hpp>
 
-
 GCXX_NAMESPACE_MAIN_BEGIN
+
+class MemPoolView;
 
 class DeviceHandle {
  private:
@@ -22,7 +23,6 @@ class DeviceHandle {
   GCXX_FH explicit DeviceHandle(int dev, bool resetOnDestruct = false);
 
   GCXX_FH ~DeviceHandle();
-
 
   GCXX_FH auto makeCurrent() const -> void;
 
@@ -37,6 +37,8 @@ class DeviceHandle {
   GCXX_FH auto setLimit(const flags::deviceLimit&, std::size_t) const -> void;
 
   GCXX_FHC auto id() const -> device_t;
+
+  GCXX_FH auto GetDefaultMemPool() const -> MemPoolView;
 };
 
 GCXX_NAMESPACE_MAIN_END

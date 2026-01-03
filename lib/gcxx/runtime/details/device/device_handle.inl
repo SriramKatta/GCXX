@@ -7,6 +7,7 @@
 
 #include <gcxx/runtime/device/ensure_current_device.hpp>
 #include <gcxx/runtime/flags/device_flags.hpp>
+#include <gcxx/runtime/memory/mempool/mempool_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -34,11 +35,7 @@ GCXX_FH auto DeviceHandle::Synchronize() const -> void {
 GCXX_FH auto DeviceHandle::getAttribute(
   const flags::deviceAttribute& attr) const -> int {
   details_::EnsureCurrentDevice dev(deviceId_);
-  int val{};
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute, "Failed to query device attribute",
-                         &val, static_cast<ATTRIBUTE_BACKEND_TYPE>(attr),
-                         deviceId_);
-  return val;
+  return gcxx::Device::getAttribute(attr);
 }
 
 GCXX_FHC auto DeviceHandle::id() const -> device_t {
@@ -48,25 +45,23 @@ GCXX_FHC auto DeviceHandle::id() const -> device_t {
 GCXX_FH auto DeviceHandle::getLimit(const flags::deviceLimit& limattr) const
   -> std::size_t {
   details_::EnsureCurrentDevice dev(deviceId_);
-  std::size_t pval{};
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetLimit, "Failed to get the device limit",
-                         &pval, static_cast<LIMIT_BACKEND_TYPE>(limattr));
-  return pval;
+  return gcxx::Device::getLimit(limattr);
 }
 
 GCXX_FH auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
                                     std::size_t limval) const -> void {
   details_::EnsureCurrentDevice dev(deviceId_);
-  GCXX_SAFE_RUNTIME_CALL(DeviceSetLimit, "Failed to set the device limit",
-                         static_cast<LIMIT_BACKEND_TYPE>(limattr), limval);
+  gcxx::Device::setLimit(limattr, limval);
 }
 
 GCXX_FH auto DeviceHandle::getDeviceProp() const -> DeviceProp {
-  DeviceProp handle;
-  GCXX_SAFE_RUNTIME_CALL(GetDeviceProperties,
-                         "Failed to query device properties", &handle,
-                         deviceId_);
-  return handle;
+  details_::EnsureCurrentDevice dev(deviceId_);
+  return gcxx::Device::getDeviceProp();
+}
+
+GCXX_FH auto DeviceHandle::GetDefaultMemPool() const -> MemPoolView {
+  details_::EnsureCurrentDevice dev(deviceId_);
+  return gcxx::Device::GetDefaultMemPool();
 }
 
 GCXX_NAMESPACE_MAIN_END

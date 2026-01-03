@@ -4,6 +4,8 @@
 
 #include <gcxx/runtime/memory/spans/spans.hpp>
 
+#include <gcxx/runtime/memory/mempool/mempool_view.hpp>
+
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 
 #include <gcxx/runtime/memory/vector/device_vector.hpp>
