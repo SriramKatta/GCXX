@@ -2,8 +2,7 @@
 #ifndef GCXX_API_RUNTIME_STREAM_STREAM_HPP_
 #define GCXX_API_RUNTIME_STREAM_STREAM_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>

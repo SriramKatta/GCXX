@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_DETAILS_GRAPH_NODES_CHILD_GRAPH_NODE_VIEW_INL_
 #define GCXX_RUNTIME_DETAILS_GRAPH_NODES_CHILD_GRAPH_NODE_VIEW_INL_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 
 #include <gcxx/runtime/graph/graph_exec_view.hpp>

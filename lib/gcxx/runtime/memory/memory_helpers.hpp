@@ -2,8 +2,7 @@
 #ifndef GCXX_API_RUNTIME_MEMORY_MEMORY_HELPERS_HPP_
 #define GCXX_API_RUNTIME_MEMORY_MEMORY_HELPERS_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 
 

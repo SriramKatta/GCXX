@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_DETAILS_MEMORY_DEVICE_MEMORY_HELPER_HPP
 #define GCXX_RUNTIME_DETAILS_MEMORY_DEVICE_MEMORY_HELPER_HPP
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/error/runtime_error.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

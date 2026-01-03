@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_DEVICE_ENSURE_DEVICE_HPP_
 #define GCXX_RUNTIME_DEVICE_ENSURE_DEVICE_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

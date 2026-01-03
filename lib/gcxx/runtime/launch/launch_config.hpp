@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_LAUNCH_LAUNCH_CONFIG_HPP
 #define GCXX_RUNTIME_LAUNCH_LAUNCH_CONFIG_HPP
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/stream/stream_view.hpp>
 

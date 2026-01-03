@@ -3,8 +3,7 @@
 #define GCXX_RUNTIME_MEMORY_ALLOCATOR_HOST_ALLOCATOR_HPP
 
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/memory/device_memory_helper.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

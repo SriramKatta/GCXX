@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_MEMORY_SPANS_MDSPAN_MDSPAN_HPP
 #define GCXX_RUNTIME_MEMORY_SPANS_MDSPAN_MDSPAN_HPP
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 

@@ -8,8 +8,7 @@
 #include <limits>
 #include <vector>
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/helper_function.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 

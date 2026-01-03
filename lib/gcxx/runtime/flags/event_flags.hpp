@@ -10,8 +10,7 @@
 #ifndef GCXX_RUNTIME_FLAGS_EVENT_FLAGS_HPP_
 #define GCXX_RUNTIME_FLAGS_EVENT_FLAGS_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
 

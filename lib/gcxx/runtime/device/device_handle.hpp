@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_DEVICE_DEVICE_HANDLE_HPP_
 #define GCXX_RUNTIME_DEVICE_DEVICE_HANDLE_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 
 #include <gcxx/runtime/device/device_structs.hpp>

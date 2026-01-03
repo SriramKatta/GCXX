@@ -5,8 +5,7 @@
 #include <chrono>
 #include <utility>
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

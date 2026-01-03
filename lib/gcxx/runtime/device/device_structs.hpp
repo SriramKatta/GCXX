@@ -4,8 +4,7 @@
 
 #include <string_view>
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/memory/spans/spans.hpp>
 

@@ -2,8 +2,7 @@
 #ifndef GCXX_API_RUNTIME_GRAPH_GRAPH_HPP_
 #define GCXX_API_RUNTIME_GRAPH_GRAPH_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/graph/graph_view.hpp>
 

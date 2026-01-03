@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_EVENT_EVENT_HPP_
 #define GCXX_RUNTIME_EVENT_EVENT_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/event/event_view.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
 

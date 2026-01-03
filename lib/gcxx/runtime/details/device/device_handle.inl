@@ -3,8 +3,7 @@
 #define GCXX_RUNTIME_DETAILS_DEVICE_DEVICE_HANDLE_INL_
 
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/device/ensure_current_device.hpp>
 #include <gcxx/runtime/flags/device_flags.hpp>

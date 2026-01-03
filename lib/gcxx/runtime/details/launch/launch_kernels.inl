@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_DETAILS_LAUNCH_LAUNCH_KERNELS_HPP
 #define GCXX_RUNTIME_DETAILS_LAUNCH_LAUNCH_KERNELS_HPP
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 
 #include <gcxx/runtime/launch/launch_config.hpp>

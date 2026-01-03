@@ -5,7 +5,7 @@
 #include <type_traits>
 
 
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

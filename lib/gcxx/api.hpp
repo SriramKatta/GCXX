@@ -2,7 +2,7 @@
 #ifndef GCXX_API_HPP
 #define GCXX_API_HPP
 // clang-format off
-#include <gcxx/prologue.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 // section for types
 #include <gcxx/types/shared_mem.hpp>

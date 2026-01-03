@@ -2,8 +2,7 @@
 #ifndef GCXX_API_RUNTIME_MEMORY_COPY_HPP_
 #define GCXX_API_RUNTIME_MEMORY_COPY_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/runtime_error.hpp>

@@ -2,8 +2,7 @@
 #ifndef GCXX_RUNTIME_GRAPH_GRAPH_EXEC_VIEW_HPP_
 #define GCXX_RUNTIME_GRAPH_GRAPH_EXEC_VIEW_HPP_
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 using deviceGraphExec_t = GCXX_RUNTIME_BACKEND(GraphExec_t);

@@ -2,8 +2,7 @@
 #ifndef GCXX_TYPES_VECTOR_TYPES_HPP
 #define GCXX_TYPES_VECTOR_TYPES_HPP
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 #include <type_traits>
 

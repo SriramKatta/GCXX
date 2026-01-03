@@ -5,8 +5,7 @@
 #include <cstddef>
 #include <string_view>
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/flags/graph_flags.hpp>
 #include <gcxx/runtime/graph/graph_params.hpp>

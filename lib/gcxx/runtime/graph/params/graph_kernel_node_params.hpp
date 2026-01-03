@@ -9,8 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include <gcxx/backend/backend.hpp>
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
