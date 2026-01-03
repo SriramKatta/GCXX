@@ -3,8 +3,4 @@
 #define GCXX_RUNTIME_MEMEORY_MEMPOOL_MEMPOOL_VIEW_HPP_
 
 
-
-
-
-
 #endif

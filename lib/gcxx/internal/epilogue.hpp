@@ -4,5 +4,4 @@
 
 #include <gcxx/macros/undefine_macros.hpp>
 
-
 #endif
