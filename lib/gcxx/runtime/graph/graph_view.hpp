@@ -10,7 +10,7 @@
 
 #include <gcxx/runtime/flags/graph_flags.hpp>
 #include <gcxx/runtime/graph/graph_params.hpp>
-#include <gcxx/runtime/memory/span/span.hpp>
+#include <gcxx/runtime/memory/spans/spans.hpp>
 
 #include <gcxx/runtime/graph/graph_nodes.hpp>
 

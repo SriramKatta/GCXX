@@ -7,7 +7,7 @@
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
 
-#include <gcxx/runtime/memory/span/span.hpp>
+#include <gcxx/runtime/memory/spans/spans.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN

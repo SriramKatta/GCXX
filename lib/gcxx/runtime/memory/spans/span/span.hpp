@@ -16,7 +16,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-
+// since md sapn from kokkos has this already we dont need it here
 // GCXX_CXPR inline auto dynamic_extent =
 //   std::numeric_limits<std::size_t>::max();
 
@@ -141,14 +141,16 @@ class span {
   // ==========================================================
   //                        Constructors
   // ==========================================================
-  template <std::size_t E = Extent,
-            typename std::enable_if_t<(E == 0 || E == gcxx::dynamic_extent), int> = 0>
+  template <
+    std::size_t E = Extent,
+    typename std::enable_if_t<(E == 0 || E == gcxx::dynamic_extent), int> = 0>
   GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT{};  // NOLINT
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
       : m_storage(first, count) {
-    GCXX_DYNAMIC_EXPECT(extent == gcxx::dynamic_extent || count == gcxx::dynamic_extent,
-                        "Span (ptr,count) contract violation");
+    GCXX_DYNAMIC_EXPECT(
+      extent == gcxx::dynamic_extent || count == gcxx::dynamic_extent,
+      "Span (ptr,count) contract violation");
   }
 
   GCXX_CXPR GCXX_FHD span(pointer first, pointer last)
@@ -186,21 +188,23 @@ class span {
   GCXX_CXPR GCXX_FHD span(const std::array<OVT, N>& arr) GCXX_NOEXCEPT
       : m_storage(arr.data(), N) {}
 
-  template <typename container, std::size_t E = Extent,
-            typename std::enable_if_t<
-              E == gcxx::dynamic_extent && details_::is_container_v<container> &&
-                details_::is_container_element_type_compatible_v<
-                  const container&, element_type>,
-              int> = 0>
+  template <
+    typename container, std::size_t E = Extent,
+    typename std::enable_if_t<
+      E == gcxx::dynamic_extent && details_::is_container_v<container> &&
+        details_::is_container_element_type_compatible_v<const container&,
+                                                         element_type>,
+      int> = 0>
   GCXX_CXPR GCXX_FH span(const container& arr) GCXX_NOEXCEPT
       : m_storage(details_::data(arr), details_::size(arr)) {}
 
-  template <typename container, std::size_t E = Extent,
-            typename std::enable_if_t<
-              E == gcxx::dynamic_extent && details_::is_container_v<container> &&
-                details_::is_container_element_type_compatible_v<container&,
-                                                                 element_type>,
-              int> = 0>
+  template <
+    typename container, std::size_t E = Extent,
+    typename std::enable_if_t<
+      E == gcxx::dynamic_extent && details_::is_container_v<container> &&
+        details_::is_container_element_type_compatible_v<container&,
+                                                         element_type>,
+      int> = 0>
   GCXX_CXPR GCXX_FH span(container& arr) GCXX_NOEXCEPT
       : m_storage(details_::data(arr), details_::size(arr)) {}
 
@@ -223,8 +227,8 @@ class span {
 
   template <typename OVT, std::size_t OtherExtent,
             typename std::enable_if_t<
-              (Extent == gcxx::dynamic_extent || OtherExtent == gcxx::dynamic_extent ||
-               Extent == OtherExtent) &&
+              (Extent == gcxx::dynamic_extent ||
+               OtherExtent == gcxx::dynamic_extent || Extent == OtherExtent) &&
                 std::is_convertible_v<OVT (*)[], VT (*)[]>,  // NOLINT
               int> = 0>
   GCXX_CXPR GCXX_FHD span(const span<OVT, OtherExtent>& other) GCXX_NOEXCEPT
@@ -334,19 +338,21 @@ class span {
 
   template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   GCXX_FHDC auto subspan() const -> subspan_ret_t<Offset, Count> {
-    GCXX_STATIC_EXPECT(
-      Offset <= size() && Count == gcxx::dynamic_extent || Offset + Count < size(),
-      "Span.subspan contract violated");
-    return {data() + Offset, Count != gcxx::dynamic_extent ? Count : size() - Offset};
+    GCXX_STATIC_EXPECT(Offset <= size() && Count == gcxx::dynamic_extent ||
+                         Offset + Count < size(),
+                       "Span.subspan contract violated");
+    return {data() + Offset,
+            Count != gcxx::dynamic_extent ? Count : size() - Offset};
   }
 
   GCXX_FHDC auto subspan(size_type offset,
                          size_type count = gcxx::dynamic_extent) const
     -> span<element_type> {
-    GCXX_DYNAMIC_EXPECT(
-      offset <= size() && count == gcxx::dynamic_extent || offset + count < size(),
-      "Span.subspan contract violated");
-    return {data() + offset, count == gcxx::dynamic_extent ? size() - count : count};
+    GCXX_DYNAMIC_EXPECT(offset <= size() && count == gcxx::dynamic_extent ||
+                          offset + count < size(),
+                        "Span.subspan contract violated");
+    return {data() + offset,
+            count == gcxx::dynamic_extent ? size() - count : count};
   }
 
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█

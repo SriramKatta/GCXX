@@ -345,8 +345,8 @@ void simpleIfElseGraph() {
  * This example requires CUDA >= 12.8.
  */
 
-__global__ void switchGraphKernelA(char* dPtr,
-                                   gcxx::deviceGraphConditionalHandle_t handle) {
+__global__ void switchGraphKernelA(
+  char* dPtr, gcxx::deviceGraphConditionalHandle_t handle) {
   unsigned int value = *dPtr;
   gcxx::Graph::SetConditional(handle, value);
   printf("GPU: Handle set to %d\n", value);
