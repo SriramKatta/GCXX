@@ -1,10 +1,14 @@
 set(LIB_INTERNAL_NAME gpu_cxx)
 
+include(cmake/mdspan.cmake)
+
 add_library(${LIB_INTERNAL_NAME} INTERFACE)
 add_library(gcxx::gcxx ALIAS ${LIB_INTERNAL_NAME})
 target_include_directories(
   ${LIB_INTERNAL_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 )
+target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE mdspan_headers)
+
 set_target_properties(
   ${LIB_INTERNAL_NAME} PROPERTIES CMAKE_POSITION_INDEPENDENT_CODE ON
 )

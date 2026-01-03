@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GCXX_RUNTIME_MEMORY_SPAN_SPAN_HPP
-#define GCXX_RUNTIME_MEMORY_SPAN_SPAN_HPP
+#ifndef GCXX_RUNTIME_MEMORY_SPANS_SPAN_SPAN_HPP
+#define GCXX_RUNTIME_MEMORY_SPANS_SPAN_SPAN_HPP
 
 
 #include <array>
@@ -17,8 +17,8 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 
-GCXX_CXPR inline std::size_t dynamic_extent =
-  std::numeric_limits<std::size_t>::max();
+// GCXX_CXPR inline auto dynamic_extent =
+//   std::numeric_limits<std::size_t>::max();
 
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class span;
@@ -40,7 +40,7 @@ struct size_holder {
 };
 
 template <>
-struct size_holder<dynamic_extent> {
+struct size_holder<gcxx::dynamic_extent> {
   std::size_t m_size{0};
 
   GCXX_FHDC size_holder() noexcept = default;
@@ -142,26 +142,26 @@ class span {
   //                        Constructors
   // ==========================================================
   template <std::size_t E = Extent,
-            typename std::enable_if_t<(E == 0 || E == dynamic_extent), int> = 0>
+            typename std::enable_if_t<(E == 0 || E == gcxx::dynamic_extent), int> = 0>
   GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT{};  // NOLINT
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
       : m_storage(first, count) {
-    GCXX_DYNAMIC_EXPECT(extent == dynamic_extent || count == dynamic_extent,
+    GCXX_DYNAMIC_EXPECT(extent == gcxx::dynamic_extent || count == gcxx::dynamic_extent,
                         "Span (ptr,count) contract violation");
   }
 
   GCXX_CXPR GCXX_FHD span(pointer first, pointer last)
       : m_storage(first, last - first) {
     GCXX_DYNAMIC_EXPECT(
-      extent == dynamic_extent ||
-        (last - first) == static_cast<difference_type>(dynamic_extent),
+      extent == gcxx::dynamic_extent ||
+        (last - first) == static_cast<difference_type>(gcxx::dynamic_extent),
       "Span (ptr, ptr) contract violation");
   }
 
   template <std::size_t N, std::size_t E = Extent,
             typename std::enable_if_t<
-              (E == dynamic_extent || E == N) &&
+              (E == gcxx::dynamic_extent || E == N) &&
                 details_::is_container_element_type_compatible_v<
                   element_type (&)[N], element_type>,  // NOLINT
               int> = 0>
@@ -170,7 +170,7 @@ class span {
 
   template <typename OVT, std::size_t N, std::size_t E = Extent,
             typename std::enable_if_t<
-              (E == dynamic_extent || E == N) &&
+              (E == gcxx::dynamic_extent || E == N) &&
                 details_::is_container_element_type_compatible_v<
                   std::array<OVT, N>&, element_type>,
               int> = 0>
@@ -179,7 +179,7 @@ class span {
 
   template <typename OVT, std::size_t N, std::size_t E = Extent,
             typename std::enable_if_t<
-              (E == dynamic_extent || E == N) &&
+              (E == gcxx::dynamic_extent || E == N) &&
                 details_::is_container_element_type_compatible_v<
                   const std::array<OVT, N>&, element_type>,
               int> = 0>
@@ -188,7 +188,7 @@ class span {
 
   template <typename container, std::size_t E = Extent,
             typename std::enable_if_t<
-              E == dynamic_extent && details_::is_container_v<container> &&
+              E == gcxx::dynamic_extent && details_::is_container_v<container> &&
                 details_::is_container_element_type_compatible_v<
                   const container&, element_type>,
               int> = 0>
@@ -197,7 +197,7 @@ class span {
 
   template <typename container, std::size_t E = Extent,
             typename std::enable_if_t<
-              E == dynamic_extent && details_::is_container_v<container> &&
+              E == gcxx::dynamic_extent && details_::is_container_v<container> &&
                 details_::is_container_element_type_compatible_v<container&,
                                                                  element_type>,
               int> = 0>
@@ -206,7 +206,7 @@ class span {
 
   template <typename OVT, typename Alloc, std::size_t E = Extent,
             typename std::enable_if_t<
-              E == dynamic_extent &&
+              E == gcxx::dynamic_extent &&
                 std::is_convertible_v<OVT (*)[], element_type (*)[]>,  // NOLINT
               int> = 0>
   GCXX_CXPR GCXX_FH span(std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
@@ -215,7 +215,7 @@ class span {
   template <
     typename OVT, typename Alloc, std::size_t E = Extent,
     typename std::enable_if_t<
-      E == dynamic_extent &&
+      E == gcxx::dynamic_extent &&
         std::is_convertible_v<const OVT (*)[], element_type (*)[]>,  // NOLINT
       int> = 0>
   GCXX_CXPR GCXX_FH span(const std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
@@ -223,7 +223,7 @@ class span {
 
   template <typename OVT, std::size_t OtherExtent,
             typename std::enable_if_t<
-              (Extent == dynamic_extent || OtherExtent == dynamic_extent ||
+              (Extent == gcxx::dynamic_extent || OtherExtent == gcxx::dynamic_extent ||
                Extent == OtherExtent) &&
                 std::is_convertible_v<OVT (*)[], VT (*)[]>,  // NOLINT
               int> = 0>
@@ -308,7 +308,7 @@ class span {
   }
 
   GCXX_FHDC auto first(size_type count) const
-    -> span<element_type, dynamic_extent> {
+    -> span<element_type, gcxx::dynamic_extent> {
     GCXX_DYNAMIC_EXPECT(count <= size(), "Span.first count greater than size");
     return {data(), count};
   }
@@ -320,33 +320,33 @@ class span {
   }
 
   GCXX_FHDC auto last(size_type count) const
-    -> span<element_type, dynamic_extent> {
+    -> span<element_type, gcxx::dynamic_extent> {
     GCXX_DYNAMIC_EXPECT(count <= size(), "Span.last count greater than size");
     return {data() + (size() - count), count};
   }
 
-  template <std::size_t Offset, std::size_t Count = dynamic_extent>
+  template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   using subspan_ret_t =
     span<element_type,
-         Count != dynamic_extent
+         Count != gcxx::dynamic_extent
            ? Count
-           : (Extent != Count ? Extent - Offset : dynamic_extent)>;
+           : (Extent != Count ? Extent - Offset : gcxx::dynamic_extent)>;
 
-  template <std::size_t Offset, std::size_t Count = dynamic_extent>
+  template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   GCXX_FHDC auto subspan() const -> subspan_ret_t<Offset, Count> {
     GCXX_STATIC_EXPECT(
-      Offset <= size() && Count == dynamic_extent || Offset + Count < size(),
+      Offset <= size() && Count == gcxx::dynamic_extent || Offset + Count < size(),
       "Span.subspan contract violated");
-    return {data() + Offset, Count != dynamic_extent ? Count : size() - Offset};
+    return {data() + Offset, Count != gcxx::dynamic_extent ? Count : size() - Offset};
   }
 
   GCXX_FHDC auto subspan(size_type offset,
-                         size_type count = dynamic_extent) const
+                         size_type count = gcxx::dynamic_extent) const
     -> span<element_type> {
     GCXX_DYNAMIC_EXPECT(
-      offset <= size() && count == dynamic_extent || offset + count < size(),
+      offset <= size() && count == gcxx::dynamic_extent || offset + count < size(),
       "Span.subspan contract violated");
-    return {data() + offset, count == dynamic_extent ? size() - count : count};
+    return {data() + offset, count == gcxx::dynamic_extent ? size() - count : count};
   }
 
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
