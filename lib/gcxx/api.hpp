@@ -14,6 +14,7 @@
 
 // Section for Runtime Flags
 #include <gcxx/runtime/flags/device_flags.hpp>
+#include <gcxx/runtime/flags/memory_flags.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
 #include <gcxx/runtime/flags/graph_flags.hpp>

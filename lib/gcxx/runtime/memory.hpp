@@ -4,7 +4,9 @@
 
 #include <gcxx/runtime/memory/spans/spans.hpp>
 
-#include <gcxx/runtime/memory/mempool/mempool_view.hpp>
+// TODO: complete this at a later point
+// #include <gcxx/runtime/memory/mempool/mempool.hpp>
+// #include <gcxx/runtime/memory/mempool/mempool_view.hpp>
 
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 
