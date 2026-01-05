@@ -159,11 +159,11 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
 
   auto memcpy3d1 =
     gcxx::Memcpy3DParamsBuilder()
-      .setSrcPtr(gcxx::memory::makePitchedPtr(
-        inputVec_h, sizeof(float) * inputSize, inputSize, 1))
-      .setDstPtr(gcxx::memory::makePitchedPtr(
-        inputVec_d, sizeof(float) * inputSize, inputSize, 1))
-      .setExtent(gcxx::memory::makeExtent(sizeof(float) * inputSize, 1, 1))
+      .setSrcPtr(gcxx::memory::makePitchedPtr<float>(inputVec_h, inputSize,
+                                                     inputSize, 1))
+      .setDstPtr(gcxx::memory::makePitchedPtr<float>(inputVec_d, inputSize,
+                                                     inputSize, 1))
+      .setExtent(gcxx::memory::makeExtent<float>(inputSize, 1, 1))
       .build();
 
 
@@ -214,9 +214,9 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
 
   auto memcpy3d2 =
     gcxx::Memcpy3DParamsBuilder()
-      .setSrcPtr(gcxx::memory::makePitchedPtr(result_d, sizeof(double), 1, 1))
-      .setDstPtr(gcxx::memory::makePitchedPtr(&result_h, sizeof(double), 1, 1))
-      .setExtent(gcxx::memory::makeExtent(sizeof(double), 1, 1))
+      .setSrcPtr(gcxx::memory::makePitchedPtr<double>(result_d, 1, 1, 1))
+      .setDstPtr(gcxx::memory::makePitchedPtr<double>(&result_h, 1, 1, 1))
+      .setExtent(gcxx::memory::makeExtent<double>(1, 1, 1))
       .build();
 
   memcpyNode = graph.AddMemcpyNode(memcpy3d2, nodeDependencies);

@@ -12,30 +12,39 @@ namespace memory {
   using devicePos        = GCXX_RUNTIME_BACKEND(Pos);
   using deviceExtent     = GCXX_RUNTIME_BACKEND(Extent);
 
-  GCXX_FH auto makePitchedPtr(void* d, size_t p, size_t xsz, size_t ysz)
+  template <typename VT>
+  GCXX_FH auto makePitchedPtr(void* dPtr, size_t pitchelems = 1,
+                              size_t xSize = 1, size_t ySize = 1)
     -> devicePitchedPtr {
+    return
 #if GCXX_CUDA_MODE
-    return make_cudaPitchedPtr(d, p, xsz, ysz);
+      make_cudaPitchedPtr
 #else
-    return make_hipPitchedPtr(d, p, xsz, ysz);
+      make_hipPitchedPtr
 #endif
+      (dPtr, pitchelems * sizeof(VT), xSize, ySize);
   }
 
   GCXX_FH auto makePos(size_t x, size_t y, size_t z) -> devicePos {
+    return
 #if GCXX_CUDA_MODE
-    return make_cudaPos(x, y, z);
+      make_cudaPos
 #else
-    return make_hipPos(x, y, z);
+      make_hipPos
 #endif
+      (x, y, z);
   }
 
-  GCXX_FH auto makeExtent(size_t w, size_t h, size_t d) -> deviceExtent {
-
+  template <typename VT>
+  GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1, size_t zSize = 1)
+    -> deviceExtent {
+    return
 #if GCXX_CUDA_MODE
-    return make_cudaExtent(w, h, d);
+      make_cudaExtent
 #else
-    return make_hipExtent(w, h, d);
+      make_hipExtent
 #endif
+      (xSize * sizeof(VT), ySize, zSize);
   }
 
 
