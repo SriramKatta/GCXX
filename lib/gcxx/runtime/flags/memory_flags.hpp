@@ -19,9 +19,9 @@ enum MemAllocationHandle : details_::flag_t {
   PosixFileDescriptor = GCXX_RUNTIME_BACKEND(MemHandleTypePosixFileDescriptor),
   Win32               = GCXX_RUNTIME_BACKEND(MemHandleTypeWin32),
   Win32Kmt            = GCXX_RUNTIME_BACKEND(MemHandleTypeWin32Kmt),
-  #if GCXX_CUDA_MODE
-  Fabric              = GCXX_RUNTIME_BACKEND(MemHandleTypeFabric),
-  #endif
+#if GCXX_CUDA_MODE
+  Fabric = GCXX_RUNTIME_BACKEND(MemHandleTypeFabric),
+#endif
 };
 
 enum class MemLocation : details_::flag_t {

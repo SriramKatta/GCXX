@@ -16,8 +16,9 @@ class Exception : public std::runtime_error {
       : std::runtime_error(details_::make_message(err, context)), error_(err) {}
 
   details_::deviceError_t error() const noexcept { return error_; }
-  private:
-    details_::deviceError_t error_;
+
+ private:
+  details_::deviceError_t error_;
 };
 
 GCXX_NAMESPACE_MAIN_END
