@@ -57,16 +57,16 @@ namespace memory {
   // ║      smart pointer version based on element type       ║
   // ╚════════════════════════════════════════════════════════╝
 
-  template <typename VT, typename DT>
-  GCXX_FH auto copy(gcxx_unique_ptr<VT, DT>& destination,
-                    const gcxx_unique_ptr<VT, DT>& source,
+  template <typename VT, typename DTDest, typename DTSource>
+  GCXX_FH auto copy(gcxx_unique_ptr<VT, DTDest>& destination,
+                    const gcxx_unique_ptr<VT, DTSource>& source,
                     const std::size_t numElements) -> void {
     details_::copy(destination.get(), source.get(), numElements * sizeof(VT));
   }
 
-  template <typename VT, typename DT>
-  GCXX_FH auto copy(gcxx_unique_ptr<VT, DT>& destination,
-                    const gcxx_unique_ptr<VT, DT>& source,
+  template <typename VT, typename DTDest, typename DTSource>
+  GCXX_FH auto copy(gcxx_unique_ptr<VT, DTDest>& destination,
+                    const gcxx_unique_ptr<VT, DTSource>& source,
                     const std::size_t numElements, const StreamView& stream)
     -> void {
     details_::copy(destination.get(), source.get(), numElements * sizeof(VT),
