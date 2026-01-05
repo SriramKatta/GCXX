@@ -42,6 +42,7 @@ int main(int argc, char** argv) {
   auto H2Dend = str.RecordEvent();
 
   auto res = launch_reduction_kernel<datatype>(arg, str, d_a_span);
+  str.Synchronize();
 
   if ((res - static_cast<datatype>(arg.N) > keps)) {
     fmt::print("CHECK FAILED res {} and check val{}\n", res, arg.N);

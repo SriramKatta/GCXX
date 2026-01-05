@@ -109,17 +109,14 @@ __global__ void kernel_reduction(const gcxx::span<VT> a, VT* result) {
 template <typename VT>
 VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
                            gcxx::span<VT>& ptr) {
-  VT* res;
-  GCXX_SAFE_RUNTIME_CALL(Malloc, "Device malloc failed", &res, sizeof(VT));
-  GCXX_SAFE_RUNTIME_CALL(Memset, "Device memset failed", res, 0, sizeof(VT));
-  // auto ev_start = str.recordEvent();
-  kernel_reduction<<<arg.blocks, arg.threads, arg.threads * sizeof(VT),
-                     str.get()>>>(ptr, res);
-  // auto ev_end = str.recordEvent();
-  VT res_host{};
-  VT* res_host_ptr = &res_host;
-  gcxx::memory::copy(res_host_ptr, res, 1, str.get());
-  str.Synchronize();
-  GCXX_SAFE_RUNTIME_CALL(Free, "Device memory free failed", res);
-  return res_host;
+  auto res_raii = gcxx::memory::make_device_unique_ptr<VT>(1, str);
+  gcxx::memory::Memset(res_raii, 0, 1, str);
+  VT* res = res_raii.get();
+
+  gcxx::launch::Kernel(str, arg.blocks,arg.threads,  arg.threads * sizeof(VT),
+                       kernel_reduction<VT>, ptr, res);
+
+  auto res_host = gcxx::memory::make_host_pinned_unique_ptr<VT>(1);
+  gcxx::memory::copy(res_host, res_raii, 1, str);
+  return *res_host;
 }
