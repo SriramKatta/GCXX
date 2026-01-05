@@ -28,6 +28,7 @@ endif()
 
 option(GCXX_CUDA_MODE "to compile for CUDA programming language" OFF)
 option(GCXX_HIP_MODE "to compile for HIP programming language" OFF)
+option(GCXX_WITH_EXCEPTIONS "Enables building of library  with exceptions" ON)
 option(GCXX_BUILD_EXAMPLES "Enables building of examples" OFF)
 option(GCXX_BUILD_BENCHMARKS "Enables building of benchmarks" OFF)
 option(GCXX_BUILD_TESTS "Enables building of tests" OFF)

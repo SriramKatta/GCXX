@@ -8,7 +8,7 @@
 // TODO : Implement no ERR check style may increace the performance
 #define GCXX_SAFE_RUNTIME_CALL(BASEFUNCNAME, MSG, ...)                      \
   do {                                                                      \
-    const auto err_state = GCXX_RUNTIME_BACKEND(BASEFUNCNAME)(__VA_ARGS__); \
+    const auto err_state = ::GCXX_RUNTIME_BACKEND(BASEFUNCNAME)(__VA_ARGS__); \
     switch (err_state) {                                                    \
       case gcxx::details_::deviceErrSuccess:                                \
         break;                                                              \

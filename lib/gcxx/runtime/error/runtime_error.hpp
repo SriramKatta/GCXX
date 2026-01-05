@@ -2,23 +2,25 @@
 #ifndef GCXX_RUNTIME_ERROR_RUNTIME_ERROR_HPP_
 #define GCXX_RUNTIME_ERROR_RUNTIME_ERROR_HPP_
 
-#include <stdio.h>
-#include <cstdlib>
-#include <exception>
 #include <iostream>
 
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+#include <gcxx/runtime/error/runtime_error_types.hpp>
+#if defined(GCXX_WITH_EXCEPTIONS)
+#include <gcxx/runtime/error/runtime_exception.hpp>
+#endif
 
-using deviceError_t              = GCXX_RUNTIME_BACKEND(Error_t);
-GCXX_CXPR auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
-GCXX_CXPR auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 // TODO : Implement an exception style throw
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
-  std::cerr << "code " << err << " : " << msg << "\n";
+#if defined(GCXX_WITH_EXCEPTIONS)
+  throw gcxx::Exception(err, msg);
+#else
+  std::cerr << details_::make_message(err, msg) << "\n";
   std::abort();
+#endif
 }
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
