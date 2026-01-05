@@ -4,6 +4,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/error/runtime_error.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
@@ -11,6 +12,14 @@ GCXX_CXPR auto device_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate device memory", &ptr,
                          numbytes);
+  return ptr;
+};
+
+GCXX_CXPR auto device_malloc_async = [](std::size_t numbytes, const StreamView& sv = NULL_STREAM) {
+  void* ptr = nullptr;
+  GCXX_SAFE_RUNTIME_CALL(MallocAsync,
+                         "Failed to allocate device memory asynchronously",
+                         &ptr, numbytes, sv.getRawStream());
   return ptr;
 };
 
@@ -37,6 +46,12 @@ GCXX_CXPR auto host_malloc = [](std::size_t numbytes) {
 
 GCXX_CXPR auto device_free = [](void* ptr) {
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to deallocate device memory", ptr);
+};
+
+GCXX_CXPR auto device_free_async = [](void* ptr, const StreamView& sv = NULL_STREAM) {
+  GCXX_SAFE_RUNTIME_CALL(FreeAsync,
+                         "Failed to deallocate device memory Asynchronysly",
+                         ptr, sv.getRawStream());
 };
 
 GCXX_CXPR auto host_free = [](void* ptr) {
