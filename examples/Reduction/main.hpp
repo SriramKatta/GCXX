@@ -113,7 +113,7 @@ VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
   gcxx::memory::Memset(res_raii, 0, 1, str);
   VT* res = res_raii.get();
 
-  gcxx::launch::Kernel(str, arg.blocks,arg.threads,  arg.threads * sizeof(VT),
+  gcxx::launch::Kernel(str, arg.blocks, arg.threads, arg.threads * sizeof(VT),
                        kernel_reduction<VT>, ptr, res);
 
   auto res_host = gcxx::memory::make_host_pinned_unique_ptr<VT>(1);

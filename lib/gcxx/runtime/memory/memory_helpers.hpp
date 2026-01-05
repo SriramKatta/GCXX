@@ -3,7 +3,6 @@
 #define GCXX_API_RUNTIME_MEMORY_MEMORY_HELPERS_HPP_
 
 #include <gcxx/internal/prologue.hpp>
-#include <gcxx/runtime/runtime_error.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN

@@ -4,7 +4,6 @@
 #define GCXX_RUNTIME_DETAILS_DEVICE_ENSURE_DEVICE_INL_
 
 #include <gcxx/internal/prologue.hpp>
-#include <gcxx/runtime/runtime_error.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN

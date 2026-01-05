@@ -4,7 +4,6 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
-#include <gcxx/runtime/runtime_error.hpp>
 
 #include <gcxx/runtime/event/event_view.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>

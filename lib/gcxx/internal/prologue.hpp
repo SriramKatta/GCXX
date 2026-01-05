@@ -4,6 +4,7 @@
 
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/define_macros.hpp>
+#include <gcxx/runtime/runtime_error.hpp>
 
 
 #endif

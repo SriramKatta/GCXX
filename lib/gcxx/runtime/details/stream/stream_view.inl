@@ -2,9 +2,8 @@
 #ifndef GCXX_RUNTIME_DETAILS_STREAM_STREAM_VIEW_INL_
 #define GCXX_RUNTIME_DETAILS_STREAM_STREAM_VIEW_INL_
 
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/graph/graph.hpp>
-#include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN

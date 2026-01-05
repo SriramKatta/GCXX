@@ -104,14 +104,14 @@ class span {
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
   // █                     Static Asserts                     █
   // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-  static_assert(std::is_object_v<VT>,
-                "A reference is not supported,"
-                " need a fully declared type");
-  static_assert(!std::is_abstract_v<VT>,
-                "An abstract class type is not supported");
-  static_assert(details_::is_complete_v<VT>,
-                "A forward declaration is not supported,"
-                " need a fully declared type");
+  GCXX_STATIC_EXPECT(std::is_object_v<VT>,
+                     "A reference is not supported,"
+                     " need a fully declared type");
+  GCXX_STATIC_EXPECT(!std::is_abstract_v<VT>,
+                     "An abstract class type is not supported");
+  GCXX_STATIC_EXPECT(details_::is_complete_v<VT>,
+                     "A forward declaration is not supported,"
+                     " need a fully declared type");
 
   using storage_type = details_::span_storage<VT, Extent>;
 

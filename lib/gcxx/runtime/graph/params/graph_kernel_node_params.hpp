@@ -54,7 +54,7 @@ class KernelNodeParams : public KernelNodeParamsView {
   template <typename... Args>
   GCXX_FHC KernelNodeParams(void* func, dim3 grid, dim3 block,
                             unsigned int shmem, Args&... args) {
-    static_assert(sizeof...(args) == NumParams, "Arg count mismatch!");
+    GCXX_STATIC_EXPECT(sizeof...(args) == NumParams, "Arg count mismatch!");
 
     std::size_t i = 0;
     ((kernelargs_[i++] = static_cast<void*>(&args)), ...);
@@ -95,8 +95,8 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 
 template <typename... Args>
 class KernelArgPack {
-  static_assert((std::is_trivially_copyable_v<Args> && ...),
-                "All kernel arguments must be trivially copyable");
+  GCXX_STATIC_EXPECT((std::is_trivially_copyable_v<Args> && ...),
+                     "All kernel arguments must be trivially copyable");
 
  public:
   std::tuple<Args&...> args;
@@ -122,9 +122,10 @@ class KernelParamsBuilder {
 
   template <typename Kernel>
   GCXX_FHC auto setKernel(Kernel k) -> KernelParamsBuilder& {
-    static_assert(details_::is_void_function_pointer<Kernel>::value,
-                  "Passed value must be a function pointer and function should "
-                  "return void");
+    GCXX_STATIC_EXPECT(
+      details_::is_void_function_pointer<Kernel>::value,
+      "Passed value must be a function pointer and function should "
+      "return void");
     kernel_ = reinterpret_cast<void*>(k);  // NOLINT
     return *this;
   }
@@ -172,8 +173,8 @@ class KernelParamsBuilder {
 
   template <typename... Args>
   GCXX_FHC auto setArgs(Args&... args) -> KernelParamsBuilder& {
-    static_assert((std::is_trivially_copyable_v<Args> && ...),
-                  "All kernel args must be trivially copyable");
+    GCXX_STATIC_EXPECT((std::is_trivially_copyable_v<Args> && ...),
+                       "All kernel args must be trivially copyable");
 
     arg_ptrs_.clear();
     arg_ptrs_.reserve(sizeof...(Args));
@@ -184,9 +185,9 @@ class KernelParamsBuilder {
 
   template <std::size_t NumParams>
   GCXX_FHC gcxx::KernelNodeParams<NumParams> build() {
-    // static_assert(NumParams > 0, "Kernel must have at least one argument");
-    assert(arg_ptrs_.size() == NumParams);
-    assert(kernel_ != nullptr);
+    GCXX_DYNAMIC_EXPECT(arg_ptrs_.size() == NumParams,
+                        "Mismatch between arg_ptrs_.size() and Numparams");
+    GCXX_DYNAMIC_EXPECT(kernel_ != nullptr, "Need to set the kernel");
 
     std::array<void*, NumParams> final_args{};
     std::copy_n(arg_ptrs_.begin(), NumParams, final_args.begin());

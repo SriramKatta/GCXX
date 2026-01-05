@@ -8,10 +8,6 @@
 #include <gcxx/types/shared_mem.hpp>
 #include <gcxx/types/vector_types.hpp>
 
-// Section for different error handlings
-// for example runtime, blas, etc.
-#include <gcxx/runtime/runtime_error.hpp>
-
 // Section for Runtime Flags
 #include <gcxx/runtime/flags/device_flags.hpp>
 #include <gcxx/runtime/flags/memory_flags.hpp>

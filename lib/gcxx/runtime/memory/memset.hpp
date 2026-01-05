@@ -5,7 +5,6 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
-#include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN

@@ -2,9 +2,9 @@
 #ifndef GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_INL_
 #define GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_INL_
 
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/graph/graph.hpp>
 #include <gcxx/runtime/graph/graph_exec.hpp>
-#include <gcxx/runtime/runtime_error.hpp>
 
 #include <utility>
 

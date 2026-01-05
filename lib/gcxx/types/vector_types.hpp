@@ -3,7 +3,6 @@
 #define GCXX_TYPES_VECTOR_TYPES_HPP
 
 #include <gcxx/internal/prologue.hpp>
-#include <gcxx/runtime/runtime_error.hpp>
 #include <type_traits>
 
 GCXX_NAMESPACE_MAIN_BEGIN
