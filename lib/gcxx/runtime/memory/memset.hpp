@@ -53,14 +53,14 @@ namespace memory {
   // ║      smart pointer version based on element type       ║
   // ╚════════════════════════════════════════════════════════╝
 
-  template <typename VT, typename DT>
-  GCXX_FH auto Memset(gcxx_unique_ptr<VT, DT>& destination, const int value,
+  template <typename VT>
+  GCXX_FH auto Memset(device_ptr<VT>& destination, const int value,
                       const std::size_t numElements) -> void {
     details_::Memset(destination.get(), value, numElements * sizeof(VT));
   }
 
-  template <typename VT, typename DT>
-  GCXX_FH auto Memset(gcxx_unique_ptr<VT, DT>& destination, const int value,
+  template <typename VT>
+  GCXX_FH auto Memset(device_ptr<VT>& destination, const int value,
                       const std::size_t numElements, const StreamView& stream)
     -> void {
     details_::Memset(destination.get(), value, numElements * sizeof(VT),

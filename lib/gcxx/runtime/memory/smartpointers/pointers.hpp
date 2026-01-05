@@ -21,12 +21,19 @@ namespace memory {
 
   template <typename VT>
   using host_pinned_ptr =
-    gcxx_unique_ptr<VT[], decltype(details_::host_free)>;  // NOLINT
+    gcxx_unique_ptr<VT, decltype(details_::host_free)>;  // NOLINT
 
   template <typename VT>
   auto make_device_unique_ptr(std::size_t numElem) -> device_ptr<VT> {
     return device_ptr<VT>{
       static_cast<VT*>(details_::device_malloc(numElem * sizeof(VT))),
+      details_::device_free};
+  }
+
+  template <typename VT>
+  auto make_device_unique_ptr(std::size_t numElem, const StreamView& sv) -> device_ptr<VT> {
+    return device_ptr<VT>{
+      static_cast<VT*>(details_::device_malloc_async(numElem * sizeof(VT), sv)),
       details_::device_free};
   }
 
