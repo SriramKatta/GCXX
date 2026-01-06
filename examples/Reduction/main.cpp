@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
   auto H2Dstart = str.RecordEvent();
-  gcxx::memory::copy(d_a_span, h_a_span, str);
+  gcxx::memory::Copy(d_a_span, h_a_span, str);
   auto H2Dend = str.RecordEvent();
 
   auto res = launch_reduction_kernel<datatype>(arg, str, d_a_span);

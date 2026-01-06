@@ -272,7 +272,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::copy(inputVec_d, inputVec_h, inputSize, stream1);
+  gcxx::memory::Copy(inputVec_d, inputVec_h, inputSize, stream1);
 
   gcxx::memory::Memset(outputVec_d, 0, numOfBlocks, stream2);
   memsetEvent1.RecordInStream(stream2);
@@ -290,7 +290,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::copy(&result_h, result_d, 1, stream1);
+  gcxx::memory::Copy(&result_h, result_d, 1, stream1);
 
 
   callBackData_t hostFnData = {nullptr};
@@ -340,7 +340,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::copy(inputVec_d, inputVec_h, inputSize, stream1);
+  gcxx::memory::Copy(inputVec_d, inputVec_h, inputSize, stream1);
 
   gcxx::memory::Memset(outputVec_d, 0, numOfBlocks, stream2);
   memsetEvent1.RecordInStream(stream2);
@@ -358,7 +358,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::copy(&result_h, result_d, 1, stream1);
+  gcxx::memory::Copy(&result_h, result_d, 1, stream1);
 
 
   callBackData_t hostFnData = {nullptr};

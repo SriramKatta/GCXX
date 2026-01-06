@@ -117,6 +117,6 @@ VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
                        kernel_reduction<VT>, ptr, res);
 
   auto res_host = gcxx::memory::make_host_pinned_unique_ptr<VT>(1);
-  gcxx::memory::copy(res_host, res_raii, 1, str);
+  gcxx::memory::Copy(res_host, res_raii, 1, str);
   return *res_host;
 }
