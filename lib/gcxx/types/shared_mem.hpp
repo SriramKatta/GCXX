@@ -36,18 +36,19 @@ struct dynamicSharedMemory<double> {
   }
 };
 
-template <typename VT, std::size_t N>
-struct staticSharedArray {
-  __device__ inline operator VT*() {
-    extern __shared__ VT m_smem[];
-    return (VT*)m_smem;
-  }
+// TODO : implement this in a better way
+// template <typename VT, std::size_t N>
+// struct staticSharedArray {
+//   __device__ inline operator VT*() {
+//     __shared__ VT m_smem[N];
+//     return (VT*)m_smem;
+//   }
 
-  __device__ inline operator const VT*() const {
-    extern __shared__ VT m_smem[];
-    return (VT*)m_smem;
-  }
-};
+//   __device__ inline operator const VT*() const {
+//     __shared__ VT m_smem[N];
+//     return (VT*)m_smem;
+//   }
+// };
 
 // NOLINTEND
 GCXX_NAMESPACE_MAIN_END
