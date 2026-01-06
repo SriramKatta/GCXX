@@ -18,10 +18,13 @@ namespace memory {
   template <typename VT>
   using device_ptr = gcxx_unique_ptr<VT, decltype(details_::device_free)>;
 
-
   template <typename VT>
   using host_pinned_ptr =
     gcxx_unique_ptr<VT, decltype(details_::host_free)>;  // NOLINT
+
+  template <typename VT>
+  using device_managed_ptr =
+    gcxx_unique_ptr<VT, decltype(details_::device_free)>;
 
   template <typename VT>
   auto make_device_unique_ptr(std::size_t numElem) -> device_ptr<VT> {
@@ -43,6 +46,14 @@ namespace memory {
     return host_pinned_ptr<VT>{
       static_cast<VT*>(details_::host_malloc(numElem * sizeof(VT))),
       details_::host_free};
+  }
+
+  template <typename VT>
+  auto make_device_managed_unique_ptr(std::size_t numElem)
+    -> device_managed_ptr<VT> {
+    return device_managed_ptr<VT>{
+      static_cast<VT*>(details_::device_managed_malloc(numElem * sizeof(VT))),
+      details_::device_free};
   }
 
 
