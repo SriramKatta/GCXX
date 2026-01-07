@@ -21,8 +21,9 @@ namespace launch {
 
   // TODO : add sfinae to check if the kernel is __global__
   template <typename... ExpTypes, typename... ActTypes>
-  GCXX_FH void Kernel(StreamView, dim3, dim3, std::size_t smem_bytes,
-                      void (*)(ExpTypes...), ActTypes&&...);
+  GCXX_FH void Kernel(StreamView stream, dim3 griddim, dim3 blockdim,
+                      std::size_t smem_bytes, void (*kernel)(ExpTypes...),
+                      ActTypes&&...);
 }  // namespace launch
 
 GCXX_NAMESPACE_MAIN_END

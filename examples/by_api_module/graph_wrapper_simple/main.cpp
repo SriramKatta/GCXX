@@ -81,8 +81,7 @@ void stream_capture() {
                    gcxx::flags::graphDebugDot::Verbose);
     auto exec = gp.Instantiate();
     exec.Launch(StreamforGraph);
-  }
-  else{
+  } else {
     gcxx::Device::Synchronize();
   }
 }
