@@ -33,16 +33,13 @@ namespace launch {
   GCXX_FH void Kernel(StreamView sv, dim3 griddim, dim3 blockdim,
                       std::size_t smem_bytes, void (*kernel)(ExpTypes...),
                       ActTypes&&... args) {
-
-    std::array<void*, sizeof...(ActTypes)> kernelArgs{
-      (void*)std::addressof(args)...}; // TODO : HIGHLY unsafe but works 
-    GCXX_SAFE_RUNTIME_CALL(LaunchKernel, "Failed to launch GPU kernel",
-#if GCXX_HIP_MODE
-                           (void*)
-#endif
-                             kernel,
-                           griddim, blockdim, kernelArgs.data(), smem_bytes,
-                           sv.getRawStream());
+    GCXX_RUNTIME_BACKEND(LaunchConfig_t) config{};
+    config.stream           = sv.getRawStream();
+    config.blockDim         = blockdim;
+    config.gridDim          = griddim;
+    config.dynamicSmemBytes = smem_bytes;
+    GCXX_SAFE_RUNTIME_CALL(LaunchKernelEx, "Failed to launch GPU kernel",
+                           &config, kernel, args...);
   }
 }  // namespace launch
 
