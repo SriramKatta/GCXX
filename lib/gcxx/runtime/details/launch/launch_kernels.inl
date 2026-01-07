@@ -35,7 +35,7 @@ namespace launch {
                       ActTypes&&... args) {
 
     std::array<void*, sizeof...(ActTypes)> kernelArgs{
-      static_cast<void*>(&args)...};
+      (void*)std::addressof(args)...}; // TODO : HIGHLY unsafe but works 
     GCXX_SAFE_RUNTIME_CALL(LaunchKernel, "Failed to launch GPU kernel",
 #if GCXX_HIP_MODE
                            (void*)
