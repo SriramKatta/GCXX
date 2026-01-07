@@ -33,6 +33,7 @@ __global__ void kern_Y() {
   printf("printing from %s\n", __func__);
 }
 
+template <bool with_graph>
 void stream_capture() {
   gcxx::Stream stream1;
   gcxx::Stream stream2;
@@ -45,7 +46,9 @@ void stream_capture() {
 
   gcxx::Stream StreamforGraph;
 
-  stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+  if constexpr (with_graph) {
+    stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+  }
 
 
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_A);
@@ -72,11 +75,16 @@ void stream_capture() {
   stream1.WaitOnEvent(eve_after_Y);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_F);
 
-  auto gp = stream1.EndCapture();
-  gp.SaveDotfile("./test_stream_capture.dot",
-                 gcxx::flags::graphDebugDot::Verbose);
-  auto exec = gp.Instantiate();
-  exec.Launch(StreamforGraph);
+  if constexpr (with_graph) {
+    auto gp = stream1.EndCapture();
+    gp.SaveDotfile("./test_stream_capture.dot",
+                   gcxx::flags::graphDebugDot::Verbose);
+    auto exec = gp.Instantiate();
+    exec.Launch(StreamforGraph);
+  }
+  else{
+    gcxx::Device::Synchronize();
+  }
 }
 
 void stream_capture_tograph() {
@@ -175,7 +183,8 @@ void manual_graph_build() {
 }
 
 int main(int argc, char const* argv[]) {
-  stream_capture();
+  stream_capture<true>();
+  stream_capture<false>();
   stream_capture_tograph();
   manual_graph_build();
   return 0;

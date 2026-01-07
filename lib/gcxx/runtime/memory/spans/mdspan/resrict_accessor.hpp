@@ -5,7 +5,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
-
+// TODO : need to add ctors and sattic asserts to make this robhust
 template <class Accessor>
 struct restrict_accessor : public Accessor
 {
