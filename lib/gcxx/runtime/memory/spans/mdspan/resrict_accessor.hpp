@@ -6,29 +6,22 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-template <class ElementType>
-struct restrict_accessor {
-  using offset_policy    = gcxx::default_accessor<ElementType>;
-  using element_type     = ElementType;
-  using reference        = ElementType&;
-  using data_handle_type = ElementType*;
+template <class Accessor>
+struct restrict_accessor : public Accessor
+{
+public:
+    using offset_policy = restrict_accessor<typename Accessor::offset_policy>;
+    using element_type = typename Accessor::element_type;
+    using reference = typename Accessor::reference;
+    using data_handle_type = element_type * GCXX_RESTRICT_KEYWORD;
+    constexpr reference access(data_handle_type p, std::size_t i) const noexcept{
+        return Accessor::access(p, i);
+    }
+    
+    constexpr data_handle_type offset( data_handle_type p, std::size_t i ) const noexcept{
+        return Accessor::offset(p, i);
+    }
 
-  constexpr restrict_accessor() noexcept = default;
-
-  template <class OtherElementType,
-            typename std::enable_if_t<
-              std::is_convertible_v<OtherElementType (*)[], element_type (*)[]>,
-              int> = 0>
-  constexpr restrict_accessor(restrict_accessor<OtherElementType>) noexcept {}
-
-  constexpr reference access(data_handle_type p, size_t i) const noexcept {
-    return p[i];
-  }
-
-  constexpr typename offset_policy::data_handle_type offset(
-    data_handle_type p, size_t i) const noexcept {
-    return p + i;
-  }
 };
 
 GCXX_NAMESPACE_MAIN_END
