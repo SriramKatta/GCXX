@@ -19,6 +19,11 @@ namespace launch {
 
   GCXX_FH void HostFunc(const StreamView, gcxxHostFn_t, void*);
 
+
+  template <typename... ExpTypes, typename... ActTypes>
+  GCXX_FH void Kernel(dim3 griddim, dim3 blockdim, void (*kernel)(ExpTypes...),
+                      ActTypes&&... args);
+
   // TODO : add sfinae to check if the kernel is __global__
   template <typename... ExpTypes, typename... ActTypes>
   GCXX_FH void Kernel(StreamView stream, dim3 griddim, dim3 blockdim,

@@ -14,9 +14,9 @@ class Graph : public GraphView {
  private:
   GCXX_FH Graph(deviceGraph_t graph) GCXX_NOEXCEPT : GraphView(graph) {}
 
-  GCXX_FH auto destroy() -> void;
 
  public:
+  GCXX_FH auto destroy() -> void;
   GCXX_FH Graph(const flags::graphCreate createFlag = flags::graphCreate::None)
     GCXX_NOEXCEPT;
 
