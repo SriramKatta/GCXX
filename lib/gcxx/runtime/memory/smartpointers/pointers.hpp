@@ -2,8 +2,8 @@
 #ifndef GCXX_RUNTIME_SMARTPOINTERS_POINTERS_HPP_
 #define GCXX_RUNTIME_SMARTPOINTERS_POINTERS_HPP_
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 
 #include <gcxx/macros/define_macros.hpp>
@@ -31,7 +31,9 @@ namespace memory {
   auto make_device_unique_ptr(std::size_t numElem) -> device_ptr<VT> {
     return device_ptr<VT>{
       static_cast<VT*>(details_::device_malloc(numElem * sizeof(VT))),
-      [](VT* p) { details_::device_free(static_cast<void*>(p)); }};
+      [](VT* p) {
+        details_::device_free(static_cast<void*>(p));
+      }};
   }
 
   template <typename VT>
@@ -39,7 +41,9 @@ namespace memory {
     -> device_ptr<VT> {
     return device_ptr<VT>{
       static_cast<VT*>(details_::device_malloc_async(numElem * sizeof(VT), sv)),
-      [sv](VT* p) { details_::device_free_async(static_cast<void*>(p), sv); }};
+      [sv](VT* p) {
+        details_::device_free_async(static_cast<void*>(p), sv);
+      }};
   }
 
   template <typename VT>

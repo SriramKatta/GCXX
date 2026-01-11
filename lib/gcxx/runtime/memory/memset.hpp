@@ -73,7 +73,7 @@ namespace memory {
   GCXX_FH auto Memset(Ptr& handle, const int value,
                       const std::size_t numElements) -> void {
     using raw_ptr_t = decltype(std::declval<Ptr&>().get());
-    using VT = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
+    using VT        = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
     details_::Memset(handle.get(), value, numElements * sizeof(VT));
   }
 
@@ -83,7 +83,7 @@ namespace memory {
                       const std::size_t numElements, const StreamView& stream)
     -> void {
     using raw_ptr_t = decltype(std::declval<Ptr&>().get());
-    using VT = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
+    using VT        = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
     details_::Memset(handle.get(), value, numElements * sizeof(VT), stream);
   }
 

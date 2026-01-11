@@ -26,11 +26,7 @@
   }
 
 class mpienv {
-    mpienv(int &argc, char** argv){
-        MPI_CALL(MPI_init(&argc, &argv));
-    }
-    
-    ~mpienv(){
-        MPI_CALL(MPI_Finalize());
-    }
+  mpienv(int& argc, char** argv) { MPI_CALL(MPI_init(&argc, &argv)); }
+
+  ~mpienv() { MPI_CALL(MPI_Finalize()); }
 };

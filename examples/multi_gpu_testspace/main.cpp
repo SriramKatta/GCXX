@@ -11,8 +11,6 @@ constexpr int number_of_warmups = 10;
 constexpr int maxIt             = 100;
 
 
-
-
 #define NCCL_CALL(stmt)                                               \
   do {                                                                \
     ncclResult_t result = (stmt);                                     \
@@ -71,10 +69,10 @@ void Halo_exchange(real* a, real* a_new, int N, const int top, int iy_end,
                    gcxx::StreamView);
 
 int main(int argc, char* argv[]) {
-  auto mpi_env = mpicxx::environment(argc, argv);
-  auto worldcomm    = mpicxx::comm::world();
-  int rank     = worldcomm.rank();
-  int nranks   = worldcomm.size();
+  auto mpi_env   = mpicxx::environment(argc, argv);
+  auto worldcomm = mpicxx::comm::world();
+  int rank       = worldcomm.rank();
+  int nranks     = worldcomm.size();
   // CUDA_CALL(cudaGetDeviceCount(&nranks));
   int devcount = gcxx::Device::count();
 
@@ -89,130 +87,128 @@ int main(int argc, char* argv[]) {
   MPI_CALL(MPI_Bcast(&id, sizeof(id), MPI_BYTE, 0, MPI_COMM_WORLD));
   NCCL_CALL(ncclCommInitRank(&ncclcomm, nranks, id, rank));
   worldcomm.ibarrier();
-  
+
   int N = 1024;
   if (argc > 1) {
     N = atoi(argv[1]);
     if (N % 1024 != 0) {
       if (rank == 0)
         printf("size should be a multiple of 1024\n");
-      mpi_env.~environment
-      exit(EXIT_SUCCESS);
+      mpi_env.~environment exit(EXIT_SUCCESS);
     }
   }
-{
-  int chunk_size = rowsinrank(rank, nranks, N);
-  auto a_raii =
-    gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
-  auto a_new_raii =
-    gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
-  gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
-  gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
-  real* a     = a_raii.get();
-  real* a_new = a_new_raii.get();
+  {
+    int chunk_size = rowsinrank(rank, nranks, N);
+    auto a_raii =
+      gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
+    auto a_new_raii =
+      gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
+    gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
+    gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
+    real* a     = a_raii.get();
+    real* a_new = a_new_raii.get();
 
-  int iy_start_global = startrow(rank, nranks, N);
-  int iy_start        = 1;
-  int iy_end          = iy_start + chunk_size;
+    int iy_start_global = startrow(rank, nranks, N);
+    int iy_start        = 1;
+    int iy_end          = iy_start + chunk_size;
 
-  gcxx::Stream inner_stream(gcxx::flags::streamType::SyncWithNull,
-                            gcxx::flags::streamPriority::VeryLow);
-  gcxx::Stream edge_stream(gcxx::flags::streamType::SyncWithNull,
-                           gcxx::flags::streamPriority::Critical);
+    gcxx::Stream inner_stream(gcxx::flags::streamType::SyncWithNull,
+                              gcxx::flags::streamPriority::VeryLow);
+    gcxx::Stream edge_stream(gcxx::flags::streamType::SyncWithNull,
+                             gcxx::flags::streamPriority::Critical);
 
-  gcxx::Event inner_done(gcxx::flags::eventCreate::disableTiming);
-  gcxx::Event edge_done(gcxx::flags::eventCreate::disableTiming);
+    gcxx::Event inner_done(gcxx::flags::eventCreate::disableTiming);
+    gcxx::Event edge_done(gcxx::flags::eventCreate::disableTiming);
 
-  const int top_pe = (rank + 1) % nranks;
-  const int bot_pe = (rank + nranks - 1) % nranks;
+    const int top_pe = (rank + 1) % nranks;
+    const int bot_pe = (rank + nranks - 1) % nranks;
 
-  // Warmup NCCL+halo exchanges
-  nvtxRangePushA("NCCL_Warmup");
+    // Warmup NCCL+halo exchanges
+    nvtxRangePushA("NCCL_Warmup");
 
-  for (int i = 0; i < number_of_warmups; ++i) {
-    Halo_exchange(a_new, a, N, top_pe, iy_end, bot_pe, iy_start, ncclcomm,
-                  edge_stream);
-    std::swap(a, a_new);
+    for (int i = 0; i < number_of_warmups; ++i) {
+      Halo_exchange(a_new, a, N, top_pe, iy_end, bot_pe, iy_start, ncclcomm,
+                    edge_stream);
+      std::swap(a, a_new);
+    }
+    worldcomm.ibarrier();
+    locdev.Synchronize();
+    nvtxRangePop();
+
+    // cudaGraph_t graphs[2];
+    std::array<gcxx::Graph, 2> graphs;
+    nvtxRangePushA("Graph_create");
+    for (int g = 0; g < 2; ++g) {
+      edge_stream.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+
+      // Launch edge-row Jacobi on edge_stream
+      launch_jacobi_kernel(a_new, a, iy_start, iy_start + 1, N, edge_stream);
+      launch_jacobi_kernel(a_new, a, iy_end - 1, iy_end, N, edge_stream);
+
+      // NCCL halo exchange on edge_stream
+      NCCL_CALL(ncclGroupStart());
+      NCCL_CALL(
+        ncclRecv(a_new, N, NCCL_REAL_TYPE, top_pe, ncclcomm, edge_stream));
+      NCCL_CALL(ncclSend(a_new + (iy_end - 1) * N, N, NCCL_REAL_TYPE, bot_pe,
+                         ncclcomm, edge_stream));
+      NCCL_CALL(ncclRecv(a_new + iy_end * N, N, NCCL_REAL_TYPE, bot_pe,
+                         ncclcomm, edge_stream));
+      NCCL_CALL(ncclSend(a_new + iy_start * N, N, NCCL_REAL_TYPE, top_pe,
+                         ncclcomm, edge_stream));
+      NCCL_CALL(ncclGroupEnd());
+
+      // Inner Jacobi on inner_stream
+      launch_jacobi_kernel(a_new, a, iy_start + 1, iy_end - 1, N, inner_stream);
+
+      graphs[g] = edge_stream.EndCapture();
+      std::swap(a, a_new);
+    }
+    nvtxRangePop();
+
+    // Instantiate graphs
+
+    std::array<gcxx::GraphExec, 2> graph_exec;
+    nvtxRangePushA("Graph_init");
+    for (int g = 0; g < 2; ++g) {
+      graph_exec[g] = graphs[g].Instantiate();
+      graphs[g].destroy();
+    }
+    nvtxRangePop();
+
+    // Warmup graph launches
+    nvtxRangePushA("Graph_Warmup");
+    for (int i = 0; i < 10; ++i) {
+      graph_exec[0].Launch(inner_stream);
+      graph_exec[1].Launch(inner_stream);
+    }
+    inner_stream.Synchronize();
+    nvtxRangePop();
+
+    // Initialize boundaries
+    gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
+    gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
+    launch_initialize_boundaries(a, a_new, M_PI, iy_start_global - 1, N,
+                                 chunk_size + 2);
+    locdev.Synchronize();
+
+    // Solve
+    double start = MPI_Wtime();
+    nvtxRangePushA("Jacobistep");
+    for (int it = 0; it < maxIt; ++it) {
+      graph_exec[it % 2].Launch(inner_stream);
+    }
+    nvtxRangePop();
+    // CUDA_CALL(cudaDeviceSynchronize());
+    locdev.Synchronize();
+    double dur    = (MPI_Wtime() - start) / maxIt;
+    double maxdur = 0;
+    worldcomm.iallreduce(&dur, &maxdur, 1, mpicxx::op::max());
+
+    if (rank == 0) {
+      printf("NP %3d | LUPs %12d | perf %7.3f MLUPS/s\n", nranks, (N * N),
+             N * N / maxdur / 1e6);
+    }
   }
-  worldcomm.ibarrier();
-  locdev.Synchronize();
-  nvtxRangePop();
-
-  // cudaGraph_t graphs[2];
-  std::array<gcxx::Graph, 2> graphs;
-  nvtxRangePushA("Graph_create");
-  for (int g = 0; g < 2; ++g) {
-    edge_stream.BeginCapture(gcxx::flags::streamCaptureMode::Global);
-
-    // Launch edge-row Jacobi on edge_stream
-    launch_jacobi_kernel(a_new, a, iy_start, iy_start + 1, N, edge_stream);
-    launch_jacobi_kernel(a_new, a, iy_end - 1, iy_end, N, edge_stream);
-
-    // NCCL halo exchange on edge_stream
-    NCCL_CALL(ncclGroupStart());
-    NCCL_CALL(
-      ncclRecv(a_new, N, NCCL_REAL_TYPE, top_pe, ncclcomm, edge_stream));
-    NCCL_CALL(ncclSend(a_new + (iy_end - 1) * N, N, NCCL_REAL_TYPE, bot_pe,
-                       ncclcomm, edge_stream));
-    NCCL_CALL(ncclRecv(a_new + iy_end * N, N, NCCL_REAL_TYPE, bot_pe, ncclcomm,
-                       edge_stream));
-    NCCL_CALL(ncclSend(a_new + iy_start * N, N, NCCL_REAL_TYPE, top_pe,
-                       ncclcomm, edge_stream));
-    NCCL_CALL(ncclGroupEnd());
-
-    // Inner Jacobi on inner_stream
-    launch_jacobi_kernel(a_new, a, iy_start + 1, iy_end - 1, N, inner_stream);
-
-    graphs[g] = edge_stream.EndCapture();
-    std::swap(a, a_new);
-  }
-  nvtxRangePop();
-
-  // Instantiate graphs
-
-  std::array<gcxx::GraphExec, 2> graph_exec;
-  nvtxRangePushA("Graph_init");
-  for (int g = 0; g < 2; ++g) {
-    graph_exec[g] = graphs[g].Instantiate();
-    graphs[g].destroy();
-  }
-  nvtxRangePop();
-
-  // Warmup graph launches
-  nvtxRangePushA("Graph_Warmup");
-  for (int i = 0; i < 10; ++i) {
-    graph_exec[0].Launch(inner_stream);
-    graph_exec[1].Launch(inner_stream);
-  }
-  inner_stream.Synchronize();
-  nvtxRangePop();
-
-  // Initialize boundaries
-  gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
-  gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
-  launch_initialize_boundaries(a, a_new, M_PI, iy_start_global - 1, N,
-                               chunk_size + 2);
-  locdev.Synchronize();
-
-  // Solve
-  double start = MPI_Wtime();
-  nvtxRangePushA("Jacobistep");
-  for (int it = 0; it < maxIt; ++it) {
-    graph_exec[it % 2].Launch(inner_stream);
-  }
-  nvtxRangePop();
-  // CUDA_CALL(cudaDeviceSynchronize());
-  locdev.Synchronize();
-  double dur    = (MPI_Wtime() - start) / maxIt;
-  double maxdur = 0;
-  worldcomm.iallreduce(&dur, &maxdur, 1, mpicxx::op::max());
-
-  if (rank == 0) {
-    printf("NP %3d | LUPs %12d | perf %7.3f MLUPS/s\n", nranks, (N * N),
-           N * N / maxdur / 1e6);
-  }
-
-}
   // Cleanup
   NCCL_CALL(ncclCommDestroy(ncclcomm));
   return 0;

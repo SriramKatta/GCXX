@@ -31,7 +31,7 @@ namespace launch {
   template <typename... ExpTypes, typename... ActTypes>
   GCXX_FH void Kernel(dim3 griddim, dim3 blockdim, void (*kernel)(ExpTypes...),
                       ActTypes&&... args) {
-    Kernel(details_::NULL_STREAM, blockdim, griddim, 0, kernel, args...);
+    Kernel(details_::NULL_STREAM, griddim, blockdim, 0, kernel, args...);
   }
 
   // TODO : add sfinae to check if the kernel is __global__
