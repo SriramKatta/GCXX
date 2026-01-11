@@ -6,6 +6,7 @@
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>
+#include <type_traits>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -64,6 +65,26 @@ namespace memory {
     -> void {
     details_::Memset(destination.get(), value, numElements * sizeof(VT),
                      stream);
+  }
+
+  // Generic pointer-like handle (e.g., std::unique_ptr with custom deleter)
+  template <typename Ptr,
+            typename = std::void_t<decltype(std::declval<Ptr&>().get())>>
+  GCXX_FH auto Memset(Ptr& handle, const int value,
+                      const std::size_t numElements) -> void {
+    using raw_ptr_t = decltype(std::declval<Ptr&>().get());
+    using VT = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
+    details_::Memset(handle.get(), value, numElements * sizeof(VT));
+  }
+
+  template <typename Ptr,
+            typename = std::void_t<decltype(std::declval<Ptr&>().get())>>
+  GCXX_FH auto Memset(Ptr& handle, const int value,
+                      const std::size_t numElements, const StreamView& stream)
+    -> void {
+    using raw_ptr_t = decltype(std::declval<Ptr&>().get());
+    using VT = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
+    details_::Memset(handle.get(), value, numElements * sizeof(VT), stream);
   }
 
   // ╔════════════════════════════════════════════════════════╗
