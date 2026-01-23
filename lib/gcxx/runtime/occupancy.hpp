@@ -9,16 +9,16 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 namespace Occupancy {
   // TODO : needs to verify if func_t is actually an cuda kernel func type
-  template <typename func_t>
-  GCXX_FH auto AvailableDynamicSMemPerBlock(func_t func, int numBlocks,
-                                            int blockSize) -> std::size_t {
-    std::size_t smemsize{};
-    GCXX_SAFE_RUNTIME_CALL(
-      OccupancyAvailableDynamicSMemPerBlock,
-      "Failed to query Avalible dynamic smem for given blocks and grid size",
-      &smemsize, &func, numBlocks, blockSize);
-    return smemsize;
-  }
+  // template <typename func_t>
+  // GCXX_FH auto AvailableDynamicSMemPerBlock(func_t func, int numBlocks,
+  //                                           int blockSize) -> std::size_t {
+  //   std::size_t smemsize{};
+  //   GCXX_SAFE_RUNTIME_CALL(
+  //     OccupancyAvailableDynamicSMemPerBlock,
+  //     "Failed to query Avalible dynamic smem for given blocks and grid size",
+  //     &smemsize, &func, numBlocks, blockSize);
+  //   return smemsize;
+  // }
 
   // TODO : needs to verify if func_t is actually an cuda kernel func type
   template <typename func_t>
