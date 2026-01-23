@@ -13,7 +13,7 @@ namespace Occupancy {
   GCXX_FH auto AvailableDynamicSMemPerBlock(func_t func, int numBlocks,
                                             int blockSize) -> std::size_t {
     std::size_t smemsize{};
-    cudaOccupancyAvailableDynamicSMemPerBlock GCXX_SAFE_RUNTIME_CALL(
+    GCXX_SAFE_RUNTIME_CALL(
       OccupancyAvailableDynamicSMemPerBlock,
       "Failed to query Avalible dynamic smem for given blocks and grid size",
       &smemsize, &func, numBlocks, blockSize);
