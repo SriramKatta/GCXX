@@ -10,7 +10,7 @@ target_include_directories(
 target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE mdspan_headers)
 
 set_target_properties(
-  ${LIB_INTERNAL_NAME} PROPERTIES CMAKE_POSITION_INDEPENDENT_CODE ON
+  ${LIB_INTERNAL_NAME} PROPERTIES INTERFACE_POSITION_INDEPENDENT_CODE ON
 )
 
 set_property(

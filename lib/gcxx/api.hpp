@@ -14,6 +14,7 @@
 #include <gcxx/runtime/flags/event_flags.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
 #include <gcxx/runtime/flags/graph_flags.hpp>
+#include <gcxx/runtime/flags/occupancy_flags.hpp>
 
 // section for device handler
 #include <gcxx/runtime/device.hpp>
@@ -25,6 +26,7 @@
 #include <gcxx/runtime/stream.hpp>
 #include <gcxx/runtime/graph.hpp>
 #include <gcxx/runtime/launch.hpp>
+#include <gcxx/runtime/occupancy.hpp>
 
 
 // section for memory API
