@@ -155,6 +155,43 @@ using vec4_32a_t = typename details_::vec<VT, 4, 32>::type;
 template <typename VT>
 using vec4_t = typename details_::vec<VT, 4>::type;
 
+// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+// █                    Helper function                     █
+// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+template <typename VT>
+GCXX_FHD auto cast_as_vec1_ptr(VT* data) -> vec1_t<VT>* {
+  return reinterpret_cast<vec1_t<VT>*>(data);  // NO lint
+}
+
+template <typename VT>
+GCXX_FHD auto cast_as_vec2_ptr(VT* data) -> vec2_t<VT>* {
+  return reinterpret_cast<vec2_t<VT>*>(data);  // NO lint
+}
+
+template <typename VT>
+GCXX_FHD auto cast_as_vec3_ptr(VT* data) -> vec3_t<VT>* {
+  return reinterpret_cast<vec3_t<VT>*>(data);  // NO lint
+}
+
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && \
+  (__CUDACC_VER_MAJOR__ >= 13)
+
+template <typename VT>
+GCXX_FHD vec4_16a_t<VT>* cast_as_vec4_16a_ptr(VT* data) {
+  return reinterpret_cast<vec4_16a_t<VT>*>(data);
+}
+
+template <typename VT>
+GCXX_FHD vec4_32a_t<VT>* cast_as_vec4_32a_ptr(VT* data) {
+  return reinterpret_cast<vec4_32a_t<VT>*>(data);
+}
+
+#endif
+template <typename VT>
+GCXX_FHD auto cast_as_vec4_ptr(VT* data) -> vec4_t<VT>* {
+  return reinterpret_cast<vec4_t<VT>*>(data);  // NO lint
+}
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                  Cleanup local macros                  █
