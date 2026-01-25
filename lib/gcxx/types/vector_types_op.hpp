@@ -183,6 +183,7 @@ GCXX_FHDC auto operator%(const LHS& lhs, const RHS& rhs)
   return apply_binary_dispatch(lhs, rhs, op::remainder{});
 }
 
+// TODO : implement a batter way to prevent creation of temporarries
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator+=(LHS& lhs, const RHS& rhs) -> LHS& {
