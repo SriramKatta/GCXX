@@ -57,43 +57,42 @@ inline Args parse_args(int argc, char** argv) {
 
 template <typename VT>
 __global__ void kernel_scalar(const gcxx::span<VT> a) {
+  const auto incval = static_cast<VT>(1);
   int start  = threadIdx.x + blockDim.x * blockIdx.x;
   int stride = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size(); i += stride) {
-    a[i] += 1.0;
+    a[i] += incval;
   }
 }
 
 template <typename VT>
 __global__ void kernel_2vec(const gcxx::span<VT> a) {
+  const auto incval = static_cast<VT>(1);
   int start  = threadIdx.x + blockDim.x * blockIdx.x;
   int stride = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size() / 2; i += stride) {
-    auto* a2 = reinterpret_cast<gcxx::vec2_t<VT>*>(a.data()) + i;
-    a2->x += 1.0;
-    a2->y += 1.0;
+    auto& a2 = gcxx::cast_as_vec2_ptr(a.data())[i];
+    a2       = a2 + incval;
   }
   if (a.size() % 2 != 0 && start == 0) {
-    a.back() += 1.0;
+    a.back() += incval;
   }
 }
 
 template <typename VT>
 __global__ void kernel_4vec(const gcxx::span<VT> a) {
-  int start  = threadIdx.x + blockDim.x * blockIdx.x;
-  int stride = blockDim.x * gridDim.x;
+  const auto incval = static_cast<VT>(1);
+  int start         = threadIdx.x + blockDim.x * blockIdx.x;
+  int stride        = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size() / 4; i += stride) {
-    auto* a4 = reinterpret_cast<gcxx::vec4_t<VT>*>(a.data()) + i;
-    a4->x += 1.0;
-    a4->y += 1.0;
-    a4->z += 1.0;
-    a4->w += 1.0;
+    auto& a4 = gcxx::cast_as_vec4_ptr(a.data())[i];
+    a4       = a4 + incval;
   }
   // 0 thread, process final elements (if there are any)
   int remainder = a.size() % 4;
   if (start == a.size() / 4)
     for (auto& i : a.last(remainder)) {
-      i += 1.0;
+      i += incval;
     }
 }
 
