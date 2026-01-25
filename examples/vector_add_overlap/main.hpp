@@ -58,8 +58,8 @@ inline Args parse_args(int argc, char** argv) {
 template <typename VT>
 __global__ void kernel_scalar(const gcxx::span<VT> a) {
   const auto incval = static_cast<VT>(1);
-  int start  = threadIdx.x + blockDim.x * blockIdx.x;
-  int stride = blockDim.x * gridDim.x;
+  int start         = threadIdx.x + blockDim.x * blockIdx.x;
+  int stride        = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size(); i += stride) {
     a[i] += incval;
   }
@@ -68,8 +68,8 @@ __global__ void kernel_scalar(const gcxx::span<VT> a) {
 template <typename VT>
 __global__ void kernel_2vec(const gcxx::span<VT> a) {
   const auto incval = static_cast<VT>(1);
-  int start  = threadIdx.x + blockDim.x * blockIdx.x;
-  int stride = blockDim.x * gridDim.x;
+  int start         = threadIdx.x + blockDim.x * blockIdx.x;
+  int stride        = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size() / 2; i += stride) {
     auto& a2 = gcxx::cast_as_vec2_ptr(a.data())[i];
     a2       = a2 + incval;
