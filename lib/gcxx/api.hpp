@@ -7,6 +7,7 @@
 // section for types
 #include <gcxx/types/shared_mem.hpp>
 #include <gcxx/types/vector_types.hpp>
+#include <gcxx/types/vector_types_op.hpp>
 
 // Section for Runtime Flags
 #include <gcxx/runtime/flags/device_flags.hpp>

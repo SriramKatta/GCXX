@@ -3,13 +3,11 @@
 #define GCXX_TYPES_VECTOR_TYPES_HPP
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/details/type_traits.hpp>
 #include <type_traits>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 GCXX_NAMESPACE_DETAILS_BEGIN
-
-template <class>
-inline constexpr bool is_always_false_v = false;
 
 template <typename VT, int N, int ALIGN = 0>
 struct vec {
@@ -17,26 +15,48 @@ struct vec {
                      "vec: unsupported type and/or dimension and/or alignment");
 };
 
-#define DEFINE_VEC(VTYPE, N, NAME) \
-  template <>                      \
-  struct vec<VTYPE, N> {           \
-    using type = NAME;             \
+template <typename VT>
+struct vec_traits : std::false_type {};
+
+#define DEFINE_VEC_TRAITS(BASETYPE, N, VECTYPE) \
+  template <>                                   \
+  struct vec_traits<VECTYPE> : std::true_type { \
+    using value_type          = BASETYPE;       \
+    static constexpr int size = N;              \
   }
 
-#define DEFINE_VEC_ALIGNED(VTYPE, N, A, NAME) \
-  template <>                                 \
-  struct vec<VTYPE, N, A> {                   \
-    using type = NAME;                        \
+// Helper variable template
+template <typename VT>
+inline constexpr bool is_vectype_v = vec_traits<VT>::value;
+
+#define DEFINE_VEC(BASETYPE, N, VECTYPE) \
+  template <>                            \
+  struct vec<BASETYPE, N> {              \
+    using type = VECTYPE;                \
   }
 
-#define MAP_1_3(VTYPE, BASE)     \
-  DEFINE_VEC(VTYPE, 1, BASE##1); \
-  DEFINE_VEC(VTYPE, 2, BASE##2); \
-  DEFINE_VEC(VTYPE, 3, BASE##3)
+#define DEFINE_VEC_ALIGNED(BASETYPE, N, A, VECTYPE) \
+  template <>                                       \
+  struct vec<BASETYPE, N, A> {                      \
+    using type = VECTYPE;                           \
+  }
 
-#define MAP_1_4(VTYPE, BASE) \
-  MAP_1_3(VTYPE, BASE);      \
-  DEFINE_VEC(VTYPE, 4, BASE##4)
+#define DEFINE_VEC_VEC_TRAITS(BASETYPE, N, VECTYPE) \
+  DEFINE_VEC(BASETYPE, N, VECTYPE);                 \
+  DEFINE_VEC_TRAITS(BASETYPE, N, VECTYPE)
+
+#define DEFINE_VEC_ALIGNED_VEC_TRAITS(BASETYPE, N, A, VECTYPE) \
+  DEFINE_VEC_ALIGNED(BASETYPE, N, A, VECTYPE);                 \
+  DEFINE_VEC_TRAITS(BASETYPE, N, VECTYPE)
+
+#define MAP_1_3(BASETYPE, BASE)                \
+  DEFINE_VEC_VEC_TRAITS(BASETYPE, 1, BASE##1); \
+  DEFINE_VEC_VEC_TRAITS(BASETYPE, 2, BASE##2); \
+  DEFINE_VEC_VEC_TRAITS(BASETYPE, 3, BASE##3)
+
+#define MAP_1_4(BASETYPE, BASE) \
+  MAP_1_3(BASETYPE, BASE);      \
+  DEFINE_VEC_VEC_TRAITS(BASETYPE, 4, BASE##4)
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █    Standard type mappings (CUDA ≤ 12.x base types)     █
@@ -64,37 +84,37 @@ MAP_1_3(double, double);
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                          long                          █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-DEFINE_VEC_ALIGNED(long, 4, 16, long4_16a);
-DEFINE_VEC_ALIGNED(long, 4, 32, long4_32a);
-DEFINE_VEC(long, 4, long4_16a);  // default vec<long,4> -> 16a
+DEFINE_VEC_ALIGNED_VEC_TRAITS(long, 4, 16, long4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(long, 4, 32, long4_32a);
+DEFINE_VEC_VEC_TRAITS(long, 4, long4_16a);  // default vec<long,4> -> 16a
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                     unsigned long                      █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-DEFINE_VEC_ALIGNED(unsigned long, 4, 16, ulong4_16a);
-DEFINE_VEC_ALIGNED(unsigned long, 4, 32, ulong4_32a);
-DEFINE_VEC(unsigned long, 4, ulong4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long, 4, 16, ulong4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long, 4, 32, ulong4_32a);
+DEFINE_VEC_VEC_TRAITS(unsigned long, 4, ulong4_16a);
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                       long long                        █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-DEFINE_VEC_ALIGNED(long long, 4, 16, longlong4_16a);
-DEFINE_VEC_ALIGNED(long long, 4, 32, longlong4_32a);
-DEFINE_VEC(long long, 4, longlong4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(long long, 4, 16, longlong4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(long long, 4, 32, longlong4_32a);
+DEFINE_VEC_VEC_TRAITS(long long, 4, longlong4_16a);
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                   unsigned long long                   █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-DEFINE_VEC_ALIGNED(unsigned long long, 4, 16, ulonglong4_16a);
-DEFINE_VEC_ALIGNED(unsigned long long, 4, 32, ulonglong4_32a);
-DEFINE_VEC(unsigned long long, 4, ulonglong4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long long, 4, 16, ulonglong4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long long, 4, 32, ulonglong4_32a);
+DEFINE_VEC_VEC_TRAITS(unsigned long long, 4, ulonglong4_16a);
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                         double                         █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-DEFINE_VEC_ALIGNED(double, 4, 16, double4_16a);
-DEFINE_VEC_ALIGNED(double, 4, 32, double4_32a);
-DEFINE_VEC(double, 4, double4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(double, 4, 16, double4_16a);
+DEFINE_VEC_ALIGNED_VEC_TRAITS(double, 4, 32, double4_32a);
+DEFINE_VEC_VEC_TRAITS(double, 4, double4_16a);
 
 #else
 

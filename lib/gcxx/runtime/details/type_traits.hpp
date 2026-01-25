@@ -2,6 +2,7 @@
 #ifndef GCXX_RUNTIME_DETAILS_TYPE_TRAITS_HPP
 #define GCXX_RUNTIME_DETAILS_TYPE_TRAITS_HPP
 
+#include <array>
 #include <type_traits>
 
 
@@ -10,6 +11,9 @@
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+
+template <class VT>
+inline constexpr bool is_always_false_v = false;
 
 // Primary template: not a void function pointer
 template <typename VT>
