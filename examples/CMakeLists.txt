@@ -7,8 +7,10 @@ if(GCXX_CUDA_MODE)
         CMAKE_CUDA_ARCHITECTURES 
         80 # for A100
         86 # for A40
-        # 87 89 90 100 120 # since i have access only to these archs
-    )
+        90 # for GH200
+        )
+        # link for cuda compute capability list
+        # https://developer.nvidia.com/cuda/gpus
 elseif(GCXX_HIP_MODE)
     set(
         CMAKE_HIP_ARCHITECTURES 
@@ -17,7 +19,7 @@ elseif(GCXX_HIP_MODE)
         gfx1030 # for RX 6900 XT 
         gfx942 # for MI300X & MI300A
     )
-    # link for all the arch list
+    # link for all hip arch list
     # https://rocm.docs.amd.com/en/latest/reference/gpu-arch-specs.html
 endif()
 
