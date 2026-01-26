@@ -8,7 +8,6 @@ set(LIB_NAME ${EXE_NAME}_lib)
 
 add_library(${LIB_NAME} INTERFACE)
 
-
 target_link_libraries(
   ${LIB_NAME} INTERFACE gcxx::gcxx fmt::fmt argparse::argparse
 )

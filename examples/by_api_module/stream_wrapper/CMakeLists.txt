@@ -4,4 +4,3 @@ set(EXE_NAME stream_wrapper)
 
 add_executable(${EXE_NAME} main.cpp)
 target_link_libraries(${EXE_NAME} PRIVATE gcxx::gcxx)
-

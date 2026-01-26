@@ -24,11 +24,10 @@ target_compile_definitions(
 )
 
 if(GCXX_WITH_EXCEPTIONS)
-target_compile_definitions(
-  ${LIB_INTERNAL_NAME} INTERFACE "GCXX_WITH_EXCEPTIONS"
-)
+  target_compile_definitions(
+    ${LIB_INTERNAL_NAME} INTERFACE "GCXX_WITH_EXCEPTIONS"
+  )
 endif()
-
 
 if(GCXX_CUDA_MODE)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)

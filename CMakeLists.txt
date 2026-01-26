@@ -26,8 +26,8 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_LIST_DIR)
   include(cmake/clangd_compileinfo.cmake)
 endif()
 
-
-# TODO : when included in another projects the first config is fixing the variables
+# TODO : when included in another projects the first config is fixing the
+# variables
 option(GCXX_CUDA_MODE "to compile for CUDA programming language" OFF)
 option(GCXX_HIP_MODE "to compile for HIP programming language" OFF)
 option(GCXX_MULTI_GPU "Enable support for NCCL/RCCL" OFF)
@@ -77,12 +77,18 @@ set(CMAKE_${GCXX_GPU_LANG}_STANDARD_REQUIRED ON)
 if(GCXX_CUDA_MODE)
   find_package(CUDAToolkit REQUIRED)
   if(CUDAToolkit_VERSION VERSION_LESS ${GCXX_MIN_CUDA_VERSION})
-    message(FATAL_ERROR "CUDA version ${CUDAToolkit_VERSION} is too old. Minimum required is ${GCXX_MIN_CUDA_VERSION}")
+    message(
+      FATAL_ERROR
+        "CUDA version ${CUDAToolkit_VERSION} is too old. Minimum required is ${GCXX_MIN_CUDA_VERSION}"
+    )
   endif()
 elseif(GCXX_HIP_MODE)
   find_package(hip REQUIRED)
   if(hip_VERSION VERSION_LESS ${GCXX_MIN_HIP_VERSION})
-    message(FATAL_ERROR "HIP version ${hip_VERSION} is too old. Minimum required is ${GCXX_MIN_HIP_VERSION}")
+    message(
+      FATAL_ERROR
+        "HIP version ${hip_VERSION} is too old. Minimum required is ${GCXX_MIN_HIP_VERSION}"
+    )
   endif()
 endif()
 
