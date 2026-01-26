@@ -28,13 +28,13 @@ endif()
 
 
 # TODO : when included in another projects the first config is fixing the variables
-option(GCXX_CUDA_MODE "to compile for CUDA programming language" OFF)
-option(GCXX_HIP_MODE "to compile for HIP programming language" OFF)
-option(GCXX_MULTI_GPU "Enable support for NCCL/RCCL" OFF)
-option(GCXX_WITH_EXCEPTIONS "Enables building of library  with exceptions" OFF)
-option(GCXX_BUILD_EXAMPLES "Enables building of examples" OFF)
-option(GCXX_BUILD_BENCHMARKS "Enables building of benchmarks" OFF)
-option(GCXX_BUILD_TESTS "Enables building of tests" OFF)
+set(GCXX_CUDA_MODE OFF CACHE BOOL "to compile for CUDA programming language")
+set(GCXX_HIP_MODE OFF CACHE BOOL "to compile for HIP programming language")
+set(GCXX_MULTI_GPU OFF CACHE BOOL "Enable support for NCCL/RCCL")
+set(GCXX_WITH_EXCEPTIONS OFF CACHE BOOL "Enables building of library  with exceptions")
+set(GCXX_BUILD_EXAMPLES OFF CACHE BOOL "Enables building of examples")
+set(GCXX_BUILD_BENCHMARKS OFF CACHE BOOL "Enables building of benchmarks")
+set(GCXX_BUILD_TESTS OFF CACHE BOOL "Enables building of tests")
 
 # basically XOR(GCXX_CUDA_MODE, GCXX_HIP_MODE); since only one mode can be
 # active at a time
