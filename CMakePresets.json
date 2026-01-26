@@ -1,10 +1,10 @@
 {
-  "version": 8,
+  "version": 7,
   "configurePresets": [
     {
       "name": "base_configue",
       "hidden": true,
-      "generator": "Ninja",
+      "generator": "Unix Makefiles",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CPM_SOURCE_CACHE": "$env{HOME}/.cache/CPM"
