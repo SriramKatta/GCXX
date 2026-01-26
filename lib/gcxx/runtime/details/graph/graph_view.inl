@@ -73,6 +73,7 @@ GCXX_FH auto GraphView::Clone() const -> GraphView {
   return clonedGraph;
 }
 
+// TODO : Need to make better implementation to remove repetions
 #if GCXX_CUDA_MODE
 // Create the conditional handle; no default value arg is provided, since i dont
 // want the condition value to be undefined at the start of each graph execution
@@ -99,15 +100,19 @@ GCXX_FD auto GraphView::SetConditional(deviceGraphConditionalHandle_t handle,
 GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle,
                                   const deviceGraphNode_t* pDependencies,
                                   std::size_t numDependencies) -> IfNodeResult {
-  deviceGraphNode_t node = nullptr;
-  GCXX_RUNTIME_BACKEND(GraphNodeParams)
-  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  deviceGraphNode_t node                    = nullptr;
+  details_::deviceGraphNodeParams_t cParams = {
+    GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
   cParams.conditional.handle = condHandle;
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeIf);
   cParams.conditional.size   = 1;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If node to graph", &node,
-                         graph_, pDependencies, numDependencies, &cParams);
+                         graph_, pDependencies,
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+                         nullptr,
+#endif
+                         numDependencies, &cParams);
 
   // Extract the body graph from the conditional node parameters
   deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
@@ -119,16 +124,19 @@ GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
                                       const deviceGraphNode_t* pDependencies,
                                       std::size_t numDependencies)
   -> IfElseNodeResult {
-  deviceGraphNode_t node = nullptr;
-  GCXX_RUNTIME_BACKEND(GraphNodeParams)
-  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  deviceGraphNode_t node                    = nullptr;
+  details_::deviceGraphNodeParams_t cParams = {
+    GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
   cParams.conditional.handle = condHandle;
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeIf);
   cParams.conditional.size   = 2;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If-Else node to graph",
-                         &node, graph_, pDependencies, numDependencies,
-                         &cParams);
+                         &node, graph_, pDependencies,
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+                         nullptr,
+#endif
+                         numDependencies, &cParams);
 
   // Extract both body graphs from the conditional node parameters
   deviceGraph_t ifBodyGraph   = cParams.conditional.phGraph_out[0];
@@ -142,16 +150,19 @@ GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand,
                                      const deviceGraphNode_t* pDependencies,
                                      std::size_t numDependencies)
   -> WhileNodeResult {
-  deviceGraphNode_t node = nullptr;
-  GCXX_RUNTIME_BACKEND(GraphNodeParams)
-  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  deviceGraphNode_t node                    = nullptr;
+  details_::deviceGraphNodeParams_t cParams = {
+    GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
   cParams.conditional.handle = condHand;
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeWhile);
   cParams.conditional.size   = 1;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add While node to graph",
-                         &node, graph_, pDependencies, numDependencies,
-                         &cParams);
+                         &node, graph_, pDependencies,
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+                         nullptr,
+#endif
+                         numDependencies, &cParams);
 
   // Extract the body graph from the conditional node parameters
   deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
@@ -164,16 +175,19 @@ GCXX_FH auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
                                       const deviceGraphNode_t* pDependencies,
                                       std::size_t numDependencies)
   -> SwitchNodeResult {
-  deviceGraphNode_t node = nullptr;
-  GCXX_RUNTIME_BACKEND(GraphNodeParams)
-  cParams                    = {GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
+  deviceGraphNode_t node                    = nullptr;
+  details_::deviceGraphNodeParams_t cParams = {
+    GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional)};
   cParams.conditional.handle = condHand;
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeSwitch);
   cParams.conditional.size   = numCases;
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add Switch node to graph",
-                         &node, graph_, pDependencies, numDependencies,
-                         &cParams);
+                         &node, graph_, pDependencies,
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+                         nullptr,
+#endif
+                         numDependencies, &cParams);
 
   // Extract all case body graphs from the conditional node parameters
   return SwitchNodeResult{node,
@@ -203,7 +217,12 @@ GCXX_FH auto GraphView::AddDependencies(const deviceGraphNode_t* from,
                                         std::size_t numDependencies) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphAddDependencies,
                          "Failed to Add Dependency between graph Nodes", graph_,
-                         from, to, numDependencies);
+                         from, to,
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+                         nullptr,
+#endif
+
+                         numDependencies);
 }
 
 GCXX_FH auto GraphView::AddEmptyNode(const deviceGraphNode_t* pDependencies,

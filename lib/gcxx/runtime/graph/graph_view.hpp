@@ -14,7 +14,8 @@
 #include <gcxx/runtime/graph/graph_nodes.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
-using deviceGraph_t = GCXX_RUNTIME_BACKEND(Graph_t);
+using deviceGraph_t           = GCXX_RUNTIME_BACKEND(Graph_t);
+using deviceGraphNodeParams_t = GCXX_RUNTIME_BACKEND(GraphNodeParams);
 inline constexpr deviceGraph_t INVALID_GRAPH{nullptr};
 
 #if GCXX_CUDA_MODE
