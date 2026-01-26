@@ -15,10 +15,10 @@ elseif(GCXX_HIP_MODE)
         gfx908 # for MI100
         gfx90a # for MI210A
         gfx1030 # for RX 6900 XT 
-        gfx940 # for MI300X & MI300A
+        gfx942 # for MI300X & MI300A
     )
     # link for all the arch list
-    # https://github.com/likelovewant/ROCmLibs-for-gfx1103-AMD780M-APU/wiki/AMD-GPU-Arches-Lists-Map 
+    # https://rocm.docs.amd.com/en/latest/reference/gpu-arch-specs.html
 endif()
 
 
