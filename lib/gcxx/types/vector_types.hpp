@@ -78,43 +78,42 @@ MAP_1_3(double, double);
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █       CUDA 13.0+ alignment-aware vec4 overrides        █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && \
-  (__CUDACC_VER_MAJOR__ >= 13)
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                          long                          █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long, 4, 16, long4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long, 4, 32, long4_32a);
-DEFINE_VEC_VEC_TRAITS(long, 4, long4_16a);  // default vec<long,4> -> 16a
+DEFINE_VEC(long, 4, long4_16a);  // default vec<long,4> -> 16a
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                     unsigned long                      █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long, 4, 16, ulong4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long, 4, 32, ulong4_32a);
-DEFINE_VEC_VEC_TRAITS(unsigned long, 4, ulong4_16a);
+DEFINE_VEC(unsigned long, 4, ulong4_16a);
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                       long long                        █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long long, 4, 16, longlong4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long long, 4, 32, longlong4_32a);
-DEFINE_VEC_VEC_TRAITS(long long, 4, longlong4_16a);
+DEFINE_VEC(long long, 4, longlong4_16a);
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                   unsigned long long                   █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long long, 4, 16, ulonglong4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long long, 4, 32, ulonglong4_32a);
-DEFINE_VEC_VEC_TRAITS(unsigned long long, 4, ulonglong4_16a);
+DEFINE_VEC(unsigned long long, 4, ulonglong4_16a);
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                         double                         █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(double, 4, 16, double4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(double, 4, 32, double4_32a);
-DEFINE_VEC_VEC_TRAITS(double, 4, double4_16a);
+DEFINE_VEC(double, 4, double4_16a);
 
 #else
 
@@ -142,8 +141,7 @@ using vec2_t = typename details_::vec<VT, 2>::type;
 template <typename VT>
 using vec3_t = typename details_::vec<VT, 3>::type;
 
-#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && \
-  (__CUDACC_VER_MAJOR__ >= 13)
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
 // Alignment-aware vec4 variants (only valid if mapped above)
 template <typename VT>
 using vec4_16a_t = typename details_::vec<VT, 4, 16>::type;
@@ -174,8 +172,7 @@ GCXX_FHD auto cast_as_vec3_ptr(VT* data) -> vec3_t<VT>* {
   return reinterpret_cast<vec3_t<VT>*>(data);  // NO lint
 }
 
-#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__) && \
-  (__CUDACC_VER_MAJOR__ >= 13)
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
 
 template <typename VT>
 GCXX_FHD vec4_16a_t<VT>* cast_as_vec4_16a_ptr(VT* data) {

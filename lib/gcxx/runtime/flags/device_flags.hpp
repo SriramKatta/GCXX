@@ -34,8 +34,10 @@ enum class deviceAttribute : details_::flag_t {
   ConcurrentKernels       = GCXX_ATTRIBUTE_BACKEND(ConcurrentKernels),
   ConcurrentManagedAccess = GCXX_ATTRIBUTE_BACKEND(ConcurrentManagedAccess),
   CooperativeLaunch       = GCXX_ATTRIBUTE_BACKEND(CooperativeLaunch),
+#if GCXX_CUDA_MAJOR_LESS_THAN(13)
   CooperativeMultiDeviceLaunch =
     GCXX_ATTRIBUTE_BACKEND(CooperativeMultiDeviceLaunch),
+#endif
   DirectManagedMemAccessFromHost =
     GCXX_ATTRIBUTE_BACKEND(DirectManagedMemAccessFromHost),
   EccEnabled             = GCXX_ATTRIBUTE_BACKEND(EccEnabled),
@@ -188,8 +190,10 @@ enum class deviceAttribute : details_::flag_t {
   MaxTexture2DLayeredLayers = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DLayeredLayers),
   MaxTextureCubemapLayeredLayers =
     GCXX_ATTRIBUTE_BACKEND(MaxTextureCubemapLayeredLayers),
+#if GCXX_CUDA_MAJOR_LESS_THAN(13)
   MaxTimelineSemaphoreInteropSupported =
     GCXX_ATTRIBUTE_BACKEND(MaxTimelineSemaphoreInteropSupported),
+#endif
   MemSyncDomainCount = GCXX_ATTRIBUTE_BACKEND(MemSyncDomainCount),
   MemoryPoolSupportedHandleTypes =
     GCXX_ATTRIBUTE_BACKEND(MemoryPoolSupportedHandleTypes),

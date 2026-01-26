@@ -58,7 +58,11 @@ GCXX_FH auto GraphView::GetNumNodes() const -> size_t {
 GCXX_FH auto GraphView::GetNumEdges() const -> size_t {
   size_t numEdges = 0;
   GCXX_SAFE_RUNTIME_CALL(GraphGetEdges, "Failed to get count of Graph edges",
-                         graph_, nullptr, nullptr, &numEdges);
+                         graph_, nullptr, nullptr,
+#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+                         nullptr,
+#endif
+                         &numEdges);
   return numEdges;
 }
 

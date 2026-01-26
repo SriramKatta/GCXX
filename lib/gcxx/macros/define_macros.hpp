@@ -117,5 +117,17 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 #define GCXX_RESTRICT_KEYWORD
 #endif
 
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__)
+#define GCXX_CUDA_MAJOR_GREATER_THAN(v) (__CUDACC_VER_MAJOR__ > (v))
+#define GCXX_CUDA_MAJOR_GREATER_EQUAL(v) (__CUDACC_VER_MAJOR__ >= (v))
+#define GCXX_CUDA_MAJOR_LESS_THAN(v) (__CUDACC_VER_MAJOR__ < (v))
+#define GCXX_CUDA_MAJOR_LESS_EQUAAL(v) (__CUDACC_VER_MAJOR__ <= (v))
+#else
+#define GCXX_CUDA_MAJOR_GREATER_THAN(v) 0
+#define GCXX_CUDA_MAJOR_GREATER_EQUAL(v) 0
+#define GCXX_CUDA_MAJOR_LESS_THAN(v) 0
+#define GCXX_CUDA_MAJOR_LESS_EQUAL(v) 0
+#endif
+
 #endif  // defined(GCXX_CUDA_MODE) || defined(GCXX_HIP_MODE)
 #endif
