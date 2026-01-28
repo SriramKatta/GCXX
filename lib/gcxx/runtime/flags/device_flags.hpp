@@ -172,8 +172,10 @@ enum class deviceAttribute : details_::flag_t {
   GpuPciDeviceId    = GCXX_ATTRIBUTE_BACKEND(GpuPciDeviceId),
   GpuPciSubsystemId = GCXX_ATTRIBUTE_BACKEND(GpuPciSubsystemId),
   HostNumaId        = GCXX_ATTRIBUTE_BACKEND(HostNumaId),
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 9, 0)
   HostNumaMemoryPoolsSupported =
     GCXX_ATTRIBUTE_BACKEND(HostNumaMemoryPoolsSupported),
+#endif
   HostNumaMultinodeIpcSupported =
     GCXX_ATTRIBUTE_BACKEND(HostNumaMultinodeIpcSupported),
   HostRegisterReadOnlySupported =
