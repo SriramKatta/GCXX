@@ -78,7 +78,7 @@ MAP_1_3(double, double);
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █       CUDA 13.0+ alignment-aware vec4 overrides        █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                          long                          █
@@ -141,7 +141,7 @@ using vec2_t = typename details_::vec<VT, 2>::type;
 template <typename VT>
 using vec3_t = typename details_::vec<VT, 3>::type;
 
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 // Alignment-aware vec4 variants (only valid if mapped above)
 template <typename VT>
 using vec4_16a_t = typename details_::vec<VT, 4, 16>::type;
@@ -172,7 +172,7 @@ GCXX_FHD auto cast_as_vec3_ptr(VT* data) -> vec3_t<VT>* {
   return reinterpret_cast<vec3_t<VT>*>(data);  // NO lint
 }
 
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
 template <typename VT>
 GCXX_FHD vec4_16a_t<VT>* cast_as_vec4_16a_ptr(VT* data) {

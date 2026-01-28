@@ -69,7 +69,7 @@ TEST(VectorTypesTest, LongVectorTypesSame) {
   EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<long>, long2>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<long>, long3>));
 
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   // CUDA 13+ uses alignment-aware types
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<long>, long4_16a>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<long>, long4_16a>));
@@ -86,7 +86,7 @@ TEST(VectorTypesTest, ULongVectorTypesSame) {
   EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<unsigned long>, ulong2>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<unsigned long>, ulong3>));
 
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   // CUDA 13+ uses alignment-aware types
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<unsigned long>, ulong4_16a>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<unsigned long>, ulong4_16a>));
@@ -103,7 +103,7 @@ TEST(VectorTypesTest, LongLongVectorTypesSame) {
   EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<long long>, longlong2>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<long long>, longlong3>));
 
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   // CUDA 13+ uses alignment-aware types
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<long long>, longlong4_16a>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<long long>, longlong4_16a>));
@@ -120,7 +120,7 @@ TEST(VectorTypesTest, ULongLongVectorTypesSame) {
   EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<unsigned long long>, ulonglong2>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<unsigned long long>, ulonglong3>));
 
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   // CUDA 13+ uses alignment-aware types
   EXPECT_TRUE(
     (std::is_same_v<gcxx::vec4_t<unsigned long long>, ulonglong4_16a>));
@@ -140,7 +140,7 @@ TEST(VectorTypesTest, DoubleVectorTypesSame) {
   EXPECT_TRUE((std::is_same_v<gcxx::vec2_t<double>, double2>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec3_t<double>, double3>));
 
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   // CUDA 13+ uses alignment-aware types
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_t<double>, double4_16a>));
   EXPECT_TRUE((std::is_same_v<gcxx::vec4_16a_t<double>, double4_16a>));

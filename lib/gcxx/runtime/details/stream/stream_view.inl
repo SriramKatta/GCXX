@@ -111,7 +111,7 @@ GCXX_FH auto StreamView::GetCaptureInfo() -> CaptureInfo {
   GCXX_SAFE_RUNTIME_CALL(StreamGetCaptureInfo,
                          "Failed to get Capture info of stream", stream_,
                          &status, &id, &graph, &pDependencies,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
                          nullptr,
 #endif
 
@@ -127,7 +127,7 @@ GCXX_FH auto StreamView::UpdateCaptureDependencies(
   GCXX_SAFE_RUNTIME_CALL(StreamUpdateCaptureDependencies,
                          "Failed to update Dependencies to the cpatured graph",
                          stream_, nodes,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
                          nullptr,
 #endif
                          numdeps, static_cast<details_::flag_t>(flag));

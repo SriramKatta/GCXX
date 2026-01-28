@@ -118,16 +118,40 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 #endif
 
 #if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__)
-#define GCXX_CUDA_MAJOR_GREATER_THAN(v) (__CUDACC_VER_MAJOR__ > (v))
-#define GCXX_CUDA_MAJOR_GREATER_EQUAL(v) (__CUDACC_VER_MAJOR__ >= (v))
-#define GCXX_CUDA_MAJOR_LESS_THAN(v) (__CUDACC_VER_MAJOR__ < (v))
-#define GCXX_CUDA_MAJOR_LESS_EQUAAL(v) (__CUDACC_VER_MAJOR__ <= (v))
+// Combine version into single comparable integer
+#define GCXX_CUDA_VERSION                                          \
+  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100) + \
+   __CUDACC_VER_BUILD__)
+
+#define GCXX_MAKE_CUDA_VERSION(major, minor, build) \
+  (((major)*10000) + ((minor)*100) + (build))
 #else
-#define GCXX_CUDA_MAJOR_GREATER_THAN(v) 0
-#define GCXX_CUDA_MAJOR_GREATER_EQUAL(v) 0
-#define GCXX_CUDA_MAJOR_LESS_THAN(v) 0
-#define GCXX_CUDA_MAJOR_LESS_EQUAL(v) 0
+#define GCXX_CUDA_VERSION 0
+#define GCXX_MAKE_CUDA_VERSION(major, minor, build) 0
 #endif
+
+// Simple version comparisons
+#define GCXX_CUDA_VERSION_GREATER_THAN(major, minor, build) \
+  (GCXX_CUDA_VERSION > GCXX_MAKE_CUDA_VERSION(major, minor, build))
+
+#define GCXX_CUDA_VERSION_GREATER_EQUAL(major, minor, build) \
+  (GCXX_CUDA_VERSION >= GCXX_MAKE_CUDA_VERSION(major, minor, build))
+
+#define GCXX_CUDA_VERSION_LESS_THAN(major, minor, build) \
+  (GCXX_CUDA_VERSION < GCXX_MAKE_CUDA_VERSION(major, minor, build))
+
+#define GCXX_CUDA_VERSION_LESS_EQUAL(major, minor, build) \
+  (GCXX_CUDA_VERSION <= GCXX_MAKE_CUDA_VERSION(major, minor, build))
+
+// Component comparisons (if needed)
+#if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__)
+#define GCXX_CUDA_MAJOR_AT_LEAST(v) (__CUDACC_VER_MAJOR__ >= (v))
+#define GCXX_CUDA_MINOR_AT_LEAST(v) (__CUDACC_VER_MINOR__ >= (v))
+#else
+#define GCXX_CUDA_MAJOR_AT_LEAST(v) 0
+#define GCXX_CUDA_MINOR_AT_LEAST(v) 0
+#endif
+
 
 #endif  // defined(GCXX_CUDA_MODE) || defined(GCXX_HIP_MODE)
 #endif

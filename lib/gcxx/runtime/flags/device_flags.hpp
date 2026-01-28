@@ -34,7 +34,7 @@ enum class deviceAttribute : details_::flag_t {
   ConcurrentKernels       = GCXX_ATTRIBUTE_BACKEND(ConcurrentKernels),
   ConcurrentManagedAccess = GCXX_ATTRIBUTE_BACKEND(ConcurrentManagedAccess),
   CooperativeLaunch       = GCXX_ATTRIBUTE_BACKEND(CooperativeLaunch),
-#if GCXX_CUDA_MAJOR_LESS_THAN(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   CooperativeMultiDeviceLaunch =
     GCXX_ATTRIBUTE_BACKEND(CooperativeMultiDeviceLaunch),
 #endif
@@ -190,7 +190,7 @@ enum class deviceAttribute : details_::flag_t {
   MaxTexture2DLayeredLayers = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DLayeredLayers),
   MaxTextureCubemapLayeredLayers =
     GCXX_ATTRIBUTE_BACKEND(MaxTextureCubemapLayeredLayers),
-#if GCXX_CUDA_MAJOR_LESS_THAN(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   MaxTimelineSemaphoreInteropSupported =
     GCXX_ATTRIBUTE_BACKEND(MaxTimelineSemaphoreInteropSupported),
 #endif
@@ -207,15 +207,19 @@ enum class deviceAttribute : details_::flag_t {
   Reserved128 = GCXX_ATTRIBUTE_BACKEND(Reserved128),
   Reserved129 = GCXX_ATTRIBUTE_BACKEND(Reserved129),
   Reserved132 = GCXX_ATTRIBUTE_BACKEND(Reserved132),
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 9, 0)
   Reserved141 = GCXX_ATTRIBUTE_BACKEND(Reserved141),
-  Reserved92  = GCXX_ATTRIBUTE_BACKEND(Reserved92),
-  Reserved93  = GCXX_ATTRIBUTE_BACKEND(Reserved93),
+#endif
+  Reserved92 = GCXX_ATTRIBUTE_BACKEND(Reserved92),
+  Reserved93 = GCXX_ATTRIBUTE_BACKEND(Reserved93),
   ReservedSharedMemoryPerBlock =
     GCXX_ATTRIBUTE_BACKEND(ReservedSharedMemoryPerBlock),
   SparseCudaArraySupported = GCXX_ATTRIBUTE_BACKEND(SparseCudaArraySupported),
   TimelineSemaphoreInteropSupported =
     GCXX_ATTRIBUTE_BACKEND(TimelineSemaphoreInteropSupported),
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 9, 0)
   VulkanCigSupported = GCXX_ATTRIBUTE_BACKEND(VulkanCigSupported),
+#endif
 #endif  // GCXX_CUDA_MODE
 
 #if GCXX_HIP_MODE

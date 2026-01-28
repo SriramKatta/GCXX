@@ -59,7 +59,7 @@ GCXX_FH auto GraphView::GetNumEdges() const -> size_t {
   size_t numEdges = 0;
   GCXX_SAFE_RUNTIME_CALL(GraphGetEdges, "Failed to get count of Graph edges",
                          graph_, nullptr, nullptr,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
                          nullptr,
 #endif
                          &numEdges);
@@ -109,7 +109,7 @@ GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle,
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If node to graph", &node,
                          graph_, pDependencies,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
                          nullptr,
 #endif
                          numDependencies, &cParams);
@@ -133,7 +133,7 @@ GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add If-Else node to graph",
                          &node, graph_, pDependencies,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
                          nullptr,
 #endif
                          numDependencies, &cParams);
@@ -159,7 +159,7 @@ GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand,
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add While node to graph",
                          &node, graph_, pDependencies,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
                          nullptr,
 #endif
                          numDependencies, &cParams);
@@ -184,7 +184,7 @@ GCXX_FH auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
 
   GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add Switch node to graph",
                          &node, graph_, pDependencies,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
                          nullptr,
 #endif
                          numDependencies, &cParams);
@@ -218,10 +218,9 @@ GCXX_FH auto GraphView::AddDependencies(const deviceGraphNode_t* from,
   GCXX_SAFE_RUNTIME_CALL(GraphAddDependencies,
                          "Failed to Add Dependency between graph Nodes", graph_,
                          from, to,
-#if GCXX_CUDA_MAJOR_GREATER_EQUAL(13)  // TODO : support dependency data
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
                          nullptr,
 #endif
-
                          numDependencies);
 }
 
