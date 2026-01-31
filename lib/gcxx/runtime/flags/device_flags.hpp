@@ -34,7 +34,7 @@ enum class deviceAttribute : details_::flag_t {
   ConcurrentKernels       = GCXX_ATTRIBUTE_BACKEND(ConcurrentKernels),
   ConcurrentManagedAccess = GCXX_ATTRIBUTE_BACKEND(ConcurrentManagedAccess),
   CooperativeLaunch       = GCXX_ATTRIBUTE_BACKEND(CooperativeLaunch),
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
   CooperativeMultiDeviceLaunch =
     GCXX_ATTRIBUTE_BACKEND(CooperativeMultiDeviceLaunch),
 #endif
@@ -192,7 +192,7 @@ enum class deviceAttribute : details_::flag_t {
   MaxTexture2DLayeredLayers = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DLayeredLayers),
   MaxTextureCubemapLayeredLayers =
     GCXX_ATTRIBUTE_BACKEND(MaxTextureCubemapLayeredLayers),
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
   MaxTimelineSemaphoreInteropSupported =
     GCXX_ATTRIBUTE_BACKEND(MaxTimelineSemaphoreInteropSupported),
 #endif
