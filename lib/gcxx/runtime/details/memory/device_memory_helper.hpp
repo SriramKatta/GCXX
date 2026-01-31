@@ -15,14 +15,14 @@ GCXX_CXPR auto device_malloc = [](std::size_t numbytes) {
   return ptr;
 };
 
-GCXX_CXPR auto device_malloc_async = [](std::size_t numbytes,
-                                        const StreamView& sv = StreamView::Null()) {
-  void* ptr = nullptr;
-  GCXX_SAFE_RUNTIME_CALL(MallocAsync,
-                         "Failed to allocate device memory asynchronously",
-                         &ptr, numbytes, sv.getRawStream());
-  return ptr;
-};
+GCXX_CXPR auto device_malloc_async =
+  [](std::size_t numbytes, const StreamView& sv = StreamView::Null()) {
+    void* ptr = nullptr;
+    GCXX_SAFE_RUNTIME_CALL(MallocAsync,
+                           "Failed to allocate device memory asynchronously",
+                           &ptr, numbytes, sv.getRawStream());
+    return ptr;
+  };
 
 
 GCXX_CXPR auto device_managed_malloc = [](std::size_t numbytes) {

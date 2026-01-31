@@ -43,7 +43,7 @@ class StreamView {
     return s;
   }
 
-  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
+  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t;
 
   GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;
 
