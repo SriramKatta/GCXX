@@ -16,7 +16,7 @@ GCXX_CXPR auto device_malloc = [](std::size_t numbytes) {
 };
 
 GCXX_CXPR auto device_malloc_async = [](std::size_t numbytes,
-                                        const StreamView& sv = NULL_STREAM) {
+                                        const StreamView& sv = StreamView::Null()) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(MallocAsync,
                          "Failed to allocate device memory asynchronously",

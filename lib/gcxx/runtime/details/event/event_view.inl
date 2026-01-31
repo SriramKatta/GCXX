@@ -57,7 +57,7 @@ GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
   -> void {
   GCXX_SAFE_RUNTIME_CALL(
     EventRecordWithFlags, "Failed to record GPU Event in GPU Stream", event_,
-    details_::NULL_STREAM, static_cast<details_::flag_t>(recordFlag));
+    StreamView::Null(), static_cast<details_::flag_t>(recordFlag));
 }
 
 GCXX_FH auto EventView::RecordInStream(const StreamView& stream,

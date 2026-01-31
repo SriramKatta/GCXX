@@ -38,7 +38,12 @@ class StreamView {
   StreamView(int)            = delete;
   StreamView(std::nullptr_t) = delete;
 
-  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t;
+  static StreamView& Null() {
+    static StreamView s(details_::NULL_STREAM);
+    return s;
+  }
+
+  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
   GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;
 

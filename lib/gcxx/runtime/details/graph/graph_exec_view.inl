@@ -20,7 +20,7 @@ GCXX_FHC GraphExecView::operator deviceGraphExec_t() const GCXX_NOEXCEPT {
 }
 
 GCXX_FH auto GraphExecView::Launch(
-  const StreamView& stream = details_::NULL_STREAM) const -> void {
+  const StreamView& stream = StreamView::Null()) const -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphLaunch, "Failed to launch graph", exec_,
                          stream.getRawStream());
 }

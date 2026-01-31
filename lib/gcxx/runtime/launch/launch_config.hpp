@@ -15,13 +15,14 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 class LaunchConfig {
  private:
+  //  cudaLaunchConfig_t
   using deviceLaunchConfig_t   = details_::deviceLaunchConfig_t;
   deviceLaunchConfig_t config_ = {0};
 
  public:
   LaunchConfig(dim3 griddim = {1, 1, 1}, dim3 blockdim = {1, 1, 1},
                std::size_t smemBytes = 0,
-               const StreamView& sv  = details_::NULL_STREAM)
+               const StreamView& sv  = StreamView::Null())
       : config_({griddim, blockdim, smemBytes, sv.getRawStream(), nullptr, 0}) {
   }
 

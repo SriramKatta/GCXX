@@ -2,6 +2,8 @@
 #ifndef GCXX_RUNTIME_DETAILS_LAUNCH_LAUNCH_KERNELS_HPP
 #define GCXX_RUNTIME_DETAILS_LAUNCH_LAUNCH_KERNELS_HPP
 
+#include <utility>
+
 #include <gcxx/internal/prologue.hpp>
 
 
@@ -31,7 +33,7 @@ namespace launch {
   template <typename... ExpTypes, typename... ActTypes>
   GCXX_FH void Kernel(dim3 griddim, dim3 blockdim, void (*kernel)(ExpTypes...),
                       ActTypes&&... args) {
-    Kernel(details_::NULL_STREAM, griddim, blockdim, 0, kernel, args...);
+    Kernel(StreamView::Null(), griddim, blockdim, 0, kernel, std::forward<ActTypes>(args)...);
   }
 
   // TODO : add sfinae to check if the kernel is __global__
@@ -45,7 +47,7 @@ namespace launch {
     config.gridDim          = griddim;
     config.dynamicSmemBytes = smem_bytes;
     GCXX_SAFE_RUNTIME_CALL(LaunchKernelEx, "Failed to launch GPU kernel",
-                           &config, kernel, args...);
+                           &config, kernel, std::forward<ActTypes>(args)...);
   }
 }  // namespace launch
 
