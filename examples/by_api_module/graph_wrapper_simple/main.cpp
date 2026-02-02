@@ -1,3 +1,5 @@
+#include <fmt/chrono.h>
+#include <fmt/format.h>
 #include <cstdio>
 #include <gcxx/api.hpp>
 
@@ -44,12 +46,15 @@ void stream_capture() {
   gcxx::Event eve_after_E;
   gcxx::Event eve_after_Y;
 
+  gcxx::Event start, stop;
+
   gcxx::Stream StreamforGraph;
 
   if constexpr (with_graph) {
     stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+  } else {
+    start.RecordInStream();
   }
-
 
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_A);
   eve_after_A.RecordInStream(stream1);
@@ -75,14 +80,26 @@ void stream_capture() {
   stream1.WaitOnEvent(eve_after_Y);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_F);
 
+
   if constexpr (with_graph) {
     auto gp = stream1.EndCapture();
     gp.SaveDotfile("./test_stream_capture.dot",
                    gcxx::flags::graphDebugDot::Verbose);
     auto exec = gp.Instantiate();
+    start.RecordInStream();
     exec.Launch(StreamforGraph);
+    stop.RecordInStream();
   } else {
+    stop.RecordInStream();
     gcxx::Device::Synchronize();
+  }
+
+  auto dur = stop.ElapsedTimeSince(start);
+
+  if constexpr (with_graph) {
+    fmt::print("in graph mode elapsed time  : {}\n", dur);
+  } else {
+    fmt::print("non graph mode elapsed time : {}\n", dur);
   }
 }
 
@@ -129,7 +146,7 @@ void stream_capture_tograph() {
 
   stream1.EndCaptureToGraph(graph);
   graph.SaveDotfile("./test_stream_capture_to.dot",
-                    gcxx::flags::graphDebugDot::Verbose);
+                    gcxx::flags::graphDebugDot::KernelNodeParams);
   auto exec = graph.Instantiate();
   exec.Launch(StreamforGraph);
 }
@@ -182,9 +199,9 @@ void manual_graph_build() {
 }
 
 int main(int argc, char const* argv[]) {
-  stream_capture<true>();
-  stream_capture<false>();
   stream_capture_tograph();
+  stream_capture<false>();
   manual_graph_build();
+  stream_capture<true>();
   return 0;
 }
