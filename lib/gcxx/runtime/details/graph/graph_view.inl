@@ -43,9 +43,10 @@ GCXX_FHC auto GraphView::getRawGraph() const -> deviceGraph_t {
 GCXX_FH auto GraphView::SaveDotfile(std::string_view fname,
                                     flags::graphDebugDot flag) const -> void {
   // TODO : Add checks to prevent illegal file name and check folder existance
+  const std::string filename{fname};
   GCXX_SAFE_RUNTIME_CALL(GraphDebugDotPrint,
                          "Failed to output the dot file of the graph", graph_,
-                         fname.data(), static_cast<details_::flag_t>(flag));
+                         filename.c_str(), static_cast<details_::flag_t>(flag));
 }
 
 GCXX_FH auto GraphView::GetNumNodes() const -> size_t {
