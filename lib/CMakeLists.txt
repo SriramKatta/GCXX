@@ -29,6 +29,12 @@ if(GCXX_WITH_EXCEPTIONS)
   )
 endif()
 
+if(GCXX_DISABLE_RUNTIME_CHECKS)
+  target_compile_definitions(
+    ${LIB_INTERNAL_NAME} INTERFACE "GCXX_DISABLE_RUNTIME_CHECKS"
+  )
+endif()
+
 if(GCXX_CUDA_MODE)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE CUDA::cudart)
   set_target_properties(

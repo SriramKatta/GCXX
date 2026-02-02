@@ -33,6 +33,7 @@ option(GCXX_WITH_EXCEPTIONS "Enables building of library  with exceptions" OFF)
 option(GCXX_BUILD_EXAMPLES "Enables building of examples" OFF)
 option(GCXX_BUILD_BENCHMARKS "Enables building of benchmarks" OFF)
 option(GCXX_BUILD_TESTS "Enables building of tests" OFF)
+option(GCXX_DISABLE_RUNTIME_CHECKS "Disable runtime checks for performance" OFF)
 
 # basically XOR(GCXX_CUDA_MODE, GCXX_HIP_MODE); since only one mode can be
 # active at a time

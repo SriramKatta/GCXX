@@ -13,7 +13,6 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
-// TODO : Implement an exception style throw
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
 #if defined(GCXX_WITH_EXCEPTIONS)
   throw gcxx::Exception(err, msg);
