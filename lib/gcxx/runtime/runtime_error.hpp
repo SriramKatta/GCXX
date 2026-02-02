@@ -29,9 +29,9 @@
 
 #define GCXX_DISCARD_RETURN_VALUES(expr) ((void)(expr))
 
-#define GCXX_SAFE_RUNTIME_CALL(BASEFUNCNAME, MSG, ...)   \
-  do {                                                   \
-    GCXX_DISCARD_RETURN_VALUES(                          \
+#define GCXX_SAFE_RUNTIME_CALL(BASEFUNCNAME, MSG, ...)    \
+  do {                                                    \
+    GCXX_DISCARD_RETURN_VALUES(                           \
       ::GCXX_RUNTIME_BACKEND(BASEFUNCNAME)(__VA_ARGS__)); \
   } while (0)
 
