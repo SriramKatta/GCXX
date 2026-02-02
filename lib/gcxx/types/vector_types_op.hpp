@@ -56,6 +56,31 @@ namespace impl {
         result.w = op(scalar, v.w);
       return result;
     }
+
+    template <typename V, typename Op>
+    GCXX_FHDC static V apply_inplace_componentwise(V& a, const V& b, Op op) {
+      a.x = op(a.x, b.x);
+      if constexpr (N >= 2)
+        a.y = op(a.y, b.y);
+      if constexpr (N >= 3)
+        a.z = op(a.z, b.z);
+      if constexpr (N >= 4)
+        a.w = op(a.w, b.w);
+      return a;
+    }
+
+    //  for vector ⊗ scalar  where scalar is on the left
+    template <typename V, typename S, typename Op>
+    GCXX_FHDC static V apply_inplace_scalar(V& v, const S scalar, Op op) {
+      v.x = op(v.x, scalar);
+      if constexpr (N >= 2)
+        v.y = op(v.y, scalar);
+      if constexpr (N >= 3)
+        v.z = op(v.z, scalar);
+      if constexpr (N >= 4)
+        v.w = op(v.w, scalar);
+      return v;
+    }
   };
 
   template <typename LHS, typename RHS, typename Op>
@@ -63,9 +88,8 @@ namespace impl {
     constexpr bool lhs_is_vec = is_vectype_v<LHS>;
     constexpr bool rhs_is_vec = is_vectype_v<RHS>;
 
-    GCXX_STATIC_EXPECT(
-      lhs_is_vec || rhs_is_vec,
-      "vector operators + requires at least one vector operand");
+    GCXX_STATIC_EXPECT(lhs_is_vec || rhs_is_vec,
+                       "vector operators requires at least one vector operand");
 
     using traits =
       std::conditional_t<lhs_is_vec, vec_traits<LHS>, vec_traits<RHS>>;
@@ -81,6 +105,29 @@ namespace impl {
         lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
     } else if constexpr (rhs_is_vec) {
       return vec_op_impl<N>::apply_scalar_left(
+        lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
+    }
+  }
+
+  template <typename LHS, typename RHS, typename Op>
+  GCXX_FHDC auto apply_inplace_dispatch(const LHS& lhs, const RHS& rhs, Op op) {
+    constexpr bool lhs_is_vec = is_vectype_v<LHS>;
+    constexpr bool rhs_is_vec = is_vectype_v<RHS>;
+
+    GCXX_STATIC_EXPECT(lhs_is_vec,
+                       "inplace vector operators requires lhs to be vector");
+
+    using traits =
+      std::conditional_t<lhs_is_vec, vec_traits<LHS>, vec_traits<RHS>>;
+
+    using base_t    = typename traits::value_type;
+    constexpr int N = traits::size;
+
+    if constexpr (rhs_is_vec) {
+      return vec_op_impl<N>::apply_inplace_componentwise(
+        lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
+    } else {
+      return vec_op_impl<N>::apply_inplace_scalar(
         lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
     }
   }
@@ -183,40 +230,40 @@ GCXX_FHDC auto operator%(const LHS& lhs, const RHS& rhs)
   return apply_binary_dispatch(lhs, rhs, op::remainder{});
 }
 
-// TODO : implement a batter way to prevent creation of temporarries
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator+=(LHS& lhs, const RHS& rhs) -> LHS& {
-  lhs = lhs + rhs;
-  return lhs;
+  using namespace gcxx::details_::impl;
+  return apply_inplace_dispatch(lhs, rhs, op::sum{});
 }
 
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator-=(LHS& lhs, const RHS& rhs) -> LHS& {
-  lhs = lhs - rhs;
-  return lhs;
+  using namespace gcxx::details_::impl;
+  return apply_inplace_dispatch(lhs, rhs, op::difference{});
 }
 
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator/=(LHS& lhs, const RHS& rhs) -> LHS& {
-  lhs = lhs / rhs;
-  return lhs;
+
+  using namespace gcxx::details_::impl;
+  return apply_inplace_dispatch(lhs, rhs, op::quotient{});
 }
 
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator*=(LHS& lhs, const RHS& rhs) -> LHS& {
-  lhs = lhs * rhs;
-  return lhs;
+  using namespace gcxx::details_::impl;
+  return apply_inplace_dispatch(lhs, rhs, op::product{});
 }
 
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator%=(LHS& lhs, const RHS& rhs) -> LHS& {
-  lhs = lhs % rhs;
-  return lhs;
+  using namespace gcxx::details_::impl;
+  return apply_inplace_dispatch(lhs, rhs, op::remainder{});
 }
 
 
