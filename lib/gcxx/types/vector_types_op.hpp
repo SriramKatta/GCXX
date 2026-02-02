@@ -1,5 +1,3 @@
-// vector_types_op.hpp 完整实现
-
 #pragma once
 #ifndef GCXX_TYPES_VECTOR_TYPES_OP_HPP
 #define GCXX_TYPES_VECTOR_TYPES_OP_HPP
@@ -58,7 +56,7 @@ namespace impl {
     }
 
     template <typename V, typename Op>
-    GCXX_FHDC static V apply_inplace_componentwise(V& a, const V& b, Op op) {
+    GCXX_FHDC static V& apply_inplace_componentwise(V& a, const V& b, Op op) {
       a.x = op(a.x, b.x);
       if constexpr (N >= 2)
         a.y = op(a.y, b.y);
@@ -71,7 +69,7 @@ namespace impl {
 
     //  for vector ⊗ scalar  where scalar is on the left
     template <typename V, typename S, typename Op>
-    GCXX_FHDC static V apply_inplace_scalar(V& v, const S scalar, Op op) {
+    GCXX_FHDC static V& apply_inplace_scalar(V& v, const S scalar, Op op) {
       v.x = op(v.x, scalar);
       if constexpr (N >= 2)
         v.y = op(v.y, scalar);
@@ -97,38 +95,47 @@ namespace impl {
     using base_t    = typename traits::value_type;
     constexpr int N = traits::size;
 
+    auto op_base = [&](base_t a, base_t b) {
+      return op(a, b);
+    };
+
     if constexpr (lhs_is_vec && rhs_is_vec) {
-      return vec_op_impl<N>::apply_componentwise(
-        lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
+      return vec_op_impl<N>::apply_componentwise(lhs, rhs, op_base);
     } else if constexpr (lhs_is_vec) {
-      return vec_op_impl<N>::apply_scalar(
-        lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
+      static_assert(std::is_convertible_v<RHS, base_t>,
+                    "scalar must be convertible to base type");
+      return vec_op_impl<N>::apply_scalar(lhs, rhs, op_base);
     } else if constexpr (rhs_is_vec) {
-      return vec_op_impl<N>::apply_scalar_left(
-        lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
+      static_assert(std::is_convertible_v<LHS, base_t>,
+                    "scalar must be convertible to base type");
+      return vec_op_impl<N>::apply_scalar_left(lhs, rhs, op_base);
     }
   }
 
   template <typename LHS, typename RHS, typename Op>
-  GCXX_FHDC auto apply_inplace_dispatch(const LHS& lhs, const RHS& rhs, Op op) {
+  GCXX_FHDC LHS& apply_inplace_dispatch(LHS& lhs, const RHS& rhs, Op op) {
     constexpr bool lhs_is_vec = is_vectype_v<LHS>;
     constexpr bool rhs_is_vec = is_vectype_v<RHS>;
 
     GCXX_STATIC_EXPECT(lhs_is_vec,
                        "inplace vector operators requires lhs to be vector");
 
-    using traits =
-      std::conditional_t<lhs_is_vec, vec_traits<LHS>, vec_traits<RHS>>;
+    using traits = vec_traits<LHS>;
 
-    using base_t    = typename traits::value_type;
+    using base_t = typename traits::value_type;
+
     constexpr int N = traits::size;
 
+    auto op_base = [&](base_t a, base_t b) {
+      return op(a, b);
+    };
+
     if constexpr (rhs_is_vec) {
-      return vec_op_impl<N>::apply_inplace_componentwise(
-        lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
+      return vec_op_impl<N>::apply_inplace_componentwise(lhs, rhs, op_base);
     } else {
-      return vec_op_impl<N>::apply_inplace_scalar(
-        lhs, rhs, [&](base_t a, base_t b) { return op(a, b); });
+      static_assert(std::is_convertible_v<RHS, base_t>,
+                    "scalar must be convertible to base type");
+      return vec_op_impl<N>::apply_inplace_scalar(lhs, rhs, op_base);
     }
   }
 
@@ -163,12 +170,12 @@ namespace impl {
 
     struct remainder {
       template <typename VT>
-      GCXX_FHDC auto operator()(VT a, VT b) -> VT {
+      GCXX_FHDC auto operator()(VT a, VT b)
+        -> std::enable_if_t<std::is_integral_v<VT>, VT> {
         return a % b;
       }
     };
   }  // namespace op
-
 
 }  // namespace impl
 
