@@ -26,8 +26,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_LIST_DIR)
   include(cmake/clangd_compileinfo.cmake)
 endif()
 
-# TODO : when included in another projects the first config is fixing the
-# variables
 option(GCXX_CUDA_MODE "to compile for CUDA programming language" OFF)
 option(GCXX_HIP_MODE "to compile for HIP programming language" OFF)
 option(GCXX_MULTI_GPU "Enable support for NCCL/RCCL" OFF)
