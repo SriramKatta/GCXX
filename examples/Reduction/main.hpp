@@ -57,7 +57,7 @@ GCXX_FD VT thread_partial_sum(const gcxx::span<VT> a) {
   int stride = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size() / 4; i += stride) {
     // using vectorized loads to improve the bandwidth
-    auto* a4 = reinterpret_cast<gcxx::vec4_t<VT>*>(a.data()) + i;
+    auto* a4 = gcxx::cast_as_vec4_ptr(a.data()) + i;
     sum += (a4->x + a4->y + a4->z + a4->w);
   }
 
