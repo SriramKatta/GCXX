@@ -163,8 +163,10 @@ GCXX_FHD auto cast_as_vec1_ptr(VT* data) -> vec1_t<std::remove_cv_t<VT>>* {
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec1_ptr(const VT* data) -> const vec1_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec1_t<std::remove_cv_t<VT>>*>(data);  // NO lint
+GCXX_FHD auto cast_as_vec1_ptr(const VT* data)
+  -> const vec1_t<std::remove_cv_t<VT>>* {
+  return reinterpret_cast<const vec1_t<std::remove_cv_t<VT>>*>(
+    data);  // NO lint
 }
 
 template <typename VT>
@@ -173,8 +175,10 @@ GCXX_FHD auto cast_as_vec2_ptr(VT* data) -> vec2_t<std::remove_cv_t<VT>>* {
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec2_ptr(const VT* data) -> const vec2_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec2_t<std::remove_cv_t<VT>>*>(data);  // NO lint
+GCXX_FHD auto cast_as_vec2_ptr(const VT* data)
+  -> const vec2_t<std::remove_cv_t<VT>>* {
+  return reinterpret_cast<const vec2_t<std::remove_cv_t<VT>>*>(
+    data);  // NO lint
 }
 
 template <typename VT>
@@ -183,19 +187,23 @@ GCXX_FHD auto cast_as_vec3_ptr(VT* data) -> vec3_t<std::remove_cv_t<VT>>* {
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec3_ptr(const VT* data) -> const vec3_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec3_t<std::remove_cv_t<VT>>*>(data);  // NO lint
+GCXX_FHD auto cast_as_vec3_ptr(const VT* data)
+  -> const vec3_t<std::remove_cv_t<VT>>* {
+  return reinterpret_cast<const vec3_t<std::remove_cv_t<VT>>*>(
+    data);  // NO lint
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_16a_ptr(VT* data) -> vec4_16a_t<std::remove_cv_t<VT>>* {
+GCXX_FHD auto cast_as_vec4_16a_ptr(VT* data)
+  -> vec4_16a_t<std::remove_cv_t<VT>>* {
   return reinterpret_cast<vec4_16a_t<std::remove_cv_t<VT>>*>(data);
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_16a_ptr(const VT* data) -> const vec4_16a_t<std::remove_cv_t<VT>>* {
+GCXX_FHD auto cast_as_vec4_16a_ptr(const VT* data)
+  -> const vec4_16a_t<std::remove_cv_t<VT>>* {
   return reinterpret_cast<const vec4_16a_t<std::remove_cv_t<VT>>*>(data);
 }
 
@@ -205,7 +213,8 @@ GCXX_FHD auto cast_as_vec4_32a_ptr(VT* data) -> vec4_32a_t<VT>* {
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_32a_ptr(const VT* data) -> const vec4_32a_t<std::remove_cv_t<VT>>* {
+GCXX_FHD auto cast_as_vec4_32a_ptr(const VT* data)
+  -> const vec4_32a_t<std::remove_cv_t<VT>>* {
   return reinterpret_cast<const vec4_32a_t<std::remove_cv_t<VT>>*>(data);
 }
 
@@ -217,7 +226,8 @@ GCXX_FHD auto cast_as_vec4_ptr(VT* data) -> vec4_t<std::remove_cv_t<VT>>* {
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_ptr(const VT* data) -> const vec4_t<std::remove_cv_t<VT>>* {
+GCXX_FHD auto cast_as_vec4_ptr(const VT* data)
+  -> const vec4_t<std::remove_cv_t<VT>>* {
   return reinterpret_cast<const vec4_t<std::remove_cv_t<VT>>*>(data);
 }
 
