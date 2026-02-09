@@ -15,7 +15,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-using deviceCallBackFn_t     = GCXX_RUNTIME_BACKEND(HostFn_t);
+using deviceHostCallBackFn_t = GCXX_RUNTIME_BACKEND(HostFn_t);
 using deviceHostNodeParams_t = GCXX_RUNTIME_BACKEND(HostNodeParams);
 
 class HostNodeParamsView {
@@ -29,7 +29,7 @@ class HostNodeParamsView {
     return params_;
   }
 
-  GCXX_FHC auto getHostFunc() const -> const deviceCallBackFn_t {
+  GCXX_FHC auto getHostFunc() const -> const deviceHostCallBackFn_t {
     return params_.fn;
   }
 
@@ -41,7 +41,7 @@ class HostNodeParams : public HostNodeParamsView {
  public:
   GCXX_FHC HostNodeParams() = default;
 
-  GCXX_FHC HostNodeParams(deviceCallBackFn_t fn, void* Udata) {
+  GCXX_FHC HostNodeParams(deviceHostCallBackFn_t fn, void* Udata) {
     params_.fn       = fn;
     params_.userData = Udata;
   }
@@ -60,14 +60,14 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 
 class HostNodeParamsBuilder {
  private:
-  deviceCallBackFn_t func_{};
+  deviceHostCallBackFn_t func_{};
   void* Udata_{nullptr};
 
 
  public:
   GCXX_FH static auto create() -> HostNodeParamsBuilder { return {}; }
 
-  GCXX_FHC auto setHostCallbackFn(deviceCallBackFn_t func)
+  GCXX_FHC auto setHostCallbackFn(deviceHostCallBackFn_t func)
     -> HostNodeParamsBuilder& {
     func_ = func;
     return *this;
@@ -78,7 +78,7 @@ class HostNodeParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC gcxx::HostNodeParams build() { return {func_, Udata_}; }
+  GCXX_FHC auto build() -> gcxx::HostNodeParams { return {func_, Udata_}; }
 };
 
 GCXX_NAMESPACE_DETAILS_END
