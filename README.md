@@ -24,3 +24,33 @@ A lightweight, backend-agnostic C++ GPU runtime abstraction library with support
 - At least one supported GPU backend installed:
   - [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
   - [ROCm / HIP](https://rocmdocs.amd.com/)
+
+---
+
+### Building the Examples
+
+gpuCXX uses CMake workflows and presets for a simple, unified build experience.
+
+#### Build NVIDIA GPU
+
+```bash
+cmake --workflow --preset all-cuda-release-examples
+```
+
+Executables will be available in:
+
+```bash
+build/cudabin-release/
+```
+
+#### Build for AMD GPU examples 
+
+```bash
+cmake --workflow --preset all-hip-release-examples
+```
+
+Executables will be available in:
+
+```bash
+build/hipbin-release/
+```
