@@ -198,6 +198,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 
 #endif
 
+#define GCXX_DEVICE_COMPILE (__HIP_DEVICE_COMPILE__ || __CUDA_ARCH__)
 
 #endif  // defined(GCXX_CUDA_MODE) || defined(GCXX_HIP_MODE)
 #endif
