@@ -157,78 +157,89 @@ using vec4_t = typename details_::vec<VT, 4>::type;
 // █                    Helper function                     █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
+template <class VT>
+using vec1_no_cv_t = vec1_t<std::remove_cv_t<VT>>;
+
+template <class VT>
+using vec2_no_cv_t = vec2_t<std::remove_cv_t<VT>>;
+
+template <class VT>
+using vec3_no_cv_t = vec3_t<std::remove_cv_t<VT>>;
+
+template <class VT>
+using vec4_no_cv_t = vec4_t<std::remove_cv_t<VT>>;
+
 template <typename VT>
-GCXX_FHD auto cast_as_vec1_ptr(VT* data) -> vec1_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<vec1_t<std::remove_cv_t<VT>>*>(data);  // NO lint
+GCXX_FHD auto cast_as_vec1_ptr(VT* data) -> vec1_no_cv_t<VT>* {
+  return reinterpret_cast<vec1_no_cv_t<VT>*>(data);  // NO lint
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec1_ptr(const VT* data)
-  -> const vec1_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec1_t<std::remove_cv_t<VT>>*>(
-    data);  // NO lint
+GCXX_FHD auto cast_as_vec1_ptr(const VT* data) -> const vec1_no_cv_t<VT>* {
+  return reinterpret_cast<const vec1_no_cv_t<VT>*>(data);  // NO lint
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec2_ptr(VT* data) -> vec2_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<vec2_t<std::remove_cv_t<VT>>*>(data);  // NO lint
+GCXX_FHD auto cast_as_vec2_ptr(VT* data) -> vec2_no_cv_t<VT>* {
+  return reinterpret_cast<vec2_no_cv_t<VT>*>(data);  // NO lint
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec2_ptr(const VT* data)
-  -> const vec2_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec2_t<std::remove_cv_t<VT>>*>(
-    data);  // NO lint
+GCXX_FHD auto cast_as_vec2_ptr(const VT* data) -> const vec2_no_cv_t<VT>* {
+  return reinterpret_cast<const vec2_no_cv_t<VT>*>(data);  // NO lint
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec3_ptr(VT* data) -> vec3_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<vec3_t<std::remove_cv_t<VT>>*>(data);  // NO lint
+GCXX_FHD auto cast_as_vec3_ptr(VT* data) -> vec3_no_cv_t<VT>* {
+  return reinterpret_cast<vec3_no_cv_t<VT>*>(data);  // NO lint
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec3_ptr(const VT* data)
-  -> const vec3_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec3_t<std::remove_cv_t<VT>>*>(
-    data);  // NO lint
+GCXX_FHD auto cast_as_vec3_ptr(const VT* data) -> const vec3_no_cv_t<VT>* {
+  return reinterpret_cast<const vec3_no_cv_t<VT>*>(data);  // NO lint
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
+
+template <class VT>
+using vec4_32a_no_cv_t = vec4_32a_t<std::remove_cv_t<VT>>;
+
+template <class VT>
+using vec4_16a_no_cv_t = vec4_16a_t<std::remove_cv_t<VT>>;
+
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_16a_ptr(VT* data)
-  -> vec4_16a_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<vec4_16a_t<std::remove_cv_t<VT>>*>(data);
+GCXX_FHD auto cast_as_vec4_16a_ptr(VT* data) -> vec4_16a_no_cv_t<VT>* {
+  return reinterpret_cast<vec4_16a_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_16a_ptr(const VT* data)
-  -> const vec4_16a_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec4_16a_t<std::remove_cv_t<VT>>*>(data);
+  -> const vec4_16a_no_cv_t<VT>* {
+  return reinterpret_cast<const vec4_16a_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_32a_ptr(VT* data) -> vec4_32a_t<VT>* {
-  return reinterpret_cast<vec4_32a_t<std::remove_cv_t<VT>>*>(data);
+GCXX_FHD auto cast_as_vec4_32a_ptr(VT* data) -> vec4_32a_no_cv_t<VT>* {
+  return reinterpret_cast<vec4_32a_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_32a_ptr(const VT* data)
-  -> const vec4_32a_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec4_32a_t<std::remove_cv_t<VT>>*>(data);
+  -> const vec4_32a_no_cv_t<VT>* {
+  return reinterpret_cast<const vec4_32a_no_cv_t<VT>*>(data);
 }
 
 #endif
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_ptr(VT* data) -> vec4_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<vec4_t<std::remove_cv_t<VT>>*>(data);  // NO lint
+GCXX_FHD auto cast_as_vec4_ptr(VT* data) -> vec4_no_cv_t<VT>* {
+  return reinterpret_cast<vec4_no_cv_t<VT>*>(data);  // NO lint
 }
 
 template <typename VT>
-GCXX_FHD auto cast_as_vec4_ptr(const VT* data)
-  -> const vec4_t<std::remove_cv_t<VT>>* {
-  return reinterpret_cast<const vec4_t<std::remove_cv_t<VT>>*>(data);
+GCXX_FHD auto cast_as_vec4_ptr(const VT* data) -> const vec4_no_cv_t<VT>* {
+  return reinterpret_cast<const vec4_no_cv_t<VT>*>(data);
 }
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
