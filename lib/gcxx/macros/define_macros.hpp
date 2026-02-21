@@ -117,8 +117,11 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 #define GCXX_RESTRICT_KEYWORD
 #endif
 
+/* =========================
+ * CUDA VERSION MACROS
+ * ========================= */
 #if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__)
-// Combine version into single comparable integer
+
 #define GCXX_CUDA_VERSION                                          \
   ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100) + \
    __CUDACC_VER_BUILD__)
@@ -126,7 +129,6 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 #define GCXX_MAKE_CUDA_VERSION(major, minor, build) \
   (((major)*10000) + ((minor)*100) + (build))
 
-// Simple version comparisons
 #define GCXX_CUDA_VERSION_EQUALS(major, minor, build) \
   (GCXX_CUDA_VERSION == GCXX_MAKE_CUDA_VERSION(major, minor, build))
 
@@ -143,6 +145,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
   (GCXX_CUDA_VERSION <= GCXX_MAKE_CUDA_VERSION(major, minor, build))
 
 #else
+
 #define GCXX_CUDA_VERSION 0
 #define GCXX_MAKE_CUDA_VERSION(major, minor, build) 0
 #define GCXX_CUDA_VERSION_EQUALS(major, minor, build) 0
@@ -150,6 +153,49 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 #define GCXX_CUDA_VERSION_LESS_THAN(major, minor, build) 0
 #define GCXX_CUDA_VERSION_GREATER_EQUAL(major, minor, build) 0
 #define GCXX_CUDA_VERSION_LESS_EQUAL(major, minor, build) 0
+
+#endif
+
+
+/* =========================
+ * HIP VERSION MACROS
+ * ========================= */
+#if defined(__HIPCC__) && defined(HIP_VERSION)
+
+/* HIP_VERSION format:
+ * major * 10000000 + minor * 100000 + patch
+ */
+
+#define GCXX_HIP_VERSION HIP_VERSION
+
+#define GCXX_MAKE_HIP_VERSION(major, minor, patch) \
+  (((major)*10000000) + ((minor)*100000) + (patch))
+
+#define GCXX_HIP_VERSION_EQUALS(major, minor, patch) \
+  (GCXX_HIP_VERSION == GCXX_MAKE_HIP_VERSION(major, minor, patch))
+
+#define GCXX_HIP_VERSION_GREATER_THAN(major, minor, patch) \
+  (GCXX_HIP_VERSION > GCXX_MAKE_HIP_VERSION(major, minor, patch))
+
+#define GCXX_HIP_VERSION_LESS_THAN(major, minor, patch) \
+  (GCXX_HIP_VERSION < GCXX_MAKE_HIP_VERSION(major, minor, patch))
+
+#define GCXX_HIP_VERSION_GREATER_EQUAL(major, minor, patch) \
+  (GCXX_HIP_VERSION >= GCXX_MAKE_HIP_VERSION(major, minor, patch))
+
+#define GCXX_HIP_VERSION_LESS_EQUAL(major, minor, patch) \
+  (GCXX_HIP_VERSION <= GCXX_MAKE_HIP_VERSION(major, minor, patch))
+
+#else
+
+#define GCXX_HIP_VERSION 0
+#define GCXX_MAKE_HIP_VERSION(major, minor, patch) 0
+#define GCXX_HIP_VERSION_EQUALS(major, minor, patch) 0
+#define GCXX_HIP_VERSION_GREATER_THAN(major, minor, patch) 0
+#define GCXX_HIP_VERSION_LESS_THAN(major, minor, patch) 0
+#define GCXX_HIP_VERSION_GREATER_EQUAL(major, minor, patch) 0
+#define GCXX_HIP_VERSION_LESS_EQUAL(major, minor, patch) 0
+
 #endif
 
 
