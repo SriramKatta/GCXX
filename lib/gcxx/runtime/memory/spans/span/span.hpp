@@ -15,7 +15,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-// since md sapn from kokkos has this already we dont need it here
+// since mdspan from kokkos has this already we dont need it here
 // GCXX_CXPR inline auto dynamic_extent =
 //   std::numeric_limits<std::size_t>::max();
 
