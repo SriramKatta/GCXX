@@ -67,9 +67,8 @@ __global__ void kernel_2vec(const gcxx::span<VT> a) {
   int start  = threadIdx.x + blockDim.x * blockIdx.x;
   int stride = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size() / 2; i += stride) {
-    auto* a2 = gcxx::cast_as_vec2_ptr(a.data()) + i;
-    a2->x += 1.0;
-    a2->y += 1.0;
+    auto& a2 = gcxx::cast_as_vec2_ptr(a.data())[i];
+    a2 += 1.0;
   }
   if (a.size() % 2 != 0 && start == 0) {
     a.back() += 1.0;
@@ -81,11 +80,8 @@ __global__ void kernel_4vec(const gcxx::span<VT> a) {
   int start  = threadIdx.x + blockDim.x * blockIdx.x;
   int stride = blockDim.x * gridDim.x;
   for (size_t i = start; i < a.size() / 4; i += stride) {
-    auto* a4 = gcxx::cast_as_vec4_ptr(a.data()) + i;
-    a4->x += 1.0;
-    a4->y += 1.0;
-    a4->z += 1.0;
-    a4->w += 1.0;
+    auto& a4 = gcxx::cast_as_vec4_ptr(a.data())[i];
+    a4 += 1.0;
   }
   // 0 thread, process final elements (if there are any)
   int remainder = a.size() % 4;
