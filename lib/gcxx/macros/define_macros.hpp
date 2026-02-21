@@ -122,12 +122,12 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
  * ========================= */
 #if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__)
 
-#define GCXX_CUDA_VERSION                                          \
-  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100) + \
-   __CUDACC_VER_BUILD__)
-
 #define GCXX_MAKE_CUDA_VERSION(major, minor, build) \
   (((major)*10000) + ((minor)*100) + (build))
+
+#define GCXX_CUDA_VERSION                                            \
+  GCXX_MAKE_CUDA_VERSION(__CUDACC_VER_MAJOR__, __CUDACC_VER_MINOR__, \
+                         __CUDACC_VER_BUILD__)
 
 #define GCXX_CUDA_VERSION_EQUALS(major, minor, build) \
   (GCXX_CUDA_VERSION == GCXX_MAKE_CUDA_VERSION(major, minor, build))
