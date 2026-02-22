@@ -12,19 +12,20 @@ enum class graphCreate : details_::flag_t {
 };
 
 enum class graphNodeType {
-  kernel       = 0,
-  memcpy       = 1,
-  memset       = 2,
-  host         = 3,
-  graph        = 4,
-  eventWait    = 5,
-  eventRecord  = 6,
-  extSemSignal = 7,
-  extSemWait   = 8,
-  alloc        = 9,
-  free         = 10,
+  Kernel       = GCXX_RUNTIME_BACKEND(GraphNodeTypeKernel),
+  Memcpy       = GCXX_RUNTIME_BACKEND(GraphNodeTypeMemcpy),
+  Memset       = GCXX_RUNTIME_BACKEND(GraphNodeTypeMemset),
+  Host         = GCXX_RUNTIME_BACKEND(GraphNodeTypeHost),
+  Graph        = GCXX_RUNTIME_BACKEND(GraphNodeTypeGraph),
+  Empty        = GCXX_RUNTIME_BACKEND(GraphNodeTypeEmpty),
+  EventWait    = GCXX_RUNTIME_BACKEND(GraphNodeTypeWaitEvent),
+  EventRecord  = GCXX_RUNTIME_BACKEND(GraphNodeTypeEventRecord),
+  ExtSemSignal = GCXX_RUNTIME_BACKEND(GraphNodeTypeExtSemaphoreSignal),
+  ExtSemWait   = GCXX_RUNTIME_BACKEND(GraphNodeTypeExtSemaphoreWait),
+  Alloc        = GCXX_RUNTIME_BACKEND(GraphNodeTypeMemAlloc),
+  Free         = GCXX_RUNTIME_BACKEND(GraphNodeTypeMemFree),
 #if GCXX_CUDA_MODE
-  conditional = 11,
+  Conditional = GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional),
 #endif
 };
 
