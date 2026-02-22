@@ -66,20 +66,11 @@ enum class eventRecord : details_::flag_t {
  * @brief Flags for controlling event wait behavior.
  *
  * These flags specify how a stream should wait on an event.
- *
- * @note HIP does not currently implement these flags despite documentation
- *       claiming support. For HIP, both values default to 0.
  */
 enum class eventWait : details_::flag_t {
-#if defined(GCXX_CUDA_MODE)
   None = GCXX_RUNTIME_BACKEND(EventWaitDefault), /**< Default wait behavior. */
   external =
     GCXX_RUNTIME_BACKEND(EventWaitExternal), /**< Wait on external event. */
-#else  // HIP: these are supposedly defined as per documentation but not
-       // implemented in the actual code
-  None     = 0, /**< Default wait behavior (HIP fallback). */
-  external = 0, /**< External wait (HIP fallback, not implemented). */
-#endif
 };
 
 GCXX_NAMESPACE_MAIN_FLAGS_END

@@ -15,11 +15,11 @@ GCXX_CXPR auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
 GCXX_CXPR auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 
 GCXX_FHD const char* GetErrorName(deviceError_t err) {
-  return GCXX_RUNTIME_BACKEND(GetErrorName)(err);
+  return ::GCXX_RUNTIME_BACKEND(GetErrorName)(err);
 }
 
 GCXX_FHD const char* GetErrorString(deviceError_t err) {
-  return GCXX_RUNTIME_BACKEND(GetErrorString)(err);
+  return ::GCXX_RUNTIME_BACKEND(GetErrorString)(err);
 }
 
 GCXX_FH std::string make_message(deviceError_t err, std::string_view context) {

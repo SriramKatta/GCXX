@@ -18,7 +18,7 @@ GCXX_FH auto GraphNodeView::geLocalId() -> unsigned int {
   return id;
 }
 
-GCXX_FH auto GraphNodeView::geToolsId() -> unsigned long long{
+GCXX_FH auto GraphNodeView::geToolsId() -> unsigned long long {
   unsigned long long id{};
   GCXX_SAFE_RUNTIME_CALL(GraphNodeGetToolsId,
                          "Failed to query Tools Id of graph node", node_, &id);
