@@ -17,13 +17,15 @@ class ChildGraphNodeView : public GraphNodeView {
   GCXX_FHC ChildGraphNodeView(deviceGraphNode_t node);
 
   GCXX_FH auto getGraph() -> GraphView;
+
   GCXX_FH auto setParams(GraphExecView exec, GraphView graph) -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END
 
 // this needs to be added in gcxx/runtime/graph/graph_view.hpp to prevent the
-// circular dependecy problem MAYBE modules can solve this
+// circular dependecy problem
+// TODO : MAYBE modules can solve this
 
 // #include <gcxx/runtime/details/graph/nodes/child_graph_node_view.inl>
 
