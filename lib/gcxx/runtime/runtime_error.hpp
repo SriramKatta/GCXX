@@ -20,7 +20,6 @@
         gcxx::details_::throwGPUError(last, MSG);                             \
     }                                                                         \
   } while (0)
-
 #else
 
 // =======================
