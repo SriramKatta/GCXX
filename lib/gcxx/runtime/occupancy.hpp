@@ -22,7 +22,7 @@ namespace Occupancy {
 
   // TODO : needs to verify if func_t is actually an cuda kernel func type
   template <typename func_t>
-  GCXX_FH auto MaxActiveBlocksPerMultiprocessor(
+  GCXX_FHD auto MaxActiveBlocksPerMultiprocessor(
     func_t* func, int blockSize, std::size_t dynamicSMemSizeBytes = 0,
     flags::occupancyType flag = flags::occupancyType::Default) -> int {
     int numBlocks{};
