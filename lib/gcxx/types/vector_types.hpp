@@ -171,32 +171,38 @@ using vec4_no_cv_t = vec4_t<std::remove_cv_t<VT>>;
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec1_ptr(VT* data) -> vec1_no_cv_t<VT>* {
-  return reinterpret_cast<vec1_no_cv_t<VT>*>(data);  // NO lint
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return reinterpret_cast<vec1_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec1_ptr(const VT* data) -> const vec1_no_cv_t<VT>* {
-  return reinterpret_cast<const vec1_no_cv_t<VT>*>(data);  // NO lint
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return reinterpret_cast<const vec1_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec2_ptr(VT* data) -> vec2_no_cv_t<VT>* {
-  return reinterpret_cast<vec2_no_cv_t<VT>*>(data);  // NO lint
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return reinterpret_cast<vec2_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec2_ptr(const VT* data) -> const vec2_no_cv_t<VT>* {
-  return reinterpret_cast<const vec2_no_cv_t<VT>*>(data);  // NO lint
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return reinterpret_cast<const vec2_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec3_ptr(VT* data) -> vec3_no_cv_t<VT>* {
-  return reinterpret_cast<vec3_no_cv_t<VT>*>(data);  // NO lint
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return reinterpret_cast<vec3_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec3_ptr(const VT* data) -> const vec3_no_cv_t<VT>* {
-  return reinterpret_cast<const vec3_no_cv_t<VT>*>(data);  // NO lint
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return reinterpret_cast<const vec3_no_cv_t<VT>*>(data);
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
@@ -210,23 +216,27 @@ using vec4_16a_no_cv_t = vec4_16a_t<std::remove_cv_t<VT>>;
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_16a_ptr(VT* data) -> vec4_16a_no_cv_t<VT>* {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return reinterpret_cast<vec4_16a_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_16a_ptr(const VT* data)
   -> const vec4_16a_no_cv_t<VT>* {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return reinterpret_cast<const vec4_16a_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_32a_ptr(VT* data) -> vec4_32a_no_cv_t<VT>* {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return reinterpret_cast<vec4_32a_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_32a_ptr(const VT* data)
   -> const vec4_32a_no_cv_t<VT>* {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return reinterpret_cast<const vec4_32a_no_cv_t<VT>*>(data);
 }
 
@@ -234,11 +244,13 @@ GCXX_FHD auto cast_as_vec4_32a_ptr(const VT* data)
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_ptr(VT* data) -> vec4_no_cv_t<VT>* {
-  return reinterpret_cast<vec4_no_cv_t<VT>*>(data);  // NO lint
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  return reinterpret_cast<vec4_no_cv_t<VT>*>(data);
 }
 
 template <typename VT>
 GCXX_FHD auto cast_as_vec4_ptr(const VT* data) -> const vec4_no_cv_t<VT>* {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   return reinterpret_cast<const vec4_no_cv_t<VT>*>(data);
 }
 
