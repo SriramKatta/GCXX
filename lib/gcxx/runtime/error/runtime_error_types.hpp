@@ -24,7 +24,8 @@ GCXX_FHD const char* GetErrorString(deviceError_t err) {
 
 GCXX_FH std::string make_message(deviceError_t err, std::string_view context) {
   std::string msg;
-  msg.reserve(context.size() + 128);
+  constexpr size_t addtional_message_size = 128;
+  msg.reserve(context.size() + addtional_message_size);
 
   msg.append(context)
     .append(": ")
