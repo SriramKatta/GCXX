@@ -273,5 +273,10 @@ GCXX_FHDC auto operator%=(LHS& lhs, const RHS& rhs) -> LHS& {
   return apply_inplace_dispatch(lhs, rhs, op::remainder{});
 }
 
+// TODO : implement expression templates to prevent creation of temporary for
+// more complex refrence slides and talk
+// https://www.youtube.com/watch?v=4IUCBx5fIv0
+// https://github.com/CppCon/CppCon2019/blob/master/Presentations/expression_templatesfor_efficient_generic_finance_code/expression_templatesfor_efficient_generic_finance_code__bowie_owens__cppcon_2019.pdf
+
 
 #endif
