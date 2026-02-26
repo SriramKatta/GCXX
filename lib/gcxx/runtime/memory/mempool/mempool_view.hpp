@@ -15,7 +15,7 @@ using deviceMemPool_t = GCXX_RUNTIME_BACKEND(MemPool_t);
 
 class MemPoolView {
  protected:
-  deviceMemPool_t pool_{nullptr};
+  deviceMemPool_t pool_{nullptr}; // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
 
  public:
   MemPoolView() = default;
