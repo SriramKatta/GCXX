@@ -118,7 +118,7 @@ GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle,
   // Extract the body graph from the conditional node parameters
   deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
 
-  return IfNodeResult{node, GraphView(bodyGraph)};
+  return IfNodeResult{node, bodyGraph};
 }
 
 GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
@@ -143,8 +143,7 @@ GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
   deviceGraph_t ifBodyGraph   = cParams.conditional.phGraph_out[0];
   deviceGraph_t elseBodyGraph = cParams.conditional.phGraph_out[1];
 
-  return IfElseNodeResult{node, GraphView(ifBodyGraph),
-                          GraphView(elseBodyGraph)};
+  return {node, ifBodyGraph, elseBodyGraph};
 }
 
 GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand,
@@ -333,7 +332,8 @@ GCXX_FH auto GraphView::AddChildGraphNode(
 GCXX_FH auto GraphView::AddDependencies(
   gcxx::span<const deviceGraphNode_t> from,
   gcxx::span<const deviceGraphNode_t> to) -> void {
-  // TODO : add asserts
+  GCXX_RUNTIME_EXPECT(from.size() != to.size,
+                      "Mistamatch in to and from depencey count");
   AddDependencies(from.data(), to.data(), from.size());
 }
 
