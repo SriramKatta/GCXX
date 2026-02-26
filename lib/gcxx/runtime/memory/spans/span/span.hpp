@@ -147,14 +147,14 @@ class span {
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
       : m_storage(first, count) {
-    GCXX_DYNAMIC_EXPECT(
+    GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent || count == gcxx::dynamic_extent,
       "Span (ptr,count) contract violation");
   }
 
   GCXX_CXPR GCXX_FHD span(pointer first, pointer last)
       : m_storage(first, last - first) {
-    GCXX_DYNAMIC_EXPECT(
+    GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent ||
         (last - first) == static_cast<difference_type>(gcxx::dynamic_extent),
       "Span (ptr, ptr) contract violation");
@@ -278,7 +278,7 @@ class span {
   }  //*rbegin() cant be used since operator * in host only
 
   GCXX_FHDC auto operator[](size_type idx) const -> reference {
-    GCXX_DYNAMIC_EXPECT(idx < size(), "Out of bounds access");
+    GCXX_RUNTIME_EXPECT(idx < size(), "Out of bounds access");
     return *(data() + idx);
   }
 
@@ -312,7 +312,7 @@ class span {
 
   GCXX_FHDC auto first(size_type count) const
     -> span<element_type, gcxx::dynamic_extent> {
-    GCXX_DYNAMIC_EXPECT(count <= size(), "Span.first count greater than size");
+    GCXX_RUNTIME_EXPECT(count <= size(), "Span.first count greater than size");
     return {data(), count};
   }
 
@@ -324,7 +324,7 @@ class span {
 
   GCXX_FHDC auto last(size_type count) const
     -> span<element_type, gcxx::dynamic_extent> {
-    GCXX_DYNAMIC_EXPECT(count <= size(), "Span.last count greater than size");
+    GCXX_RUNTIME_EXPECT(count <= size(), "Span.last count greater than size");
     return {data() + (size() - count), count};
   }
 
@@ -347,7 +347,7 @@ class span {
   GCXX_FHDC auto subspan(size_type offset,
                          size_type count = gcxx::dynamic_extent) const
     -> span<element_type> {
-    GCXX_DYNAMIC_EXPECT(offset <= size() && count == gcxx::dynamic_extent ||
+    GCXX_RUNTIME_EXPECT(offset <= size() && count == gcxx::dynamic_extent ||
                           offset + count < size(),
                         "Span.subspan contract violated");
     return {data() + offset,
