@@ -185,9 +185,9 @@ class KernelParamsBuilder {
 
   template <std::size_t NumParams>
   GCXX_FHC gcxx::KernelNodeParams<NumParams> build() {
-    GCXX_DYNAMIC_EXPECT(arg_ptrs_.size() == NumParams,
+    GCXX_RUNTIME_EXPECT(arg_ptrs_.size() == NumParams,
                         "Mismatch between arg_ptrs_.size() and Numparams");
-    GCXX_DYNAMIC_EXPECT(kernel_ != nullptr, "Need to set the kernel");
+    GCXX_RUNTIME_EXPECT(kernel_ != nullptr, "Need to set the kernel");
 
     std::array<void*, NumParams> final_args{};
     std::copy_n(arg_ptrs_.begin(), NumParams, final_args.begin());
