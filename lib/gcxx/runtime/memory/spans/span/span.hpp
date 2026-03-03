@@ -12,18 +12,17 @@
 #include <gcxx/runtime/details/helper_function.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 
+/*
+https://godbolt.org/z/TzxEaMzoP
+TODO : use this as refrence to extend and support restrict span keeping most of
+the code same
+*/
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
 // since mdspan from kokkos has this already we dont need it here
 // GCXX_CXPR inline auto dynamic_extent =
 //   std::numeric_limits<std::size_t>::max();
-
-template <class VT, std::size_t Extent = gcxx::dynamic_extent>
-class span;
-
-template <class VT, std::size_t Extent = gcxx::dynamic_extent>
-class restrict_span;  // TODO: to be implemented
 
 GCXX_NAMESPACE_DETAILS_BEGIN
 
@@ -33,7 +32,7 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 
 template <std::size_t Extent>
 struct size_holder {
-  GCXX_FHDC size_holder(std::size_t) noexcept {}
+  size_holder(std::size_t) noexcept {}
 
   static GCXX_FHDC std::size_t size() noexcept { return Extent; }
 };
@@ -42,7 +41,7 @@ template <>
 struct size_holder<gcxx::dynamic_extent> {
   std::size_t m_size{0};
 
-  GCXX_FHDC size_holder() noexcept = default;
+  size_holder() noexcept = default;
 
   GCXX_FHDC size_holder(std::size_t n) noexcept : m_size(n) {}
 
@@ -51,24 +50,54 @@ struct size_holder<gcxx::dynamic_extent> {
 
 template <typename VT, std::size_t Extent>
 struct span_storage : size_holder<Extent> {
-  VT* start{nullptr};
-  GCXX_FHDC span_storage() noexcept = default;
+  using data_handle_type = VT*;
+  using size_holder<Extent>::size;
+
+  span_storage() noexcept = default;
 
   GCXX_FHDC span_storage(VT* v_ptr, std::size_t n) noexcept
       : size_holder<Extent>(n), start(v_ptr) {}
 
-  using size_holder<Extent>::size;
+  GCXX_FHDC data_handle_type data() const {
+    data_handle_type ptr = start;
+    return ptr;
+  }
+
+  GCXX_FHDC VT& operator[](std::size_t idx) const {
+    data_handle_type ptr = start;
+    return ptr[idx];
+  }
+
+ private:
+  data_handle_type start{nullptr};
 };
 
+// CAN'T US CRTP since it would discard the RESTRIC_KEYWORD
 template <typename VT, std::size_t Extent>
 struct restrict_span_storage : size_holder<Extent> {
-  VT* GCXX_RESTRICT_KEYWORD start{nullptr};
-  GCXX_FHDC restrict_span_storage() noexcept = default;
+  using data_handle_type = VT* GCXX_RESTRICT_KEYWORD;
+  using size_holder<Extent>::size;
+
+  restrict_span_storage() noexcept = default;
 
   GCXX_FHDC restrict_span_storage(VT* v_ptr, std::size_t n) noexcept
       : size_holder<Extent>(n), start(v_ptr) {}
 
-  using size_holder<Extent>::size;
+  GCXX_FHDC data_handle_type data() const {
+    data_handle_type ptr = start;
+    return ptr;
+  }
+
+  GCXX_FHDC VT& operator[](std::size_t idx) const {
+    // just doing this(below line) without accessing it works but unused
+    // variable warning so just using it the compiler desugars it out in device
+    // code even at -O0 and at -O3 the host code is similar to raw restrict use
+    data_handle_type ptr = start;
+    return ptr[idx];
+  }
+
+ private:
+  data_handle_type start{nullptr};
 };
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -96,10 +125,9 @@ struct is_container {
 template <typename C>
 GCXX_CXPR inline bool is_container_v = is_container<C>::value;
 
-GCXX_NAMESPACE_DETAILS_END
-
-template <class VT, std::size_t Extent>
-class span {
+template <class VT, std::size_t Extent,
+          template <typename, std::size_t> class storage_type>
+class span_base {
  private:
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
   // █                     Static Asserts                     █
@@ -112,8 +140,6 @@ class span {
   GCXX_STATIC_EXPECT(details_::is_complete_v<VT>,
                      "A forward declaration is not supported,"
                      " need a fully declared type");
-
-  using storage_type = details_::span_storage<VT, Extent>;
 
  public:
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -280,8 +306,9 @@ class span {
     return *(data() + idx);
   }
 
-  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT -> pointer {
-    return m_storage.start;
+  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT ->
+    typename storage_type::data_handle_type {
+    return m_storage.data();
   }
 
   // ==========================================================
@@ -364,24 +391,34 @@ class span {
   storage_type m_storage{};
 };
 
+GCXX_NAMESPACE_DETAILS_END
+
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                    Deduction guides                    █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-template <class VT, size_t N>
-span(VT (&)[N]) -> span<VT, N>;  // NOLINT
+// template <class VT, size_t N>
+// span(VT (&)[N]) -> span<VT, N>;  // NOLINT
 
-template <class VT, size_t N>
-span(std::array<VT, N>&) -> span<VT, N>;
+// template <class VT, size_t N>
+// span(std::array<VT, N>&) -> span<VT, N>;
 
-template <class VT, size_t N>
-span(const std::array<VT, N>&) -> span<const VT, N>;
+// template <class VT, size_t N>
+// span(const std::array<VT, N>&) -> span<const VT, N>;
 
-template <class Container>
-span(Container&) -> span<typename std::remove_reference_t<
-  decltype(*std::data(std::declval<Container&>()))>>;
+// template <class Container>
+// span(Container&) -> span<typename std::remove_reference_t<
+//   decltype(*std::data(std::declval<Container&>()))>>;
 
-template <class Container>
-span(const Container&) -> span<const typename Container::value_type>;
+// template <class Container>
+// span(const Container&) -> span<const typename Container::value_type>;
+
+
+template <class VT, std::size_t Extent = gcxx::dynamic_extent>
+using span = details_::span_base<VT, Extent, details_::span_storage>;
+
+template <class VT, std::size_t Extent = gcxx::dynamic_extent>
+using restrict_span =
+  details_::span_base<VT, Extent, details_::restrict_span_storage>;
 
 
 GCXX_NAMESPACE_MAIN_END
