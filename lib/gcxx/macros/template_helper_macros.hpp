@@ -48,7 +48,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 #define GCXX_TRAILING_REQUIRES(...) \
   ->gcxx::details_::requires_t < __VA_ARGS__ GCXX_TRAILING_REQUIRES_IMPL_
 #define GCXX_TRAILING_REQUIRES_IMPL_(...) , __VA_ARGS__ >
-#define GCXX_CONCEPT inline constexpr bool
+#define GCXX_CONCEPT constexpr inline bool
 #endif
 
 #endif
