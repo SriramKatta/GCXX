@@ -140,10 +140,9 @@ class span {
   // ==========================================================
   //                        Constructors
   // ==========================================================
-  template <
-    std::size_t E = Extent,
-    typename std::enable_if_t<(E == 0 || E == gcxx::dynamic_extent), int> = 0>
-  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT{};  // NOLINT
+  GCXX_TEMPLATE(std::size_t E = Extent)
+  GCXX_REQUIRES(E == 0 || E == gcxx::dynamic_extent)
+  GCXX_CXPR GCXX_FHD span() GCXX_NOEXCEPT {};  // NOLINT
 
   GCXX_CXPR GCXX_FHD span(pointer first, size_type count)
       : m_storage(first, count) {
@@ -160,76 +159,73 @@ class span {
       "Span (ptr, ptr) contract violation");
   }
 
-  template <std::size_t N, std::size_t E = Extent,
-            typename std::enable_if_t<
-              (E == gcxx::dynamic_extent || E == N) &&
-                details_::is_container_element_type_compatible_v<
-                  element_type (&)[N], element_type>,  // NOLINT
-              int> = 0>
+  GCXX_TEMPLATE(std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES((E == gcxx::dynamic_extent || E == N)
+                  GCXX_AND details_::is_container_element_type_compatible_v<
+                    element_type (&)[N], element_type>)  // NOLINT
+
   GCXX_CXPR GCXX_FHD span(element_type (&arr)[N]) GCXX_NOEXCEPT  // NOLINT
       : m_storage(arr, N) {}
 
-  template <typename OVT, std::size_t N, std::size_t E = Extent,
-            typename std::enable_if_t<
-              (E == gcxx::dynamic_extent || E == N) &&
-                details_::is_container_element_type_compatible_v<
-                  std::array<OVT, N>&, element_type>,
-              int> = 0>
+  GCXX_TEMPLATE(typename OVT, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES((E == gcxx::dynamic_extent || E == N)
+                  GCXX_AND details_::is_container_element_type_compatible_v<
+                    std::array<OVT, N>&, element_type>)
+
   GCXX_CXPR GCXX_FHD span(std::array<OVT, N>& arr) GCXX_NOEXCEPT
       : m_storage(arr.data(), N) {}
 
-  template <typename OVT, std::size_t N, std::size_t E = Extent,
-            typename std::enable_if_t<
-              (E == gcxx::dynamic_extent || E == N) &&
-                details_::is_container_element_type_compatible_v<
-                  const std::array<OVT, N>&, element_type>,
-              int> = 0>
+  GCXX_TEMPLATE(typename OVT, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES((E == gcxx::dynamic_extent || E == N)
+                  GCXX_AND details_::is_container_element_type_compatible_v<
+                    const std::array<OVT, N>&, element_type>)
+
   GCXX_CXPR GCXX_FHD span(const std::array<OVT, N>& arr) GCXX_NOEXCEPT
       : m_storage(arr.data(), N) {}
 
-  template <
-    typename container, std::size_t E = Extent,
-    typename std::enable_if_t<
-      E == gcxx::dynamic_extent && details_::is_container_v<container> &&
-        details_::is_container_element_type_compatible_v<const container&,
-                                                         element_type>,
-      int> = 0>
+  GCXX_TEMPLATE(typename container, std::size_t E = Extent)
+  GCXX_REQUIRES((E == gcxx::dynamic_extent)
+                  GCXX_AND details_::is_container_v<container>
+                    GCXX_AND details_::is_container_element_type_compatible_v<
+                      const container&, element_type>)
+
   GCXX_CXPR GCXX_FH span(const container& arr) GCXX_NOEXCEPT
       : m_storage(details_::data(arr), details_::size(arr)) {}
 
-  template <
-    typename container, std::size_t E = Extent,
-    typename std::enable_if_t<
-      E == gcxx::dynamic_extent && details_::is_container_v<container> &&
-        details_::is_container_element_type_compatible_v<container&,
-                                                         element_type>,
-      int> = 0>
+
+  GCXX_TEMPLATE(typename container, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    E ==
+    gcxx::dynamic_extent GCXX_AND details_::is_container_v<container> GCXX_AND
+      details_::is_container_element_type_compatible_v<container&,
+                                                       element_type>)
+
   GCXX_CXPR GCXX_FH span(container& arr) GCXX_NOEXCEPT
       : m_storage(details_::data(arr), details_::size(arr)) {}
 
-  template <typename OVT, typename Alloc, std::size_t E = Extent,
-            typename std::enable_if_t<
-              E == gcxx::dynamic_extent &&
-                std::is_convertible_v<OVT (*)[], element_type (*)[]>,  // NOLINT
-              int> = 0>
+  GCXX_TEMPLATE(typename OVT, typename Alloc, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    E == gcxx::dynamic_extent GCXX_AND
+           std::is_convertible_v<OVT (*)[], element_type (*)[]>)  // NOLINT
+
   GCXX_CXPR GCXX_FH span(std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
       : m_storage(vec.data(), vec.size()) {}
 
-  template <
-    typename OVT, typename Alloc, std::size_t E = Extent,
-    typename std::enable_if_t<
-      E == gcxx::dynamic_extent &&
-        std::is_convertible_v<const OVT (*)[], element_type (*)[]>,  // NOLINT
-      int> = 0>
+  GCXX_TEMPLATE(typename OVT, typename Alloc, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    E ==
+    gcxx::dynamic_extent GCXX_AND
+      std::is_convertible_v<const OVT (*)[], element_type (*)[]>)  // NOLINT
+
   GCXX_CXPR GCXX_FH span(const std::vector<OVT, Alloc>& vec) GCXX_NOEXCEPT
       : m_storage(vec.data(), vec.size()) {}
 
-  template <typename OVT, std::size_t OtherExtent,
-            typename std::enable_if_t<
-              (Extent == gcxx::dynamic_extent ||
-               OtherExtent == gcxx::dynamic_extent || Extent == OtherExtent) &&
-                std::is_convertible_v<OVT (*)[], VT (*)[]>,  // NOLINT
-              int> = 0>
+  GCXX_TEMPLATE(typename OVT, std::size_t OtherExtent)
+  GCXX_REQUIRES(
+    (Extent == gcxx::dynamic_extent || OtherExtent == gcxx::dynamic_extent ||
+     Extent == OtherExtent)
+      GCXX_AND std::is_convertible_v<OVT (*)[], VT (*)[]>)  // NOLINT
+
   GCXX_CXPR GCXX_FHD span(const span<OVT, OtherExtent>& other) GCXX_NOEXCEPT
       : m_storage(other.data(), other.size()) {}
 
@@ -255,15 +251,17 @@ class span {
   //                         Iterators
   // ==========================================================
 
-  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT->iterator { return data(); }
+  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator { return data(); }
 
-  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT->iterator { return data() + size(); }
+  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT -> iterator {
+    return data() + size();
+  }
 
-  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT->reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(end());
   }
 
-  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT->reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(begin());
   }
 
@@ -282,21 +280,23 @@ class span {
     return *(data() + idx);
   }
 
-  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT->pointer { return m_storage.start; }
+  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT -> pointer {
+    return m_storage.start;
+  }
 
   // ==========================================================
   //                         Observers
   // ==========================================================
 
-  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT->size_type {
+  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
     return m_storage.size();
   }
 
-  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT->size_type {
+  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
     return size() * sizeof(element_type);
   }
 
-  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT->bool {
+  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool {
     return size() == 0;
   }
 
