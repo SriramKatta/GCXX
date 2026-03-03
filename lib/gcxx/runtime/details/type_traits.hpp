@@ -6,7 +6,7 @@
 #include <type_traits>
 
 
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/helper_function.hpp>
 
 

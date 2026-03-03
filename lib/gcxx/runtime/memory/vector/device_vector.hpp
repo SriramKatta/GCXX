@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/allocators/device_allocator.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN

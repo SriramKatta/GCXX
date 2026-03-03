@@ -6,7 +6,7 @@
 #include <memory>
 
 
-#include <gcxx/macros/define_macros.hpp>
+#include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/memory/device_memory_helper.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
