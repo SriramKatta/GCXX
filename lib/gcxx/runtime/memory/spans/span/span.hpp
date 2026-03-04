@@ -155,7 +155,7 @@ class span_base {
   GCXX_REQUIRES(
     gcxx::details_::is_iter_element_type_compatible_v<It, element_type>)
 
-  GCXX_FHC span_base(It first, size_type count)
+  GCXX_FHDC span_base(It first, size_type count)
       : m_storage(gcxx::details_::to_address(first), count) {
     GCXX_RUNTIME_EXPECT(extent == gcxx::dynamic_extent || extent == count,
                         "span.ctor from start and count failed");
@@ -167,7 +167,7 @@ class span_base {
       gcxx::details_::is_iter_element_type_compatible_v<End, element_type>
         GCXX_AND !std::is_convertible_v<End, std::size_t>)
 
-  GCXX_FHC span_base(It first, End last)
+  GCXX_FHDC span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
     GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent || extent == (last - first),
@@ -365,6 +365,17 @@ class span : public details_::span_base<VT, Extent, details_::span_storage> {
       Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
       "span.ctor from a source span of diffrent type failed");
   }
+
+  GCXX_FHDC auto subspan(typename Base::size_type offset,
+                         typename Base::size_type count =
+                           gcxx::dynamic_extent) const -> span<VT> {
+    GCXX_RUNTIME_EXPECT(
+      offset <= this->size() &&
+        (count == gcxx::dynamic_extent || offset + count <= this->size()),
+      "Span.subspan contract violated");
+    return {this->data() + offset,
+            count == gcxx::dynamic_extent ? this->size() - offset : count};
+  }
 };
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                 Span Deduction guides                  █
@@ -408,6 +419,17 @@ class restrict_span
     GCXX_RUNTIME_EXPECT(
       Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
       "span.ctor from a source span of diffrent type failed");
+  }
+
+  GCXX_FHDC auto subspan(typename Base::size_type offset,
+                         typename Base::size_type count =
+                           gcxx::dynamic_extent) const -> restrict_span<VT> {
+    GCXX_RUNTIME_EXPECT(
+      offset <= this->size() &&
+        (count == gcxx::dynamic_extent || offset + count <= this->size()),
+      "Span.subspan contract violated");
+    return {this->data() + offset,
+            count == gcxx::dynamic_extent ? this->size() - offset : count};
   }
 };
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
