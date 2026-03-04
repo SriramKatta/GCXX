@@ -332,7 +332,7 @@ GCXX_FH auto GraphView::AddChildGraphNode(
 GCXX_FH auto GraphView::AddDependencies(
   gcxx::span<const deviceGraphNode_t> from,
   gcxx::span<const deviceGraphNode_t> to) -> void {
-  GCXX_RUNTIME_EXPECT(from.size() != to.size,
+  GCXX_RUNTIME_EXPECT(from.size() != to.size(),
                       "Mistamatch in to and from depencey count");
   AddDependencies(from.data(), to.data(), from.size());
 }
