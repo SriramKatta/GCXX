@@ -13,33 +13,35 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █            Impl of std::size and std::data             █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+// TODO : make a snesible implementation for both host and device compatibility
+
 template <class C>
-GCXX_FHDC auto data(C& c) -> decltype(c.data()) {
+GCXX_FHC auto data(C& c) -> decltype(c.data()) {
   return c.data();
 }
 
 template <class C>
-GCXX_FHDC auto data(const C& c) -> decltype(c.data()) {
+GCXX_FHC auto data(const C& c) -> decltype(c.data()) {
   return c.data();
 }
 
 template <class T, std::size_t N>
-GCXX_FHDC T* data(T (&array)[N]) noexcept {  // NOLINT
+GCXX_FHC T* data(T (&array)[N]) noexcept {  // NOLINT
   return array;
 }
 
 template <class E>
-GCXX_FHDC const E* data(std::initializer_list<E> il) noexcept {
+GCXX_FHC const E* data(std::initializer_list<E> il) noexcept {
   return il.begin();
 }
 
 template <class C>
-GCXX_FHDC auto size(const C& c) -> decltype(c.size()) {
+GCXX_FHC auto size(const C& c) -> decltype(c.size()) {
   return c.size();
 }
 
 template <class T, std::size_t N>
-GCXX_FHDC std::size_t size(const T (&)[N]) noexcept {  // NOLINT
+GCXX_FHC std::size_t size(const T (&)[N]) noexcept {  // NOLINT
   return N;
 }
 
