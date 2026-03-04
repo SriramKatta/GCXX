@@ -138,31 +138,6 @@ GCXX_TEMPLATE(class T)
 GCXX_REQUIRES(dereferenceable_impl<T>::value)
 using iter_reference_t = decltype(*std::declval<T&>());
 
-// TODO : C++ 20 has this implemented so have the conditional compilation
-//  ---- detection for pointer_traits<T>::to_address ----
-template <class T, class = void>
-struct has_ptr_traits_to_address : std::false_type {};
-
-template <class T>
-struct has_ptr_traits_to_address<
-  T, std::void_t<decltype(std::pointer_traits<T>::to_address(
-       std::declval<const T&>()))>> : std::true_type {};
-
-// ---- overload 1: raw pointers ----
-template <class T>
-GCXX_FHC T* to_address(T* p) noexcept {
-  static_assert(!std::is_function_v<T>);
-  return p;
-}
-
-// ---- overload 2: fancy pointers ----
-template <class T>
-GCXX_FHC auto to_address(const T& p) noexcept {
-  if constexpr (has_ptr_traits_to_address<T>::value)
-    return std::pointer_traits<T>::to_address(p);
-  else
-    return to_address(p.operator->());  // recurse, not std::
-}
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
