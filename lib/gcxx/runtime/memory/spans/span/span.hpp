@@ -155,7 +155,7 @@ class span_base {
   GCXX_REQUIRES(
     gcxx::details_::is_iter_element_type_compatible_v<It, element_type>)
 
-  GCXX_FHDC span_base(It first, size_type count)
+  GCXX_FHC span_base(It first, size_type count)
       : m_storage(gcxx::details_::to_address(first), count) {
     GCXX_RUNTIME_EXPECT(extent == gcxx::dynamic_extent || extent == count,
                         "span.ctor from start and count failed");
@@ -167,7 +167,7 @@ class span_base {
       gcxx::details_::is_iter_element_type_compatible_v<End, element_type>
         GCXX_AND !std::is_convertible_v<End, std::size_t>)
 
-  GCXX_FHDC span_base(It first, End last)
+  GCXX_FHC span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
     GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent || extent == (last - first),
@@ -209,7 +209,7 @@ class span_base {
   GCXX_FHC span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
     GCXX_RUNTIME_EXPECT(
-      extent == std::dynamic_extent || extent == gcxx::details_::size(r),
+      extent == gcxx::dynamic_extent || extent == gcxx::details_::size(r),
       "span.ctor from a range failed");
   }
 
@@ -406,7 +406,7 @@ class restrict_span
 
   GCXX_FHDC restrict_span(const span<U, N>& source) noexcept : Base(source) {
     GCXX_RUNTIME_EXPECT(
-      Base::extent == std::dynamic_extent || Base::extent == source.size(),
+      Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
       "span.ctor from a source span of diffrent type failed");
   }
 };
