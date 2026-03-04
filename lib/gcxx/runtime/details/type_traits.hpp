@@ -83,6 +83,62 @@ template <typename VT, typename ET>
 GCXX_CXPR inline bool is_container_element_type_compatible_v =
   is_container_element_type_compatible<VT, ET>::value;
 
+// TODO : add a condition compilation since this is avialble in c++20 
+// Helper to check if T& is a valid type (T is not void, basically)
+template <class T>
+using with_reference = T&;
+
+// In C++17 we use void_t + SFINAE instead of concepts
+template <class T, class = void>
+struct can_reference_impl : std::false_type {};
+
+template <class T>
+struct can_reference_impl<T, std::void_t<with_reference<T>>> : std::true_type {
+};
+
+template <class T>
+constexpr bool can_reference = can_reference_impl<T>::value;
+
+// Check that *t yields a referenceable type
+template <class T, class = void>
+struct dereferenceable_impl : std::false_type {};
+
+template <class T>
+struct dereferenceable_impl<T, std::void_t<decltype(*std::declval<T&>())>>
+    : std::bool_constant<can_reference<decltype(*std::declval<T&>())>> {};
+
+// iter_reference_t — only participates if T is dereferenceable
+GCXX_TEMPLATE(class T)
+GCXX_REQUIRES(dereferenceable_impl<T>::value)
+using iter_reference_t = decltype(*std::declval<T&>());
+
+//TODO : C++ 20 has this implemented so have the conditional compilation
+// ---- detection for pointer_traits<T>::to_address ----
+template <class T, class = void>
+struct  has_ptr_traits_to_address : std::false_type {};
+
+template <class T>
+struct  has_ptr_traits_to_address<T,
+    std::void_t<decltype(std::pointer_traits<T>::to_address(std::declval<const T&>()))>>
+    : std::true_type {};
+
+// ---- overload 1: raw pointers ----
+template <class T>
+constexpr T* to_address(T* p) noexcept
+{
+    static_assert(!std::is_function_v<T>);
+    return p;
+}
+
+// ---- overload 2: fancy pointers ----
+template <class T>
+constexpr auto to_address(const T& p) noexcept
+{
+    if constexpr ( has_ptr_traits_to_address<T>::value)
+        return std::pointer_traits<T>::to_address(p);
+    else
+        return to_address(p.operator->());  // recurse, not std::
+}
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
