@@ -150,14 +150,14 @@ struct has_ptr_traits_to_address<
 
 // ---- overload 1: raw pointers ----
 template <class T>
-GCXX_FHDC T* to_address(T* p) noexcept {
+GCXX_FHC T* to_address(T* p) noexcept {
   static_assert(!std::is_function_v<T>);
   return p;
 }
 
 // ---- overload 2: fancy pointers ----
 template <class T>
-GCXX_FHDC auto to_address(const T& p) noexcept {
+GCXX_FHC auto to_address(const T& p) noexcept {
   if constexpr (has_ptr_traits_to_address<T>::value)
     return std::pointer_traits<T>::to_address(p);
   else
