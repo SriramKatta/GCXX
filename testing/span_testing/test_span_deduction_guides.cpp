@@ -11,8 +11,8 @@ TEST(SpanDeductionGuide, BasicDeductionGuides) {
   gcxx::span s1{std::begin(a),
                 std::end(a)};       // guide (1): iter + end  → dynamic
   gcxx::span s2{std::begin(a), 3};  // guide (1): iter + count → dynamic
-  gcxx::span s4{a};                 // guide (2): C-array      → static extent N
-  gcxx::span<int> s5{a};            // no guide, explicit <int> → dynamic_extent
+  gcxx::span s4{a};       // guide (2): C-array      → static extent N
+  gcxx::span<int> s5{a};  // no guide, explicit <int> → dynamic_extent
 
   std::array arr{6, 7, 8};
   gcxx::span s6{arr};  // guide (3): std::array& → static extent N

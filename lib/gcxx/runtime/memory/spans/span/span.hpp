@@ -150,7 +150,7 @@ class span_base {
   // ==========================================================
   GCXX_TEMPLATE(std::size_t E = Extent)
   GCXX_REQUIRES(E == 0 || E == gcxx::dynamic_extent)
-  GCXX_FHDC span_base() GCXX_NOEXCEPT {};  // NOLINT
+  GCXX_FHDC span_base() GCXX_NOEXCEPT{};  // NOLINT
 
   GCXX_TEMPLATE(typename It)
   GCXX_REQUIRES(gcxx::details_::is_iter_ptr_convertible_v<It, element_type>)
@@ -256,17 +256,15 @@ class span_base {
   //                         Iterators
   // ==========================================================
 
-  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator { return data(); }
+  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT->iterator { return data(); }
 
-  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT -> iterator {
-    return data() + size();
-  }
+  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT->iterator { return data() + size(); }
 
-  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT -> reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT->reverse_iterator {
     return reverse_iterator(end());
   }
 
-  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT -> reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT->reverse_iterator {
     return reverse_iterator(begin());
   }
 
@@ -285,7 +283,7 @@ class span_base {
     return m_storage[idx];
   }
 
-  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT -> data_handle_type {
+  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT->data_handle_type {
     return m_storage.data();
   }
 
@@ -293,15 +291,15 @@ class span_base {
   //                         Observers
   // ==========================================================
 
-  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
+  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT->size_type {
     return m_storage.size();
   }
 
-  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
+  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT->size_type {
     return size() * sizeof(element_type);
   }
 
-  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool {
+  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT->bool {
     return size() == 0;
   }
 
@@ -382,8 +380,8 @@ class span : public details_::span_base<VT, Extent, details_::span_storage> {
   GCXX_TEMPLATE(typename U, std::size_t N)
   GCXX_REQUIRES(
     (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
-     Base::extent == N)
-      GCXX_AND details_::is_type_ptr_convertible_v<U, typename Base::element_type>)
+     Base::extent == N) GCXX_AND
+      details_::is_type_ptr_convertible_v<U, typename Base::element_type>)
 
   GCXX_FHDC span(const span<U, N>& source) noexcept : Base(source) {
     GCXX_RUNTIME_EXPECT(
