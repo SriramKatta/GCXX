@@ -7,6 +7,7 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include <gcxx/internal/prologue.hpp>
@@ -149,11 +150,10 @@ class span_base {
   // ==========================================================
   GCXX_TEMPLATE(std::size_t E = Extent)
   GCXX_REQUIRES(E == 0 || E == gcxx::dynamic_extent)
-  GCXX_FHDC span_base() GCXX_NOEXCEPT{};  // NOLINT
+  GCXX_FHDC span_base() GCXX_NOEXCEPT {};  // NOLINT
 
   GCXX_TEMPLATE(typename It)
-  GCXX_REQUIRES(
-    gcxx::details_::is_iter_element_type_compatible_v<It, element_type>)
+  GCXX_REQUIRES(gcxx::details_::is_iter_ptr_convertible_v<It, element_type>)
 
   GCXX_FHDC span_base(It first, size_type count)
       : m_storage(gcxx::details_::to_address(first), count) {
@@ -161,10 +161,21 @@ class span_base {
                         "span.ctor from start and count failed");
   }
 
+  GCXX_TEMPLATE(typename It, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    gcxx::details_::is_iter_ptr_convertible_v<It, element_type> GCXX_AND E !=
+    gcxx::dynamic_extent)
+
+  GCXX_FHDC explicit span_base(It first, size_type count)
+      : m_storage(gcxx::details_::to_address(first), count) {
+    GCXX_RUNTIME_EXPECT(extent == gcxx::dynamic_extent || extent == count,
+                        "span.ctor from start and count failed");
+  }
+
   GCXX_TEMPLATE(typename It, typename End)
   GCXX_REQUIRES(
-    gcxx::details_::is_iter_element_type_compatible_v<It, element_type> GCXX_AND
-      gcxx::details_::is_iter_element_type_compatible_v<End, element_type>
+    gcxx::details_::is_iter_ptr_convertible_v<It, element_type> GCXX_AND
+      gcxx::details_::is_iter_ptr_convertible_v<End, element_type>
         GCXX_AND !std::is_convertible_v<End, std::size_t>)
 
   GCXX_FHDC span_base(It first, End last)
@@ -174,37 +185,51 @@ class span_base {
       "span.ctor from start and end iterator failed");
   }
 
-  GCXX_TEMPLATE(std::size_t N)
-  GCXX_REQUIRES((extent == gcxx::dynamic_extent || extent == N)
-                  GCXX_AND details_::is_container_element_type_compatible_v<
-                    element_type (&)[N], element_type>)
+  GCXX_TEMPLATE(typename It, typename End)
+  GCXX_REQUIRES(
+    gcxx::details_::is_iter_ptr_convertible_v<It, element_type> GCXX_AND
+      gcxx::details_::is_iter_ptr_convertible_v<End, element_type>
+        GCXX_AND !std::is_convertible_v<End, std::size_t>
+          GCXX_AND extent != gcxx::dynamic_extent)
+
+  GCXX_FHDC explicit span_base(It first, End last)
+      : m_storage(gcxx::details_::to_address(first), last - first) {
+    GCXX_RUNTIME_EXPECT(
+      extent == gcxx::dynamic_extent || extent == (last - first),
+      "span.ctor from start and end iterator failed");
+  }
+
+  GCXX_TEMPLATE(std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    (E == gcxx::dynamic_extent || E == N) GCXX_AND
+      details_::is_data_ptr_convertible_v<element_type (&)[N], element_type>)
 
   GCXX_FHDC span_base(
     gcxx::details_::type_identity_t<element_type> (&arr)[N]) noexcept
       : m_storage(arr, N) {}
 
-  GCXX_TEMPLATE(typename U, std::size_t N)
-  GCXX_REQUIRES((extent == gcxx::dynamic_extent || extent == N)
-                  GCXX_AND details_::is_container_element_type_compatible_v<
-                    std::array<U, N>, element_type>)
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES((E == gcxx::dynamic_extent || E == N)
+                  GCXX_AND details_::is_data_ptr_convertible_v<std::array<U, N>,
+                                                               element_type>)
 
   GCXX_FHC span_base(std::array<U, N>& arr) noexcept
       : m_storage(arr.data(), N) {}
 
-  GCXX_TEMPLATE(typename U, std::size_t N)
-  GCXX_REQUIRES((extent == gcxx::dynamic_extent || extent == N)
-                  GCXX_AND details_::is_container_element_type_compatible_v<
-                    const std::array<U, N>, element_type>)
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    (E == gcxx::dynamic_extent || E == N) GCXX_AND
+      details_::is_data_ptr_convertible_v<const std::array<U, N>, element_type>)
 
   GCXX_FHC span_base(const std::array<U, N>& arr) noexcept
       : m_storage(arr.data(), N) {}
 
   GCXX_TEMPLATE(typename R)
-  GCXX_REQUIRES(
-    details_::has_size_and_data_v<R> GCXX_AND
-      std::is_convertible_v<std::remove_pointer_t<decltype(gcxx::details_::data(
-                              std::declval<R&>()))> (*)[],
-                            element_type (*)[]>)
+  GCXX_REQUIRES(details_::has_size_and_data_v<R> GCXX_AND
+                  is_range_ptr_convertible_v<R, element_type>
+                    GCXX_AND !std::is_array_v<R>
+                      GCXX_AND !gcxx::details_::is_std_array_v<
+                        std::remove_cv_t<std::remove_reference_t<R>>>)
 
   GCXX_FHC span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
@@ -231,15 +256,17 @@ class span_base {
   //                         Iterators
   // ==========================================================
 
-  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT->iterator { return data(); }
+  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator { return data(); }
 
-  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT->iterator { return data() + size(); }
+  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT -> iterator {
+    return data() + size();
+  }
 
-  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT->reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(end());
   }
 
-  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT->reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(begin());
   }
 
@@ -258,7 +285,7 @@ class span_base {
     return m_storage[idx];
   }
 
-  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT->data_handle_type {
+  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT -> data_handle_type {
     return m_storage.data();
   }
 
@@ -266,15 +293,15 @@ class span_base {
   //                         Observers
   // ==========================================================
 
-  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT->size_type {
+  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
     return m_storage.size();
   }
 
-  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT->size_type {
+  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
     return size() * sizeof(element_type);
   }
 
-  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT->bool {
+  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool {
     return size() == 0;
   }
 
@@ -355,8 +382,8 @@ class span : public details_::span_base<VT, Extent, details_::span_storage> {
   GCXX_TEMPLATE(typename U, std::size_t N)
   GCXX_REQUIRES(
     (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
-     Base::extent == N) GCXX_AND
-      std::is_convertible_v<U (*)[], typename Base::element_type (*)[]>)
+     Base::extent == N)
+      GCXX_AND details_::is_type_ptr_convertible_v<U, typename Base::element_type>)
 
   GCXX_FHDC span(const span<U, N>& source) noexcept : Base(source) {
     GCXX_RUNTIME_EXPECT(
@@ -411,7 +438,7 @@ class restrict_span
   GCXX_REQUIRES(
     (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
      Base::extent == N) GCXX_AND
-      std::is_convertible_v<U (*)[], typename Base::element_type (*)[]>)
+      details_::is_type_ptr_convertible_v<U, typename Base::element_type>)
 
   GCXX_FHDC restrict_span(const span<U, N>& source) noexcept : Base(source) {
     GCXX_RUNTIME_EXPECT(
