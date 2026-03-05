@@ -152,8 +152,9 @@ class span_base {
   GCXX_REQUIRES(E == 0 || E == gcxx::dynamic_extent)
   GCXX_FHDC span_base() GCXX_NOEXCEPT{};  // NOLINT
 
-  GCXX_TEMPLATE(typename It)
-  GCXX_REQUIRES(gcxx::details_::is_iter_ptr_convertible_v<It, element_type>)
+  GCXX_TEMPLATE(typename It, std::size_t E = Extent)
+  GCXX_REQUIRES(gcxx::details_::is_iter_ptr_convertible_v<It, element_type>
+                  GCXX_AND(E == gcxx::dynamic_extent))
 
   GCXX_FHDC span_base(It first, size_type count)
       : m_storage(gcxx::details_::to_address(first), count) {
@@ -172,11 +173,12 @@ class span_base {
                         "span.ctor from start and count failed");
   }
 
-  GCXX_TEMPLATE(typename It, typename End)
+  GCXX_TEMPLATE(typename It, typename End, std::size_t E = Extent)
   GCXX_REQUIRES(
     gcxx::details_::is_iter_ptr_convertible_v<It, element_type> GCXX_AND
       gcxx::details_::is_iter_ptr_convertible_v<End, element_type>
-        GCXX_AND !std::is_convertible_v<End, std::size_t>)
+        GCXX_AND !std::is_convertible_v<End, std::size_t>
+          GCXX_AND(E == gcxx::dynamic_extent))
 
   GCXX_FHDC span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
@@ -185,12 +187,12 @@ class span_base {
       "span.ctor from start and end iterator failed");
   }
 
-  GCXX_TEMPLATE(typename It, typename End)
+  GCXX_TEMPLATE(typename It, typename End, std::size_t E = Extent)
   GCXX_REQUIRES(
     gcxx::details_::is_iter_ptr_convertible_v<It, element_type> GCXX_AND
       gcxx::details_::is_iter_ptr_convertible_v<End, element_type>
         GCXX_AND !std::is_convertible_v<End, std::size_t>
-          GCXX_AND extent != gcxx::dynamic_extent)
+          GCXX_AND(E != gcxx::dynamic_extent))
 
   GCXX_FHDC explicit span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
@@ -224,14 +226,30 @@ class span_base {
   GCXX_FHC span_base(const std::array<U, N>& arr) noexcept
       : m_storage(arr.data(), N) {}
 
-  GCXX_TEMPLATE(typename R)
+  GCXX_TEMPLATE(typename R, std::size_t E = Extent)
   GCXX_REQUIRES(details_::has_size_and_data_v<R> GCXX_AND
                   is_range_ptr_convertible_v<R, element_type>
                     GCXX_AND !std::is_array_v<R>
                       GCXX_AND !gcxx::details_::is_std_array_v<
-                        std::remove_cv_t<std::remove_reference_t<R>>>)
+                        std::remove_cv_t<std::remove_reference_t<R>>>
+                        GCXX_AND(E == gcxx::dynamic_extent))
 
   GCXX_FHC span_base(R&& r)
+      : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
+    GCXX_RUNTIME_EXPECT(
+      extent == gcxx::dynamic_extent || extent == gcxx::details_::size(r),
+      "span.ctor from a range failed");
+  }
+
+  GCXX_TEMPLATE(typename R, std::size_t E = Extent)
+  GCXX_REQUIRES(details_::has_size_and_data_v<R> GCXX_AND
+                  is_range_ptr_convertible_v<R, element_type>
+                    GCXX_AND !std::is_array_v<R>
+                      GCXX_AND !gcxx::details_::is_std_array_v<
+                        std::remove_cv_t<std::remove_reference_t<R>>>
+                        GCXX_AND(E != gcxx::dynamic_extent))
+
+  GCXX_FHC explicit span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
     GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent || extent == gcxx::details_::size(r),
@@ -377,11 +395,25 @@ class span : public details_::span_base<VT, Extent, details_::span_storage> {
  public:
   using Base::Base;
 
-  GCXX_TEMPLATE(typename U, std::size_t N)
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
   GCXX_REQUIRES(
     (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
      Base::extent == N) GCXX_AND
-      details_::is_type_ptr_convertible_v<U, typename Base::element_type>)
+      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
+        GCXX_AND(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
+
+  GCXX_FHDC explicit span(const span<U, N>& source) noexcept : Base(source) {
+    GCXX_RUNTIME_EXPECT(
+      Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
+      "span.ctor from a source span of diffrent type failed");
+  }
+
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
+     Base::extent == N) GCXX_AND
+      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
+        GCXX_AND(E == gcxx::dynamic_extent && N != gcxx::dynamic_extent))
 
   GCXX_FHDC span(const span<U, N>& source) noexcept : Base(source) {
     GCXX_RUNTIME_EXPECT(
@@ -432,13 +464,29 @@ class restrict_span
  public:
   using Base::Base;
 
-  GCXX_TEMPLATE(typename U, std::size_t N)
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
   GCXX_REQUIRES(
     (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
      Base::extent == N) GCXX_AND
-      details_::is_type_ptr_convertible_v<U, typename Base::element_type>)
+      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
+        GCXX_AND(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
 
-  GCXX_FHDC restrict_span(const span<U, N>& source) noexcept : Base(source) {
+  GCXX_FHDC explicit restrict_span(const restrict_span<U, N>& source) noexcept
+      : Base(source) {
+    GCXX_RUNTIME_EXPECT(
+      Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
+      "span.ctor from a source span of diffrent type failed");
+  }
+
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
+     Base::extent == N) GCXX_AND
+      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
+        GCXX_AND(E == gcxx::dynamic_extent && N != gcxx::dynamic_extent))
+
+  GCXX_FHDC restrict_span(const restrict_span<U, N>& source) noexcept
+      : Base(source) {
     GCXX_RUNTIME_EXPECT(
       Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
       "span.ctor from a source span of diffrent type failed");
