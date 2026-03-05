@@ -103,77 +103,80 @@ GCXX_REQUIRES(dereferenceable_impl<T>::value)
 using iter_reference_t = decltype(*std::declval<T&>());
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Primary trait: does U(*)[] convert to ET(*)[]) ?
+// All four constructor guards reduce to this single question.
+// ─────────────────────────────────────────────────────────────────────────────
+template <typename U, typename ET>
+struct is_ptr_array_convertible
+    : std::bool_constant<std::is_convertible_v<U (*)[], ET (*)[]>> {};
+
+template <typename U, typename ET>
+GCXX_CXPR inline bool is_ptr_array_convertible_v =
+    is_ptr_array_convertible<U, ET>::value;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Four convertibility traits mirroring std::span's SFINAE conditions.
-// Each checks  std::is_convertible_v<U(*)[], ET(*)[]>  where U is derived
-// from the construction source as described by the standard.
+// Each deduces U from a construction source, then delegates to the
+// primary trait above. U derivation matches the standard:
+//
+//  ①  iterator pair / iterator+size  →  remove_reference_t<decltype(*it)>
+//  ②  C-array / std::array           →  remove_pointer_t<decltype(data(arr))>
+//  ③  range                          →  remove_reference_t<decltype(*begin(r))>
+//  ④  converting span constructor    →  element_type passed directly (alias)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ① Constructors 2 & 3 — iterator pair / iterator + size
-//   U = std::remove_reference_t<iter_reference_t<It>>
-//   Uses our own iter_reference_t (= decltype(*it)) to stay in C++17.
 template <typename It, typename ET, typename = void>
 struct is_iter_ptr_convertible : std::false_type {};
 
 template <typename It, typename ET>
 struct is_iter_ptr_convertible<
-    It, ET, std::void_t<decltype(*std::declval<It &>())>>
-    : std::bool_constant<std::is_convertible_v<
-          std::remove_reference_t<decltype(*std::declval<It &>())> (*)[],
-          ET (*)[]>> {};
+    It, ET, std::void_t< std::remove_reference_t<iter_reference_t<It>> >>
+    : is_ptr_array_convertible<
+          std::remove_reference_t< std::remove_reference_t<iter_reference_t<It>> >, ET> {};
 
 template <typename It, typename ET>
 GCXX_CXPR inline bool is_iter_ptr_convertible_v =
     is_iter_ptr_convertible<It, ET>::value;
 
 // ② Constructors 4, 5 & 6 — C-array / std::array
-//   U = std::remove_pointer_t<decltype(data(arr))>
-//   Uses the project's own data() helper so it works on device too.
 template <typename Arr, typename ET, typename = void>
 struct is_data_ptr_convertible : std::false_type {};
 
 template <typename Arr, typename ET>
 struct is_data_ptr_convertible<
-  Arr, ET, std::void_t<decltype(gcxx::details_::data(std::declval<Arr&>()))>>
-    : std::bool_constant<std::is_convertible_v<
-        std::remove_pointer_t<decltype(gcxx::details_::data(
-          std::declval<Arr&>()))> (*)[],
-        ET (*)[]>> {};
+    Arr, ET,
+    std::void_t<decltype(gcxx::details_::data(std::declval<Arr &>()))>>
+    : is_ptr_array_convertible<
+          std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<Arr &>()))>,
+          ET> {};
 
 template <typename Arr, typename ET>
 GCXX_CXPR inline bool is_data_ptr_convertible_v =
-  is_data_ptr_convertible<Arr, ET>::value;
+    is_data_ptr_convertible<Arr, ET>::value;
 
 // ③ Constructor 7 — range
-//   U = std::remove_reference_t<range_reference_t<R>>
-//   C++17 has no std::ranges, so range_reference_t<R> is approximated as
-//   decltype(*std::begin(r)), which is the same type for well-formed ranges.
 template <typename R, typename ET, typename = void>
 struct is_range_ptr_convertible : std::false_type {};
 
 template <typename R, typename ET>
 struct is_range_ptr_convertible<
-  R, ET, std::void_t<decltype(*std::begin(std::declval<R&>()))>>
-    : std::bool_constant<
-        std::is_convertible_v<std::remove_reference_t<decltype(*std::begin(
-                                std::declval<R&>()))> (*)[],
-                              ET (*)[]>> {};
+    R, ET, std::void_t<decltype(*std::begin(std::declval<R &>()))>>
+    : is_ptr_array_convertible<
+          std::remove_reference_t<decltype(*std::begin(std::declval<R &>()))>,
+          ET> {};
 
 template <typename R, typename ET>
 GCXX_CXPR inline bool is_range_ptr_convertible_v =
-  is_range_ptr_convertible<R, ET>::value;
+    is_range_ptr_convertible<R, ET>::value;
 
-// ④ Constructor 9 — converting span constructor
-//   U is the element_type of the other span, passed directly.
-//   No SFINAE guard needed — U and ET are both concrete types.
+// ④ Constructor 9 — converting span constructor (U passed directly)
 template <typename U, typename ET>
-struct is_type_ptr_convertible
-    : std::bool_constant<std::is_convertible_v<U (*)[], ET (*)[]>> {};
+using is_type_ptr_convertible = is_ptr_array_convertible<U, ET>;
 
 template <typename U, typename ET>
 GCXX_CXPR inline bool is_type_ptr_convertible_v =
-  is_type_ptr_convertible<U, ET>::value;
-
-
+    is_type_ptr_convertible<U, ET>::value;
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
