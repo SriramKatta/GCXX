@@ -23,7 +23,6 @@ TEST(SpanDeductionGuide, BasicDeductionGuides) {
   std::vector v{66, 69, 99};
   gcxx::span s8{v};  // guide (5): range → dynamic
 
-
   // ── sizeof ──────────────────────────────────────────────────────────────
   EXPECT_EQ(sizeof(s1), 16) << "FAIL : pointer + stored size";
   EXPECT_EQ(sizeof(s2), 16) << "FAIL : pointer + stored size";
