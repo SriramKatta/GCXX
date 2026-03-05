@@ -21,7 +21,7 @@ TEST(SpanDeductionGuide, BasicDeductionGuides) {
   gcxx::span s7{arr2};  // guide (4): const std::array& → static extent N
 
   std::vector v{66, 69, 99};
-  gcxx::span s8{v};  // guide (5): range → dynamic
+  [[maybe_unused]] gcxx::span s8{v};  // guide (5): range → dynamic
 
   // ── sizeof ──────────────────────────────────────────────────────────────
   EXPECT_EQ(sizeof(s1), 16) << "FAIL : pointer + stored size";
