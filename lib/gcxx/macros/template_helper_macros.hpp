@@ -34,7 +34,9 @@ GCXX_NAMESPACE_MAIN_DETAILS_END
 
 #if defined(__cpp_concepts) && __cpp_concepts >= 201907L
 #define GCXX_TEMPLATE(...) template <__VA_ARGS__>
-#define GCXX_REQUIRES(...) requires __VA_ARGS__
+#define GCXX_REQUIRES(...) \
+  requires(__VA_ARGS__)  // some operators cannot appear at the top level
+                         // (without parentheses) in a requires-clause
 #define GCXX_AND &&
 #define GCXX_TRAILING_REQUIRES_IMPL_(...) requires __VA_ARGS__
 #define GCXX_TRAILING_REQUIRES(...) ->__VA_ARGS__ GCXX_TRAILING_REQUIRES_IMPL_
