@@ -11,6 +11,10 @@
 #error "One backend GCXX_CUDA_MODE or GCXX_HIP_MODE must be defined"
 #endif
 
+#if __cplusplus < 201703
+  #error "library needs atleast c++17 to compile"
+#endif
+
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
