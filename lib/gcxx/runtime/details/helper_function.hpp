@@ -16,18 +16,20 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 // TODO : make a snesible implementation for both host and device compatibility
 
 template <class C>
-GCXX_FHDC auto data(C& c) -> decltype(c.data()) {
-#ifdef GCXX_DEVICE_COMPILE
-  return nullptr;
+GCXX_FHDC auto data(C& c) {
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+  using T = decltype(c.data());
+  return static_cast<T>(nullptr);
 #else
   return c.data();
 #endif
 }
 
 template <class C>
-GCXX_FHDC auto data(const C& c) -> decltype(c.data()) {
+GCXX_FHDC auto data(const C& c) {
 #ifdef GCXX_DEVICE_COMPILE
-  return nullptr;
+  using T = decltype(c.data());
+  return static_cast<T>(nullptr);
 #else
   return c.data();
 #endif
@@ -44,12 +46,8 @@ GCXX_FHDC const E* data(std::initializer_list<E> il) noexcept {
 }
 
 template <class C>
-GCXX_FHDC auto size(const C& c) -> decltype(c.size()) {
-#ifdef GCXX_DEVICE_COMPILE
-  return 0;
-#else
+GCXX_FHC auto size(const C& c) {
   return c.size();
-#endif
 }
 
 template <class T, std::size_t N>
