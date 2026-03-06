@@ -77,8 +77,13 @@ template <class T>
 GCXX_FHDC auto to_address(const T& p) noexcept {
   if constexpr (has_ptr_traits_to_address<T>::value)
     return std::pointer_traits<T>::to_address(p);
-  else
+  else {
+#if GCXX_DEVICE_COMPILE  // TODO : implement properly
+    return nullptr;
+#else
     return to_address(p.operator->());  // recurse, not std::
+#endif
+  }
 }
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
