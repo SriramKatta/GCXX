@@ -12,7 +12,7 @@
 #endif
 
 #if __cplusplus < 201703
-  #error "GCXX library needs atleast c++17 to compile"
+#error "GCXX library needs atleast c++17 to compile"
 #endif
 
 
