@@ -3,11 +3,11 @@
 #define GCXX_API_RUNTIME_MEMORY_COPY_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/macros/template_helper_macros.hpp>
+#include <gcxx/runtime/details/helper_function.hpp>
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>
-#include <gcxx/runtime/details/helper_function.hpp>
-#include <gcxx/macros/template_helper_macros.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -73,24 +73,31 @@ namespace memory {
   // ║    works on any type with data() and size() methods    ║
   // ╚════════════════════════════════════════════════════════╝
   GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
-  GCXX_REQUIRES(details_::has_size_and_data_v<details_::uncvref_t<DSTTY>> GCXX_AND
-                details_::has_size_and_data_v<details_::uncvref_t<SRCTY>>)
+  GCXX_REQUIRES(
+    details_::has_size_and_data_v<details_::uncvref_t<DSTTY>> GCXX_AND
+      details_::has_size_and_data_v<details_::uncvref_t<SRCTY>>)
+
   GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source) -> void {
-    using dst_element_type = details_::uncvref_t<decltype(*details_::data(destination))>;
+    using dst_element_type =
+      details_::uncvref_t<decltype(*details_::data(destination))>;
     details_::Copy(details_::to_address(details_::data(destination)),
                    details_::to_address(details_::data(source)),
                    details_::size(destination) * sizeof(dst_element_type));
   }
 
   GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
-  GCXX_REQUIRES(details_::has_size_and_data_v<details_::uncvref_t<DSTTY>> GCXX_AND
-                details_::has_size_and_data_v<details_::uncvref_t<SRCTY>>)
+  GCXX_REQUIRES(
+    details_::has_size_and_data_v<details_::uncvref_t<DSTTY>> GCXX_AND
+      details_::has_size_and_data_v<details_::uncvref_t<SRCTY>>)
+
   GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source,
                     const StreamView& stream) -> void {
-    using dst_element_type = details_::uncvref_t<decltype(*details_::data(destination))>;
+    using dst_element_type =
+      details_::uncvref_t<decltype(*details_::data(destination))>;
     details_::Copy(details_::to_address(details_::data(destination)),
                    details_::to_address(details_::data(source)),
-                   details_::size(destination) * sizeof(dst_element_type), stream);
+                   details_::size(destination) * sizeof(dst_element_type),
+                   stream);
   }
 
 }  // namespace memory
