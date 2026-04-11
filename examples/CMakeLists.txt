@@ -21,6 +21,7 @@ endif()
 
 include(cmake/fmt.cmake)
 include(cmake/argparse.cmake)
+include(cmake/gcxx_add_example.cmake)
 
 add_subdirectory(by_api_module)
 add_subdirectory(vector_add)
