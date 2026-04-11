@@ -1,6 +1,6 @@
 gcxx_add_example(
-  NAME    reduction
+  NAME reduction
   HEADERS main.hpp
-  LINKS   fmt::fmt argparse::argparse
+  LINKS fmt::fmt argparse::argparse
   SEPARABLE_COMPILATION
 )

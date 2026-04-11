@@ -17,6 +17,7 @@
 #   • links gcxx::gcxx PRIVATE
 # ─────────────────────────────────────────────────────────────────────────────
 function(gcxx_add_example)
+  # cmake-format: off
   cmake_parse_arguments(
     ARG                       # prefix
     "SEPARABLE_COMPILATION"   # options  (boolean flags)
@@ -24,6 +25,7 @@ function(gcxx_add_example)
     "SOURCES;HEADERS;LINKS"   # multi-value keywords
     ${ARGN}
   )
+  # cmake-format: on
 
   if(NOT ARG_NAME)
     message(FATAL_ERROR "gcxx_add_example: NAME is required")
