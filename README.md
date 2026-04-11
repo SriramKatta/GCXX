@@ -1,4 +1,4 @@
-# gpuCXX
+# GCXX
 
 A lightweight, backend-agnostic C++ GPU runtime abstraction library with support for CUDA and HIP. Write portable, high-performance GPU code using a unified interface.
 > Write portable, high-performance GPU code in idiomatic C++ — no backend lock-in.
@@ -27,9 +27,9 @@ A lightweight, backend-agnostic C++ GPU runtime abstraction library with support
 
 ---
 
-### Using gpuCXX with CPM
+### Using GCXX with CPM
 
-You can add gpuCXX to your project using `CPMAddPackage`:
+You can add GCXX to your project using `CPMAddPackage`:
 
 ```cmake
 CPMAddPackage(
@@ -76,7 +76,7 @@ target_link_libraries(exe-main PRIVATE gcxx::gcxx)
 
 ### Building the Examples
 
-gpuCXX uses CMake workflows and presets for a simple, unified build experience.
+GCXX uses CMake workflows and presets for a simple, unified build experience.
 
 #### Build NVIDIA GPU
 
@@ -106,6 +106,6 @@ build/hipbin-release/
 
 ## 📄 License
 
-gpuCXX is licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). See [LICENSE](LICENSE) for the full text.
+GCXX is licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). See [LICENSE](LICENSE) for the full text.
 
 Each source file carries an [SPDX](https://spdx.dev/) identifier (`// SPDX-License-Identifier: GPL-3.0-or-later`) so the license can be verified automatically with tools like [reuse](https://reuse.software).
