@@ -27,6 +27,53 @@ A lightweight, backend-agnostic C++ GPU runtime abstraction library with support
 
 ---
 
+### Using gpuCXX with CPM
+
+You can add gpuCXX to your project using `CPMAddPackage`:
+
+```cmake
+CPMAddPackage(
+  NAME gcxx
+  GITHUB_REPOSITORY "SriramKatta/GCXX"
+  GIT_TAG "DEV"
+)
+```
+
+You must enable exactly one backend mode when adding `gcxx` (either CUDA or
+HIP, but not both).
+
+CUDA example:
+
+```cmake
+CPMAddPackage(
+  NAME gcxx
+  GITHUB_REPOSITORY "SriramKatta/GCXX"
+  GIT_TAG "DEV"
+  OPTIONS
+    "GCXX_CUDA_MODE ON"
+)
+```
+
+HIP example:
+
+```cmake
+CPMAddPackage(
+  NAME gcxx
+  GITHUB_REPOSITORY "SriramKatta/GCXX"
+  GIT_TAG "DEV"
+  OPTIONS
+    "GCXX_HIP_MODE ON"
+)
+```
+
+After adding the package, link your executable with:
+
+```cmake
+target_link_libraries(exe-main PRIVATE gcxx::gcxx)
+```
+
+---
+
 ### Building the Examples
 
 gpuCXX uses CMake workflows and presets for a simple, unified build experience.
