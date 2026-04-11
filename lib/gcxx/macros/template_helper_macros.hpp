@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
+//
+// Derived from NVIDIA CCCL libcudacxx:
+//   https://github.com/NVIDIA/cccl/blob/main/libcudacxx/include/cuda/std/__concepts/concept_macros.h
+// Copyright (c) NVIDIA Corporation and affiliates.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #pragma once
 #ifndef GCXX_MACROS_TEMPLATE_HELPER_MACROS_HPP_
 #define GCXX_MACROS_TEMPLATE_HELPER_MACROS_HPP_

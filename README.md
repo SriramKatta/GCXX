@@ -1,4 +1,4 @@
-# gpuCXX
+# GCXX
 
 > Refer to the DEV branch for the latest updates. The code is currently in development and comes with no guarantees that the API will remain the same.
 
@@ -29,9 +29,56 @@ A lightweight, backend-agnostic C++ GPU runtime abstraction library with support
 
 ---
 
+### Using GCXX with CPM
+
+You can add GCXX to your project using `CPMAddPackage`:
+
+```cmake
+CPMAddPackage(
+  NAME gcxx
+  GITHUB_REPOSITORY "SriramKatta/GCXX"
+  GIT_TAG "DEV"
+)
+```
+
+You must enable exactly one backend mode when adding `gcxx` (either CUDA or
+HIP, but not both).
+
+CUDA example:
+
+```cmake
+CPMAddPackage(
+  NAME gcxx
+  GITHUB_REPOSITORY "SriramKatta/GCXX"
+  GIT_TAG "DEV"
+  OPTIONS
+    "GCXX_CUDA_MODE ON"
+)
+```
+
+HIP example:
+
+```cmake
+CPMAddPackage(
+  NAME gcxx
+  GITHUB_REPOSITORY "SriramKatta/GCXX"
+  GIT_TAG "DEV"
+  OPTIONS
+    "GCXX_HIP_MODE ON"
+)
+```
+
+After adding the package, link your executable with:
+
+```cmake
+target_link_libraries(exe-main PRIVATE gcxx::gcxx)
+```
+
+---
+
 ### Building the Examples
 
-gpuCXX uses CMake workflows and presets for a simple, unified build experience.
+GCXX uses CMake workflows and presets for a simple, unified build experience.
 
 #### Build NVIDIA GPU
 
@@ -45,7 +92,7 @@ Executables will be available in:
 build/cudabin-release/
 ```
 
-#### Build for AMD GPU examples 
+#### Build for AMD GPU examples  
 
 ```bash
 cmake --workflow --preset all-hip-release-examples
@@ -61,6 +108,6 @@ build/hipbin-release/
 
 ## 📄 License
 
-gpuCXX is licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). See [LICENSE](LICENSE) for the full text.
+GCXX is licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). See [LICENSE](LICENSE) for the full text.
 
 Each source file carries an [SPDX](https://spdx.dev/) identifier (`// SPDX-License-Identifier: GPL-3.0-or-later`) so the license can be verified automatically with tools like [reuse](https://reuse.software).
