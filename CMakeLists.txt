@@ -96,6 +96,7 @@ include(cmake/CPM.cmake)
 if(GCXX_TOPLEVEL_PROJECT)
   include(cmake/format.cmake)
   include(cmake/tools.cmake)
+  include(cmake/gcxx_gpu_architectures.cmake)
 endif()
 
 add_subdirectory(lib)
