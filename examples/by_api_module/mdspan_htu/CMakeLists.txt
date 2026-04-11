@@ -1,7 +1,1 @@
-set_source_files_properties(main.cpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
-
-set(EXE_NAME mdspan_htu)
-
-add_executable(${EXE_NAME} main.cpp)
-target_link_libraries(${EXE_NAME} PRIVATE gcxx::gcxx)
-target_link_libraries(${EXE_NAME} PRIVATE fmt::fmt)
+gcxx_add_example(NAME mdspan_htu LINKS fmt::fmt)
