@@ -43,7 +43,7 @@ Executables will be available in:
 build/cudabin-release/
 ```
 
-#### Build for AMD GPU examples 
+#### Build for AMD GPU examples  
 
 ```bash
 cmake --workflow --preset all-hip-release-examples
