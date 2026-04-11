@@ -54,3 +54,11 @@ Executables will be available in:
 ```bash
 build/hipbin-release/
 ```
+
+---
+
+## 📄 License
+
+gpuCXX is licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). See [LICENSE](LICENSE) for the full text.
+
+Each source file carries an [SPDX](https://spdx.dev/) identifier (`// SPDX-License-Identifier: GPL-3.0-or-later`) so the license can be verified automatically with tools like [reuse](https://reuse.software).

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
 #include <cuda.h>
 #include <math.h>
 #include <nccl.h>

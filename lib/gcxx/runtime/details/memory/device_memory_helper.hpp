@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
 #pragma once
 #ifndef GCXX_RUNTIME_DETAILS_MEMORY_DEVICE_MEMORY_HELPER_HPP
 #define GCXX_RUNTIME_DETAILS_MEMORY_DEVICE_MEMORY_HELPER_HPP

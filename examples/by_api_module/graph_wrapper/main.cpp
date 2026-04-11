@@ -1,3 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0-or-later AND BSD-3-Clause
+// Copyright (C) 2026 Sriram Katta
+//
+// Portions of this file are derived from NVIDIA CUDA sample code
+// (BSD-3-Clause, original notice preserved below). Modifications
+// and additions are licensed under GPL-3.0-or-later.
 /* Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

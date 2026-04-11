@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
 #pragma once
 #ifndef GCXX_RUNTIME_MEMORY_SPAN_SPAN_HPP
 #define GCXX_RUNTIME_MEMORY_SPAN_SPAN_HPP

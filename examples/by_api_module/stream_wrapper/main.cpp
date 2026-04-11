@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
 #include <gcxx/runtime/stream.hpp>
 #include <iostream>
 

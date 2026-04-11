@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
 /**
  * @file event_flags.hpp
  * @brief Event-related flags for GPU runtime operations.

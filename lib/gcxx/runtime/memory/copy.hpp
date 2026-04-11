@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
 #pragma once
 #ifndef GCXX_API_RUNTIME_MEMORY_COPY_HPP_
 #define GCXX_API_RUNTIME_MEMORY_COPY_HPP_

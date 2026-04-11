@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
 #pragma once
 #ifndef GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_VIEW_INL_
 #define GCXX_RUNTIME_DETAILS_GRAPH_GRAPH_VIEW_INL_
