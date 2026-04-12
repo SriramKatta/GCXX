@@ -87,7 +87,7 @@ __global__ void kernel_4vec(const gcxx::span<VT> a) {
   }
   // 0 thread, process final elements (if there are any)
   int remainder = a.size() % 4;
-  if (start == a.size() / 4)
+  if (start == 0)
     for (auto& i : a.last(remainder)) {
       i += 1.0;
     }

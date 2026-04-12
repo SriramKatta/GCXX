@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 #include <fmt/format.h>
+#include <cmath>
 #include <gcxx/api.hpp>
 
 #include "main.hpp"
@@ -13,7 +14,7 @@ using datatype                   = float;
 template <typename VT>
 void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
   for (size_t i = 0; i < h_a.size(); i++) {
-    if ((h_a[i] - checkval) > keps) {
+    if (std::fabs(h_a[i] - checkval) > keps) {
       fmt::print("FAILED at index {} : {}\n", i, h_a[i] - checkval);
       exit(1);
     }

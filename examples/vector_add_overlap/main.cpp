@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 #include <vector>
+#include <cmath>
 
 #include <fmt/format.h>
 #include <gcxx/api.hpp>
@@ -12,7 +13,7 @@ using datatype = int;
 template <typename VT>
 void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
   for (size_t i = 0; i < h_a.size(); i++) {
-    if ((h_a[i] - checkval) > std::numeric_limits<VT>::epsilon()) {
+    if (std::fabs(h_a[i] - checkval) > 1e-6) {
       fmt::print("FAILED at index {} : {}\n", i, h_a[i] - checkval);
       exit(1);
     }
@@ -66,7 +67,7 @@ int main(int argc, char** argv) {
     size_t i          = 0;
     for (auto& stream : streams) {
       size_t offset  = i++ * base_count;
-      size_t count   = std::min(base_count, arg.N - 1 - offset);
+      size_t count   = std::min(base_count, arg.N - offset);
       auto h_subspan = h_a_span.subspan(offset, count);
       auto d_subspan = d_a_span.subspan(offset, count);
       gcxx::memory::Copy(d_subspan, h_subspan, stream);
