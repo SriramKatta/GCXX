@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-#include <vector>
 #include <cmath>
+#include <vector>
 
 #include <fmt/format.h>
 #include <gcxx/api.hpp>
