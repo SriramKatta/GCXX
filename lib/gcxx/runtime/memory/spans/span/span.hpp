@@ -30,6 +30,24 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_NAMESPACE_DETAILS_BEGIN
 
+// ╔════════════════════════════════════════════════════════╗
+// ║               SpanLike detection traits                ║
+// ╚════════════════════════════════════════════════════════╝
+
+// Primary: not span-like.
+template <typename T, typename = void>
+struct is_span_like_impl : std::false_type {};
+
+// Specialisation: T has .data() → pointer and .size() → integral.
+template <typename T>
+struct is_span_like_impl<
+  T, std::void_t<decltype(gcxx::details_::data(std::declval<T&>())),
+                 decltype(gcxx::details_::size(std::declval<T&>()))>>
+    : std::bool_constant<
+        std::is_pointer_v<decltype(gcxx::details_::data(std::declval<T&>()))> &&
+        std::is_integral_v<decltype(gcxx::details_::size(
+          std::declval<T&>()))>> {};
+
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                      Span Storage                      █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
@@ -525,6 +543,29 @@ template <class R>
 restrict_span(R&&) -> restrict_span<
   std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
+// ╔════════════════════════════════════════════════════════╗
+// ║           Public span-like concept and helpers         ║
+// ╚════════════════════════════════════════════════════════╝
+
+/// Element type of any span-like type: the pointee of .data().
+/// Works with references and cv-qualified types.
+template <typename T>
+using span_element_t = std::remove_pointer_t<decltype(details_::data(
+  std::declval<details_::uncvref_t<T>&>()))>;
+
+/// True for any T that exposes .data() → pointer and .size() → integral.
+/// Satisfied by gcxx::span, gcxx::restrict_span, std::span, std::vector,
+/// std::array, and any user type with those two members.
+template <typename T>
+GCXX_CONCEPT is_span_like_v =
+  details_::is_span_like_impl<details_::uncvref_t<T>>::value;
+
+/// True when T is span-like and its element type is array-convertible to ET.
+/// Use this to constrain Copy, kernel launch, or other generic range APIs.
+template <typename T, typename ET>
+GCXX_CONCEPT is_compatible_span_v =
+  is_span_like_v<T> &&
+  details_::is_ptr_array_convertible_v<span_element_t<T>, ET>;
 
 GCXX_NAMESPACE_MAIN_END
 

@@ -39,7 +39,7 @@ GCXX_NAMESPACE_DETAILS_END
 namespace memory {
 
   // ╔════════════════════════════════════════════════════════╗
-  // ║         pointer version based on element type          ║
+  // ║    pointer and count version based on element type     ║
   // ╚════════════════════════════════════════════════════════╝
   template <typename VT>
   GCXX_FH auto Copy(VT* destination, const VT* source,
@@ -57,48 +57,25 @@ namespace memory {
   }
 
   // ╔════════════════════════════════════════════════════════╗
-  // ║                 works on span variants                 ║
-  // ╚════════════════════════════════════════════════════════╝
-  template <typename VT>
-  GCXX_FH auto Copy(span<VT> destination, const span<VT> source) -> void {
-    details_::Copy(destination.data(), source.data(), destination.size_bytes());
-  }
-
-  template <typename VT>
-  GCXX_FH auto Copy(const span<VT> destination, const span<VT> source,
-                    const StreamView& stream) -> void {
-    details_::Copy(destination.data(), source.data(), destination.size_bytes(),
-                   stream);
-  }
-
-  // ╔════════════════════════════════════════════════════════╗
-  // ║    works on any type with data() and size() methods    ║
+  // ║  works on any type that can be converted into a span   ║
   // ╚════════════════════════════════════════════════════════╝
   GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
-  GCXX_REQUIRES(
-    details_::has_size_and_data_v<details_::uncvref_t<DSTTY>> GCXX_AND
-      details_::has_size_and_data_v<details_::uncvref_t<SRCTY>>)
+  GCXX_REQUIRES(is_span_like_v<DSTTY> GCXX_AND is_span_like_v<SRCTY>)
 
   GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source) -> void {
-    using dst_element_type =
-      details_::uncvref_t<decltype(*details_::data(destination))>;
     details_::Copy(details_::to_address(details_::data(destination)),
                    details_::to_address(details_::data(source)),
-                   details_::size(destination) * sizeof(dst_element_type));
+                   details_::size(destination) * sizeof(span_element_t<DSTTY>));
   }
 
   GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
-  GCXX_REQUIRES(
-    details_::has_size_and_data_v<details_::uncvref_t<DSTTY>> GCXX_AND
-      details_::has_size_and_data_v<details_::uncvref_t<SRCTY>>)
+  GCXX_REQUIRES(is_span_like_v<DSTTY> GCXX_AND is_span_like_v<SRCTY>)
 
   GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source,
                     const StreamView& stream) -> void {
-    using dst_element_type =
-      details_::uncvref_t<decltype(*details_::data(destination))>;
     details_::Copy(details_::to_address(details_::data(destination)),
                    details_::to_address(details_::data(source)),
-                   details_::size(destination) * sizeof(dst_element_type),
+                   details_::size(destination) * sizeof(span_element_t<DSTTY>),
                    stream);
   }
 
