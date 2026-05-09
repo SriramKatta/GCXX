@@ -71,7 +71,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-release"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-release"
       }
     },
     {
@@ -84,7 +85,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-debug",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
       }
     },
     {
@@ -117,7 +119,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-release"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-release"
       }
     },
     {
@@ -130,7 +133,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-debug",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
       }
     },
     {
@@ -163,7 +167,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-release"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-release"
       }
     },
     {
@@ -176,7 +181,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-debug",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
       }
     },
     {
@@ -189,7 +195,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-release"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-release"
       }
     },
     {
@@ -202,7 +209,8 @@
       ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-debug",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
+          "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
       }
     }
   ],
