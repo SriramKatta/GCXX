@@ -12,7 +12,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 1, 0)
 GCXX_FH auto GraphNodeView::geLocalId() -> unsigned int {
   unsigned int id{};
   GCXX_SAFE_RUNTIME_CALL(GraphNodeGetLocalId,
