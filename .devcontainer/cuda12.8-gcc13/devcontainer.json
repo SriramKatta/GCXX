@@ -33,7 +33,8 @@
         "NVIDIA.nsight-vscode-edition",
         "ms-vscode.makefile-tools",
         "jeff-hykin.better-cpp-syntax",
-        "cschlosser.doxdocgen"
+        "cschlosser.doxdocgen",
+        "xaver.clang-format"
       ],
       "settings": {
         "C_Cpp.default.compilerPath": "/usr/bin/g++-13",
