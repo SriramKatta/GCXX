@@ -15,3 +15,6 @@ CMakeUserPresets.json
 
 # IDE Specific ignores
 .vscode
+
+# Extra folders
+.cache
