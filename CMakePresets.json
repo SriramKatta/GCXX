@@ -2,7 +2,7 @@
   "version": 7,
   "configurePresets": [
     {
-      "name": "base_configue",
+      "name": "base_configure",
       "hidden": true,
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -10,140 +10,200 @@
       }
     },
     {
-      "name": "base-release",
+      "name": "base_release",
       "hidden": true,
-      "inherits": "base_configue",
+      "inherits": "base_configure",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
-      "name": "base-debug",
+      "name": "base_debug",
       "hidden": true,
-      "inherits": "base_configue",
+      "inherits": "base_configure",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "mode-cuda",
+      "name": "mode_cuda",
       "hidden": true,
       "cacheVariables": {
         "GCXX_CUDA_MODE": "ON"
       }
     },
     {
-      "name": "mode-hip",
+      "name": "mode_hip",
       "hidden": true,
       "cacheVariables": {
         "GCXX_HIP_MODE": "ON"
       }
     },
     {
-      "name": "purpose-examples",
+      "name": "purpose_examples",
       "hidden": true,
       "cacheVariables": {
         "GCXX_BUILD_EXAMPLES": "ON"
       }
     },
     {
-      "name": "purpose-tests",
+      "name": "purpose_tests",
       "hidden": true,
       "cacheVariables": {
         "GCXX_BUILD_TESTS": "ON"
       }
     },
     {
-      "name": "cuda-release-examples",
+      "name": "purpose_full",
+      "hidden": true,
+      "cacheVariables": {
+        "GCXX_BUILD_EXAMPLES": "ON",
+        "GCXX_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release_cuda_examples",
       "displayName": "CUDA Release (Examples)",
       "inherits": [
-        "base-release",
-        "mode-cuda",
-        "purpose-examples"
+        "base_release",
+        "mode_cuda",
+        "purpose_examples"
       ],
-      "binaryDir": "${sourceDir}/build/cuda-release",
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/cudabin-release"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-release"
       }
     },
     {
-      "name": "cuda-debug-examples",
+      "name": "debug_cuda_examples",
       "displayName": "CUDA Debug (Examples)",
       "inherits": [
-        "base-debug",
-        "mode-cuda",
-        "purpose-examples"
+        "base_debug",
+        "mode_cuda",
+        "purpose_examples"
       ],
-      "binaryDir": "${sourceDir}/build/cuda-debug",
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-debug",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/cudabin-debug"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
       }
     },
     {
-      "name": "cuda-release-tests",
+      "name": "release_cuda_tests",
       "displayName": "CUDA Release (Tests)",
       "inherits": [
-        "base-release",
-        "mode-cuda",
-        "purpose-tests"
+        "base_release",
+        "mode_cuda",
+        "purpose_tests"
       ],
-      "binaryDir": "${sourceDir}/build/cuda-release"
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-release"
     },
     {
-      "name": "cuda-debug-tests",
+      "name": "debug_cuda_tests",
       "displayName": "CUDA Debug (Tests)",
       "inherits": [
-        "base-debug",
-        "mode-cuda",
-        "purpose-tests"
+        "base_debug",
+        "mode_cuda",
+        "purpose_tests"
       ],
-      "binaryDir": "${sourceDir}/build/cuda-debug"
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-debug"
     },
     {
-      "name": "hip-release-examples",
+      "name": "release_hip_examples",
       "displayName": "HIP Release (Examples)",
       "inherits": [
-        "base-release",
-        "mode-hip",
-        "purpose-examples"
+        "base_release",
+        "mode_hip",
+        "purpose_examples"
       ],
-      "binaryDir": "${sourceDir}/build/hip-release",
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-release",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin-release"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-release"
       }
     },
     {
-      "name": "hip-debug-examples",
+      "name": "debug_hip_examples",
       "displayName": "HIP Debug (Examples)",
       "inherits": [
-        "base-debug",
-        "mode-hip",
-        "purpose-examples"
+        "base_debug",
+        "mode_hip",
+        "purpose_examples"
       ],
-      "binaryDir": "${sourceDir}/build/hip-debug",
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-debug",
       "cacheVariables": {
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/hipbin-debug"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
       }
     },
     {
-      "name": "hip-release-tests",
+      "name": "release_hip_tests",
       "displayName": "HIP Release (Tests)",
       "inherits": [
-        "base-release",
-        "mode-hip",
-        "purpose-tests"
+        "base_release",
+        "mode_hip",
+        "purpose_tests"
       ],
-      "binaryDir": "${sourceDir}/build/hip-release"
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-release"
     },
     {
-      "name": "hip-debug-tests",
+      "name": "debug_hip_tests",
       "displayName": "HIP Debug (Tests)",
       "inherits": [
-        "base-debug",
-        "mode-hip",
-        "purpose-tests"
+        "base_debug",
+        "mode_hip",
+        "purpose_tests"
       ],
-      "binaryDir": "${sourceDir}/build/hip-debug"
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-debug"
+    },
+    {
+      "name": "release_cuda_full",
+      "displayName": "CUDA Release (Full Build)",
+      "inherits": [
+        "base_release",
+        "mode_cuda",
+        "purpose_full"
+      ],
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-release",
+      "cacheVariables": {
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-release"
+      }
+    },
+    {
+      "name": "debug_cuda_full",
+      "displayName": "CUDA Debug (Full Build)",
+      "inherits": [
+        "base_debug",
+        "mode_cuda",
+        "purpose_full"
+      ],
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-debug",
+      "cacheVariables": {
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
+      }
+    },
+    {
+      "name": "release_hip_full",
+      "displayName": "HIP Release (Full Build)",
+      "inherits": [
+        "base_release",
+        "mode_hip",
+        "purpose_full"
+      ],
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-release",
+      "cacheVariables": {
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-release"
+      }
+    },
+    {
+      "name": "debug_hip_full",
+      "displayName": "HIP Debug (Full Build)",
+      "inherits": [
+        "base_debug",
+        "mode_hip",
+        "purpose_full"
+      ],
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-debug",
+      "cacheVariables": {
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
+      }
     }
   ],
   "buildPresets": [
@@ -153,49 +213,81 @@
       "jobs": 0
     },
     {
-      "name": "build-cuda-release-examples",
-      "configurePreset": "cuda-release-examples",
+      "name": "build_release_cuda_examples",
+      "displayName": "Build CUDA Release (Examples)",
+      "configurePreset": "release_cuda_examples",
       "inherits": "build_base"
     },
     {
-      "name": "build-cuda-debug-examples",
-      "configurePreset": "cuda-debug-examples",
+      "name": "build_debug_cuda_examples",
+      "displayName": "Build CUDA Debug (Examples)",
+      "configurePreset": "debug_cuda_examples",
       "inherits": "build_base"
     },
     {
-      "name": "build-hip-release-examples",
-      "configurePreset": "hip-release-examples",
+      "name": "build_release_hip_examples",
+      "displayName": "Build HIP Release (Examples)",
+      "configurePreset": "release_hip_examples",
       "inherits": "build_base"
     },
     {
-      "name": "build-hip-debug-examples",
-      "configurePreset": "hip-debug-examples",
+      "name": "build_debug_hip_examples",
+      "displayName": "Build HIP Debug (Examples)",
+      "configurePreset": "debug_hip_examples",
       "inherits": "build_base"
     },
     {
-      "name": "build-cuda-release-tests",
-      "configurePreset": "cuda-release-tests",
+      "name": "build_release_cuda_tests",
+      "displayName": "Build CUDA Release (Tests)",
+      "configurePreset": "release_cuda_tests",
       "inherits": "build_base"
     },
     {
-      "name": "build-cuda-debug-tests",
-      "configurePreset": "cuda-debug-tests",
+      "name": "build_debug_cuda_tests",
+      "displayName": "Build CUDA Debug (Tests)",
+      "configurePreset": "debug_cuda_tests",
       "inherits": "build_base"
     },
     {
-      "name": "build-hip-release-tests",
-      "configurePreset": "hip-release-tests",
+      "name": "build_release_hip_tests",
+      "displayName": "Build HIP Release (Tests)",
+      "configurePreset": "release_hip_tests",
       "inherits": "build_base"
     },
     {
-      "name": "build-hip-debug-tests",
-      "configurePreset": "hip-debug-tests",
+      "name": "build_debug_hip_tests",
+      "displayName": "Build HIP Debug (Tests)",
+      "configurePreset": "debug_hip_tests",
+      "inherits": "build_base"
+    },
+    {
+      "name": "build_release_cuda_full",
+      "displayName": "Build CUDA Release (Full)",
+      "configurePreset": "release_cuda_full",
+      "inherits": "build_base"
+    },
+    {
+      "name": "build_debug_cuda_full",
+      "displayName": "Build CUDA Debug (Full)",
+      "configurePreset": "debug_cuda_full",
+      "inherits": "build_base"
+    },
+    {
+      "name": "build_release_hip_full",
+      "displayName": "Build HIP Release (Full)",
+      "configurePreset": "release_hip_full",
+      "inherits": "build_base"
+    },
+    {
+      "name": "build_debug_hip_full",
+      "displayName": "Build HIP Debug (Full)",
+      "configurePreset": "debug_hip_full",
       "inherits": "build_base"
     }
   ],
   "testPresets": [
     {
-      "name": "test-base",
+      "name": "test_base",
       "hidden": true,
       "environment": {
         "GTEST_COLOR": "1"
@@ -209,144 +301,212 @@
       }
     },
     {
-      "name": "test-cuda-release",
-      "inherits": "test-base",
-      "configurePreset": "cuda-release-tests"
+      "name": "test_release_cuda",
+      "displayName": "Test CUDA Release",
+      "inherits": "test_base",
+      "configurePreset": "release_cuda_tests"
     },
     {
-      "name": "test-cuda-debug",
-      "inherits": "test-base",
-      "configurePreset": "cuda-debug-tests"
+      "name": "test_debug_cuda",
+      "displayName": "Test CUDA Debug",
+      "inherits": "test_base",
+      "configurePreset": "debug_cuda_tests"
     },
     {
-      "name": "test-hip-release",
-      "inherits": "test-base",
-      "configurePreset": "hip-release-tests"
+      "name": "test_release_hip",
+      "displayName": "Test HIP Release",
+      "inherits": "test_base",
+      "configurePreset": "release_hip_tests"
     },
     {
-      "name": "test-hip-debug",
-      "inherits": "test-base",
-      "configurePreset": "hip-debug-tests"
+      "name": "test_debug_hip",
+      "displayName": "Test HIP Debug",
+      "inherits": "test_base",
+      "configurePreset": "debug_hip_tests"
     }
   ],
   "workflowPresets": [
     {
-      "name": "all-cuda-release-examples",
+      "name": "workflow_release_cuda_examples",
+      "displayName": "CUDA Release Examples",
       "steps": [
         {
           "type": "configure",
-          "name": "cuda-release-examples"
+          "name": "release_cuda_examples"
         },
         {
           "type": "build",
-          "name": "build-cuda-release-examples"
+          "name": "build_release_cuda_examples"
         }
       ]
     },
     {
-      "name": "all-cuda-debug-examples",
+      "name": "workflow_debug_cuda_examples",
+      "displayName": "CUDA Debug Examples",
       "steps": [
         {
           "type": "configure",
-          "name": "cuda-debug-examples"
+          "name": "debug_cuda_examples"
         },
         {
           "type": "build",
-          "name": "build-cuda-debug-examples"
+          "name": "build_debug_cuda_examples"
         }
       ]
     },
     {
-      "name": "all-hip-release-examples",
+      "name": "workflow_release_hip_examples",
+      "displayName": "HIP Release Examples",
       "steps": [
         {
           "type": "configure",
-          "name": "hip-release-examples"
+          "name": "release_hip_examples"
         },
         {
           "type": "build",
-          "name": "build-hip-release-examples"
+          "name": "build_release_hip_examples"
         }
       ]
     },
     {
-      "name": "all-hip-debug-examples",
+      "name": "workflow_debug_hip_examples",
+      "displayName": "HIP Debug Examples",
       "steps": [
         {
           "type": "configure",
-          "name": "hip-debug-examples"
+          "name": "debug_hip_examples"
         },
         {
           "type": "build",
-          "name": "build-hip-debug-examples"
+          "name": "build_debug_hip_examples"
         }
       ]
     },
     {
-      "name": "all-cuda-release-tests",
+      "name": "workflow_release_cuda_tests",
+      "displayName": "CUDA Release Tests",
       "steps": [
         {
           "type": "configure",
-          "name": "cuda-release-tests"
+          "name": "release_cuda_tests"
         },
         {
           "type": "build",
-          "name": "build-cuda-release-tests"
+          "name": "build_release_cuda_tests"
         },
         {
           "type": "test",
-          "name": "test-cuda-release"
+          "name": "test_release_cuda"
         }
       ]
     },
     {
-      "name": "all-cuda-debug-tests",
+      "name": "workflow_debug_cuda_tests",
+      "displayName": "CUDA Debug Tests",
       "steps": [
         {
           "type": "configure",
-          "name": "cuda-debug-tests"
+          "name": "debug_cuda_tests"
         },
         {
           "type": "build",
-          "name": "build-cuda-debug-tests"
+          "name": "build_debug_cuda_tests"
         },
         {
           "type": "test",
-          "name": "test-cuda-debug"
+          "name": "test_debug_cuda"
         }
       ]
     },
     {
-      "name": "all-hip-release-tests",
+      "name": "workflow_release_hip_tests",
+      "displayName": "HIP Release Tests",
       "steps": [
         {
           "type": "configure",
-          "name": "hip-release-tests"
+          "name": "release_hip_tests"
         },
         {
           "type": "build",
-          "name": "build-hip-release-tests"
+          "name": "build_release_hip_tests"
         },
         {
           "type": "test",
-          "name": "test-hip-release"
+          "name": "test_release_hip"
         }
       ]
     },
     {
-      "name": "all-hip-debug-tests",
+      "name": "workflow_debug_hip_tests",
+      "displayName": "HIP Debug Tests",
       "steps": [
         {
           "type": "configure",
-          "name": "hip-debug-tests"
+          "name": "debug_hip_tests"
         },
         {
           "type": "build",
-          "name": "build-hip-debug-tests"
+          "name": "build_debug_hip_tests"
         },
         {
           "type": "test",
-          "name": "test-hip-debug"
+          "name": "test_debug_hip"
+        }
+      ]
+    },
+    {
+      "name": "workflow_release_cuda_full",
+      "displayName": "CUDA Release Full Build",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release_cuda_full"
+        },
+        {
+          "type": "build",
+          "name": "build_release_cuda_full"
+        }
+      ]
+    },
+    {
+      "name": "workflow_debug_cuda_full",
+      "displayName": "CUDA Debug Full Build",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "debug_cuda_full"
+        },
+        {
+          "type": "build",
+          "name": "build_debug_cuda_full"
+        }
+      ]
+    },
+    {
+      "name": "workflow_release_hip_full",
+      "displayName": "HIP Release Full Build",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release_hip_full"
+        },
+        {
+          "type": "build",
+          "name": "build_release_hip_full"
+        }
+      ]
+    },
+    {
+      "name": "workflow_debug_hip_full",
+      "displayName": "HIP Debug Full Build",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "debug_hip_full"
+        },
+        {
+          "type": "build",
+          "name": "build_debug_hip_full"
         }
       ]
     }
