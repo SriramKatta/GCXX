@@ -33,7 +33,10 @@
         "ms-vscode.cpptools-extension-pack",
         "anthropic.claude-code",
         "OpenAI.chatgpt",
-        "NVIDIA.nsight-vscode-edition"
+        "NVIDIA.nsight-vscode-edition",
+        "ms-vscode.makefile-tools",
+        "jeff-hykin.better-cpp-syntax",
+        "cschlosser.doxdocgen"
       ],
       "settings": {
         "C_Cpp.default.compilerPath": "/usr/bin/g++-13",
