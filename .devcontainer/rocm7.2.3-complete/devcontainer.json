@@ -1,0 +1,59 @@
+{
+  "name": "GCXX ROCm 7.2.3",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".",
+    "args": {
+      "BASE_IMAGE": "rocm/dev-ubuntu-24.04:7.2.3-complete",
+      "CREATE_RENDER_GROUP": "true",
+      "GCC_VERSION": "13",
+      "USER_GROUPS": "sudo,video,render",
+      "CONTAINER_NAME": "gcxx-rocm7.2.3"
+    }
+  },
+  "privileged": true,
+  "runArgs": [
+    "--init",
+    "--cap-add=SYS_PTRACE",
+    "--ipc=host",
+    "--device=/dev/kfd",
+    "--device=/dev/dri",
+    "--group-add=video",
+    "--shm-size=16GB"
+  ],
+  "hostRequirements": {
+    "gpu": "optional"
+  },
+  "containerEnv": {
+    "ROCM_ROOT": "/opt/rocm",
+    "ROCM_PATH": "/opt/rocm",
+    "HIP_PATH": "/opt/rocm",
+    "CMAKE_PREFIX_PATH": "/opt/rocm",
+    "CC": "/usr/bin/gcc-13",
+    "CXX": "/usr/bin/g++-13",
+    "CMAKE_GENERATOR": "Ninja",
+    "GCXX_ROCM_VERSION": "7.2.3",
+    "GCXX_HOST_COMPILER": "gcc",
+    "GCXX_HOST_COMPILER_VERSION": "13"
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/GCXX",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools-extension-pack",
+        "anthropic.claude-code",
+        "OpenAI.chatgpt",
+        "NVIDIA.nsight-vscode-edition"
+      ],
+      "settings": {
+        "C_Cpp.default.compilerPath": "/usr/bin/g++-13",
+        "cmake.configureOnOpen": false,
+        "cmake.useCMakePresets": "always",
+        "editor.formatOnSave": true,
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  }
+}
