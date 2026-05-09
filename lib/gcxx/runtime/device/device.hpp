@@ -15,8 +15,8 @@ class DeviceHandle;
 class MemPoolView;
 
 namespace Device {
-  GCXX_FH auto set(device_t devId, bool resetOnDestruct = false)
-    -> DeviceHandle;
+  GCXX_FH auto set(device_t devId,
+                   bool resetOnDestruct = false) -> DeviceHandle;
 
   GCXX_FH auto get() -> DeviceHandle;
 

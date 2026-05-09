@@ -45,7 +45,7 @@ class StreamView {
     return s;
   }
 
-  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT->deviceStream_t;
+  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
   GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;
 
@@ -64,9 +64,8 @@ class StreamView {
 
   GCXX_FH auto BeginCapture(const flags::streamCaptureMode createflag) -> void;
 
-  GCXX_FH auto BeginCaptureToGraph(GraphView& graph_view,
-                                   const flags::streamCaptureMode createflag)
-    -> void;
+  GCXX_FH auto BeginCaptureToGraph(
+    GraphView& graph_view, const flags::streamCaptureMode createflag) -> void;
 
   GCXX_FH auto EndCapture() -> Graph;
 

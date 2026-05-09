@@ -34,7 +34,7 @@ class Graph : public GraphView {
   GCXX_FH Graph(Graph&& other) GCXX_NOEXCEPT;
   GCXX_FH auto operator=(Graph&& other) GCXX_NOEXCEPT->Graph&;
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT->GraphView;
+  GCXX_FH auto Release() GCXX_NOEXCEPT -> GraphView;
 
   GCXX_FH static auto CreateFromRaw(deviceGraph_t graph) -> Graph;
 

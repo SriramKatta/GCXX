@@ -65,8 +65,8 @@ enum class graphDebugDot : details_::flag_t {
 #endif
 };
 
-inline auto operator|(const graphDebugDot& lhs, const graphDebugDot& rhs)
-  -> graphDebugDot {
+inline auto operator|(const graphDebugDot& lhs,
+                      const graphDebugDot& rhs) -> graphDebugDot {
   return static_cast<graphDebugDot>(static_cast<details_::flag_t>(lhs) |
                                     static_cast<details_::flag_t>(rhs));
 }

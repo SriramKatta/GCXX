@@ -9,13 +9,18 @@
   namespace gcxx {                \
     inline namespace v1 {
 #define GCXX_NAMESPACE_MAIN_END \
-  }  /* inline namespace v1  */ \
+  } /* inline namespace v1  */  \
   }  // namespace gcxx
 #endif
 
 #ifndef GCXX_NAMESPACE_DETAILS_BEGIN
 #define GCXX_NAMESPACE_DETAILS_BEGIN namespace details_ {
 #define GCXX_NAMESPACE_DETAILS_END } /* namespace details_  */
+#endif
+
+#ifndef GCXX_NAMESPACE_DRIVER_BEGIN
+#define GCXX_NAMESPACE_DRIVER_BEGIN namespace driver {
+#define GCXX_NAMESPACE_DRIVER_END } /* namespace driver  */
 #endif
 
 #ifndef GCXX_NAMESPACE_FLAGS_BEGIN
@@ -41,5 +46,15 @@
   GCXX_NAMESPACE_FLAGS_END            \
   GCXX_NAMESPACE_MAIN_END
 #endif
+
+#ifndef GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+#define GCXX_NAMESPACE_MAIN_DRIVER_BEGIN \
+  GCXX_NAMESPACE_MAIN_BEGIN              \
+  GCXX_NAMESPACE_DRIVER_BEGIN
+#define GCXX_NAMESPACE_MAIN_DRIVER_END \
+  GCXX_NAMESPACE_DRIVER_END            \
+  GCXX_NAMESPACE_MAIN_END
+#endif
+
 
 #endif

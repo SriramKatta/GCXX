@@ -39,8 +39,8 @@ namespace memory {
   }
 
   template <typename VT>
-  auto make_device_unique_ptr(std::size_t numElem, const StreamView& sv)
-    -> device_ptr<VT> {
+  auto make_device_unique_ptr(std::size_t numElem,
+                              const StreamView& sv) -> device_ptr<VT> {
     return device_ptr<VT>{
       static_cast<VT*>(details_::device_malloc_async(numElem * sizeof(VT), sv)),
       [sv](VT* p) {

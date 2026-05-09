@@ -71,7 +71,7 @@ class EventView {
   GCXX_CXPR auto operator=(const EventView& eventRef) GCXX_NOEXCEPT->EventView&;
 
   /** @brief Returns the underlying raw GPU event handle */
-  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t;
+  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t;
 
   /** @brief Implicit conversion operator to raw device event type */
   GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT;
@@ -148,9 +148,8 @@ class EventView {
    * @return Elapsed time between startEvent and endEvent
    */
   template <typename DurationT = milliSec>
-  GCXX_FH static auto ElapsedTimeBetween(const EventView& startEvent,
-                                         const EventView& endEvent)
-    -> DurationT;
+  GCXX_FH static auto ElapsedTimeBetween(
+    const EventView& startEvent, const EventView& endEvent) -> DurationT;
 };
 
 GCXX_NAMESPACE_MAIN_END

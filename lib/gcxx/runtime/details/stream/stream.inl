@@ -20,7 +20,7 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
                          -static_cast<details_::flag_t>(priorityFlag));
 }
 
-GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT->Stream& {
+GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
   this->stream_ = std::exchange(other.stream_, details_::INVALID_STREAM);
   return *this;
 }
@@ -58,7 +58,7 @@ GCXX_FH auto Stream::Create(const flags::streamType createFlag,
   return {createFlag, priorityFlag};
 }
 
-GCXX_FH auto Stream::Release() GCXX_NOEXCEPT->StreamView {
+GCXX_FH auto Stream::Release() GCXX_NOEXCEPT -> StreamView {
   auto oldStream = stream_;
   stream_        = details_::INVALID_STREAM;
   return {oldStream};
@@ -67,7 +67,7 @@ GCXX_FH auto Stream::Release() GCXX_NOEXCEPT->StreamView {
 GCXX_FH Stream::Stream(Stream&& other) noexcept
     : StreamView(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
 
-GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT->StreamView {
+GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT -> StreamView {
   return *this;
 }
 

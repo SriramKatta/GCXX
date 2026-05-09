@@ -170,7 +170,7 @@ class span_base {
   // ==========================================================
   GCXX_TEMPLATE(std::size_t E = Extent)
   GCXX_REQUIRES(E == 0 || E == gcxx::dynamic_extent)
-  GCXX_FHDC span_base() GCXX_NOEXCEPT{};  // NOLINT
+  GCXX_FHDC span_base() GCXX_NOEXCEPT {};  // NOLINT
 
   GCXX_TEMPLATE(typename It, std::size_t E = Extent)
   GCXX_REQUIRES(gcxx::details_::is_iter_ptr_convertible_v<It, element_type>
@@ -294,15 +294,17 @@ class span_base {
   //                         Iterators
   // ==========================================================
 
-  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT->iterator { return data(); }
+  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator { return data(); }
 
-  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT->iterator { return data() + size(); }
+  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT -> iterator {
+    return data() + size();
+  }
 
-  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT->reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rbegin() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(end());
   }
 
-  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT->reverse_iterator {
+  GCXX_FH GCXX_CXPR auto rend() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(begin());
   }
 
@@ -321,7 +323,7 @@ class span_base {
     return m_storage[idx];
   }
 
-  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT->data_handle_type {
+  GCXX_FHDC auto data() GCXX_CONST_NOEXCEPT -> data_handle_type {
     return m_storage.data();
   }
 
@@ -329,15 +331,15 @@ class span_base {
   //                         Observers
   // ==========================================================
 
-  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT->size_type {
+  GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
     return m_storage.size();
   }
 
-  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT->size_type {
+  GCXX_FHDC auto size_bytes() GCXX_CONST_NOEXCEPT -> size_type {
     return size() * sizeof(element_type);
   }
 
-  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT->bool {
+  [[nodiscard]] GCXX_CXPR auto empty() GCXX_CONST_NOEXCEPT -> bool {
     return size() == 0;
   }
 
@@ -469,8 +471,9 @@ template <class T, std::size_t N>
 span(const std::array<T, N>&) -> span<const T, N>;
 
 template <class R>
-span(R&&) -> span<
-  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+span(R&&)
+  -> span<
+    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                     Restrcit Span                      █
@@ -527,8 +530,9 @@ class restrict_span
 // █             Restrcit Span Deduction guides             █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class It, class EndOrSize>
-restrict_span(It, EndOrSize) -> restrict_span<
-  std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
+restrict_span(It, EndOrSize)
+  -> restrict_span<
+    std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
 
 template <class T, std::size_t N>
 restrict_span(T (&)[N]) -> restrict_span<T, N>;
@@ -540,8 +544,9 @@ template <class T, std::size_t N>
 restrict_span(const std::array<T, N>&) -> restrict_span<const T, N>;
 
 template <class R>
-restrict_span(R&&) -> restrict_span<
-  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+restrict_span(R&&)
+  -> restrict_span<
+    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // ╔════════════════════════════════════════════════════════╗
 // ║           Public span-like concept and helpers         ║

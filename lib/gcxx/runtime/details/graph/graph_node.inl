@@ -103,8 +103,8 @@ GCXX_FD auto KernelNodeView::SetParam(
 }
 
 GCXX_FD auto KernelNodeView::ApplyUpdates(
-  const details_::deviceGraphKernelNodeUpdate* updates, size_t updateCount)
-  -> void {
+  const details_::deviceGraphKernelNodeUpdate* updates,
+  size_t updateCount) -> void {
   GCXX_RUNTIME_BACKEND(GraphKernelNodeUpdatesApply)(updates, updateCount);
 }
 #endif

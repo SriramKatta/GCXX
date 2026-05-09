@@ -20,7 +20,7 @@ GCXX_CXPR EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT
 GCXX_CXPR EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT
     : event_(eventRef.getRawEvent()) {}
 
-GCXX_FHC auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT->deviceEvent_t {
+GCXX_FHC auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
   return event_;
 }
 
@@ -62,9 +62,8 @@ GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
     StreamView::Null(), static_cast<details_::flag_t>(recordFlag));
 }
 
-GCXX_FH auto EventView::RecordInStream(const StreamView& stream,
-                                       const flags::eventRecord recordFlag)
-  -> void {
+GCXX_FH auto EventView::RecordInStream(
+  const StreamView& stream, const flags::eventRecord recordFlag) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     EventRecordWithFlags, "Failed to record GPU Event in GPU Stream", event_,
     stream.getRawStream(), static_cast<details_::flag_t>(recordFlag));
@@ -87,9 +86,8 @@ GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
 }
 
 template <typename DurationT>
-GCXX_FH auto EventView::ElapsedTimeBetween(const EventView& startEvent,
-                                           const EventView& endEvent)
-  -> DurationT {
+GCXX_FH auto EventView::ElapsedTimeBetween(
+  const EventView& startEvent, const EventView& endEvent) -> DurationT {
   return endEvent.ElapsedTimeSince<DurationT>(startEvent);
 }
 

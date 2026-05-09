@@ -27,8 +27,8 @@ GCXX_FH auto Copy(void* destination, const void* source,
 }
 
 GCXX_FH auto Copy(void* destination, const void* source,
-                  const std::size_t countinBytes, const StreamView& stream)
-  -> void {
+                  const std::size_t countinBytes,
+                  const StreamView& stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     MemcpyAsync, "Failed to perform async GPU copy", destination, source,
     countinBytes, GCXX_RUNTIME_BACKEND(MemcpyDefault), stream.getRawStream());
@@ -50,8 +50,8 @@ namespace memory {
 
   template <typename VT>
   GCXX_FH auto Copy(const VT* destination, const VT* source,
-                    const std::size_t numElements, const StreamView& stream)
-    -> void {
+                    const std::size_t numElements,
+                    const StreamView& stream) -> void {
     details_::Copy((void*)destination, (const void*)source,
                    numElements * sizeof(VT), stream);
   }

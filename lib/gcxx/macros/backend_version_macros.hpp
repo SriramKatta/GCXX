@@ -10,7 +10,7 @@
 #if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__)
 
 #define GCXX_MAKE_CUDA_VERSION(major, minor, build) \
-  (((major)*10000000) + ((minor)*100000) + (build))
+  (((major) * 10000000) + ((minor) * 100000) + (build))
 
 #define GCXX_CUDA_VERSION                                            \
   GCXX_MAKE_CUDA_VERSION(__CUDACC_VER_MAJOR__, __CUDACC_VER_MINOR__, \
@@ -56,7 +56,7 @@
 #define GCXX_HIP_VERSION HIP_VERSION
 
 #define GCXX_MAKE_HIP_VERSION(major, minor, patch) \
-  (((major)*10000000) + ((minor)*100000) + (patch))
+  (((major) * 10000000) + ((minor) * 100000) + (patch))
 
 #define GCXX_HIP_VERSION_EQUALS(major, minor, patch) \
   (GCXX_HIP_VERSION == GCXX_MAKE_HIP_VERSION(major, minor, patch))

@@ -24,8 +24,8 @@ GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
   return {graph};
 }
 
-GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec, GraphView graph)
-  -> void {
+GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec,
+                                           GraphView graph) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphExecChildGraphNodeSetParams,
                          "Failed to set child graph for Graph exex",
                          exec.getRawExec(), node_, graph.getRawGraph());

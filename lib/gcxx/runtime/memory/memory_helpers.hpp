@@ -16,8 +16,8 @@ namespace memory {
 
   template <typename VT>
   GCXX_FH auto makePitchedPtr(void* dPtr, size_t pitchelems = 1,
-                              size_t xSize = 1, size_t ySize = 1)
-    -> devicePitchedPtr {
+                              size_t xSize = 1,
+                              size_t ySize = 1) -> devicePitchedPtr {
     return
 #if GCXX_CUDA_MODE
       make_cudaPitchedPtr
@@ -38,8 +38,8 @@ namespace memory {
   }
 
   template <typename VT>
-  GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1, size_t zSize = 1)
-    -> deviceExtent {
+  GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1,
+                          size_t zSize = 1) -> deviceExtent {
     return
 #if GCXX_CUDA_MODE
       make_cudaExtent

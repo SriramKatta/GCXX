@@ -37,7 +37,7 @@ class GraphExec : public GraphExecView {
   GCXX_FH GraphExec(GraphExec&& other) GCXX_NOEXCEPT;
   GCXX_FH auto operator=(GraphExec&& other) GCXX_NOEXCEPT->GraphExec&;
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT->GraphExecView;
+  GCXX_FH auto Release() GCXX_NOEXCEPT -> GraphExecView;
 
   GCXX_FH auto Update(const GraphView& graph) -> void;
 };

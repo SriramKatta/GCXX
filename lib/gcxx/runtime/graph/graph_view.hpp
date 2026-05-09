@@ -52,8 +52,8 @@ class GraphView {
   GCXX_FHC GraphView() = default;
   GCXX_FHC GraphView(deviceGraph_t rawgraph);
   GCXX_FHC auto getRawGraph() const -> deviceGraph_t;
-  GCXX_FH auto SaveDotfile(std::string_view, flags::graphDebugDot) const
-    -> void;
+  GCXX_FH auto SaveDotfile(std::string_view,
+                           flags::graphDebugDot) const -> void;
   GCXX_FH auto GetNumNodes() const -> size_t;
   GCXX_FH auto GetNumEdges() const -> size_t;
   GCXX_FH auto Clone() const -> GraphView;
@@ -80,11 +80,10 @@ class GraphView {
                             const deviceGraphNode_t* pDependencies = nullptr,
                             std::size_t numDependencies = 0) -> WhileNodeResult;
 
-  GCXX_FH auto AddSwitchNode(deviceGraphConditionalHandle_t condHand,
-                             std::size_t numCases,
-                             const deviceGraphNode_t* pDependencies = nullptr,
-                             std::size_t numDependencies            = 0)
-    -> SwitchNodeResult;
+  GCXX_FH auto AddSwitchNode(
+    deviceGraphConditionalHandle_t condHand, std::size_t numCases,
+    const deviceGraphNode_t* pDependencies = nullptr,
+    std::size_t numDependencies            = 0) -> SwitchNodeResult;
 #endif
   // ════════════════════════════════════════════════════════════════════════
   // Graph Node Addition Methods
@@ -125,21 +124,19 @@ class GraphView {
   //                              nullptr, std::size_t numDependencies = 0)
   //   -> deviceGraphNode_t;
 
-  GCXX_FH auto AddMemFreeNode(void* dptr,
-                              const deviceGraphNode_t* pDependencies = nullptr,
-                              std::size_t numDependencies            = 0)
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddMemFreeNode(
+    void* dptr, const deviceGraphNode_t* pDependencies = nullptr,
+    std::size_t numDependencies = 0) -> deviceGraphNode_t;
 
   GCXX_FH auto AddMemcpyNode(const deviceMemcpy3DParams_t* params,
                              const deviceGraphNode_t* pDependencies = nullptr,
                              std::size_t numDependencies            = 0)
     -> deviceGraphNode_t;
 
-  GCXX_FH auto AddMemcpyNode1D(void* dst, const void* src,
-                               std::size_t countBytes,
-                               const deviceGraphNode_t* pDependencies = nullptr,
-                               std::size_t numDependencies            = 0)
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddMemcpyNode1D(
+    void* dst, const void* src, std::size_t countBytes,
+    const deviceGraphNode_t* pDependencies = nullptr,
+    std::size_t numDependencies            = 0) -> deviceGraphNode_t;
 
   // GCXX_FH auto AddMemcpyNodeFromSymbol(
   //   , const deviceGraphNode_t* pDependencies = nullptr,
@@ -162,57 +159,49 @@ class GraphView {
   // CPP style Graph Node Addition Methods
   // ════════════════════════════════════════════════════════════════════════
 
-  GCXX_FH auto AddChildGraphNode(
-    const GraphView& childGraph,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> ChildGraphNodeView;
+  GCXX_FH auto AddChildGraphNode(const GraphView& childGraph,
+                                 gcxx::span<const deviceGraphNode_t>
+                                   pDependencies = {}) -> ChildGraphNodeView;
 
 
   GCXX_FH auto AddDependencies(gcxx::span<const deviceGraphNode_t> from,
                                gcxx::span<const deviceGraphNode_t> to) -> void;
 
-  GCXX_FH auto AddEmptyNode(
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddEmptyNode(gcxx::span<const deviceGraphNode_t> pDependencies =
+                              {}) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddEventRecordNode(
-    const EventView event,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddEventRecordNode(const EventView event,
+                                  gcxx::span<const deviceGraphNode_t>
+                                    pDependencies = {}) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddEventWaitNode(
-    const EventView event,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddEventWaitNode(const EventView event,
+                                gcxx::span<const deviceGraphNode_t>
+                                  pDependencies = {}) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddHostNode(
-    const HostNodeParamsView params,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddHostNode(const HostNodeParamsView params,
+                           gcxx::span<const deviceGraphNode_t> pDependencies =
+                             {}) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddKernelNode(
-    const KernelNodeParamsView params,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddKernelNode(const KernelNodeParamsView params,
+                             gcxx::span<const deviceGraphNode_t> pDependencies =
+                               {}) -> deviceGraphNode_t;
 
   GCXX_FH auto AddMemFreeNode(
     void* dptr, gcxx::span<const deviceGraphNode_t> pDependencies = {})
     -> deviceGraphNode_t;
 
-  GCXX_FH auto AddMemcpyNode(
-    const Memcpy3DParamsView params,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddMemcpyNode(const Memcpy3DParamsView params,
+                             gcxx::span<const deviceGraphNode_t> pDependencies =
+                               {}) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddMemcpyNode1D(
-    void* dst, const void* src, std::size_t countBytes,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddMemcpyNode1D(void* dst, const void* src,
+                               std::size_t countBytes,
+                               gcxx::span<const deviceGraphNode_t>
+                                 pDependencies = {}) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddMemsetNode(
-    const MemsetParamsView params,
-    gcxx::span<const deviceGraphNode_t> pDependencies = {})
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddMemsetNode(const MemsetParamsView params,
+                             gcxx::span<const deviceGraphNode_t> pDependencies =
+                               {}) -> deviceGraphNode_t;
 };
 
 GCXX_NAMESPACE_MAIN_END

@@ -42,9 +42,9 @@ class Stream : public StreamView {
 
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT->StreamView;
+  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT -> StreamView;
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT->StreamView;
+  GCXX_FH auto Release() GCXX_NOEXCEPT -> StreamView;
 
   GCXX_FH auto getPriority() -> flags::streamPriority;
 };
