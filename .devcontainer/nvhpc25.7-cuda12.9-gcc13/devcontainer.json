@@ -1,0 +1,42 @@
+{
+  "name": "GCXX NVHPC 25.7 CUDA 12.9 (GCC 13)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".",
+    "args": {
+      "BASE_IMAGE": "nvcr.io/nvidia/nvhpc:25.7-devel-cuda12.9-ubuntu24.04",
+      "GCC_VERSION": "13",
+      "CONTAINER_NAME": "gcxx-nvhpc25.7-cuda12.9-gcc13"
+    }
+  },
+  "runArgs": [
+    "--init"
+  ],
+  "containerEnv": {
+    "CMAKE_GENERATOR": "Ninja"
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/GCXX",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools-extension-pack",
+        "anthropic.claude-code",
+        "OpenAI.chatgpt",
+        "NVIDIA.nsight-vscode-edition",
+        "ms-vscode.makefile-tools",
+        "jeff-hykin.better-cpp-syntax",
+        "cschlosser.doxdocgen",
+        "xaver.clang-format"
+      ],
+      "settings": {
+        "C_Cpp.default.compilerPath": "/usr/bin/g++-13",
+        "cmake.configureOnOpen": false,
+        "cmake.useCMakePresets": "always",
+        "editor.formatOnSave": true,
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  }
+}
