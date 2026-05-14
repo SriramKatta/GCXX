@@ -10,7 +10,9 @@
     }
   },
   "runArgs": [
-    "--init"
+    "--init",
+    "--name",
+    "cuda13.2.1-devel-gcc13"
   ],
   "containerEnv": {
     "CMAKE_GENERATOR": "Ninja"

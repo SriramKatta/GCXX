@@ -10,7 +10,9 @@
     }
   },
   "runArgs": [
-    "--init"
+    "--init",
+    "--name",
+    "nvhpc-25.7cuda12.9-devel-gcc13"
   ],
   "containerEnv": {
     "CMAKE_GENERATOR": "Ninja"

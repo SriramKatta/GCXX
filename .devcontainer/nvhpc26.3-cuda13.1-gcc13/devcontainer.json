@@ -10,8 +10,13 @@
     }
   },
   "runArgs": [
-    "--init"
+    "--init",
+    "--name",
+    "nvhpc-26.3cuda13.1-devel-gcc13"
   ],
+  "hostRequirements": {
+    "gpu": "optional"
+  },
   "containerEnv": {
     "CMAKE_GENERATOR": "Ninja"
   },
