@@ -15,7 +15,7 @@
   do {                                                                        \
     const auto err_state = ::GCXX_RUNTIME_BACKEND(BASEFUNCNAME)(__VA_ARGS__); \
     switch (err_state) {                                                      \
-      case gcxx::details_::deviceErrSuccess:                                  \
+      case gcxx::driver::deviceErrSuccess:                                    \
         break;                                                                \
       default:                                                                \
         const auto last = GCXX_RUNTIME_BACKEND(GetLastError)();               \

@@ -7,21 +7,35 @@
 #include <iostream>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_handles.hpp>
 
-#include <gcxx/runtime/error/runtime_error_types.hpp>
+#include <gcxx/runtime_backend/backend_error.hpp>
 #if defined(GCXX_WITH_EXCEPTIONS)
 #include <gcxx/runtime/error/runtime_exception.hpp>
 #endif
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+using driver::deviceError_t;
 
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
 #if defined(GCXX_WITH_EXCEPTIONS)
   throw gcxx::Exception(err, msg);
 #else
-  std::cerr << details_::make_message(err, msg) << "\n";
+  std::cerr << driver::make_message(err, msg) << "\n";
   std::abort();
 #endif
+}
+
+GCXX_FH auto nonFatalErrorQuery(deviceError_t err) -> bool {
+  switch (err) {
+    case driver::deviceErrSuccess:
+      return true;
+    case driver::deviceErrNotReady:
+      return false;
+    default:
+      details_::throwGPUError(err, "Failed to query GPU Stream");
+  }
+  return false;
 }
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
