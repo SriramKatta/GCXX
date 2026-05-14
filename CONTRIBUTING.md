@@ -47,35 +47,47 @@ The development container includes:
 
 ### Building the Project
 
-GCXX uses CMake with presets for configuration. Choose your desired backend and build type:
+GCXX uses CMake with presets for configuration. Use workflow presets to configure and build in one step:
 
-**For CUDA:**
+**For CUDA Debug:**
 ```bash
-cmake --preset gcxx-nvhpc26.3-cuda13.1-gcc13
-cmake --build --preset cuda-debug
+cmake --workflow --preset workflow_debug_cuda_examples
 ```
 
-**For HIP/ROCm:**
+**For CUDA Release:**
 ```bash
-cmake --preset gcxx-rocm7.2.3-gcc13
-cmake --build --preset hip-debug
+cmake --workflow --preset workflow_release_cuda_examples
 ```
+
+**For HIP Debug:**
+```bash
+cmake --workflow --preset workflow_debug_hip_examples
+```
+
+**For HIP Release:**
+```bash
+cmake --workflow --preset workflow_release_hip_examples
+```
+
+Executables will be available in the `build/` subdirectory.
 
 ### Running Tests
 
 Run the test suite to verify your setup:
 ```bash
-ctest --preset cuda-debug
+ctest --preset test_debug_cuda
 # or
-ctest --preset hip-debug
+ctest --preset test_debug_hip
 ```
 
 ### Running Examples
 
 Build and run examples to verify functionality:
 ```bash
-./build/gcxx-nvhpc26.3-cuda13.1-gcc13/cudabin-debug/vector_add
-./build/gcxx-nvhpc26.3-cuda13.1-gcc13/cudabin-debug/reduction
+# Examples are built with the workflow presets above
+# Run from the appropriate build directory
+./build/*/cudabin-debug/vector_add
+./build/*/cudabin-debug/reduction
 ```
 
 ## Development Workflow
@@ -102,23 +114,25 @@ git checkout -b fix/issue-number-description
 
 1. Build with your changes:
    ```bash
-   cmake --build --preset cuda-debug
+   cmake --workflow --preset workflow_debug_cuda_full
    ```
 
 2. Run tests:
    ```bash
-   ctest --preset cuda-debug -V
+   ctest --preset test_debug_cuda -V
    ```
 
 3. Test with both backends if possible:
    ```bash
-   cmake --build --preset hip-debug
-   ctest --preset hip-debug -V
+   cmake --workflow --preset workflow_debug_hip_full
+   ctest --preset test_debug_hip -V
    ```
 
 4. Build and run examples to verify functionality:
    ```bash
-   ./build/gcxx-nvhpc26.3-cuda13.1-gcc13/cudabin-debug/vector_add
+   # Build examples were completed in step 1
+   # Run from the build directory
+   ./build/*/cudabin-debug/vector_add
    ```
 
 ## Contribution Areas

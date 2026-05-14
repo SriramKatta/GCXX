@@ -109,60 +109,63 @@ target_link_libraries(exe-main PRIVATE gcxx::gcxx)
 
 GCXX uses CMake with presets for a simple, unified build experience across both dev containers and local development.
 
-#### Configure the Project
+#### Configure and Build
 
-Choose your desired build preset based on your GPU backend:
+GCXX provides presets for different configurations. Use workflow presets to configure and build in one step:
 
-**For NVIDIA CUDA:**
+**CUDA Release Examples:**
 ```bash
-cmake --preset gcxx-nvhpc26.3-cuda13.1-gcc13
+cmake --workflow --preset workflow_release_cuda_examples
 ```
 
-**For AMD ROCm/HIP:**
+**CUDA Debug Examples:**
 ```bash
-cmake --preset gcxx-rocm7.2.3-gcc13
+cmake --workflow --preset workflow_debug_cuda_examples
 ```
 
-Use `cmake --list-presets` to see all available presets.
-
-#### Build Examples
-
-**CUDA Release Build:**
+**HIP Release Examples:**
 ```bash
-cmake --workflow --preset all-cuda-release-examples
+cmake --workflow --preset workflow_release_hip_examples
 ```
 
-Executables will be available in:
+**HIP Debug Examples:**
 ```bash
-build/cudabin-release/
+cmake --workflow --preset workflow_debug_hip_examples
 ```
 
-**HIP Release Build:**
+Executables will be available in the appropriate `build/` subdirectory.
+
+#### Alternative: Configure and Build Separately
+
+You can also configure and build in separate steps:
+
+**Configure:**
 ```bash
-cmake --workflow --preset all-hip-release-examples
+cmake --preset release_cuda_examples  # or debug_cuda_examples, release_hip_examples, etc.
 ```
 
-Executables will be available in:
+**Build:**
 ```bash
-build/hipbin-release/
+cmake --build --preset build_release_cuda_examples
 ```
 
-#### Build with Specific Configuration
-
-You can also build specific configurations:
-
+**For full builds (examples + tests):**
 ```bash
-cmake --build --preset cuda-debug
-cmake --build --preset hip-debug
+cmake --workflow --preset workflow_release_cuda_full
+cmake --workflow --preset workflow_debug_hip_full
 ```
+
+Use `cmake --list-presets` to see all available configure, build, and workflow presets.
 
 ### Running Tests
 
-Run the test suite after building:
+Run tests using test presets:
 
 ```bash
-ctest --preset cuda-debug  # For CUDA
-ctest --preset hip-debug   # For HIP
+ctest --preset test_release_cuda   # CUDA Release tests
+ctest --preset test_debug_cuda     # CUDA Debug tests
+ctest --preset test_release_hip    # HIP Release tests
+ctest --preset test_debug_hip      # HIP Debug tests
 ```
 
 ---
