@@ -19,14 +19,9 @@ class Stream : public StreamView {
   GCXX_FH auto destroy() -> void;
 
  public:
-  GCXX_FH Stream(
+  GCXX_FH explicit Stream(
     const flags::streamType createFlag       = flags::streamType::SyncWithNull,
     const flags::streamPriority priorityFlag = flags::streamPriority::None);
-
-  GCXX_FH static auto Create(
-    const flags::streamType createFlag       = flags::streamType::SyncWithNull,
-    const flags::streamPriority priorityFlag = flags::streamPriority::None)
-    -> Stream;
 
   GCXX_FH ~Stream();
 
@@ -38,7 +33,7 @@ class Stream : public StreamView {
 
   Stream& operator=(const Stream&) = delete;
 
-  GCXX_FH Stream(Stream&& other) noexcept;
+  GCXX_FH explicit Stream(Stream&& other) noexcept;
 
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 

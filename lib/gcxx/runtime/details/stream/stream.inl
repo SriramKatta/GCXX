@@ -11,7 +11,7 @@ GCXX_NAMESPACE_MAIN_BEGIN
 
 GCXX_FH Stream::Stream(const flags::streamType createFlag,
                        const flags::streamPriority priorityFlag)
-    : StreamView(details_::NULL_STREAM) {
+    : StreamView(driver::NULL_STREAM) {
   if (createFlag == flags::streamType::NullStream) {
     return;
   }
@@ -21,51 +21,47 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
 }
 
 GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
-  this->stream_ = std::exchange(other.stream_, details_::INVALID_STREAM);
+  if (this != &other) {
+    this->destroy();
+    this->stream_ = std::exchange(other.stream_, driver::INVALID_STREAM);
+  }
   return *this;
 }
 
 GCXX_FH auto Stream::destroy() -> void {
   // since cudaStreamDestroy releases the handle after all work is done, to keep
   // similar behaviour
-
 #if GCXX_HIP_MODE
-  if (stream_ != details_::INVALID_STREAM) {
+  if (!isInvalidStream()) {
     Synchronize();
   }
 #endif
 
-  if (stream_ == details_::NULL_STREAM || stream_ == details_::INVALID_STREAM) {
+  if (isNullStream() || isInvalidStream()) {
     return;
   }
 
-  // NOTE : seems that this is not needed need to verify in multi gpu rigrously
+  // NOTE : seems that this is not needed;
+  // need to verify in multi gpu rigrously
   // int deviceId = -1;
   // GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
   // details_::EnsureCurrentDevice e(deviceId);
-  GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "failed to destroy GPU Event", stream_);
-  stream_ = details_::INVALID_STREAM;
+  driver::streamDestroy(stream_);
+  stream_ = driver::INVALID_STREAM;
 }
 
 GCXX_FH Stream::~Stream() {
-
   this->destroy();
-}
-
-GCXX_FH auto Stream::Create(const flags::streamType createFlag,
-                            const flags::streamPriority priorityFlag)
-  -> Stream {
-  return {createFlag, priorityFlag};
 }
 
 GCXX_FH auto Stream::Release() GCXX_NOEXCEPT -> StreamView {
   auto oldStream = stream_;
-  stream_        = details_::INVALID_STREAM;
+  stream_        = driver::INVALID_STREAM;
   return {oldStream};
 }
 
 GCXX_FH Stream::Stream(Stream&& other) noexcept
-    : StreamView(std::exchange(other.stream_, details_::INVALID_STREAM)) {}
+    : StreamView(std::exchange(other.stream_, driver::INVALID_STREAM)) {}
 
 GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT -> StreamView {
   return *this;

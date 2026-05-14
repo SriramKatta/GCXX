@@ -6,7 +6,6 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/graph/graph.hpp>
-#include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
@@ -31,29 +30,18 @@ GCXX_FH constexpr StreamView::operator deviceStream_t() GCXX_CONST_NOEXCEPT {
 }
 
 GCXX_FH auto StreamView::HasPendingWork() -> bool {
-  auto err = GCXX_RUNTIME_BACKEND(StreamQuery)(stream_);
-  switch (err) {
-    case GCXX_RUNTIME_BACKEND(Success):
-      return false;
-    case GCXX_RUNTIME_BACKEND(ErrorNotReady):
-      return true;
-    default:
-      details_::throwGPUError(err, "Failed to query GPU Stream");
-  }
-  return false;
+  const auto err = driver::streamQueryNothrow(stream_);
+  return !details_::nonFatalErrorQuery(err);
 }
 
 GCXX_FH auto StreamView::Synchronize() const -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 }
 
 GCXX_FH auto StreamView::WaitOnEvent(
   const EventView& event, const flags::eventWait waitFlag) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamWaitEvent,
-                         "Failed to GPU Stream Wait on GPU Event",
-                         this->getRawStream(), event.getRawEvent(),
-                         static_cast<details_::flag_t>(waitFlag));
+  driver::StreamWaitEvent(this->stream_, event.getRawEvent(),
+                          static_cast<details_::flag_t>(waitFlag));
 }
 
 GCXX_FH auto StreamView::BeginCapture(const flags::streamCaptureMode createflag)

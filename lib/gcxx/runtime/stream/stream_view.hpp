@@ -6,18 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
-
-
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
-using deviceStream_t = GCXX_RUNTIME_BACKEND(Stream_t);
-inline constexpr deviceStream_t NULL_STREAM{nullptr};  // NOLINT
-
-// clang-format off
-inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL);  // NOLINT
-// clang-format on
-
-GCXX_NAMESPACE_MAIN_DETAILS_END
-
+#include <gcxx/runtime_backend/backend_stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 class Event;
@@ -30,8 +19,8 @@ class StreamView {
   using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
 
  protected:
-  using deviceStream_t = details_::deviceStream_t;
-  deviceStream_t stream_{details_::NULL_STREAM};  // NOLINT
+  using deviceStream_t = driver::deviceStream_t;
+  deviceStream_t stream_{driver::NULL_STREAM};  // NOLINT
 
  public:
   GCXX_FHC StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT;
@@ -41,7 +30,7 @@ class StreamView {
   StreamView(std::nullptr_t) = delete;
 
   static StreamView& Null() {
-    static StreamView s(details_::NULL_STREAM);
+    static StreamView s(driver::NULL_STREAM);
     return s;
   }
 
@@ -61,6 +50,14 @@ class StreamView {
     const flags::eventCreate createflag = flags::eventCreate::None,
     const flags::eventRecord recordFlag = flags::eventRecord::None) const
     -> Event;
+
+  GCXX_FHDC auto isNullStream() -> bool {
+    return stream_ == driver::NULL_STREAM;
+  }
+
+  GCXX_FHD auto isInvalidStream() -> bool {
+    return stream_ == driver::INVALID_STREAM;
+  }
 
   GCXX_FH auto BeginCapture(const flags::streamCaptureMode createflag) -> void;
 
