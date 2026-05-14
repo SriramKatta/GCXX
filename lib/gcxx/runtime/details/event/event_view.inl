@@ -43,16 +43,8 @@ GCXX_CXPR auto operator!=(const EventView& lhs,
 }
 
 GCXX_FH auto EventView::HasOccurred() const -> bool {
-  auto err = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
-  switch (err) {
-    case details_::deviceErrSuccess:
-      return true;
-    case details_::deviceErrNotReady:
-      return false;
-    default:
-      details_::throwGPUError(err, "Failed to query GPU Event");
-  }
-  return false;
+  const auto err = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
+  return details_::nonFatalErrorQuery(err);
 }
 
 GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)

@@ -17,7 +17,7 @@ void eve_ref_check(const gcxx::EventView event) {
 int main() {
 
   gcxx::Event def_event;
-  auto start_event = gcxx::Event::Create();
+  auto start_event = gcxx::Event();
   auto compundFlag = gcxx::flags::eventCreate::disableTiming |
                      gcxx::flags::eventCreate::interprocess;
   gcxx::Event end_event(compundFlag);
