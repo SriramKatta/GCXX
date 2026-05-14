@@ -31,7 +31,7 @@ TEST_F(EventTest, ConstructAndDestroy) {
 }
 
 TEST_F(EventTest, CreateFactory) {
-  auto e = Event::Create();
+  auto e = Event();
   EXPECT_NE(e.getRawEvent(), nullptr);
 }
 
