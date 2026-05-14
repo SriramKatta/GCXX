@@ -14,6 +14,9 @@
     "--name",
     "nvhpc-25.3cuda12.8-devel-gcc13"
   ],
+  "hostRequirements": {
+    "gpu": "optional"
+  },
   "containerEnv": {
     "CMAKE_GENERATOR": "Ninja"
   },
