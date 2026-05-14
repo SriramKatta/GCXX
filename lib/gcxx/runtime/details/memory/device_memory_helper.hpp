@@ -51,8 +51,8 @@ GCXX_CXPR auto device_free = [](void* ptr) {
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to deallocate device memory", ptr);
 };
 
-GCXX_CXPR auto device_free_async = [](void* ptr,
-                                      const StreamView& sv = NULL_STREAM) {
+GCXX_CXPR auto device_free_async = [](void* ptr, const StreamView& sv =
+                                                   driver::NULL_STREAM) {
   GCXX_SAFE_RUNTIME_CALL(FreeAsync,
                          "Failed to deallocate device memory Asynchronysly",
                          ptr, sv.getRawStream());
