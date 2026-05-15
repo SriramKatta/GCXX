@@ -31,12 +31,30 @@ inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL
 using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
 inline static constexpr deviceEvent_t INVALID_EVENT{nullptr};  // NOLINT
 
+
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Graph Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
-using deviceGraph_t     = GCXX_RUNTIME_BACKEND(Graph_t);
-using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
-using deviceGraphExec_t = GCXX_RUNTIME_BACKEND(GraphExec_t);
+using deviceGraph_t           = GCXX_RUNTIME_BACKEND(Graph_t);
+using deviceGraphNode_t       = GCXX_RUNTIME_BACKEND(GraphNode_t);
+using deviceGraphExec_t       = GCXX_RUNTIME_BACKEND(GraphExec_t);
+using deviceGraphNodeParams_t = GCXX_RUNTIME_BACKEND(GraphNodeParams);
+using deviceGraphNodeType_t   = GCXX_RUNTIME_BACKEND(GraphNodeType);
+
+using deviceHostCallBackFn_t   = GCXX_RUNTIME_BACKEND(HostFn_t);
+using deviceHostNodeParams_t   = GCXX_RUNTIME_BACKEND(HostNodeParams);
+using deviceKernelNodeParams_t = GCXX_RUNTIME_BACKEND(KernelNodeParams);
+using deviceMemcpy3DParams_t   = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
+using deviceMemsetParams_t     = GCXX_RUNTIME_BACKEND(MemsetParams);
+
+inline constexpr deviceGraph_t INVALID_GRAPH{nullptr};           // NOLINT
+inline constexpr deviceGraphExec_t INVALID_GRAPH_EXEC{nullptr};  // NOLINT
+inline constexpr deviceGraphNode_t INVALID_GRAPH_NODE{nullptr};  // NOLINT
+
+#if GCXX_CUDA_MODE
+using deviceGraphConditionalHandle_t =
+  GCXX_RUNTIME_BACKEND(GraphConditionalHandle);
+#endif
 
 
 GCXX_NAMESPACE_MAIN_DRIVER_END

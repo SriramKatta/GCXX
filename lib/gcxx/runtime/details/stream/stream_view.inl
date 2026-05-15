@@ -13,7 +13,7 @@ struct CaptureInfo {
   flags::streamCaptureStatus status{};
   unsigned long long Unique_ID{};
   GraphView graph{};
-  const deviceGraphNode_t* pDependencies{};
+  const GraphView::deviceGraphNode_t* pDependencies{};
   std::size_t pDependenciescount{};
 };
 
@@ -60,7 +60,7 @@ GCXX_FH auto StreamView::BeginCaptureToGraph(
 }
 
 GCXX_FH auto StreamView::EndCapture() -> Graph {
-  details_::deviceGraph_t pgraph{nullptr};
+  GraphView::deviceGraph_t pgraph{nullptr};
   GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
                          this->getRawStream(), &pgraph);
   return Graph::CreateFromRaw(pgraph);
@@ -72,7 +72,7 @@ GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {})
   // graph, so the returned handle from EndCapture is the same as
   // graph.getRawGraph(). We just need to call EndCapture to finalize the
   // capture.
-  details_::deviceGraph_t pgraph{nullptr};
+  GraphView::deviceGraph_t pgraph{nullptr};
   GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
                          this->getRawStream(), &pgraph);
   // Assert that the returned graph is indeed the same as the one we passed in
@@ -93,9 +93,9 @@ GCXX_FH auto StreamView::IsCapturing() -> gcxx::flags::streamCaptureStatus {
 GCXX_FH auto StreamView::GetCaptureInfo() -> CaptureInfo {
   GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
   unsigned long long id{};
-  deviceGraph_t graph{};
-  const deviceGraphNode_t* pDependencies = nullptr;
-  std::size_t numdeps                    = 0;
+  GraphView::deviceGraph_t graph{};
+  const GraphView::deviceGraphNode_t* pDependencies = nullptr;
+  std::size_t numdeps                               = 0;
 
   GCXX_SAFE_RUNTIME_CALL(StreamGetCaptureInfo,
                          "Failed to get Capture info of stream", stream_,

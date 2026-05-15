@@ -17,19 +17,15 @@ GCXX_FH auto GraphExec::Create(const GraphView& graph) -> GraphExec {
 }
 
 GCXX_FH GraphExec::GraphExec(const GraphView& graph)
-    : GraphExecView(details_::INVALID_GRAPH_EXEC) {
-  GCXX_SAFE_RUNTIME_CALL(GraphInstantiate, "Failed to instantiate the graph",
-                         &exec_, graph.getRawGraph(), nullptr, nullptr, 0);
-}
+    : GraphExecView(driver::graphInstantiate(graph.getRawGraph())) {}
 
 GCXX_FH auto GraphExec::CreateFromRaw(deviceGraphExec_t exec) -> GraphExec {
   return GraphExec{exec};
 }
 
 GCXX_FH auto GraphExec::destroy() -> void {
-  if (exec_ != details_::INVALID_GRAPH_EXEC) {
-    GCXX_SAFE_RUNTIME_CALL(GraphExecDestroy, "Failed to destroy graph exec",
-                           exec_);
+  if (exec_ != driver::INVALID_GRAPH_EXEC) {
+    driver::graphExecDestroy(exec_);
   }
 }
 
@@ -38,33 +34,25 @@ GCXX_FH GraphExec::~GraphExec() GCXX_NOEXCEPT {
 }
 
 GCXX_FH GraphExec::GraphExec(GraphExec&& other) GCXX_NOEXCEPT
-    : GraphExecView(std::exchange(other.exec_, details_::INVALID_GRAPH_EXEC)) {}
+    : GraphExecView(std::exchange(other.exec_, driver::INVALID_GRAPH_EXEC)) {}
 
 GCXX_FH auto GraphExec::operator=(GraphExec&& other)
   GCXX_NOEXCEPT -> GraphExec& {
   if (this != &other) {
     destroy();
-    exec_ = std::exchange(other.exec_, details_::INVALID_GRAPH_EXEC);
+    exec_ = std::exchange(other.exec_, driver::INVALID_GRAPH_EXEC);
   }
   return *this;
 }
 
 GCXX_FH auto GraphExec::Release() GCXX_NOEXCEPT -> GraphExecView {
   auto oldExec = exec_;
-  exec_        = details_::INVALID_GRAPH_EXEC;
+  exec_        = driver::INVALID_GRAPH_EXEC;
   return GraphExecView{oldExec};
 }
 
 GCXX_FH auto GraphExec::Update(const GraphView& graph) -> void {
-  // TODO hip needs the 4th arg and the last arg has different datatype names in
-  // cuda and hip
-  // GCXX_RUNTIME_BACKEND(GraphExecUpdateResultInfo) updateResult;
-  GCXX_SAFE_RUNTIME_CALL(GraphExecUpdate, "Failed to update graph exec", exec_,
-                         graph.getRawGraph(),
-#if GCXX_HIP_MODE
-                         NULL,
-#endif
-                         nullptr);
+  driver::graphExecUpdate(exec_, graph.getRawGraph());
 }
 
 GCXX_NAMESPACE_MAIN_END

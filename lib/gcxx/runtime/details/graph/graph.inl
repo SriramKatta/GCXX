@@ -17,15 +17,13 @@ GCXX_FH auto Graph::Create(const flags::graphCreate createFlag) -> Graph {
 }
 
 GCXX_FH Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT
-    : GraphView(details_::INVALID_GRAPH) {
-  GCXX_SAFE_RUNTIME_CALL(GraphCreate, "Failed to create the graph", &graph_,
-                         static_cast<details_::flag_t>(createFlag));
-}
+    : GraphView(
+        driver::graphCreate(static_cast<details_::flag_t>(createFlag))) {}
 
 GCXX_FH auto Graph::destroy() -> void {
-  if (graph_ != details_::INVALID_GRAPH) {
-    GCXX_SAFE_RUNTIME_CALL(GraphDestroy, "Failed to destroy the graph", graph_);
-    graph_ = details_::INVALID_GRAPH;
+  if (graph_ != driver::INVALID_GRAPH) {
+    driver::graphDestroy(graph_);
+    graph_ = driver::INVALID_GRAPH;
   }
 }
 
@@ -34,19 +32,19 @@ GCXX_FH Graph::~Graph() GCXX_NOEXCEPT {
 }
 
 GCXX_FH Graph::Graph(Graph&& other) GCXX_NOEXCEPT
-    : GraphView(std::exchange(other.graph_, details_::INVALID_GRAPH)) {}
+    : GraphView(std::exchange(other.graph_, driver::INVALID_GRAPH)) {}
 
 GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT -> Graph& {
   if (this != &other) {
     destroy();
-    graph_ = std::exchange(other.graph_, details_::INVALID_GRAPH);
+    graph_ = std::exchange(other.graph_, driver::INVALID_GRAPH);
   }
   return *this;
 }
 
 GCXX_FH auto Graph::Release() GCXX_NOEXCEPT -> GraphView {
   auto oldGraph = graph_;
-  graph_        = details_::INVALID_GRAPH;
+  graph_        = driver::INVALID_GRAPH;
   return GraphView{oldGraph};
 }
 

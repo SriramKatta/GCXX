@@ -12,14 +12,16 @@
 #include <vector>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_graph.hpp>
 
 #include <gcxx/runtime/memory/memory_helpers.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-using deviceMemsetParams_t = GCXX_RUNTIME_BACKEND(MemsetParams);
-
 class MemsetParamsView {
+ public:
+  using deviceMemsetParams_t = driver::deviceMemsetParams_t;
+
  protected:
   deviceMemsetParams_t params_{};  // NOLINT
 

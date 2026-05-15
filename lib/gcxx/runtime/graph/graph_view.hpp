@@ -12,30 +12,12 @@
 #include <gcxx/runtime/flags/graph_flags.hpp>
 #include <gcxx/runtime/graph/graph_params.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
+#include <gcxx/runtime_backend/backend_graph.hpp>
 
 #include <gcxx/runtime/graph/graph_nodes.hpp>
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
-using deviceGraph_t           = GCXX_RUNTIME_BACKEND(Graph_t);
-using deviceGraphNodeParams_t = GCXX_RUNTIME_BACKEND(GraphNodeParams);
-inline constexpr deviceGraph_t INVALID_GRAPH{nullptr};
-
-#if GCXX_CUDA_MODE
-using deviceGraphConditionalHandle_t =
-  GCXX_RUNTIME_BACKEND(GraphConditionalHandle);
-#endif
-
-GCXX_NAMESPACE_MAIN_DETAILS_END
-
-
 GCXX_NAMESPACE_MAIN_BEGIN
-using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
-using deviceGraph_t     = details_::deviceGraph_t;
 
-
-#if GCXX_CUDA_MODE
-using deviceGraphConditionalHandle_t = details_::deviceGraphConditionalHandle_t;
-#endif
 
 class GraphView;
 /// Result struct for AddIfNode with named fields
@@ -45,8 +27,16 @@ struct WhileNodeResult;
 struct SwitchNodeResult;
 
 class GraphView {
+ public:
+  using deviceGraph_t           = driver::deviceGraph_t;
+  using deviceGraphNode_t       = driver::deviceGraphNode_t;
+  using deviceGraphNodeParams_t = driver::deviceGraphNodeParams_t;
+#if GCXX_CUDA_MODE
+  using deviceGraphConditionalHandle_t = driver::deviceGraphConditionalHandle_t;
+#endif
+
  protected:
-  deviceGraph_t graph_{details_::INVALID_GRAPH};  // NOLINT
+  deviceGraph_t graph_{driver::INVALID_GRAPH};  // NOLINT
 
  public:
   GCXX_FHC GraphView() = default;
@@ -109,15 +99,15 @@ class GraphView {
     const EventView event, const deviceGraphNode_t* pDependencies = nullptr,
     std::size_t numDependencies = 0) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddHostNode(const deviceHostNodeParams_t* params,
-                           const deviceGraphNode_t* pDependencies = nullptr,
-                           std::size_t numDependencies            = 0)
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddHostNode(
+    const HostNodeParamsView::deviceHostNodeParams_t* params,
+    const deviceGraphNode_t* pDependencies = nullptr,
+    std::size_t numDependencies            = 0) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddKernelNode(const deviceKernelNodeParams_t* params,
-                             const deviceGraphNode_t* pDependencies = nullptr,
-                             std::size_t numDependencies            = 0)
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddKernelNode(
+    const KernelNodeParamsView::deviceKernelNodeParams_t* params,
+    const deviceGraphNode_t* pDependencies = nullptr,
+    std::size_t numDependencies            = 0) -> deviceGraphNode_t;
 
   // GCXX_FH auto AddMemAllocNode(,
   //                              const deviceGraphNode_t* pDependencies =
@@ -128,10 +118,10 @@ class GraphView {
     void* dptr, const deviceGraphNode_t* pDependencies = nullptr,
     std::size_t numDependencies = 0) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddMemcpyNode(const deviceMemcpy3DParams_t* params,
-                             const deviceGraphNode_t* pDependencies = nullptr,
-                             std::size_t numDependencies            = 0)
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddMemcpyNode(
+    const Memcpy3DParamsView::deviceMemcpy3DParams_t* params,
+    const deviceGraphNode_t* pDependencies = nullptr,
+    std::size_t numDependencies            = 0) -> deviceGraphNode_t;
 
   GCXX_FH auto AddMemcpyNode1D(
     void* dst, const void* src, std::size_t countBytes,
@@ -145,10 +135,10 @@ class GraphView {
   //   , const deviceGraphNode_t* pDependencies = nullptr,
   //   std::size_t numDependencies        = 0) -> deviceGraphNode_t;
 
-  GCXX_FH auto AddMemsetNode(const deviceMemsetParams_t* params,
-                             const deviceGraphNode_t* pDependencies = nullptr,
-                             std::size_t numDependencies            = 0)
-    -> deviceGraphNode_t;
+  GCXX_FH auto AddMemsetNode(
+    const MemsetParamsView::deviceMemsetParams_t* params,
+    const deviceGraphNode_t* pDependencies = nullptr,
+    std::size_t numDependencies            = 0) -> deviceGraphNode_t;
 
 
   // // general version to Add anything will make a staic dispatch with diffrent

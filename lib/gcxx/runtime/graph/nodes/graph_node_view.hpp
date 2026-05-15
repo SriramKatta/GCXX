@@ -7,6 +7,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/flags/graph_flags.hpp>
+#include <gcxx/runtime_backend/backend_graph.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -14,14 +15,14 @@ GCXX_NAMESPACE_MAIN_BEGIN
 class GraphView;
 class GraphExecView;
 
-
-using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
-
 // TODO : needs diffrent specilaization for memallocnode, memfreenode ..... and
 // have the set* and get* menber funtions that can be speciliazed to set the
 // appropriate params like
 
 class GraphNodeView {
+ public:
+  using deviceGraphNode_t = driver::deviceGraphNode_t;
+
  protected:
   deviceGraphNode_t node_;  // NOLINT
 
@@ -36,9 +37,9 @@ class GraphNodeView {
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
-  GCXX_FH auto geLocalId() -> unsigned int;
+  GCXX_FH auto getLocalId() -> unsigned int;
 
-  GCXX_FH auto geToolsId() -> unsigned long long;
+  GCXX_FH auto getToolsId() -> unsigned long long;
 
 #endif
 };

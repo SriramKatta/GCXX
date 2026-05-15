@@ -16,7 +16,7 @@ class GraphExecView;
 
 class ChildGraphNodeView : public GraphNodeView {
  public:
-  GCXX_FHC ChildGraphNodeView(deviceGraphNode_t node);
+  GCXX_FHC ChildGraphNodeView(GraphNodeView::deviceGraphNode_t node);
 
   GCXX_FH auto getGraph() -> GraphView;
 

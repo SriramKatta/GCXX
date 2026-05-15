@@ -23,13 +23,11 @@ GCXX_FHC GraphExecView::operator deviceGraphExec_t() const GCXX_NOEXCEPT {
 
 GCXX_FH auto GraphExecView::Launch(
   const StreamView& stream = StreamView::Null()) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphLaunch, "Failed to launch graph", exec_,
-                         stream.getRawStream());
+  driver::graphLaunch(exec_, stream.getRawStream());
 }
 
 GCXX_FH auto GraphExecView::Upload(const StreamView& stream) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphUpload, "Failed to upload graph", exec_,
-                         stream.getRawStream());
+  driver::graphUpload(exec_, stream.getRawStream());
 }
 
 GCXX_NAMESPACE_MAIN_END

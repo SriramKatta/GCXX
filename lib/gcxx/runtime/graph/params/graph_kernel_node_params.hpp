@@ -13,15 +13,17 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/runtime_backend/backend_graph.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
-
-using deviceKernelNodeParams_t = GCXX_RUNTIME_BACKEND(KernelNodeParams);
 
 // KernelNodeParamsView is a non-owning view. It assumes that
 // params_.kernelParams (and any memory it points to) remains valid for the
 // lifetime of the view. No mutation is allowed through this interface.
 class KernelNodeParamsView {
+ public:
+  using deviceKernelNodeParams_t = driver::deviceKernelNodeParams_t;
+
  protected:
   deviceKernelNodeParams_t params_{};  // NOLINT
 

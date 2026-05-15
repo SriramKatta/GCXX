@@ -159,8 +159,8 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                         size_t numOfBlocks) {
   gcxx::Stream streamForGraph;
   gcxx::Graph graph;
-  std::vector<gcxx::deviceGraphNode_t> nodeDependencies;
-  gcxx::deviceGraphNode_t memcpyNode = nullptr, memsetNode = nullptr;
+  std::vector<gcxx::GraphView::deviceGraphNode_t> nodeDependencies;
+  gcxx::GraphView::deviceGraphNode_t memcpyNode = nullptr, memsetNode = nullptr;
   double result_h = 0.0;
 
   auto memcpy3d1 =

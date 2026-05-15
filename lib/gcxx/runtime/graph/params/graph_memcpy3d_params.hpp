@@ -11,14 +11,16 @@
 #include <vector>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_graph.hpp>
 
 #include <gcxx/runtime/memory/memory_helpers.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-using deviceMemcpy3DParams_t = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
-
 class Memcpy3DParamsView {
+ public:
+  using deviceMemcpy3DParams_t = driver::deviceMemcpy3DParams_t;
+
  protected:
   deviceMemcpy3DParams_t params_{};  // NOLINT
 

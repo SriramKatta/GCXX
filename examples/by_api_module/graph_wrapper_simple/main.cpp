@@ -158,7 +158,7 @@ void manual_graph_build() {
 
   gcxx::Stream StreamforGraph;
 
-  std::vector<gcxx::deviceGraphNode_t> deps;
+  std::vector<gcxx::GraphView::deviceGraphNode_t> deps;
   deps.reserve(2);
 
   auto KA = gcxx::KernelParamsBuilder().setKernel(kern_A).build<0>();

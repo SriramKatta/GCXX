@@ -5,21 +5,18 @@
 #define GCXX_RUNTIME_GRAPH_GRAPH_EXEC_VIEW_HPP_
 
 #include <gcxx/internal/prologue.hpp>
-
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
-using deviceGraphExec_t = GCXX_RUNTIME_BACKEND(GraphExec_t);
-inline constexpr deviceGraphExec_t INVALID_GRAPH_EXEC{nullptr};
-GCXX_NAMESPACE_MAIN_DETAILS_END
-
+#include <gcxx/runtime_backend/backend_graph.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
 class StreamView;
 
 class GraphExecView {
+ public:
+  using deviceGraphExec_t = driver::deviceGraphExec_t;
+
  protected:
-  using deviceGraphExec_t = details_::deviceGraphExec_t;
-  deviceGraphExec_t exec_{details_::INVALID_GRAPH_EXEC};  // NOLINT
+  deviceGraphExec_t exec_{driver::INVALID_GRAPH_EXEC};  // NOLINT
 
  public:
   GCXX_FHC GraphExecView() = default;

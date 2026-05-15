@@ -6,6 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
+#include <gcxx/runtime_backend/backend_graph.hpp>
 #include <gcxx/runtime_backend/backend_stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -16,7 +17,7 @@ struct CaptureInfo;
 
 class StreamView {
  private:
-  using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
+  using deviceGraphNode_t = driver::deviceGraphNode_t;
 
  protected:
   using deviceStream_t = driver::deviceStream_t;

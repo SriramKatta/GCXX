@@ -12,15 +12,17 @@
 #include <vector>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_graph.hpp>
 
 #include <gcxx/runtime/memory/memory_helpers.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-using deviceHostCallBackFn_t = GCXX_RUNTIME_BACKEND(HostFn_t);
-using deviceHostNodeParams_t = GCXX_RUNTIME_BACKEND(HostNodeParams);
-
 class HostNodeParamsView {
+ public:
+  using deviceHostCallBackFn_t = driver::deviceHostCallBackFn_t;
+  using deviceHostNodeParams_t = driver::deviceHostNodeParams_t;
+
  protected:
   deviceHostNodeParams_t params_{};  // NOLINT
 
@@ -62,15 +64,15 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 
 class HostNodeParamsBuilder {
  private:
-  deviceHostCallBackFn_t func_{};
+  HostNodeParamsView::deviceHostCallBackFn_t func_{};
   void* Udata_{nullptr};
 
 
  public:
   GCXX_FH static auto create() -> HostNodeParamsBuilder { return {}; }
 
-  GCXX_FHC auto setHostCallbackFn(deviceHostCallBackFn_t func)
-    -> HostNodeParamsBuilder& {
+  GCXX_FHC auto setHostCallbackFn(
+    HostNodeParamsView::deviceHostCallBackFn_t func) -> HostNodeParamsBuilder& {
     func_ = func;
     return *this;
   }

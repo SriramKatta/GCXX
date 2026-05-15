@@ -48,8 +48,8 @@
 
 #include <gcxx/api.hpp>
 
-__global__ void ifGraphKernelA(char* dPtr,
-                               gcxx::deviceGraphConditionalHandle_t handle) {
+__global__ void ifGraphKernelA(
+  char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   // In this example, condition is set if *dPtr is odd
   unsigned int value = *dPtr & 0x01;
   gcxx::Graph::SetConditional(handle, value);
@@ -124,8 +124,8 @@ __global__ void doWhileEmptyKernel() {
   return;
 }
 
-__global__ void doWhileLoopKernel(char* dPtr,
-                                  gcxx::deviceGraphConditionalHandle_t handle) {
+__global__ void doWhileLoopKernel(
+  char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   if (--(*dPtr) == 0) {
     gcxx::Graph::SetConditional(handle, 0);
   }
@@ -185,7 +185,7 @@ void simpleDoWhileGraph() {
  */
 
 __global__ void capturedWhileKernel(
-  char* dPtr, gcxx::deviceGraphConditionalHandle_t handle) {
+  char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   printf("GPU: counter = %d\n", *dPtr);
   if (*dPtr) {
     (*dPtr)--;
@@ -199,7 +199,7 @@ __global__ void capturedWhileEmptyKernel() {
 }
 
 void capturedWhileGraph() {
-  gcxx::deviceGraphConditionalHandle_t handle = 0;
+  gcxx::GraphView::deviceGraphConditionalHandle_t handle = 0;
 
   auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
   char* dPtr     = dPtr_raii.get();
@@ -352,7 +352,7 @@ void simpleIfElseGraph() {
  */
 
 __global__ void switchGraphKernelA(
-  char* dPtr, gcxx::deviceGraphConditionalHandle_t handle) {
+  char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   unsigned int value = *dPtr;
   gcxx::Graph::SetConditional(handle, value);
   printf("GPU: Handle set to %d\n", value);

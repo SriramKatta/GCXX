@@ -13,22 +13,18 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
-GCXX_FHC ChildGraphNodeView::ChildGraphNodeView(deviceGraphNode_t node)
+GCXX_FHC ChildGraphNodeView::ChildGraphNodeView(
+  GraphNodeView::deviceGraphNode_t node)
     : GraphNodeView(node) {}
 
 GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
-  deviceGraph_t graph = nullptr;
-  GCXX_SAFE_RUNTIME_CALL(GraphChildGraphNodeGetGraph,
-                         "Failed to get the graph of given Node", node_,
-                         &graph);
-  return {graph};
+  return {driver::graphChildGraphNodeGetGraph(node_)};
 }
 
 GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec,
                                            GraphView graph) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphExecChildGraphNodeSetParams,
-                         "Failed to set child graph for Graph exex",
-                         exec.getRawExec(), node_, graph.getRawGraph());
+  driver::graphExecChildGraphNodeSetParams(exec.getRawExec(), node_,
+                                           graph.getRawGraph());
 }
 
 GCXX_NAMESPACE_MAIN_END
