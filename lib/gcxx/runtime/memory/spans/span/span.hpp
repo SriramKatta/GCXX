@@ -24,6 +24,12 @@ the code same
 
 GCXX_NAMESPACE_MAIN_BEGIN
 
+template <class VT, std::size_t Extent>
+class span;
+
+template <class VT, std::size_t Extent>
+class restrict_span;
+
 // since mdspan from kokkos has this already we dont need it here
 // GCXX_CXPR inline auto dynamic_extent =
 //   std::numeric_limits<std::size_t>::max();
@@ -37,6 +43,20 @@ GCXX_NAMESPACE_DETAILS_BEGIN
 // Primary: not span-like.
 template <typename T, typename = void>
 struct is_span_like_impl : std::false_type {};
+
+template <typename T>
+struct is_gcxx_span_specialization : std::false_type {};
+
+template <typename T, std::size_t Extent>
+struct is_gcxx_span_specialization<gcxx::span<T, Extent>> : std::true_type {};
+
+template <typename T, std::size_t Extent>
+struct is_gcxx_span_specialization<gcxx::restrict_span<T, Extent>>
+    : std::true_type {};
+
+template <typename T>
+GCXX_CXPR inline bool is_gcxx_span_specialization_v =
+  is_gcxx_span_specialization<uncvref_t<T>>::value;
 
 // Specialisation: T has .data() → pointer and .size() → integral.
 template <typename T>
@@ -54,6 +74,8 @@ struct is_span_like_impl<
 
 template <std::size_t Extent>
 struct size_holder {
+  GCXX_FHDC size_holder() noexcept = default;
+
   GCXX_FHDC size_holder(std::size_t) noexcept {}
 
   static GCXX_FHDC std::size_t size() noexcept { return Extent; }
@@ -123,7 +145,8 @@ struct restrict_span_storage : size_holder<Extent> {
 };
 
 template <class VT, std::size_t Extent,
-          template <typename, std::size_t> class span_storage_base>
+          template <typename, std::size_t> class span_storage_base,
+          template <typename, std::size_t> class span_view_base>
 class span_base {
  private:
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -138,8 +161,8 @@ class span_base {
                      "A forward declaration is not supported,"
                      " need a fully declared type");
 
-  using Self             = span_base<VT, Extent, span_storage_base>;
-  using storage_type     = span_storage_base<VT, Extent>;
+  using Self         = span_base<VT, Extent, span_storage_base, span_view_base>;
+  using storage_type = span_storage_base<VT, Extent>;
   using data_handle_type = typename storage_type::data_handle_type;
 
  public:
@@ -187,7 +210,7 @@ class span_base {
     gcxx::details_::is_iter_ptr_convertible_v<It, element_type> GCXX_AND E !=
     gcxx::dynamic_extent)
 
-  GCXX_FHC explicit span_base(It first, size_type count)
+  GCXX_FHDC explicit span_base(It first, size_type count)
       : m_storage(gcxx::details_::to_address(first), count) {
     GCXX_RUNTIME_EXPECT(extent == gcxx::dynamic_extent || extent == count,
                         "span.ctor from start and count failed");
@@ -200,7 +223,7 @@ class span_base {
         GCXX_AND !std::is_convertible_v<End, std::size_t>
           GCXX_AND(E == gcxx::dynamic_extent))
 
-  GCXX_FHC span_base(It first, End last)
+  GCXX_FHDC span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
     GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent || extent == (last - first),
@@ -214,7 +237,7 @@ class span_base {
         GCXX_AND !std::is_convertible_v<End, std::size_t>
           GCXX_AND(E != gcxx::dynamic_extent))
 
-  GCXX_FHC explicit span_base(It first, End last)
+  GCXX_FHDC explicit span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
     GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent || extent == (last - first),
@@ -247,12 +270,13 @@ class span_base {
       : m_storage(arr.data(), N) {}
 
   GCXX_TEMPLATE(typename R, std::size_t E = Extent)
-  GCXX_REQUIRES(details_::has_size_and_data_v<R> GCXX_AND
-                  is_range_ptr_convertible_v<R, element_type>
-                    GCXX_AND !std::is_array_v<R>
-                      GCXX_AND !gcxx::details_::is_std_array_v<
-                        std::remove_cv_t<std::remove_reference_t<R>>>
-                        GCXX_AND(E == gcxx::dynamic_extent))
+  GCXX_REQUIRES(
+    details_::has_size_and_data_v<R> GCXX_AND
+      is_range_ptr_convertible_v<R, element_type>
+        GCXX_AND !std::is_array_v<details_::uncvref_t<R>>
+          GCXX_AND !gcxx::details_::is_std_array_v<details_::uncvref_t<R>>
+            GCXX_AND !details_::is_gcxx_span_specialization_v<R>
+              GCXX_AND(E == gcxx::dynamic_extent))
 
   GCXX_FHC span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
@@ -262,18 +286,47 @@ class span_base {
   }
 
   GCXX_TEMPLATE(typename R, std::size_t E = Extent)
-  GCXX_REQUIRES(details_::has_size_and_data_v<R> GCXX_AND
-                  is_range_ptr_convertible_v<R, element_type>
-                    GCXX_AND !std::is_array_v<R>
-                      GCXX_AND !gcxx::details_::is_std_array_v<
-                        std::remove_cv_t<std::remove_reference_t<R>>>
-                        GCXX_AND(E != gcxx::dynamic_extent))
+  GCXX_REQUIRES(
+    details_::has_size_and_data_v<R> GCXX_AND
+      is_range_ptr_convertible_v<R, element_type>
+        GCXX_AND !std::is_array_v<details_::uncvref_t<R>>
+          GCXX_AND !gcxx::details_::is_std_array_v<details_::uncvref_t<R>>
+            GCXX_AND !details_::is_gcxx_span_specialization_v<R>
+              GCXX_AND(E != gcxx::dynamic_extent))
 
   GCXX_FHC explicit span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
     GCXX_RUNTIME_EXPECT(
       extent == gcxx::dynamic_extent || extent == gcxx::details_::size(r),
       "span.ctor from a range failed");
+  }
+
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    (E == gcxx::dynamic_extent || N == gcxx::dynamic_extent || E == N)
+      GCXX_AND details_::is_type_ptr_convertible_v<U, element_type>
+        GCXX_AND(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
+
+  GCXX_FHC explicit span_base(
+    const span_base<U, N, span_storage_base, span_view_base>& source) noexcept
+      : m_storage(source.data(), source.size()) {
+    GCXX_RUNTIME_EXPECT(
+      extent == gcxx::dynamic_extent || extent == source.size(),
+      "span.ctor from a source span of diffrent type failed");
+  }
+
+  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
+  GCXX_REQUIRES(
+    (E == gcxx::dynamic_extent || N == gcxx::dynamic_extent || E == N)
+      GCXX_AND details_::is_type_ptr_convertible_v<U, element_type>
+        GCXX_AND !(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
+
+  GCXX_FHC span_base(
+    const span_base<U, N, span_storage_base, span_view_base>& source) noexcept
+      : m_storage(source.data(), source.size()) {
+    GCXX_RUNTIME_EXPECT(
+      extent == gcxx::dynamic_extent || extent == source.size(),
+      "span.ctor from a source span of diffrent type failed");
   }
 
   GCXX_FHDC span_base(const span_base& other) noexcept = default;
@@ -348,56 +401,62 @@ class span_base {
   // ==========================================================
 
   template <std::size_t Count>
-  GCXX_FHDC auto first() const
-    -> span_base<element_type, Count, span_storage_base> {
-    GCXX_STATIC_EXPECT(Count <= size(), "Span.first count greater than size");
-    return {data(), Count};
+  GCXX_FHDC auto first() const -> span_view_base<element_type, Count> {
+    GCXX_STATIC_EXPECT(Extent == gcxx::dynamic_extent || Count <= Extent,
+                       "Span.first count greater than size");
+    GCXX_RUNTIME_EXPECT(Count <= size(), "Span.first count greater than size");
+    return span_view_base<element_type, Count>(data(), Count);
   }
 
   GCXX_FHDC auto first(size_type count) const
-    -> span_base<element_type, gcxx::dynamic_extent, span_storage_base> {
+    -> span_view_base<element_type, gcxx::dynamic_extent> {
     GCXX_RUNTIME_EXPECT(count <= size(), "Span.first count greater thansize");
     return {data(), count};
   }
 
   template <std::size_t Count>
-  GCXX_FHDC auto last() const
-    -> span_base<element_type, Count, span_storage_base> {
-    GCXX_STATIC_EXPECT(Count <= size(), "Span.last count greater than size");
-    return {data() + (size() - Count), Count};
+  GCXX_FHDC auto last() const -> span_view_base<element_type, Count> {
+    GCXX_STATIC_EXPECT(Extent == gcxx::dynamic_extent || Count <= Extent,
+                       "Span.last count greater than size");
+    GCXX_RUNTIME_EXPECT(Count <= size(), "Span.last count greater than size");
+    return span_view_base<element_type, Count>(data() + (size() - Count),
+                                               Count);
   }
 
   GCXX_FHDC auto last(size_type count) const
-    -> span_base<element_type, gcxx::dynamic_extent, span_storage_base> {
+    -> span_view_base<element_type, gcxx::dynamic_extent> {
     GCXX_RUNTIME_EXPECT(count <= size(), "Span.last count greater than size");
     return {data() + (size() - count), count};
   }
 
   template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   using subspan_ret_t =
-    span_base<element_type,
-              Count != gcxx::dynamic_extent
-                ? Count
-                : (Extent != Count ? Extent - Offset : gcxx::dynamic_extent),
-              span_storage_base>;
+    span_view_base<element_type, Count != gcxx::dynamic_extent
+                                   ? Count
+                                   : (Extent != Count ? Extent - Offset
+                                                      : gcxx::dynamic_extent)>;
 
   template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   GCXX_FHDC auto subspan() const -> subspan_ret_t<Offset, Count> {
-    GCXX_STATIC_EXPECT(Offset <= size() && Count == gcxx::dynamic_extent ||
-                         Offset + Count < size(),
+    GCXX_STATIC_EXPECT(Extent == gcxx::dynamic_extent ||
+                         (Offset <= Extent && (Count == gcxx::dynamic_extent ||
+                                               Offset + Count <= Extent)),
                        "Span.subspan contract violated");
-    return {data() + Offset,
-            Count != gcxx::dynamic_extent ? Count : size() - Offset};
+    GCXX_RUNTIME_EXPECT(Offset <= size() && (Count == gcxx::dynamic_extent ||
+                                             Offset + Count <= size()),
+                        "Span.subspan contract violated");
+    return subspan_ret_t<Offset, Count>(
+      data() + Offset, Count != gcxx::dynamic_extent ? Count : size() - Offset);
   }
 
   GCXX_FHDC auto subspan(size_type offset,
                          size_type count = gcxx::dynamic_extent) const
-    -> span_base<element_type, gcxx::dynamic_extent, span_storage_base> {
-    GCXX_RUNTIME_EXPECT(offset <= size() && count == gcxx::dynamic_extent ||
-                          offset + count < size(),
+    -> span_view_base<element_type, gcxx::dynamic_extent> {
+    GCXX_RUNTIME_EXPECT(offset <= size() && (count == gcxx::dynamic_extent ||
+                                             offset + count <= size()),
                         "Span.subspan contract violated");
     return {data() + offset,
-            count == gcxx::dynamic_extent ? size() - count : count};
+            count == gcxx::dynamic_extent ? size() - offset : count};
   }
 
  private:
@@ -410,49 +469,13 @@ GCXX_NAMESPACE_DETAILS_END
 // █                          Span                          █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
-class span : public details_::span_base<VT, Extent, details_::span_storage> {
+class span
+    : public details_::span_base<VT, Extent, details_::span_storage, span> {
  private:
-  using Base = details_::span_base<VT, Extent, details_::span_storage>;
+  using Base = details_::span_base<VT, Extent, details_::span_storage, span>;
 
  public:
   using Base::Base;
-
-  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
-  GCXX_REQUIRES(
-    (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
-     Base::extent == N) GCXX_AND
-      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
-        GCXX_AND(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
-
-  GCXX_FHC explicit span(const span<U, N>& source) noexcept : Base(source) {
-    GCXX_RUNTIME_EXPECT(
-      Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
-      "span.ctor from a source span of diffrent type failed");
-  }
-
-  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
-  GCXX_REQUIRES(
-    (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
-     Base::extent == N) GCXX_AND
-      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
-        GCXX_AND(E == gcxx::dynamic_extent && N != gcxx::dynamic_extent))
-
-  GCXX_FHC span(const span<U, N>& source) noexcept : Base(source) {
-    GCXX_RUNTIME_EXPECT(
-      Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
-      "span.ctor from a source span of diffrent type failed");
-  }
-
-  GCXX_FHDC auto subspan(
-    typename Base::size_type offset,
-    typename Base::size_type count = gcxx::dynamic_extent) const -> span<VT> {
-    GCXX_RUNTIME_EXPECT(
-      offset <= this->size() &&
-        (count == gcxx::dynamic_extent || offset + count <= this->size()),
-      "Span.subspan contract violated");
-    return {this->data() + offset,
-            count == gcxx::dynamic_extent ? this->size() - offset : count};
-  }
 };
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                 Span Deduction guides                  █
@@ -480,51 +503,14 @@ span(R&&)
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class restrict_span
-    : public details_::span_base<VT, Extent, details_::restrict_span_storage> {
+    : public details_::span_base<VT, Extent, details_::restrict_span_storage,
+                                 restrict_span> {
  private:
-  using Base = details_::span_base<VT, Extent, details_::restrict_span_storage>;
+  using Base = details_::span_base<VT, Extent, details_::restrict_span_storage,
+                                   restrict_span>;
 
  public:
   using Base::Base;
-
-  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
-  GCXX_REQUIRES(
-    (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
-     Base::extent == N) GCXX_AND
-      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
-        GCXX_AND(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
-
-  GCXX_FHC explicit restrict_span(const restrict_span<U, N>& source) noexcept
-      : Base(source) {
-    GCXX_RUNTIME_EXPECT(
-      Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
-      "span.ctor from a source span of diffrent type failed");
-  }
-
-  GCXX_TEMPLATE(typename U, std::size_t N, std::size_t E = Extent)
-  GCXX_REQUIRES(
-    (Base::extent == gcxx::dynamic_extent || N == gcxx::dynamic_extent ||
-     Base::extent == N) GCXX_AND
-      details_::is_type_ptr_convertible_v<U, typename Base::element_type>
-        GCXX_AND(E == gcxx::dynamic_extent && N != gcxx::dynamic_extent))
-
-  GCXX_FHC restrict_span(const restrict_span<U, N>& source) noexcept
-      : Base(source) {
-    GCXX_RUNTIME_EXPECT(
-      Base::extent == gcxx::dynamic_extent || Base::extent == source.size(),
-      "span.ctor from a source span of diffrent type failed");
-  }
-
-  GCXX_FHDC auto subspan(typename Base::size_type offset,
-                         typename Base::size_type count =
-                           gcxx::dynamic_extent) const -> restrict_span<VT> {
-    GCXX_RUNTIME_EXPECT(
-      offset <= this->size() &&
-        (count == gcxx::dynamic_extent || offset + count <= this->size()),
-      "Span.subspan contract violated");
-    return {this->data() + offset,
-            count == gcxx::dynamic_extent ? this->size() - offset : count};
-  }
 };
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █             Restrcit Span Deduction guides             █

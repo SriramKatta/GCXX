@@ -19,7 +19,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
 template <class C>
 GCXX_FHDC auto data(C& c) {
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#if GCXX_DEVICE_COMPILE
   using T = decltype(c.data());
   return static_cast<T>(nullptr);
 #else
@@ -29,7 +29,7 @@ GCXX_FHDC auto data(C& c) {
 
 template <class C>
 GCXX_FHDC auto data(const C& c) {
-#ifdef GCXX_DEVICE_COMPILE
+#if GCXX_DEVICE_COMPILE
   using T = decltype(c.data());
   return static_cast<T>(nullptr);
 #else
