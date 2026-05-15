@@ -43,7 +43,7 @@ GCXX_CXPR auto operator!=(const EventView& lhs,
 }
 
 GCXX_FH auto EventView::HasOccurred() const -> bool {
-  const auto err = GCXX_RUNTIME_BACKEND(EventQuery)(event_);
+  const auto err = driver::eventQueryNoThrow(event_);
   return details_::nonFatalErrorQuery(err);
 }
 

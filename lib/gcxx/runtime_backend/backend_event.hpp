@@ -43,6 +43,10 @@ GCXX_FH auto eventDestroy(deviceEvent_t event) -> void {
   GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event", event);
 }
 
+GCXX_FH auto eventQueryNoThrow(deviceEvent_t event) -> deviceError_t {
+  return GCXX_RUNTIME_BACKEND(EventQuery)(event);
+}
+
 GCXX_NAMESPACE_MAIN_DRIVER_END
 
 #endif
