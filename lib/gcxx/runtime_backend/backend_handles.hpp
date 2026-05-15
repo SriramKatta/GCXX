@@ -9,14 +9,14 @@
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
 // ╔════════════════════════════════════════════════════════╗
-// ║                     Error handles                      ║
+// ║                     Error Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
 using deviceError_t                     = GCXX_RUNTIME_BACKEND(Error_t);
 GCXX_CXPR inline auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
 GCXX_CXPR inline auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 
 // ╔════════════════════════════════════════════════════════╗
-// ║                     Sream Handles                      ║
+// ║                     Stream Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
 using deviceStream_t = GCXX_RUNTIME_BACKEND(Stream_t);
 inline static constexpr deviceStream_t NULL_STREAM{nullptr};  // NOLINT
@@ -25,16 +25,14 @@ inline static constexpr deviceStream_t NULL_STREAM{nullptr};  // NOLINT
 inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL);  // NOLINT
 // clang-format on
 
-
 // ╔════════════════════════════════════════════════════════╗
-// ║                     Event handles                      ║
+// ║                     Event Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
 using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
 inline static constexpr deviceEvent_t INVALID_EVENT{nullptr};  // NOLINT
 
-
 // ╔════════════════════════════════════════════════════════╗
-// ║                     Graph handles                      ║
+// ║                     Graph Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
 using deviceGraph_t     = GCXX_RUNTIME_BACKEND(Graph_t);
 using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
