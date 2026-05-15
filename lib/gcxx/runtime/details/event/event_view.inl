@@ -32,6 +32,12 @@ GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
   return event_ != driver::INVALID_EVENT;
 }
 
+GCXX_CXPR auto EventView::operator=(const EventView& eventRef)
+  GCXX_NOEXCEPT -> EventView& {
+  event_ = eventRef.getRawEvent();
+  return *this;
+}
+
 GCXX_CXPR auto operator==(const EventView lhs,
                           const EventView rhs) GCXX_NOEXCEPT->bool {
   return lhs.event_ == rhs.event_;

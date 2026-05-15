@@ -34,7 +34,7 @@ TEST_F(EventTest, CreateFactory) {
 }
 
 TEST_F(EventTest, CreateWithFlagsProducesUsableEvent) {
-  auto e = Event::Create(flags::eventCreate::blockingSync);
+  auto e = Event(flags::eventCreate::blockingSync);
   EXPECT_NE(e.getRawEvent(), driver::INVALID_EVENT);
 
   e.RecordInStream();

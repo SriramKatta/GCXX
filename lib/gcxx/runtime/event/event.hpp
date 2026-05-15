@@ -17,9 +17,6 @@ class Event : public EventView {
  public:
   GCXX_FH Event(const flags::eventCreate createFlag = flags::eventCreate::None);
 
-  GCXX_FH static auto Create(
-    const flags::eventCreate createFlag = flags::eventCreate::None) -> Event;
-
   GCXX_FH ~Event();
 
   Event(const Event&) = delete;
