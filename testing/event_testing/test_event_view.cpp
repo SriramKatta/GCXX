@@ -2,6 +2,8 @@
 // Copyright (C) 2026 Sriram Katta
 #include "tests_common.hpp"
 
+#include <type_traits>
+
 #include <gcxx/runtime/event/event.hpp>
 #include <gcxx/runtime/event/event_view.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
@@ -11,19 +13,19 @@ using namespace gcxx;
 class EventViewTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    GCXX_SAFE_RUNTIME_CALL(StreamCreate, "Failed to Create GPU Stream",
-                           &stream_);
-    GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event", &event_);
+    stream_ = driver::streamCreate(
+      static_cast<details_::flag_t>(flags::streamType::SyncWithNull), 0);
+    event_ = driver::eventCreateWithFlags(
+      static_cast<details_::flag_t>(flags::eventCreate::None));
   }
 
   void TearDown() override {
-    GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", event_);
-    GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "Failed to Destroy GPU Stream",
-                           stream_);
+    driver::eventDestroy(event_);
+    driver::streamDestroy(stream_);
   }
 
-  GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
-  GCXX_RUNTIME_BACKEND(Event_t) event_{};
+  driver::deviceStream_t stream_{driver::NULL_STREAM};
+  driver::deviceEvent_t event_{driver::INVALID_EVENT};
 };
 
 TEST_F(EventViewTest, DefaultConstructor) {
@@ -45,9 +47,24 @@ TEST_F(EventViewTest, CopyConstructor) {
   EXPECT_EQ(view2.getRawEvent(), event_);
 }
 
+TEST_F(EventViewTest, CopyAssignmentRebindsToSameEvent) {
+  driver::deviceEvent_t event2{driver::INVALID_EVENT};
+  event2 = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
+
+  EventView source(event_);
+  EventView target(event2);
+  target = source;
+
+  EXPECT_EQ(target.getRawEvent(), event_);
+  EXPECT_TRUE(target == source);
+
+  driver::eventDestroy(event2);
+}
+
 TEST_F(EventViewTest, ImplicitConversionToRaw) {
   EventView view(event_);
-  GCXX_RUNTIME_BACKEND(Event_t) raw = view;
+  driver::deviceEvent_t raw = view;
   EXPECT_EQ(raw, event_);
 }
 
@@ -66,6 +83,18 @@ TEST_F(EventViewTest, BoolConversionInvalidEvent) {
   EXPECT_FALSE(static_cast<bool>(view));
 }
 
+TEST(EventViewCompileTimeTest, RejectsAmbiguousIntegralAndNullConstruction) {
+  static_assert(!std::is_constructible_v<EventView, int>);
+  static_assert(!std::is_constructible_v<EventView, std::nullptr_t>);
+}
+
+TEST(EventViewDurationTest, ConvertsMillisecondsToSupportedDurations) {
+  EXPECT_FLOAT_EQ(ConvertDuration<milliSec>(1.5F).count(), 1.5F);
+  EXPECT_FLOAT_EQ(ConvertDuration<microSec>(1.5F).count(), 1500.0F);
+  EXPECT_FLOAT_EQ(ConvertDuration<nanoSec>(1.5F).count(), 1500000.0F);
+  EXPECT_FLOAT_EQ(ConvertDuration<sec>(1.5F).count(), 0.0015F);
+}
+
 TEST_F(EventViewTest, EqualityOperatorSameEvent) {
   EventView view1(event_);
   EventView view2(event_);
@@ -73,25 +102,27 @@ TEST_F(EventViewTest, EqualityOperatorSameEvent) {
 }
 
 TEST_F(EventViewTest, EqualityOperatorDifferentEvents) {
-  GCXX_RUNTIME_BACKEND(Event_t) event2{};
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event", &event2);
+  driver::deviceEvent_t event2{driver::INVALID_EVENT};
+  event2 = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
 
   EventView view1(event_);
   EventView view2(event2);
   EXPECT_FALSE(view1 == view2);
 
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", event2);
+  driver::eventDestroy(event2);
 }
 
 TEST_F(EventViewTest, InequalityOperator) {
-  GCXX_RUNTIME_BACKEND(Event_t) event2{};
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event", &event2);
+  driver::deviceEvent_t event2{driver::INVALID_EVENT};
+  event2 = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
 
   EventView view1(event_);
   EventView view2(event2);
   EXPECT_TRUE(view1 != view2);
 
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", event2);
+  driver::eventDestroy(event2);
 }
 
 TEST_F(EventViewTest, InequalityOperatorSameEvent) {
@@ -105,8 +136,16 @@ TEST_F(EventViewTest, RecordInStreamWithView) {
   StreamView s(stream_);
 
   view.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
+
+  EXPECT_TRUE(view.HasOccurred());
+}
+
+TEST_F(EventViewTest, RecordInDefaultStream) {
+  EventView view(event_);
+
+  view.RecordInStream();
+  view.Synchronize();
 
   EXPECT_TRUE(view.HasOccurred());
 }
@@ -126,84 +165,78 @@ TEST_F(EventViewTest, HasOccurredAfterRecord) {
   StreamView s(stream_);
 
   view.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   EXPECT_TRUE(view.HasOccurred());
 }
 
 TEST_F(EventViewTest, ElapsedTimeSince) {
-  GCXX_RUNTIME_BACKEND(Event_t) startEvent{};
-  GCXX_RUNTIME_BACKEND(Event_t) endEvent{};
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event",
-                         &startEvent);
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event", &endEvent);
+  driver::deviceEvent_t startEvent{driver::INVALID_EVENT};
+  driver::deviceEvent_t endEvent{driver::INVALID_EVENT};
+  startEvent = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
+  endEvent = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
 
   EventView start(startEvent);
   EventView end(endEvent);
   StreamView s(stream_);
 
   start.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   end.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   auto elapsed = end.ElapsedTimeSince(start);
   EXPECT_GE(elapsed.count(), 0.0f);
 
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event",
-                         startEvent);
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", endEvent);
+  driver::eventDestroy(startEvent);
+  driver::eventDestroy(endEvent);
 }
 
 TEST_F(EventViewTest, ElapsedTimeBetween) {
-  GCXX_RUNTIME_BACKEND(Event_t) startEvent{};
-  GCXX_RUNTIME_BACKEND(Event_t) endEvent{};
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event",
-                         &startEvent);
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event", &endEvent);
+  driver::deviceEvent_t startEvent{driver::INVALID_EVENT};
+  driver::deviceEvent_t endEvent{driver::INVALID_EVENT};
+  startEvent = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
+  endEvent = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
 
   EventView start(startEvent);
   EventView end(endEvent);
   StreamView s(stream_);
 
   start.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   end.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   auto elapsed = EventView::ElapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);
 
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event",
-                         startEvent);
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", endEvent);
+  driver::eventDestroy(startEvent);
+  driver::eventDestroy(endEvent);
 }
 
 TEST_F(EventViewTest, ElapsedTimeWithDifferentDurationTypes) {
-  GCXX_RUNTIME_BACKEND(Event_t) startEvent{};
-  GCXX_RUNTIME_BACKEND(Event_t) endEvent{};
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event",
-                         &startEvent);
-  GCXX_SAFE_RUNTIME_CALL(EventCreate, "Failed to Create GPU Event", &endEvent);
+  driver::deviceEvent_t startEvent{driver::INVALID_EVENT};
+  driver::deviceEvent_t endEvent{driver::INVALID_EVENT};
+  startEvent = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
+  endEvent = driver::eventCreateWithFlags(
+    static_cast<details_::flag_t>(flags::eventCreate::None));
 
   EventView start(startEvent);
   EventView end(endEvent);
   StreamView s(stream_);
 
   start.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   end.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   auto elapsedMs   = end.ElapsedTimeSince<milliSec>(start);
   auto elapsedUs   = end.ElapsedTimeSince<microSec>(start);
@@ -215,9 +248,8 @@ TEST_F(EventViewTest, ElapsedTimeWithDifferentDurationTypes) {
   EXPECT_GE(elapsedNs.count(), 0.0f);
   EXPECT_GE(elapsedSecs.count(), 0.0f);
 
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event",
-                         startEvent);
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", endEvent);
+  driver::eventDestroy(startEvent);
+  driver::eventDestroy(endEvent);
 }
 
 TEST_F(EventViewTest, EventViewFromEvent) {

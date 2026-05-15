@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Sriram Katta
 #include "tests_common.hpp"
 
+#include <utility>
 
 #include <gcxx/runtime/event/event.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
@@ -11,16 +12,13 @@ using namespace gcxx;
 class EventTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    GCXX_SAFE_RUNTIME_CALL(StreamCreate, "Failed to Create GPU Stream",
-                           &stream_);
+    stream_ = driver::streamCreate(
+      static_cast<details_::flag_t>(flags::streamType::SyncWithNull), 0);
   }
 
-  void TearDown() override {
-    GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "Failed to Destroy GPU Stream",
-                           stream_);
-  }
+  void TearDown() override { driver::streamDestroy(stream_); }
 
-  GCXX_RUNTIME_BACKEND(Stream_t) stream_{};
+  driver::deviceStream_t stream_{driver::NULL_STREAM};
 };
 
 TEST_F(EventTest, ConstructAndDestroy) {
@@ -33,6 +31,16 @@ TEST_F(EventTest, ConstructAndDestroy) {
 TEST_F(EventTest, CreateFactory) {
   auto e = Event();
   EXPECT_NE(e.getRawEvent(), nullptr);
+}
+
+TEST_F(EventTest, CreateWithFlagsProducesUsableEvent) {
+  auto e = Event::Create(flags::eventCreate::blockingSync);
+  EXPECT_NE(e.getRawEvent(), driver::INVALID_EVENT);
+
+  e.RecordInStream();
+  e.Synchronize();
+
+  EXPECT_TRUE(e.HasOccurred());
 }
 
 TEST_F(EventTest, MoveConstructorTransfersOwnership) {
@@ -50,7 +58,7 @@ TEST_F(EventTest, MoveAssignmentTransfersOwnership) {
   auto raw1 = e1.getRawEvent();
 
   e2 = std::move(e1);
-  EXPECT_EQ(e1.getRawEvent(), nullptr);
+  EXPECT_EQ(e1.getRawEvent(), gcxx::driver::INVALID_EVENT);
   EXPECT_EQ(e2.getRawEvent(), raw1);
 }
 
@@ -59,11 +67,23 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
   auto raw = e.getRawEvent();
 
   EventView ref = e.Release();
-  EXPECT_EQ(e.getRawEvent(), nullptr);
+  EXPECT_EQ(e.getRawEvent(), gcxx::driver::INVALID_EVENT);
   EXPECT_EQ(ref.getRawEvent(), raw);
 
   // Destroy manually since ownership transferred
-  GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to Destroy GPU Event", raw);
+  driver::eventDestroy(raw);
+}
+
+TEST_F(EventTest, ReleasedHandleRemainsUsableThroughView) {
+  Event e;
+  auto raw      = e.getRawEvent();
+  EventView ref = e.Release();
+
+  ref.RecordInStream();
+  ref.Synchronize();
+
+  EXPECT_TRUE(ref.HasOccurred());
+  driver::eventDestroy(raw);
 }
 
 TEST_F(EventTest, RecordAndElapsedTime) {
@@ -72,13 +92,29 @@ TEST_F(EventTest, RecordAndElapsedTime) {
   StreamView s(stream_);
 
   start.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   end.RecordInStream(s);
-  GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to Synchronize GPU Stream",
-                         stream_);
+  driver::streamSynchronize(stream_);
 
   auto elapsed = Event::ElapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);
+}
+
+TEST_F(EventTest, StreamViewRecordEventReturnsRecordedEvent) {
+  StreamView s(stream_);
+
+  auto event = s.RecordEvent();
+  s.Synchronize();
+
+  EXPECT_TRUE(event.HasOccurred());
+}
+
+TEST_F(EventTest, MoveAssignmentSelfMoveKeepsOwnership) {
+  Event e;
+  const auto raw = e.getRawEvent();
+
+  e = std::move(e);
+
+  EXPECT_EQ(e.getRawEvent(), raw);
 }
