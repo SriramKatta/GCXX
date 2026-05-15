@@ -32,7 +32,8 @@
         "ms-vscode.makefile-tools",
         "jeff-hykin.better-cpp-syntax",
         "cschlosser.doxdocgen",
-        "xaver.clang-format"
+        "xaver.clang-format",
+        "naela.comment-banners"
       ],
       "settings": {
         "C_Cpp.default.compilerPath": "/usr/bin/g++-13",
