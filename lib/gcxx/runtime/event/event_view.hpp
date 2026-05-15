@@ -9,13 +9,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
-
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
-
-using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
-inline static GCXX_CXPR deviceEvent_t INVALID_EVENT{};  // Default null event
-
-GCXX_NAMESPACE_MAIN_DETAILS_END
+#include <gcxx/runtime_backend/backend_event.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN
@@ -30,7 +24,8 @@ using milliSec = std::chrono::duration<float, std::milli>;
 using sec      = std::chrono::duration<float>;
 
 /**
- * @brief Converts a time value in milliseconds to the specified duration type.
+ * @brief Converts a time value in milliseconds to the specified duration
+ * type.
  *
  * @tparam DurationT The target duration type (e.g., nanoSec, microSec,
  * milliSec, sec)
@@ -38,7 +33,7 @@ using sec      = std::chrono::duration<float>;
  * @return The converted duration in the specified type
  */
 template <typename DurationT>
-inline auto ConvertDuration(float ms) -> DurationT {
+GCXX_FH auto ConvertDuration(float ms) -> DurationT {
   return std::chrono::duration_cast<DurationT>(milliSec(ms));
 }
 
@@ -51,8 +46,8 @@ class StreamView;
  */
 class EventView {
  protected:
-  using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
-  deviceEvent_t event_{details_::INVALID_EVENT};  // NOLINT
+  using deviceEvent_t = driver::deviceEvent_t;
+  deviceEvent_t event_{driver::INVALID_EVENT};  // NOLINT
 
  public:
   /** @brief Default constructor - creates an EventView with an invalid/null

@@ -28,7 +28,7 @@ class EventViewTest : public ::testing::Test {
 
 TEST_F(EventViewTest, DefaultConstructor) {
   EventView view;
-  EXPECT_EQ(view.getRawEvent(), details_::INVALID_EVENT);
+  EXPECT_EQ(view.getRawEvent(), driver::INVALID_EVENT);
   EXPECT_FALSE(static_cast<bool>(view));
 }
 

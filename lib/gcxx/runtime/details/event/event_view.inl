@@ -29,7 +29,7 @@ GCXX_CXPR EventView::operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
 }
 
 GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
-  return event_ != details_::INVALID_EVENT;
+  return event_ != driver::INVALID_EVENT;
 }
 
 GCXX_CXPR auto operator==(const EventView lhs,
@@ -49,31 +49,25 @@ GCXX_FH auto EventView::HasOccurred() const -> bool {
 
 GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
   -> void {
-  GCXX_SAFE_RUNTIME_CALL(
-    EventRecordWithFlags, "Failed to record GPU Event in GPU Stream", event_,
-    StreamView::Null(), static_cast<details_::flag_t>(recordFlag));
+  RecordInStream(StreamView::Null(), recordFlag);
 }
 
 GCXX_FH auto EventView::RecordInStream(
   const StreamView& stream, const flags::eventRecord recordFlag) -> void {
-  GCXX_SAFE_RUNTIME_CALL(
-    EventRecordWithFlags, "Failed to record GPU Event in GPU Stream", event_,
-    stream.getRawStream(), static_cast<details_::flag_t>(recordFlag));
+  driver::eventRecordWithFlags(event_, stream.getRawStream(),
+                               static_cast<details_::flag_t>(recordFlag));
 }
 
 GCXX_FH auto EventView::Synchronize() const -> void {
-  GCXX_SAFE_RUNTIME_CALL(EventSynchronize, "Failed to synchronize GPU Event",
-                         event_);
+  driver::eventSynchronize(event_);
 }
 
 template <typename DurationT>
 GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
   -> DurationT {
   this->Synchronize();
-  float ms{};
-  GCXX_SAFE_RUNTIME_CALL(EventElapsedTime,
-                         "Failed to get elapsed time between GPU Events", &ms,
-                         startEvent.getRawEvent(), this->getRawEvent());
+  const auto ms =
+    driver::eventElapsedTime(startEvent.getRawEvent(), getRawEvent());
   return ConvertDuration<DurationT>(ms);
 }
 

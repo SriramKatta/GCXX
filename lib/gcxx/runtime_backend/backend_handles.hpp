@@ -21,6 +21,12 @@ inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL
 // clang-format on
 
 using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
+inline static constexpr deviceEvent_t INVALID_EVENT{nullptr};  // NOLINT
+
+
+using deviceGraph_t     = GCXX_RUNTIME_BACKEND(Graph_t);
+using deviceGraphNode_t = GCXX_RUNTIME_BACKEND(GraphNode_t);
+using deviceGraphExec_t = GCXX_RUNTIME_BACKEND(GraphExec_t);
 
 
 GCXX_NAMESPACE_MAIN_DRIVER_END

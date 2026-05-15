@@ -40,7 +40,7 @@ TEST_F(EventTest, MoveConstructorTransfersOwnership) {
   auto raw1 = e1.getRawEvent();
 
   Event e2(std::move(e1));
-  EXPECT_EQ(e1.getRawEvent(), details_::INVALID_EVENT);
+  EXPECT_EQ(e1.getRawEvent(), driver::INVALID_EVENT);
   EXPECT_EQ(e2.getRawEvent(), raw1);
 }
 
