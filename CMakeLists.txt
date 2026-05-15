@@ -118,4 +118,4 @@ endif()
 
 if(GCXX_TOPLEVEL_PROJECT)
   include(cmake/configuration_logging.cmake)
-endif(GCXX_TOP)
+endif()
