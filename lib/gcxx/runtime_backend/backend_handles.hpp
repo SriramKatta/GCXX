@@ -46,6 +46,25 @@ using deviceHostNodeParams_t   = GCXX_RUNTIME_BACKEND(HostNodeParams);
 using deviceKernelNodeParams_t = GCXX_RUNTIME_BACKEND(KernelNodeParams);
 using deviceMemcpy3DParams_t   = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
 using deviceMemsetParams_t     = GCXX_RUNTIME_BACKEND(MemsetParams);
+using deviceMemcpyKind_t       = GCXX_RUNTIME_BACKEND(MemcpyKind);
+
+#if GCXX_CUDA_MODE
+using deviceExternalSemaphoreSignalNodeParams_t =
+  GCXX_RUNTIME_BACKEND(ExternalSemaphoreSignalNodeParams);
+using deviceExternalSemaphoreWaitNodeParams_t =
+  GCXX_RUNTIME_BACKEND(ExternalSemaphoreWaitNodeParams);
+using deviceGraphEdgeData_t = GCXX_RUNTIME_BACKEND(GraphEdgeData);
+using deviceGraphExecUpdateResultInfo_t =
+  GCXX_RUNTIME_BACKEND(GraphExecUpdateResultInfo);
+using deviceGraphInstantiateParams_t =
+  GCXX_RUNTIME_BACKEND(GraphInstantiateParams);
+using deviceGraphMemAttributeType_t =
+  GCXX_RUNTIME_BACKEND(GraphMemAttributeType);
+using deviceKernelNodeAttrID_t    = GCXX_RUNTIME_BACKEND(KernelNodeAttrID);
+using deviceKernelNodeAttrValue_t = GCXX_RUNTIME_BACKEND(KernelNodeAttrValue);
+using deviceMemAllocNodeParams_t  = GCXX_RUNTIME_BACKEND(MemAllocNodeParams);
+using deviceUserObject_t          = GCXX_RUNTIME_BACKEND(UserObject_t);
+#endif
 
 inline constexpr deviceGraph_t INVALID_GRAPH{nullptr};           // NOLINT
 inline constexpr deviceGraphExec_t INVALID_GRAPH_EXEC{nullptr};  // NOLINT
