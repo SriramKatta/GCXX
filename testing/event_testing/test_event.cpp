@@ -12,7 +12,7 @@ using namespace gcxx;
 class EventTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    stream_ = driver::streamCreate(
+    stream_ = driver::streamCreateWithPriority(
       static_cast<details_::flag_t>(flags::streamType::SyncWithNull), 0);
   }
 

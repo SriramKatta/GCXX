@@ -18,12 +18,20 @@ GCXX_CXPR inline auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Stream Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
-using deviceStream_t = GCXX_RUNTIME_BACKEND(Stream_t);
+using deviceStream_t              = GCXX_RUNTIME_BACKEND(Stream_t);
+using deviceStreamCallback_t      = GCXX_RUNTIME_BACKEND(StreamCallback_t);
+using deviceStreamCaptureMode_t   = GCXX_RUNTIME_BACKEND(StreamCaptureMode);
+using deviceStreamCaptureStatus_t = GCXX_RUNTIME_BACKEND(StreamCaptureStatus);
 inline static constexpr deviceStream_t NULL_STREAM{nullptr};  // NOLINT
 
 // clang-format off
 inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL);  // NOLINT
 // clang-format on
+
+#if GCXX_CUDA_MODE
+using deviceStreamAttrID_t    = GCXX_RUNTIME_BACKEND(StreamAttrID);
+using deviceStreamAttrValue_t = GCXX_RUNTIME_BACKEND(StreamAttrValue);
+#endif
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Event Handles                      ║
