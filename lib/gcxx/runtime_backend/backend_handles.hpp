@@ -21,6 +21,11 @@ using deviceIpcEventHandle_t = GCXX_RUNTIME_BACKEND(IpcEventHandle_t);
 using deviceIpcMemHandle_t   = GCXX_RUNTIME_BACKEND(IpcMemHandle_t);
 
 // ╔════════════════════════════════════════════════════════╗
+// ║                   Execution Handles                    ║
+// ╚════════════════════════════════════════════════════════╝
+using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
+
+// ╔════════════════════════════════════════════════════════╗
 // ║                     Error Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
 using deviceError_t                     = GCXX_RUNTIME_BACKEND(Error_t);
