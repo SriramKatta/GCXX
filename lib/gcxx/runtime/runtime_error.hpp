@@ -18,7 +18,7 @@
       case gcxx::driver::deviceErrSuccess:                                    \
         break;                                                                \
       default:                                                                \
-        const auto last = GCXX_RUNTIME_BACKEND(GetLastError)();               \
+        const auto last = driver::GetLastError();                             \
         gcxx::details_::throwGPUError(last, MSG);                             \
     }                                                                         \
   } while (0)

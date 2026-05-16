@@ -13,15 +13,24 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
-GCXX_FHD const char* GetErrorName(deviceError_t err) {
+GCXX_FHD auto GetErrorName(deviceError_t err) -> const char* {
   return ::GCXX_RUNTIME_BACKEND(GetErrorName)(err);
 }
 
-GCXX_FHD const char* GetErrorString(deviceError_t err) {
+GCXX_FHD auto GetErrorString(deviceError_t err) -> const char* {
   return ::GCXX_RUNTIME_BACKEND(GetErrorString)(err);
 }
 
-GCXX_FH std::string make_message(deviceError_t err, std::string_view context) {
+GCXX_FHD auto GetLastError() -> deviceError_t {
+  return ::GCXX_RUNTIME_BACKEND(GetLastError)();
+}
+
+GCXX_FHD auto PeekAtLastError() -> deviceError_t {
+  return ::GCXX_RUNTIME_BACKEND(PeekAtLastError)();
+}
+
+GCXX_FH auto make_message(deviceError_t err,
+                          std::string_view context) -> std::string {
   std::string msg;
   constexpr size_t addtional_message_size = 128;
   msg.reserve(context.size() + addtional_message_size);
