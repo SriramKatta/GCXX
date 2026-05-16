@@ -9,6 +9,18 @@
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
 // ╔════════════════════════════════════════════════════════╗
+// ║                     Device Handles                     ║
+// ╚════════════════════════════════════════════════════════╝
+using deviceProp_t           = GCXX_RUNTIME_BACKEND(DeviceProp);
+using deviceAttribute_t      = GCXX_RUNTIME_BACKEND(DeviceAttr);
+using funcCacheConfig_t      = GCXX_RUNTIME_BACKEND(FuncCache);
+using deviceMemPool_t        = GCXX_RUNTIME_BACKEND(MemPool_t);
+using deviceLimit_t          = GCXX_RUNTIME_BACKEND(Limit);
+using deviceP2PAttr_t        = GCXX_RUNTIME_BACKEND(DeviceP2PAttr);
+using deviceIpcEventHandle_t = GCXX_RUNTIME_BACKEND(IpcEventHandle_t);
+using deviceIpcMemHandle_t   = GCXX_RUNTIME_BACKEND(IpcMemHandle_t);
+
+// ╔════════════════════════════════════════════════════════╗
 // ║                     Error Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
 using deviceError_t                     = GCXX_RUNTIME_BACKEND(Error_t);
