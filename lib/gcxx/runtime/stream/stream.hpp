@@ -15,13 +15,12 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 class Stream : public StreamView {
- private:
   GCXX_FH auto destroy() -> void;
 
  public:
   GCXX_FH explicit Stream(
-    const flags::streamType createFlag       = flags::streamType::SyncWithNull,
-    const flags::streamPriority priorityFlag = flags::streamPriority::None);
+    flags::streamType createFlag       = flags::streamType::SyncWithNull,
+    flags::streamPriority priorityFlag = flags::streamPriority::None);
 
   GCXX_FH ~Stream();
 
@@ -33,7 +32,7 @@ class Stream : public StreamView {
 
   Stream& operator=(const Stream&) = delete;
 
-  GCXX_FH explicit Stream(Stream&& other) noexcept;
+  GCXX_FH Stream(Stream&& other) noexcept;
 
   GCXX_FH auto operator=(Stream&& other) GCXX_NOEXCEPT->Stream&;
 

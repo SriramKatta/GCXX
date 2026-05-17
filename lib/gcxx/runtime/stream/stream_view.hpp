@@ -5,18 +5,19 @@
 #define GCXX_RUNTIME_STREAM_STREAM_VIEW_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/flags/event_flags.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 #include <gcxx/runtime_backend/backend_stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN
 class Event;
+class EventView;
 class GraphView;
 class Graph;
 struct CaptureInfo;
 
 class StreamView {
- private:
   using deviceGraphNode_t = driver::deviceGraphNode_t;
 
  protected:
@@ -24,7 +25,7 @@ class StreamView {
   deviceStream_t stream_{driver::NULL_STREAM};  // NOLINT
 
  public:
-  GCXX_FHC StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT;
+  explicit GCXX_FHC StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT;
 
   StreamView()               = delete;
   StreamView(int)            = delete;
@@ -37,7 +38,7 @@ class StreamView {
 
   GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
-  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;
+  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;  // NOLINT
 
   GCXX_FH auto HasPendingWork() -> bool;
 
@@ -45,42 +46,41 @@ class StreamView {
 
   GCXX_FH auto WaitOnEvent(
     const EventView& event,
-    const flags::eventWait waitFlag = flags::eventWait::None) const -> void;
+    flags::eventWait waitFlag = flags::eventWait::None) const -> void;
 
   GCXX_FH auto RecordEvent(
-    const flags::eventCreate createflag = flags::eventCreate::None,
-    const flags::eventRecord recordFlag = flags::eventRecord::None) const
-    -> Event;
+    flags::eventCreate createflag = flags::eventCreate::None,
+    flags::eventRecord recordFlag = flags::eventRecord::None) const -> Event;
 
-  GCXX_FHDC auto isNullStream() -> bool {
+  GCXX_FHDC auto isNullStream() const -> bool {
     return stream_ == driver::NULL_STREAM;
   }
 
-  GCXX_FHD auto isInvalidStream() -> bool {
+  GCXX_FHD auto isInvalidStream() const -> bool {
     return stream_ == driver::INVALID_STREAM;
   }
 
-  GCXX_FH auto BeginCapture(const flags::streamCaptureMode createflag) -> void;
+  GCXX_FH auto BeginCapture(flags::streamCaptureMode createflag) const -> void;
 
   GCXX_FH auto BeginCaptureToGraph(
-    GraphView& graph_view, const flags::streamCaptureMode createflag) -> void;
+    GraphView& graph_view, flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH auto EndCapture() -> Graph;
+  GCXX_FH auto EndCapture() const -> Graph;
 
   /// @brief End stream capture and update the graph that was passed to
   /// BeginCaptureToGraph. Use this instead of EndCapture() when using
   /// BeginCaptureToGraph to avoid ownership issues.
   /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
-  GCXX_FH auto EndCaptureToGraph(const GraphView& graph) -> void;
+  GCXX_FH auto EndCaptureToGraph(const GraphView& graph) const -> void;
 
 #if GCXX_CUDA_MODE
-  GCXX_FH auto IsCapturing() -> gcxx::flags::streamCaptureStatus;
+  GCXX_FH auto IsCapturing() const -> gcxx::flags::streamCaptureStatus;
 
-  GCXX_FH auto GetCaptureInfo() -> CaptureInfo;
+  GCXX_FH auto GetCaptureInfo() const -> CaptureInfo;
 
   GCXX_FH auto UpdateCaptureDependencies(
     flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
-    std::size_t numdeps) -> void;
+    std::size_t numdeps) const -> void;
 #endif
 };
 
