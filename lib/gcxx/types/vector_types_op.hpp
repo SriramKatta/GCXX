@@ -20,12 +20,15 @@ namespace impl {
     GCXX_FHDC static V apply_componentwise(const V& a, const V& b, Op op) {
       V result{};
       result.x = op(a.x, b.x);
-      if constexpr (N >= 2)
+      if constexpr (N >= 2) {
         result.y = op(a.y, b.y);
-      if constexpr (N >= 3)
+      }
+      if constexpr (N >= 3) {
         result.z = op(a.z, b.z);
-      if constexpr (N >= 4)
+      }
+      if constexpr (N >= 4) {
         result.w = op(a.w, b.w);
+      }
       return result;
     }
 
@@ -34,12 +37,15 @@ namespace impl {
     GCXX_FHDC static V apply_scalar(const V& v, S scalar, Op op) {
       V result{};
       result.x = op(v.x, scalar);
-      if constexpr (N >= 2)
+      if constexpr (N >= 2) {
         result.y = op(v.y, scalar);
-      if constexpr (N >= 3)
+      }
+      if constexpr (N >= 3) {
         result.z = op(v.z, scalar);
-      if constexpr (N >= 4)
+      }
+      if constexpr (N >= 4) {
         result.w = op(v.w, scalar);
+      }
       return result;
     }
 
@@ -48,24 +54,30 @@ namespace impl {
     GCXX_FHDC static V apply_scalar_left(S scalar, const V& v, Op op) {
       V result{};
       result.x = op(scalar, v.x);
-      if constexpr (N >= 2)
+      if constexpr (N >= 2) {
         result.y = op(scalar, v.y);
-      if constexpr (N >= 3)
+      }
+      if constexpr (N >= 3) {
         result.z = op(scalar, v.z);
-      if constexpr (N >= 4)
+      }
+      if constexpr (N >= 4) {
         result.w = op(scalar, v.w);
+      }
       return result;
     }
 
     template <typename V, typename Op>
     GCXX_FHDC static V& apply_inplace_componentwise(V& a, const V& b, Op op) {
       a.x = op(a.x, b.x);
-      if constexpr (N >= 2)
+      if constexpr (N >= 2) {
         a.y = op(a.y, b.y);
-      if constexpr (N >= 3)
+      }
+      if constexpr (N >= 3) {
         a.z = op(a.z, b.z);
-      if constexpr (N >= 4)
+      }
+      if constexpr (N >= 4) {
         a.w = op(a.w, b.w);
+      }
       return a;
     }
 
@@ -73,12 +85,15 @@ namespace impl {
     template <typename V, typename S, typename Op>
     GCXX_FHDC static V& apply_inplace_scalar(V& v, const S scalar, Op op) {
       v.x = op(v.x, scalar);
-      if constexpr (N >= 2)
+      if constexpr (N >= 2) {
         v.y = op(v.y, scalar);
-      if constexpr (N >= 3)
+      }
+      if constexpr (N >= 3) {
         v.z = op(v.z, scalar);
-      if constexpr (N >= 4)
+      }
+      if constexpr (N >= 4) {
         v.w = op(v.w, scalar);
+      }
       return v;
     }
   };
