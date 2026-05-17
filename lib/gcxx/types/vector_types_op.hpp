@@ -247,7 +247,7 @@ GCXX_FHDC auto operator%(const LHS& lhs, const RHS& rhs)
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator+=(LHS& lhs, const RHS& rhs) -> LHS& {
-  using gcxx::details_::impl::apply_binary_dispatch;
+  using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::sum;
   return apply_inplace_dispatch(lhs, rhs, sum{});
 }
@@ -255,7 +255,7 @@ GCXX_FHDC auto operator+=(LHS& lhs, const RHS& rhs) -> LHS& {
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator-=(LHS& lhs, const RHS& rhs) -> LHS& {
-  using gcxx::details_::impl::apply_binary_dispatch;
+  using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::difference;
   return apply_inplace_dispatch(lhs, rhs, difference{});
 }
@@ -264,7 +264,7 @@ template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator/=(LHS& lhs, const RHS& rhs) -> LHS& {
 
-  using gcxx::details_::impl::apply_binary_dispatch;
+  using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::quotient;
   return apply_inplace_dispatch(lhs, rhs, quotient{});
 }
@@ -272,7 +272,7 @@ GCXX_FHDC auto operator/=(LHS& lhs, const RHS& rhs) -> LHS& {
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator*=(LHS& lhs, const RHS& rhs) -> LHS& {
-  using gcxx::details_::impl::apply_binary_dispatch;
+  using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::product;
   return apply_inplace_dispatch(lhs, rhs, product{});
 }
@@ -280,7 +280,7 @@ GCXX_FHDC auto operator*=(LHS& lhs, const RHS& rhs) -> LHS& {
 template <typename LHS, typename RHS,
           std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
 GCXX_FHDC auto operator%=(LHS& lhs, const RHS& rhs) -> LHS& {
-  using gcxx::details_::impl::apply_binary_dispatch;
+  using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::remainder;
   return apply_inplace_dispatch(lhs, rhs, remainder{});
 }
