@@ -19,10 +19,6 @@
 #include <gcxx/runtime/flags/graph_flags.hpp>
 #include <gcxx/runtime/flags/occupancy_flags.hpp>
 
-// section for device handler
-#include <gcxx/runtime/device.hpp>
-
-
 // Section for Runtime API
 #include <gcxx/runtime/device.hpp>
 #include <gcxx/runtime/event.hpp>

@@ -15,7 +15,7 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 template <class _Tp, bool _Bp>
-using requires_t = typename std::enable_if<_Bp, _Tp>::type;
+using requires_t = typename std::enable_if_t<_Bp, _Tp>;
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
 ////////////////////////////////////////////////////////////////////////////////
