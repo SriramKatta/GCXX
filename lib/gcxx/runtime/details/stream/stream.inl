@@ -57,7 +57,7 @@ GCXX_FH Stream::~Stream() {
 GCXX_FH auto Stream::Release() GCXX_NOEXCEPT -> StreamView {
   auto oldStream = stream_;
   stream_        = driver::INVALID_STREAM;
-  return {oldStream};
+  return StreamView(oldStream);
 }
 
 GCXX_FH Stream::Stream(Stream&& other) noexcept
