@@ -12,9 +12,10 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
+        llvm \
+        clang \
         clang-format \
         clang-tidy \
-        clangd \
         cmake \
         cmake-format \
         curl \

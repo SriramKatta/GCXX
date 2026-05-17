@@ -46,6 +46,8 @@ function(gcxx_add_example)
     set_source_files_properties(${_hdr} PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
   endforeach()
 
+  gcxx_tidy_add_target(TARGET ${ARG_NAME} SOURCES ${ARG_SOURCES})
+
   add_executable(${ARG_NAME} ${ARG_SOURCES})
 
   target_link_libraries(${ARG_NAME} PRIVATE gcxx::gcxx ${ARG_LINKS})

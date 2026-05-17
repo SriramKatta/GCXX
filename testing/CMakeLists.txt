@@ -3,6 +3,8 @@ include(cmake/GTest.cmake)
 include(GoogleTest)
 
 function(add_gcxx_test SRC_BASE_NAME)
+  gcxx_tidy_add_target(TARGET ${SRC_BASE_NAME} SOURCES "${SRC_BASE_NAME}.cpp")
+
   if(BUILD_TESTING)
     add_executable(${SRC_BASE_NAME} ${SRC_BASE_NAME}.cpp)
     set_source_files_properties(

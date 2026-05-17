@@ -1,39 +1,183 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,-modernize-use-trailing-return-type'
-WarningsAsErrors: true
-HeaderFilterRegex: './lib/gcxx/*'
-FormatStyle: Google
+Checks:
+  # Enable broad check categories first
+  - 'performance-*'
+  - 'modernize-*'
+  - 'readability-*'
+  - 'clang-analyzer-*'
+  - 'clang-diagnostic-*'
+  - 'bugprone-*'
+  - 'misc-*'
+  - 'cert-*'
+  - 'portability-*'
+  - 'cppcoreguidelines-*'
+  - 'concurrency-*'
+  # google-* checks kept since FormatStyle is Google
+  - 'google-*'
+
+  # ---- C++20 checks: enable once the project moves to C++20 ----
+  - '-modernize-use-designated-initializers'
+  - '-modernize-use-constraints'
+  - '-modernize-use-ranges'
+  - '-modernize-use-integer-sign-comparison'
+
+  # ---- GPU code: pass-by-value is irrelevant for device functions ----
+  - '-modernize-pass-by-value'
+
+  # ---- Style choices ----
+  - '-modernize-use-trailing-return-type'
+  - '-modernize-use-nodiscard'
+  - '-modernize-return-braced-init-list'
+  - '-modernize-use-auto'
+  - '-readability-function-cognitive-complexity'
+  - '-readability-implicit-bool-conversion'
+  - '-readability-braces-around-statements'
+  - '-readability-qualified-auto'
+  - '-readability-isolate-declaration'
+  - '-readability-named-parameter'
+  - '-readability-identifier-length'
+  - '-readability-convert-member-functions-to-static'
+  # Always explicitly default-initialise members; redundant init check fights that habit
+  - '-readability-redundant-member-init'
+
+  # ---- C arrays: GCXX uses raw arrays in GPU interfaces ----
+  - '-modernize-avoid-c-arrays'
+  - '-cppcoreguidelines-avoid-c-arrays'
+
+  # ---- Macro-to-enum: GCXX macros are intentional ----
+  - '-modernize-macro-to-enum'
+  - '-cppcoreguidelines-macro-to-enum'
+
+  # ---- Include analysis: too noisy for a header-only GPU library ----
+  - '-misc-include-cleaner'
+  - '-misc-header-include-cycle'
+
+  # ---- CERT aliases that duplicate already-enabled checks ----
+  - '-cert-dcl21-cpp'   # covered by operator++/-- convention
+  - '-cert-dcl50-cpp'   # allow C-style variadics
+  - '-cert-dcl51-cpp,-cert-dcl37-c,-cert-oop54-cpp'  # aliased to bugprone-reserved-identifier
+  - '-cert-err58-cpp'   # covered by bugprone-throwing-static-initialization
+  - '-cert-int09-c'     # alias for readability-enum-initial-value
+
+  # ---- cppcoreguidelines aliases / GSL-dependent checks ----
+  - '-cppcoreguidelines-owning-memory'              # requires GSL
+  - '-cppcoreguidelines-explicit-virtual-functions' # covered by modernize-use-override
+  - '-cppcoreguidelines-avoid-magic-numbers'        # covered by readability-magic-numbers
+  - '-cppcoreguidelines-macro-usage'                # too many false positives for GPU macros
+  - '-cppcoreguidelines-narrowing-conversions'      # covered by bugprone-narrowing-conversions
+  - '-cppcoreguidelines-c-copy-assignment-signature' # covered by misc-unconventional-assign-operator
+  - '-cppcoreguidelines-noexcept-move-operations'   # covered by performance-noexcept-move-constructor
+  - '-cppcoreguidelines-noexcept-swap'              # covered by performance-noexcept-swap
+  - '-cppcoreguidelines-use-default-member-init'    # covered by modernize-use-default-member-init
+  - '-cppcoreguidelines-pro-type-reinterpret-cast'  # necessary for GPU pointer manipulation
+  - '-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access'  # too aggressive for GPU code
+
+  # ---- google-* noise ----
+  - '-google-build-explicit-make-pair'  # we don't target C++11
+  - '-google-upgrade-googletest-case'   # expensive; tidy not run on test code
+  - '-google-readability-todo'          # TODOs are intentional
+  - '-google-readability-casting'       # covered by modernize-avoid-c-style-cast
+
+  # ---- bugprone noise ----
+  - '-bugprone-easily-swappable-parameters'
+  - '-bugprone-implicit-widening-of-multiplication-result'
+  - '-bugprone-macro-parentheses'       # false positives on include-path macros
+  - '-bugprone-nondeterministic-pointer-iteration-order'  # obvious from unordered containers
+  - '-bugprone-dynamic-static-initializers'
+  # Reserved identifiers: _GCXX_* prefix is intentional; single check fires via bugprone-reserved-identifier
+  - '-bugprone-reserved-identifier'
+
+  # ---- misc ----
+  - '-misc-non-private-member-variables-in-classes'
+  - '-misc-no-recursion'
+
+  # ---- portability ----
+  - '-portability-avoid-pragma-once'
+
+  # ---- clang-diagnostic suppression when inside conda/unusual toolchains ----
+  - '-clang-diagnostic-unused-command-line-argument'
+
+WarningsAsErrors: '*'
+
+HeaderFileExtensions:
+  - ''
+  - h
+  - hh
+  - hpp
+  - hxx
+  - cuh
+  - inl
+  - ipp
+
+ImplementationFileExtensions:
+  - c
+  - cc
+  - cpp
+  - cxx
+  - cu
+
+SystemHeaders: false
+
+# Only emit diagnostics for GCXX's own headers
+HeaderFilterRegex: '.*/lib/gcxx/.*'
+
+ExtraArgsBefore:
+  - '-D_GCXX_CLANG_TIDY_INVOKED=1'
+  # Stub out CUDA qualifiers so clang can parse headers without a CUDA compiler.
+  # __forceinline__ becomes GNU always_inline which clang understands.
+  - '-D__host__='
+  - '-D__device__='
+  - '-D__global__='
+  - '-D__shared__='
+  - '-D__constant__='
+  - '-D__managed__='
+  - '-D__forceinline__=__attribute__((always_inline))'
+  - '-ftemplate-backtrace-limit=0'
+  - '-fmacro-backtrace-limit=0'
+
+ExtraArgs:
+  # Must come in ExtraArgs (not ExtraArgsBefore) so they override -Wall/-Werror
+  - '-Wno-unknown-warning-option'
+  - '-Wno-error=unused-command-line-argument'
+
 CheckOptions:
-  - key:             cert-dcl16-c.NewSuffixes
-    value:           'L;LL;LU;LLU'
-  - key:             cert-oop54-cpp.WarnOnlyIfThisHasSuspiciousField
-    value:           '0'
-  - key:             cppcoreguidelines-explicit-virtual-functions.IgnoreDestructors
-    value:           '1'
-  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
-    value:           '1'
-  - key:             google-readability-braces-around-statements.ShortStatementLines
-    value:           '1'
-  - key:             google-readability-function-size.StatementThreshold
-    value:           '800'
-  - key:             google-readability-namespace-comments.ShortNamespaceLines
-    value:           '10'
-  - key:             google-readability-namespace-comments.SpacesBeforeComments
-    value:           '2'
-  - key:             modernize-loop-convert.MaxCopySize
-    value:           '16'
-  - key:             modernize-loop-convert.MinConfidence
-    value:           reasonable
-  - key:             modernize-loop-convert.NamingStyle
-    value:           CamelCase
-  - key:             modernize-pass-by-value.IncludeStyle
-    value:           llvm
-  - key:             modernize-replace-auto-ptr.IncludeStyle
-    value:           llvm
-  - key:             modernize-use-nullptr.NullMacros
-    value:           'NULL'
-  - key:             cppcoreguidelines-avoid-do-while.IgnoreMacros
-    value:           'true'
-  - key:             cppcoreguidelines-macro-usage.CheckCapsOnly
-    value:           'true'  
+  cert-dcl16-c.NewSuffixes: 'L;LL;LU;LLU'
+  llvm-else-after-return.WarnOnUnfixable: 'false'
+  llvm-else-after-return.WarnOnConditionVariables: 'false'
+  cert-str34-c.DiagnoseSignedUnsignedCharComparisons: 'false'
+  cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: 'true'
+  google-readability-braces-around-statements.ShortStatementLines: '1'
+  google-readability-function-size.StatementThreshold: '800'
+  google-readability-namespace-comments.ShortNamespaceLines: '10'
+  google-readability-namespace-comments.SpacesBeforeComments: '2'
+  llvm-qualified-auto.AddConstToQualified: 'false'
+  cert-oop54-cpp.WarnOnlyIfThisHasSuspiciousField: 'false'
+  performance-move-const-arg.CheckTriviallyCopyableMove: 'false'
+  performance-inefficient-string-concatenation.StrictMode: 'true'
+  readability-simplify-boolean-expr.ChainedConditionalReturn: 'true'
+  readability-simplify-boolean-expr.ChainedConditionalAssignment: 'true'
+  bugprone-misplaced-widening-cast.CheckImplicitCasts: 'true'
+  bugprone-unused-return-value.AllowCastToVoid: 'true'
+  readability-enum-initial-value.AllowExplicitZeroFirstInitialValue: 'false'
+  readability-enum-initial-value.AllowExplicitSequentialInitialValues: 'false'
+  readability-redundant-access-specifiers.CheckFirstDeclaration: 'true'
+  readability-magic-numbers.IgnoredIntegerValues: '0;1;2;3;4;5;6;7;8;9'
+  bugprone-argument-comment.IgnoreSingleArgument: true
+  bugprone-argument-comment.CommentBoolLiterals: true
+  bugprone-argument-comment.CommentIntegerLiterals: true
+  bugprone-argument-comment.CommentFloatLiterals: true
+  bugprone-argument-comment.CommentStringLiterals: true
+  bugprone-argument-comment.CommentCharacterLiterals: true
+  bugprone-argument-comment.CommentUserDefinedLiterals: true
+  bugprone-argument-comment.CommentNullPtrs: true
+  bugprone-lambda-function-name.IgnoreMacros: 'true'
+  bugprone-reserved-identifier.AllowedIdentifiers: '^_GCXX.*'
+  cppcoreguidelines-macro-usage.AllowedRegexp: '^GCXX_.*|^_GCXX.*'
+  cppcoreguidelines-avoid-do-while.IgnoreMacros: 'true'
+  modernize-loop-convert.MaxCopySize: '16'
+  modernize-loop-convert.MinConfidence: reasonable
+  modernize-loop-convert.NamingStyle: CamelCase
+  modernize-pass-by-value.IncludeStyle: llvm
+  modernize-replace-auto-ptr.IncludeStyle: llvm
+  modernize-use-nullptr.NullMacros: 'NULL'
 ...

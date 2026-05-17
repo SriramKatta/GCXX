@@ -94,10 +94,18 @@ endif()
 
 include(cmake/CPM.cmake)
 
+option(GCXX_ENABLE_CLANG_TIDY "Enable clang-tidy via gcxx.tidy build target" OFF)
+mark_as_advanced(GCXX_ENABLE_CLANG_TIDY)
+
+include(cmake/GCXXAddTidyTarget.cmake)
+
 if(GCXX_TOPLEVEL_PROJECT)
   include(cmake/format.cmake)
-  include(cmake/tools.cmake)
   include(cmake/gcxx_gpu_architectures.cmake)
+
+  if(GCXX_ENABLE_CLANG_TIDY)
+    gcxx_tidy_init()
+  endif()
 endif()
 
 add_subdirectory(lib)

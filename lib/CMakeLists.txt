@@ -43,3 +43,14 @@ if(GCXX_CUDA_MODE)
 elseif(GCXX_HIP_MODE)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE hip::host)
 endif()
+
+# Register all library headers as clang-tidy targets.
+# gcxx_tidy_add_target is a no-op when GCXX_ENABLE_CLANG_TIDY=OFF.
+file(
+  GLOB_RECURSE _gcxx_headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hxx"
+  "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hh"
+  "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.cuh"
+)
+gcxx_tidy_add_target(TARGET gcxx SOURCES ${_gcxx_headers})
