@@ -41,17 +41,11 @@ GCXX_FH auto streamBeginCapture(deviceStream_t stream,
 GCXX_FH auto streamBeginCaptureToGraph(
   deviceStream_t stream, deviceGraph_t graph,
   const deviceGraphNode_t* dependencies,
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 3, 0)
-  const deviceGraphEdgeData_t* dependencyData,
-#endif
-  std::size_t numDependencies, deviceStreamCaptureMode_t mode) -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamBeginCaptureToGraph,
-                         "Failed to begin Stream Capture to graph", stream,
-                         graph, dependencies,
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 3, 0)
-                         dependencyData,
-#endif
-                         numDependencies, mode);
+  const deviceGraphEdgeData_t* dependencyData, std::size_t numDependencies,
+  deviceStreamCaptureMode_t mode) -> void {
+  GCXX_SAFE_RUNTIME_CALL(
+    StreamBeginCaptureToGraph, "Failed to begin Stream Capture to graph",
+    stream, graph, dependencies, dependencyData, numDependencies, mode);
 }
 
 GCXX_FH auto streamCopyAttributes(deviceStream_t dst,
@@ -176,25 +170,22 @@ GCXX_FH auto streamSynchronize(deviceStream_t stream) -> void {
                          stream);
 }
 
-GCXX_FH auto streamUpdateCaptureDependencies(deviceStream_t stream,
-                                             deviceGraphNode_t* dependencies,
-                                             std::size_t numDependencies,
-                                             unsigned int flags = 0) -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamUpdateCaptureDependencies,
-                         "Failed to update Stream Capture dependencies", stream,
-                         dependencies, numDependencies, flags);
-}
-
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 3, 0)
-GCXX_FH auto streamUpdateCaptureDependencies_v2(
+GCXX_FH auto streamUpdateCaptureDependencies(
   deviceStream_t stream, deviceGraphNode_t* dependencies,
   const deviceGraphEdgeData_t* dependencyData, std::size_t numDependencies,
   unsigned int flags = 0) -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamUpdateCaptureDependencies_v2,
-                         "Failed to update Stream Capture dependencies", stream,
-                         dependencies, dependencyData, numDependencies, flags);
-}
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    StreamUpdateCaptureDependencies_v2,
+#else
+    StreamUpdateCaptureDependencies,
 #endif
+    "Failed to update Stream Capture dependencies", stream, dependencies,
+#if !GCXX_HIP_MODE
+    dependencyData,
+#endif
+    numDependencies, flags);
+}
 
 GCXX_FH auto StreamWaitEvent(deviceStream_t stream, deviceEvent_t event,
                              unsigned int waitFlag) -> void {

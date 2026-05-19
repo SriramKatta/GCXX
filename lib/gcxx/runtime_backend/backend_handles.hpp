@@ -65,6 +65,7 @@ using deviceGraphNode_t       = GCXX_RUNTIME_BACKEND(GraphNode_t);
 using deviceGraphExec_t       = GCXX_RUNTIME_BACKEND(GraphExec_t);
 using deviceGraphNodeParams_t = GCXX_RUNTIME_BACKEND(GraphNodeParams);
 using deviceGraphNodeType_t   = GCXX_RUNTIME_BACKEND(GraphNodeType);
+using deviceGraphEdgeData_t   = GCXX_RUNTIME_BACKEND(GraphEdgeData);
 
 using deviceHostCallBackFn_t   = GCXX_RUNTIME_BACKEND(HostFn_t);
 using deviceHostNodeParams_t   = GCXX_RUNTIME_BACKEND(HostNodeParams);
@@ -78,7 +79,6 @@ using deviceExternalSemaphoreSignalNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreSignalNodeParams);
 using deviceExternalSemaphoreWaitNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreWaitNodeParams);
-using deviceGraphEdgeData_t = GCXX_RUNTIME_BACKEND(GraphEdgeData);
 using deviceGraphExecUpdateResultInfo_t =
   GCXX_RUNTIME_BACKEND(GraphExecUpdateResultInfo);
 using deviceGraphInstantiateParams_t =
