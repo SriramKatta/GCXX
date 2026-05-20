@@ -88,7 +88,8 @@ GCXX_FH auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle,
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeIf);
   cParams.conditional.size   = 1;
 
-  node = driver::graphAddNode(graph_, pDependencies, numDependencies, &cParams);
+  driver::graphAddNode(&node, graph_, pDependencies, nullptr, numDependencies,
+                       &cParams);
 
   // Extract the body graph from the conditional node parameters
   deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
@@ -107,7 +108,8 @@ GCXX_FH auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeIf);
   cParams.conditional.size   = 2;
 
-  node = driver::graphAddNode(graph_, pDependencies, numDependencies, &cParams);
+  driver::graphAddNode(&node, graph_, pDependencies, nullptr, numDependencies,
+                       &cParams);
 
   // Extract both body graphs from the conditional node parameters
   deviceGraph_t ifBodyGraph   = cParams.conditional.phGraph_out[0];
@@ -127,7 +129,8 @@ GCXX_FH auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand,
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeWhile);
   cParams.conditional.size   = 1;
 
-  node = driver::graphAddNode(graph_, pDependencies, numDependencies, &cParams);
+  driver::graphAddNode(&node, graph_, pDependencies, nullptr, numDependencies,
+                       &cParams);
 
   // Extract the body graph from the conditional node parameters
   deviceGraph_t bodyGraph = cParams.conditional.phGraph_out[0];
@@ -146,7 +149,8 @@ GCXX_FH auto GraphView::AddSwitchNode(
   cParams.conditional.type   = GCXX_RUNTIME_BACKEND(GraphCondTypeSwitch);
   cParams.conditional.size   = numCases;
 
-  node = driver::graphAddNode(graph_, pDependencies, numDependencies, &cParams);
+  driver::graphAddNode(&node, graph_, pDependencies, nullptr, numDependencies,
+                       &cParams);
 
   // Extract all case body graphs from the conditional node parameters
   return SwitchNodeResult{node,
@@ -171,7 +175,7 @@ GCXX_FH auto GraphView::AddChildGraphNode(
 GCXX_FH auto GraphView::AddDependencies(const deviceGraphNode_t* from,
                                         const deviceGraphNode_t* to,
                                         std::size_t numDependencies) -> void {
-  driver::graphAddDependencies(graph_, from, to, numDependencies);
+  driver::graphAddDependencies(graph_, from, to, nullptr, numDependencies);
 }
 
 GCXX_FH auto GraphView::AddEmptyNode(const deviceGraphNode_t* pDependencies,

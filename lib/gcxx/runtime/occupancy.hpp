@@ -14,12 +14,14 @@
 GCXX_NAMESPACE_MAIN_BEGIN
 
 namespace Occupancy {
+#if GCXX_CUDA_MODE
   template <typename func_t>
   GCXX_FH auto AvailableDynamicSMemPerBlock(func_t* func, int numBlocks,
                                             int blockSize) -> std::size_t {
     return driver::occupancyAvailableDynamicSMemPerBlock(func, numBlocks,
                                                          blockSize);
   }
+#endif
 
   template <typename func_t>
   GCXX_FH auto MaxActiveBlocksPerMultiprocessor(

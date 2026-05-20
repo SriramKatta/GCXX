@@ -13,6 +13,7 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
+#if GCXX_CUDA_MODE
 template <class T>
 GCXX_FH auto occupancyAvailableDynamicSMemPerBlock(
   T* func, int numBlocks, int blockSize) -> std::size_t {
@@ -23,6 +24,7 @@ GCXX_FH auto occupancyAvailableDynamicSMemPerBlock(
     &dynamicSmemSize, func, numBlocks, blockSize);
   return dynamicSmemSize;
 }
+#endif
 
 template <class T>
 GCXX_FH auto occupancyMaxActiveBlocksPerMultiprocessorWithFlags(

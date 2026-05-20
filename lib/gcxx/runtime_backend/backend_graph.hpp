@@ -99,19 +99,6 @@ GCXX_FD auto graphSetConditional(deviceGraphConditionalHandle_t handle,
   GCXX_RUNTIME_BACKEND(GraphSetConditional)(handle, value);
 }
 
-GCXX_FH auto graphAddNode(
-  deviceGraph_t graph, const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies,
-  deviceGraphNodeParams_t* params) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddNode, "Failed to add node to graph", &node,
-                         graph, dependencies,
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-                         nullptr,
-#endif
-                         numDependencies, params);
-  return node;
-}
 #endif
 
 GCXX_FH auto graphAddChildGraphNode(
@@ -128,14 +115,19 @@ GCXX_FH auto graphAddChildGraphNode(
 GCXX_FH auto graphAddDependencies(deviceGraph_t graph,
                                   const deviceGraphNode_t* from,
                                   const deviceGraphNode_t* to,
+                                  const deviceGraphEdgeData_t* edgeData,
                                   std::size_t numDependencies) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphAddDependencies,
-                         "Failed to Add Dependency between graph Nodes", graph,
-                         from, to,
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-                         nullptr,
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    GraphAddDependencies_v2,
+#else
+    GraphAddDependencies,
 #endif
-                         numDependencies);
+    "Failed to Add Dependency between graph Nodes", graph, from, to,
+#if GCXX_CUDA_MODE
+    edgeData,
+#endif
+    numDependencies);
 }
 
 GCXX_FH auto graphAddEmptyNode(
@@ -302,15 +294,22 @@ GCXX_FH auto graphAddMemsetNode(
 
 
 #if GCXX_CUDA_MODE
-GCXX_FH auto graphAddNodeV2(
-  deviceGraph_t graph, const deviceGraphNode_t* dependencies,
-  const deviceGraphEdgeData_t* dependencyData, std::size_t numDependencies,
-  deviceGraphNodeParams_t* params) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddNode_v2, "Failed to add node to graph", &node,
-                         graph, dependencies, dependencyData, numDependencies,
-                         params);
-  return node;
+GCXX_FH auto graphAddNode(deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
+                          const deviceGraphNode_t* pDependencies,
+                          const deviceGraphEdgeData_t* dependencyData,
+                          size_t numDependencies,
+                          deviceGraphNodeParams_t* nodeParams) -> void {
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    GraphAddNode_v2,
+#else
+    GraphAddNode,
+#endif
+    "Failed to add node to graph", pGraphNode, graph, pDependencies,
+#if GCXX_CUDA_MODE
+    dependencyData,
+#endif
+    numDependencies, nodeParams);
 }
 #endif
 
@@ -390,24 +389,20 @@ GCXX_FH auto graphGetNodes(deviceGraph_t graph, deviceGraphNode_t* nodes,
 
 GCXX_FH auto graphGetEdges(deviceGraph_t graph, deviceGraphNode_t* from,
                            deviceGraphNode_t* to,
+                           deviceGraphEdgeData_t* edgeData,
                            std::size_t* numEdges) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphGetEdges, "Failed to get graph edges", graph,
-                         from, to,
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-                         nullptr,
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    GraphGetEdges_v2,
+#else
+    GraphGetEdges_v2,
 #endif
-                         numEdges);
-}
-
+    "Failed to get graph edges", graph, from, to,
 #if GCXX_CUDA_MODE
-GCXX_FH auto graphGetEdgesV2(deviceGraph_t graph, deviceGraphNode_t* from,
-                             deviceGraphNode_t* to,
-                             deviceGraphEdgeData_t* edgeData,
-                             std::size_t* numEdges) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphGetEdges_v2, "Failed to get graph edges", graph,
-                         from, to, edgeData, numEdges);
-}
+    edgeData,
 #endif
+    numEdges);
+}
 
 GCXX_FH auto graphGetRootNodes(deviceGraph_t graph,
                                deviceGraphNode_t* rootNodes,
@@ -752,22 +747,20 @@ GCXX_FH auto graphNodeFindInClone(deviceGraphNode_t originalNode,
 
 GCXX_FH auto graphNodeGetDependencies(deviceGraphNode_t node,
                                       deviceGraphNode_t* dependencies,
+                                      deviceGraphEdgeData_t* edgeData,
                                       std::size_t* numDependencies) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphNodeGetDependencies,
-                         "Failed to get graph node dependencies", node,
-                         dependencies, numDependencies);
-}
-
-#if GCXX_CUDA_MODE
-GCXX_FH auto graphNodeGetDependenciesV2(deviceGraphNode_t node,
-                                        deviceGraphNode_t* dependencies,
-                                        deviceGraphEdgeData_t* edgeData,
-                                        std::size_t* numDependencies) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphNodeGetDependencies_v2,
-                         "Failed to get graph node dependencies", node,
-                         dependencies, edgeData, numDependencies);
-}
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    GraphNodeGetDependencies_v2,
+#else
+    GraphNodeGetDependencies,
 #endif
+    "Failed to get graph node dependencies", node, dependencies,
+#if GCXX_CUDA_MODE
+    edgeData,
+#endif
+    numDependencies);
+}
 
 GCXX_FH auto graphNodeGetDependentNodes(
   deviceGraphNode_t node, deviceGraphNode_t* dependentNodes,

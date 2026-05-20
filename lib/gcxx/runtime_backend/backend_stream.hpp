@@ -12,10 +12,12 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
+#if GCXX_CUDA_MODE
 GCXX_FH auto ctxResetPersistingL2Cache() -> void {
   GCXX_SAFE_RUNTIME_CALL(CtxResetPersistingL2Cache,
                          "Failed to reset persisting L2 cache");
 }
+#endif
 
 GCXX_FH auto streamAddCallback(deviceStream_t stream,
                                deviceStreamCallback_t callback, void* userData,
@@ -48,11 +50,13 @@ GCXX_FH auto streamBeginCaptureToGraph(
     stream, graph, dependencies, dependencyData, numDependencies, mode);
 }
 
+#if GCXX_CUDA_MODE
 GCXX_FH auto streamCopyAttributes(deviceStream_t dst,
                                   deviceStream_t src) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamCopyAttributes,
                          "Failed to copy Stream attributes", dst, src);
 }
+#endif
 
 // TODO : needed for device side stream allocation
 // GCXX_FD auto streamCreateWithFlags(unsigned int flags) -> deviceStream_t {
@@ -91,14 +95,27 @@ GCXX_FH auto streamGetAttribute(deviceStream_t stream,
 }
 #endif
 
+
 GCXX_FH auto streamGetCaptureInfo(
-  deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatusOut,
-  unsigned long long* idOut = nullptr, deviceGraph_t* graphOut = nullptr,
-  const deviceGraphNode_t** dependenciesOut = nullptr,
-  std::size_t* numDependenciesOut           = nullptr) -> void {
+  deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatus_out,
+  unsigned long long* id_out, deviceGraph_t* graph_out,
+  const deviceGraphNode_t** dependencies_out,
+  const deviceGraphEdgeData_t** edgeData_out,
+  size_t* numDependencies_out) -> void {
   GCXX_SAFE_RUNTIME_CALL(
-    StreamGetCaptureInfo, "Failed to get Capture info of Stream", stream,
-    captureStatusOut, idOut, graphOut, dependenciesOut, numDependenciesOut);
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    StreamGetCaptureInfo_v3,
+#elif GCXX_HIP_MODE
+    StreamGetCaptureInfo_v2,
+#else
+    StreamGetCaptureInfo,
+#endif
+    "Failed to get Capture info of Stream", stream, captureStatus_out, id_out,
+    graph_out, dependencies_out,
+#if GCXX_CUDA_MODE
+    edgeData_out,
+#endif
+    numDependencies_out);
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 3, 0)

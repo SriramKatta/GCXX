@@ -25,9 +25,13 @@ GCXX_FH auto eventDestroy(deviceEvent_t event) -> void {
 GCXX_FH auto eventElapsedTime(deviceEvent_t startEvent,
                               deviceEvent_t endEvent) -> float {
   float ms{};
-  GCXX_SAFE_RUNTIME_CALL(EventElapsedTime,
-                         "Failed to get elapsed time between GPU Events", &ms,
-                         startEvent, endEvent);
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_MODE
+    EventElapsedTime_v2,
+#else
+    EventElapsedTime,
+#endif
+    "Failed to get elapsed time between GPU Events", &ms, startEvent, endEvent);
   return ms;
 }
 
