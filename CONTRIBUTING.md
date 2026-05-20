@@ -197,3 +197,9 @@ By contributing to GCXX, you agree that your contributions will be licensed unde
 - Open a discussion or issue on GitHub
 
 Thank you for contributing to GCXX! 🚀
+
+## Reason for Some decision
+
+### MACROS
+
+- Always use MACRO() style of macros this would prevent the accidental use of undefined macros with a compiler error saying function is undefined, makes it easy to isolate issues.
