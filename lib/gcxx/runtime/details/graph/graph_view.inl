@@ -13,7 +13,7 @@
 #include <gcxx/runtime/graph/graph_view.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 struct IfNodeResult {
   GraphView::deviceGraphNode_t conditionalNode{};
@@ -319,7 +319,7 @@ GCXX_FH auto GraphView::AddMemsetNode(
                        pDependencies.size());
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/macros/undefine_macros.hpp>
 

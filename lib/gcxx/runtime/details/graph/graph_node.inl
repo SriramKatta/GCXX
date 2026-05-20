@@ -8,7 +8,7 @@
 #include <gcxx/runtime/graph/graph_node.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 // ════════════════════════════════════════════════════════════════════════════
 // KernelNodeView Implementation
@@ -109,6 +109,6 @@ GCXX_FD auto KernelNodeView::ApplyUpdates(
 }
 #endif
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #endif

@@ -12,7 +12,7 @@
 #include <gcxx/runtime/launch/launch_config.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace launch {
 
@@ -54,6 +54,6 @@ namespace launch {
   }
 }  // namespace launch
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #endif

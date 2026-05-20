@@ -9,7 +9,7 @@
 
 #include <gcxx/runtime/flags/memory_flags.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 using deviceMemPoolProps_t = GCXX_RUNTIME_BACKEND(MemPoolProps);
 
@@ -23,7 +23,7 @@ struct MemPoolProps {
   }
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

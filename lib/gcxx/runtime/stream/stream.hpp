@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <utility>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Stream : public StreamView {
   GCXX_FH auto destroy() -> void;
@@ -43,7 +43,7 @@ class Stream : public StreamView {
   GCXX_FH auto getPriority() -> flags::streamPriority;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/stream/stream.inl>
 

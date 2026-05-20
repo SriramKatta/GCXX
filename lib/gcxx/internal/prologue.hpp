@@ -12,9 +12,9 @@
 #include <gcxx/runtime/runtime_error.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 using device_t = int;
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 using flag_t = unsigned int;

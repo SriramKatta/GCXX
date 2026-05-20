@@ -10,7 +10,7 @@
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class GraphView;
 class GraphExecView;
@@ -44,7 +44,7 @@ class GraphNodeView {
 #endif
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/graph/nodes/graph_node_view.inl>
 

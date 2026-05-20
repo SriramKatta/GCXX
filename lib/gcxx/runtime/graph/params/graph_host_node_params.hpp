@@ -16,7 +16,7 @@
 
 #include <gcxx/runtime/memory/memory_helpers.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class HostNodeParamsView {
  public:
@@ -60,7 +60,7 @@ class HostNodeParams : public HostNodeParamsView {
   ~HostNodeParams() = default;
 };
 
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 class HostNodeParamsBuilder {
  private:
@@ -85,14 +85,14 @@ class HostNodeParamsBuilder {
   GCXX_FHC auto build() -> gcxx::HostNodeParams { return {func_, Udata_}; }
 };
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 // helper to simplify usage
 GCXX_FH auto HostNodeParamsBuilder() -> details_::HostNodeParamsBuilder {
   return details_::HostNodeParamsBuilder::create();
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

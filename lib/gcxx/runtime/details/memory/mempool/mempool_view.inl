@@ -9,7 +9,7 @@
 #include <gcxx/runtime/device/device_handle.hpp>
 #include <gcxx/runtime/flags/memory_flags.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH auto MemPoolView::getRawMemPool() const -> deviceMemPool_t {
   return pool_;
@@ -172,7 +172,7 @@ GCXX_FH auto MemPoolView::GetUsedMemHigh() -> std::uint64_t {
   return retval;
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

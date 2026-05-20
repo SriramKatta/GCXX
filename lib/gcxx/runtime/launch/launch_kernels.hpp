@@ -10,7 +10,7 @@
 #include <gcxx/runtime/launch/launch_config.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace launch {
   using gcxxHostFn_t = GCXX_RUNTIME_BACKEND(HostFn_t);
@@ -33,7 +33,7 @@ namespace launch {
                       ActTypes&&...);
 }  // namespace launch
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/launch/launch_kernels.inl>
 

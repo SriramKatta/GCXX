@@ -11,7 +11,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/memory/device_memory_helper.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace memory {
 
@@ -66,7 +66,7 @@ namespace memory {
 
 }  // namespace memory
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

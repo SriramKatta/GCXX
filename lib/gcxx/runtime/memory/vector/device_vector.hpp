@@ -9,12 +9,12 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/allocators/device_allocator.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 template <typename VT>
 using device_vector = std::vector<VT, gcxx::details_::device_allocator<VT>>;
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

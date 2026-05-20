@@ -10,9 +10,9 @@
 #include <gcxx/runtime/stream.hpp>
 #include <type_traits>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 // ╔════════════════════════════════════════════════════════╗
 // ║          works on pointer with bytes to memset           ║
@@ -31,7 +31,7 @@ GCXX_FH auto Memset(void* dev_ptr, const int value,
                          dev_ptr, value, countinBytes, stream.getRawStream());
 }
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 namespace memory {
 
@@ -107,7 +107,7 @@ namespace memory {
 
 }  // namespace memory
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

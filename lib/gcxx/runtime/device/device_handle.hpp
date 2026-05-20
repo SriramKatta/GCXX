@@ -10,7 +10,7 @@
 #include <gcxx/runtime/device/device_structs.hpp>
 #include <gcxx/runtime/flags/device_flags.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class MemPoolView;
 
@@ -47,7 +47,7 @@ class DeviceHandle {
   GCXX_FH auto GetMemPool() -> MemPoolView;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/device/device_handle.inl>
 

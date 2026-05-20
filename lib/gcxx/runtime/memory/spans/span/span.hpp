@@ -22,7 +22,7 @@ TODO : use this as refrence to extend and support restrict span keeping most of
 the code same
 */
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 template <class VT, std::size_t Extent>
 class span;
@@ -34,7 +34,7 @@ class restrict_span;
 // GCXX_CXPR inline auto dynamic_extent =
 //   std::numeric_limits<std::size_t>::max();
 
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 // ╔════════════════════════════════════════════════════════╗
 // ║               SpanLike detection traits                ║
@@ -463,7 +463,7 @@ class span_base {
   storage_type m_storage{};
 };
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                          Span                          █
@@ -558,7 +558,7 @@ GCXX_CONCEPT is_compatible_span_v =
   is_span_like_v<T> &&
   details_::is_ptr_array_convertible_v<span_element_t<T>, ET>;
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

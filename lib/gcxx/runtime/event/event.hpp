@@ -8,7 +8,7 @@
 #include <gcxx/runtime/event/event_view.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Event : public EventView {
  private:
@@ -32,7 +32,7 @@ class Event : public EventView {
   operator deviceEvent_t() = delete;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/event/event.inl>
 

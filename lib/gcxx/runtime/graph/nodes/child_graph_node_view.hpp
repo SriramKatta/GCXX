@@ -9,7 +9,7 @@
 
 #include <gcxx/runtime/graph/nodes/graph_node_view.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class GraphView;
 class GraphExecView;
@@ -23,7 +23,7 @@ class ChildGraphNodeView : public GraphNodeView {
   GCXX_FH auto setParams(GraphExecView exec, GraphView graph) -> void;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 // this needs to be added in gcxx/runtime/graph/graph_view.hpp to prevent the
 // circular dependecy problem

@@ -8,7 +8,7 @@
 
 #include <gcxx/runtime/graph/graph_view.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class GraphExec;
 
@@ -43,7 +43,7 @@ class Graph : public GraphView {
   GCXX_FH auto Clone() const -> Graph;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/graph/graph.inl>
 

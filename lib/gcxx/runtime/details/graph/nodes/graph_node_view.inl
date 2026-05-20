@@ -9,7 +9,7 @@
 #include <gcxx/runtime/flags/graph_flags.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 1, 0)
@@ -26,6 +26,6 @@ GCXX_FH auto GraphNodeView::getType() -> flags::graphNodeType {
   return static_cast<flags::graphNodeType>(driver::graphNodeGetType(node_));
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #endif

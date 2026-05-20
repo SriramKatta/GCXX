@@ -9,7 +9,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 // NOLINTBEGIN
 template <typename VT>
@@ -39,7 +39,7 @@ struct dynamicSharedMemory<double> {
 };
 
 // NOLINTEND
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

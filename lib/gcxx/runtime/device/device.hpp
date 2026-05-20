@@ -9,7 +9,7 @@
 
 #include <gcxx/runtime/device/device_structs.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class DeviceHandle;
 class MemPoolView;
@@ -40,7 +40,7 @@ namespace Device {
 
 };  // namespace Device
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/device/device.inl>
 

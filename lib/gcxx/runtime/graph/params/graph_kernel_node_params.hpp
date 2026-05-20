@@ -15,7 +15,7 @@
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 // KernelNodeParamsView is a non-owning view. It assumes that
 // params_.kernelParams (and any memory it points to) remains valid for the
@@ -95,7 +95,7 @@ class KernelNodeParams : public KernelNodeParamsView {
   ~KernelNodeParams() = default;
 };
 
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 template <typename... Args>
 class KernelArgPack {
@@ -201,14 +201,14 @@ class KernelParamsBuilder {
   }
 };
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 // an helper to simply while using it
 GCXX_FH auto KernelParamsBuilder() -> details_::KernelParamsBuilder {
   return details_::KernelParamsBuilder::create();
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

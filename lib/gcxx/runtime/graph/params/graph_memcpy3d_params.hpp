@@ -15,7 +15,7 @@
 
 #include <gcxx/runtime/memory/memory_helpers.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Memcpy3DParamsView {
  public:
@@ -79,7 +79,7 @@ class Memcpy3DParams : public Memcpy3DParamsView {
   ~Memcpy3DParams()                               = default;
 };
 
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 class Memcpy3DParamsBuilder {
  private:
@@ -127,14 +127,14 @@ class Memcpy3DParamsBuilder {
   }
 };
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 // helper to simplify usage
 GCXX_FH auto Memcpy3DParamsBuilder() -> details_::Memcpy3DParamsBuilder {
   return details_::Memcpy3DParamsBuilder::create();
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

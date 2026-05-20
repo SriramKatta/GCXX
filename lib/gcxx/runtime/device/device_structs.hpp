@@ -11,7 +11,7 @@
 #include <gcxx/runtime/memory/spans/spans.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 
 #if GCXX_CUDA_MODE
@@ -22,7 +22,7 @@ using DeviceProp = hipDeviceProp_t;
 #error "Some horrible UB is happening now"
 #endif
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

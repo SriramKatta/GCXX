@@ -11,9 +11,9 @@
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 // ╔════════════════════════════════════════════════════════╗
 // ║          works on pointer with bytes to copy           ║
@@ -34,7 +34,7 @@ GCXX_FH auto Copy(void* destination, const void* source,
     countinBytes, GCXX_RUNTIME_BACKEND(MemcpyDefault), stream.getRawStream());
 }
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 namespace memory {
 
@@ -81,7 +81,7 @@ namespace memory {
 
 }  // namespace memory
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

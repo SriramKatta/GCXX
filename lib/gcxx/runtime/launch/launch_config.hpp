@@ -13,7 +13,7 @@ using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
 GCXX_NAMESPACE_MAIN_DETAILS_END
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class LaunchConfig {
  private:
@@ -31,7 +31,7 @@ class LaunchConfig {
   void print() {}
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

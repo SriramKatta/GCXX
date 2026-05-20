@@ -6,7 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH MemPool::MemPool(const MemPoolProps& props) {
   auto vals = props.getRawMemPoolProps();
@@ -26,7 +26,7 @@ GCXX_FH MemPool::~MemPool() {
   destroy();
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

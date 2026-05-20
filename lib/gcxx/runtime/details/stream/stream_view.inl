@@ -7,7 +7,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/graph/graph.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 struct CaptureInfo {
   flags::streamCaptureStatus status{};
@@ -124,7 +124,7 @@ GCXX_FH auto StreamView::UpdateCaptureDependencies(
                          numdeps, static_cast<details_::flag_t>(flag));
 }
 #endif
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/macros/undefine_macros.hpp>
 

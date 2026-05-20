@@ -8,7 +8,7 @@
 
 #include <gcxx/runtime/graph/graph_exec_view.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Graph;
 class GraphView;
@@ -42,7 +42,7 @@ class GraphExec : public GraphExecView {
   GCXX_FH auto Update(const GraphView& graph) -> void;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/graph/graph_exec.inl>
 

@@ -11,7 +11,7 @@
 #include <gcxx/runtime/device/device_handle.hpp>
 #include <gcxx/runtime/flags/memory_flags.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 using deviceMemPool_t = GCXX_RUNTIME_BACKEND(MemPool_t);
 
@@ -48,7 +48,7 @@ class MemPoolView {
   GCXX_FH auto GetUsedMemHigh() -> std::uint64_t;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #include <gcxx/runtime/details/memory/mempool/mempool_view.inl>

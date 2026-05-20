@@ -7,7 +7,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class StreamView;
 
@@ -28,7 +28,7 @@ class GraphExecView {
   GCXX_FH auto Upload(const StreamView& stream) const -> void;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/graph/graph_exec_view.inl>
 

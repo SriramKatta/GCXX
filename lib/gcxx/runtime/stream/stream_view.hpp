@@ -10,7 +10,7 @@
 #include <gcxx/runtime_backend/backend_graph.hpp>
 #include <gcxx/runtime_backend/backend_stream.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 class Event;
 class EventView;
 class GraphView;
@@ -84,7 +84,7 @@ class StreamView {
 #endif
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #include <gcxx/runtime/details/stream/stream_view.inl>

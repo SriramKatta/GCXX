@@ -16,7 +16,7 @@
 
 #include <gcxx/runtime/graph/graph_nodes.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 
 class GraphView;
@@ -194,7 +194,7 @@ class GraphView {
                                {}) -> deviceGraphNode_t;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/graph/graph_view.inl>
 #include <gcxx/runtime/details/graph/nodes/child_graph_node_view.inl>

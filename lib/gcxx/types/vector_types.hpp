@@ -8,8 +8,8 @@
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <type_traits>
 
-GCXX_NAMESPACE_MAIN_BEGIN
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 template <typename VT, int N, int ALIGN = 0>
 struct vec {
@@ -129,7 +129,7 @@ DEFINE_VEC(unsigned long long, 4, ulonglong4);
 DEFINE_VEC(double, 4, double4);
 #endif
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                  User-facing aliases                   █
@@ -264,5 +264,5 @@ GCXX_FHD auto cast_as_vec4_ptr(const VT* data) -> const vec4_no_cv_t<VT>* {
 #undef MAP_1_3
 #undef MAP_1_4
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 #endif

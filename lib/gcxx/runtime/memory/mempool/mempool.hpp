@@ -10,7 +10,7 @@
 #include <gcxx/runtime/memory/mempool/mempool_view.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class MemPool : public MemPoolView {
  public:
@@ -21,7 +21,7 @@ class MemPool : public MemPoolView {
   GCXX_FH ~MemPool();
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #include <gcxx/runtime/details/memory/mempool/mempool.inl>

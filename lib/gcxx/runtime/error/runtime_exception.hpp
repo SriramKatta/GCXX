@@ -10,7 +10,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/error/runtime_error_types.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Exception : public std::runtime_error {
  public:
@@ -23,7 +23,7 @@ class Exception : public std::runtime_error {
   details_::deviceError_t error_;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

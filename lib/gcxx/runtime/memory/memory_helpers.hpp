@@ -7,7 +7,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace memory {
   using devicePitchedPtr = GCXX_RUNTIME_BACKEND(PitchedPtr);
@@ -52,7 +52,7 @@ namespace memory {
 
 }  // namespace memory
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

@@ -11,7 +11,7 @@
 #include <gcxx/runtime/graph/graph_view.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FHC ChildGraphNodeView::ChildGraphNodeView(
   GraphNodeView::deviceGraphNode_t node)
@@ -27,6 +27,6 @@ GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec,
                                            graph.getRawGraph());
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #endif

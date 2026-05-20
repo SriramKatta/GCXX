@@ -10,7 +10,7 @@
 
 #include <utility>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH auto Graph::Create(const flags::graphCreate createFlag) -> Graph {
   return Graph{createFlag};
@@ -60,7 +60,7 @@ GCXX_FH auto Graph::Clone() const -> Graph {
   return Graph::CreateFromRaw(GraphView::Clone().getRawGraph());
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

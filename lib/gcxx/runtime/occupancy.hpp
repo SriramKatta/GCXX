@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <utility>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace Occupancy {
 #if GCXX_CUDA_MODE
@@ -94,7 +94,7 @@ namespace Occupancy {
 
 }  // namespace Occupancy
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

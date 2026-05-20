@@ -12,7 +12,7 @@
 #include <gcxx/runtime_backend/backend_event.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 /**
  * @brief Duration type aliases for time measurements.
@@ -147,7 +147,7 @@ class EventView {
     const EventView& startEvent, const EventView& endEvent) -> DurationT;
 };
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/event/event_view.inl>
 

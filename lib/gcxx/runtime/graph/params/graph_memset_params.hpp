@@ -16,7 +16,7 @@
 
 #include <gcxx/runtime/memory/memory_helpers.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 class MemsetParamsView {
  public:
@@ -72,7 +72,7 @@ class MemsetParams : public MemsetParamsView {
   ~MemsetParams() = default;
 };
 
-GCXX_NAMESPACE_DETAILS_BEGIN
+GCXX_NAMESPACE_DETAILS_BEGIN()
 
 class MemsetParamsBuilder {
  private:
@@ -121,14 +121,14 @@ class MemsetParamsBuilder {
   }
 };
 
-GCXX_NAMESPACE_DETAILS_END
+GCXX_NAMESPACE_DETAILS_END()
 
 // helper to simplify usage
 GCXX_FH auto MemsetParamsBuilder() -> details_::MemsetParamsBuilder {
   return details_::MemsetParamsBuilder::create();
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

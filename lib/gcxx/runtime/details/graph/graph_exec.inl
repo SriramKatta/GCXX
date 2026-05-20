@@ -10,7 +10,7 @@
 
 #include <utility>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH auto GraphExec::Create(const GraphView& graph) -> GraphExec {
   return GraphExec{graph};
@@ -55,6 +55,6 @@ GCXX_FH auto GraphExec::Update(const GraphView& graph) -> void {
   driver::graphExecUpdate(exec_, graph.getRawGraph());
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #endif

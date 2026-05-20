@@ -11,7 +11,7 @@
 #include <gcxx/runtime/memory/mempool/mempool_view.hpp>
 
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH auto Device::set(device_t devId, bool resetOnDestruct) -> DeviceHandle {
   return DeviceHandle(devId, resetOnDestruct);
@@ -91,6 +91,6 @@ GCXX_FH auto Device::GetMemPool() -> MemPoolView {
   return {pool};
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #endif

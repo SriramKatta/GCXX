@@ -12,7 +12,7 @@
 
 #include <utility>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_CXPR EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT
     : event_(rawEvent) {}
@@ -83,7 +83,7 @@ GCXX_FH auto EventView::ElapsedTimeBetween(
   return endEvent.ElapsedTimeSince<DurationT>(startEvent);
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

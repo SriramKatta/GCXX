@@ -7,7 +7,7 @@
 #include <gcxx/runtime/device/ensure_current_device.hpp>
 #include <gcxx/runtime/stream.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH Stream::Stream(const flags::streamType createFlag,
                        const flags::streamPriority priorityFlag)
@@ -67,7 +67,7 @@ GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT -> StreamView {
   return *this;
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

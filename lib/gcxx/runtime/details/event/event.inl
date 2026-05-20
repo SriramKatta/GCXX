@@ -9,7 +9,7 @@
 
 #include <utility>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : EventView(driver::INVALID_EVENT) {
@@ -48,7 +48,7 @@ GCXX_FH auto StreamView::RecordEvent(const flags::eventCreate createflag,
   return event;
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

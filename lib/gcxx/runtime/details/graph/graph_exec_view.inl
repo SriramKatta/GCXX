@@ -8,7 +8,7 @@
 #include <gcxx/runtime/graph/graph_exec_view.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FHC GraphExecView::GraphExecView(deviceGraphExec_t rawExec)
     : exec_(rawExec) {}
@@ -30,7 +30,7 @@ GCXX_FH auto GraphExecView::Upload(const StreamView& stream) const -> void {
   driver::graphUpload(exec_, stream.getRawStream());
 }
 
-GCXX_NAMESPACE_MAIN_END
+GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/macros/undefine_macros.hpp>
 
