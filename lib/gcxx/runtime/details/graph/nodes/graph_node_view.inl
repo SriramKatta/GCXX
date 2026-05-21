@@ -13,16 +13,16 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 1, 0)
-GCXX_FH auto GraphNodeView::geLocalId() -> unsigned int {
+GCXX_FH() auto GraphNodeView::geLocalId() -> unsigned int {
   return driver::graphNodeGetLocalId(node_);
 }
 
-GCXX_FH auto GraphNodeView::geToolsId() -> unsigned long long {
+GCXX_FH() auto GraphNodeView::geToolsId() -> unsigned long long {
   return driver::graphNodeGetToolsId(node_);
 }
 #endif
 
-GCXX_FH auto GraphNodeView::getType() -> flags::graphNodeType {
+GCXX_FH() auto GraphNodeView::getType() -> flags::graphNodeType {
   return static_cast<flags::graphNodeType>(driver::graphNodeGetType(node_));
 }
 

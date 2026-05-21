@@ -24,8 +24,10 @@
 # Provide no-op stubs when the feature is off so callers need no guards.
 if(NOT GCXX_ENABLE_CLANG_TIDY)
   macro(gcxx_tidy_init)
+
   endmacro()
   macro(gcxx_tidy_add_target)
+
   endmacro()
   return()
 endif()
@@ -39,9 +41,17 @@ function(_gcxx_tidy_write_db)
 
   if(_entries)
     list(LENGTH _entries _count)
-    list(JOIN _entries ",\n" _body)
+    list(
+      JOIN
+      _entries
+      ",\n"
+      _body
+    )
     file(WRITE "${_db_path}" "[\n${_body}\n]\n")
-    message(STATUS "clang-tidy: wrote ${_count}-entry compilation database → ${_db_path}")
+    message(
+      STATUS
+        "clang-tidy: wrote ${_count}-entry compilation database → ${_db_path}"
+    )
   else()
     file(WRITE "${_db_path}" "[]\n")
   endif()
@@ -52,10 +62,8 @@ endfunction()
 # Must be called after gpu_cxx and its dependencies are defined.
 # ---------------------------------------------------------------------------
 function(_gcxx_tidy_collect_flags out_var)
-  set(_flags
-    "-std=c++${CMAKE_CXX_STANDARD}"
-    "-Wno-unknown-warning-option"
-    "-Wno-error=unused-command-line-argument"
+  set(_flags "-std=c++${CMAKE_CXX_STANDARD}" "-Wno-unknown-warning-option"
+             "-Wno-error=unused-command-line-argument"
   )
 
   # Direct include directories on gpu_cxx (e.g. lib/)
@@ -108,7 +116,9 @@ function(_gcxx_tidy_collect_flags out_var)
 
   # Stub out CUDA qualifiers so clang parses GPU headers without a CUDA
   # compiler.  These are also in .clang-tidy ExtraArgsBefore for belt-and-suspenders.
-  list(APPEND _flags
+  list(
+    APPEND
+    _flags
     "-D__host__="
     "-D__device__="
     "-D__global__="
@@ -118,7 +128,10 @@ function(_gcxx_tidy_collect_flags out_var)
     "-D__forceinline__=__attribute__((always_inline))"
   )
 
-  set(${out_var} "${_flags}" PARENT_SCOPE)
+  set(${out_var}
+      "${_flags}"
+      PARENT_SCOPE
+  )
 endfunction()
 
 # ---------------------------------------------------------------------------
@@ -130,19 +143,25 @@ function(gcxx_tidy_init)
   message(STATUS "clang-tidy: ${GCXX_CLANG_TIDY}")
 
   # Global umbrella target
-  add_custom_target(gcxx.tidy COMMENT "Run clang-tidy on all registered GCXX sources")
+  add_custom_target(
+    gcxx.tidy COMMENT "Run clang-tidy on all registered GCXX sources"
+  )
 
   configure_file(
     "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/run_clang_tidy.sh.in"
-    "${CMAKE_BINARY_DIR}/run_clang_tidy.sh"
-    @ONLY
+    "${CMAKE_BINARY_DIR}/run_clang_tidy.sh" @ONLY
   )
   file(
-    CHMOD "${CMAKE_BINARY_DIR}/run_clang_tidy.sh"
+    CHMOD
+    "${CMAKE_BINARY_DIR}/run_clang_tidy.sh"
     PERMISSIONS
-      OWNER_READ OWNER_WRITE OWNER_EXECUTE
-      GROUP_READ GROUP_EXECUTE
-      WORLD_READ WORLD_EXECUTE
+    OWNER_READ
+    OWNER_WRITE
+    OWNER_EXECUTE
+    GROUP_READ
+    GROUP_EXECUTE
+    WORLD_READ
+    WORLD_EXECUTE
   )
 
   # Prepare a clang-compatible compilation database in tidy_db/.
@@ -151,13 +170,27 @@ function(gcxx_tidy_init)
   # run_clang_tidy.sh so clang-tidy never sees the nvcc compile_commands.json.
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/tidy_db")
   set_property(GLOBAL PROPERTY _GCXX_TIDY_DB_ENTRIES "")
-  set_property(GLOBAL PROPERTY _GCXX_TIDY_DB_PATH
-    "${CMAKE_BINARY_DIR}/tidy_db/compile_commands.json")
-  cmake_language(DEFER DIRECTORY "${CMAKE_SOURCE_DIR}" CALL _gcxx_tidy_write_db)
+  set_property(
+    GLOBAL PROPERTY _GCXX_TIDY_DB_PATH
+                    "${CMAKE_BINARY_DIR}/tidy_db/compile_commands.json"
+  )
+  cmake_language(
+    DEFER
+    DIRECTORY
+    "${CMAKE_SOURCE_DIR}"
+    CALL
+    _gcxx_tidy_write_db
+  )
 endfunction()
 
 function(gcxx_tidy_add_target)
-  cmake_parse_arguments(ARG "" "TARGET" "SOURCES" ${ARGN})
+  cmake_parse_arguments(
+    ARG
+    ""
+    "TARGET"
+    "SOURCES"
+    ${ARGN}
+  )
 
   if(NOT ARG_TARGET)
     message(FATAL_ERROR "gcxx_tidy_add_target: TARGET is required")
@@ -166,7 +199,7 @@ function(gcxx_tidy_add_target)
     message(FATAL_ERROR "gcxx_tidy_add_target: SOURCES is required")
   endif()
   if(NOT TARGET gcxx.tidy)
-    return()  # gcxx_tidy_init() was not called (e.g. used as a subdirectory)
+    return() # gcxx_tidy_init() was not called (e.g. used as a subdirectory)
   endif()
 
   _gcxx_tidy_collect_flags(_flags)
@@ -175,20 +208,59 @@ function(gcxx_tidy_add_target)
   # Each flag is double-quoted for JSON; backslashes and quotes inside are escaped.
   set(_json_flags "\"${GCXX_CLANG_TIDY}\"")
   foreach(_flag IN LISTS _flags)
-    string(REPLACE "\\" "\\\\" _f "${_flag}")
-    string(REPLACE "\"" "\\\"" _f "${_f}")
+    string(
+      REPLACE "\\"
+              "\\\\"
+              _f
+              "${_flag}"
+    )
+    string(
+      REPLACE "\""
+              "\\\""
+              _f
+              "${_f}"
+    )
     string(APPEND _json_flags ", \"${_f}\"")
   endforeach()
 
-  set(_header_exts .hpp .hxx .hh .h .cuh .inl .ipp)
+  set(_header_exts
+      .hpp
+      .hxx
+      .hh
+      .h
+      .cuh
+      .inl
+      .ipp
+  )
 
   foreach(_src IN LISTS ARG_SOURCES)
-    get_filename_component(_abs "${_src}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-    file(RELATIVE_PATH _rel "${CMAKE_SOURCE_DIR}" "${_abs}")
+    get_filename_component(
+      _abs
+      "${_src}"
+      ABSOLUTE
+      BASE_DIR
+      "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    file(
+      RELATIVE_PATH
+      _rel
+      "${CMAKE_SOURCE_DIR}"
+      "${_abs}"
+    )
 
     # Stable cmake target name
-    string(REPLACE "/" "." _slug "${_rel}")
-    string(REPLACE ".." "__" _slug "${_slug}")
+    string(
+      REPLACE "/"
+              "."
+              _slug
+              "${_rel}"
+    )
+    string(
+      REPLACE ".."
+              "__"
+              _slug
+              "${_slug}"
+    )
     set(_tidy_tgt "tidy.${_slug}")
 
     # Header files need explicit language forcing
@@ -201,7 +273,9 @@ function(gcxx_tidy_add_target)
     # Register a clang-compatible compilation database entry for this file.
     # cmake_language(DEFER …) will write all entries to tidy_db/compile_commands.json
     # at the end of configure so clang-tidy finds a proper database.
-    set(_entry "  {\n    \"directory\": \"${CMAKE_SOURCE_DIR}\",\n    \"arguments\": [${_json_flags}, ${_lang_json}\"${_abs}\"],\n    \"file\": \"${_abs}\"\n  }")
+    set(_entry
+        "  {\n    \"directory\": \"${CMAKE_SOURCE_DIR}\",\n    \"arguments\": [${_json_flags}, ${_lang_json}\"${_abs}\"],\n    \"file\": \"${_abs}\"\n  }"
+    )
     set_property(GLOBAL APPEND PROPERTY _GCXX_TIDY_DB_ENTRIES "${_entry}")
 
     add_custom_target(

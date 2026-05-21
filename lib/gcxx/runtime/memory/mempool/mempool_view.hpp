@@ -25,27 +25,27 @@ class MemPoolView {
 
   MemPoolView(deviceMemPool_t pool) : pool_(pool) {}
 
-  GCXX_FH auto getRawMemPool() const -> deviceMemPool_t;
+  GCXX_FH() auto getRawMemPool() const -> deviceMemPool_t;
 
-  GCXX_FH static auto GetDefaultMempool(const DeviceHandle&) -> MemPoolView;
+  GCXX_FH() static auto GetDefaultMempool(const DeviceHandle&) -> MemPoolView;
 
-  GCXX_FH auto SetFollowEventDependencies(bool state) -> void;
-  GCXX_FH auto SetAllowOpportunistic(bool state) -> void;
-  GCXX_FH auto SetAllowInternalDependencies(bool state) -> void;
-  GCXX_FH auto SetReleaseThreshold(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetReservedMemCurrent(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetReservedMemHigh(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetUsedMemCurrent(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetUsedMemHigh(std::uint64_t threshold) -> void;
+  GCXX_FH() auto SetFollowEventDependencies(bool state) -> void;
+  GCXX_FH() auto SetAllowOpportunistic(bool state) -> void;
+  GCXX_FH() auto SetAllowInternalDependencies(bool state) -> void;
+  GCXX_FH() auto SetReleaseThreshold(std::uint64_t threshold) -> void;
+  GCXX_FH() auto SetReservedMemCurrent(std::uint64_t threshold) -> void;
+  GCXX_FH() auto SetReservedMemHigh(std::uint64_t threshold) -> void;
+  GCXX_FH() auto SetUsedMemCurrent(std::uint64_t threshold) -> void;
+  GCXX_FH() auto SetUsedMemHigh(std::uint64_t threshold) -> void;
 
-  GCXX_FH auto GetFollowEventDependencies() -> bool;
-  GCXX_FH auto GetAllowOpportunistic() -> bool;
-  GCXX_FH auto GetAllowInternalDependencies() -> bool;
-  GCXX_FH auto GetReleaseThreshold() -> std::uint64_t;
-  GCXX_FH auto GetReservedMemCurrent() -> std::uint64_t;
-  GCXX_FH auto GetReservedMemHigh() -> std::uint64_t;
-  GCXX_FH auto GetUsedMemCurrent() -> std::uint64_t;
-  GCXX_FH auto GetUsedMemHigh() -> std::uint64_t;
+  GCXX_FH() auto GetFollowEventDependencies() -> bool;
+  GCXX_FH() auto GetAllowOpportunistic() -> bool;
+  GCXX_FH() auto GetAllowInternalDependencies() -> bool;
+  GCXX_FH() auto GetReleaseThreshold() -> std::uint64_t;
+  GCXX_FH() auto GetReservedMemCurrent() -> std::uint64_t;
+  GCXX_FH() auto GetReservedMemHigh() -> std::uint64_t;
+  GCXX_FH() auto GetUsedMemCurrent() -> std::uint64_t;
+  GCXX_FH() auto GetUsedMemHigh() -> std::uint64_t;
 };
 
 GCXX_NAMESPACE_MAIN_END()

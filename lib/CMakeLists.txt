@@ -47,10 +47,16 @@ endif()
 # Register all library headers as clang-tidy targets.
 # gcxx_tidy_add_target is a no-op when GCXX_ENABLE_CLANG_TIDY=OFF.
 file(
-  GLOB_RECURSE _gcxx_headers
+  GLOB_RECURSE
+  _gcxx_headers
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hxx"
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hh"
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.cuh"
 )
-gcxx_tidy_add_target(TARGET gcxx SOURCES ${_gcxx_headers})
+gcxx_tidy_add_target(
+  TARGET
+  gcxx
+  SOURCES
+  ${_gcxx_headers}
+)

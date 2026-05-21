@@ -94,7 +94,9 @@ endif()
 
 include(cmake/CPM.cmake)
 
-option(GCXX_ENABLE_CLANG_TIDY "Enable clang-tidy via gcxx.tidy build target" OFF)
+option(GCXX_ENABLE_CLANG_TIDY "Enable clang-tidy via gcxx.tidy build target"
+       OFF
+)
 mark_as_advanced(GCXX_ENABLE_CLANG_TIDY)
 
 include(cmake/GCXXAddTidyTarget.cmake)

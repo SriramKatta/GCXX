@@ -26,7 +26,7 @@ inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
 #endif
 }
 
-GCXX_FH auto nonFatalErrorQuery(deviceError_t err) -> bool {
+GCXX_FH() auto nonFatalErrorQuery(deviceError_t err) -> bool {
   switch (err) {
     case driver::deviceErrSuccess:
       return true;

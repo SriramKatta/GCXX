@@ -29,9 +29,9 @@ using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Error Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
-using deviceError_t                     = GCXX_RUNTIME_BACKEND(Error_t);
-GCXX_CXPR inline auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
-GCXX_CXPR inline auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
+using deviceError_t                       = GCXX_RUNTIME_BACKEND(Error_t);
+GCXX_CXPR() inline auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
+GCXX_CXPR() inline auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Stream Handles                      ║

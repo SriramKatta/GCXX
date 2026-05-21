@@ -28,25 +28,25 @@ class KernelNodeParamsView {
   deviceKernelNodeParams_t params_{};  // NOLINT
 
  public:
-  GCXX_FHC auto getRawParams() const -> const deviceKernelNodeParams_t& {
+  GCXX_FHC() auto getRawParams() const -> const deviceKernelNodeParams_t& {
     return params_;
   }
 
-  GCXX_FHC auto getFunc() const -> void* { return params_.func; }
+  GCXX_FHC() auto getFunc() const -> void* { return params_.func; }
 
-  GCXX_FHC auto getGridDim() const -> dim3 { return params_.gridDim; }
+  GCXX_FHC() auto getGridDim() const -> dim3 { return params_.gridDim; }
 
-  GCXX_FHC auto getBlockDim() const -> dim3 { return params_.blockDim; }
+  GCXX_FHC() auto getBlockDim() const -> dim3 { return params_.blockDim; }
 
-  GCXX_FHC auto getSharedMemBytes() const -> unsigned int {
+  GCXX_FHC() auto getSharedMemBytes() const -> unsigned int {
     return params_.sharedMemBytes;
   }
 
-  GCXX_FHC auto getKernelParams() const -> void* const* {
+  GCXX_FHC() auto getKernelParams() const -> void* const* {
     return params_.kernelParams;
   }
 
-  GCXX_FHC auto getExtraArgs() const -> void* { return params_.extra; }
+  GCXX_FHC() auto getExtraArgs() const -> void* { return params_.extra; }
 };
 
 template <std::size_t NumParams>
@@ -56,8 +56,9 @@ class KernelNodeParams : public KernelNodeParamsView {
 
  public:
   template <typename... Args>
-  GCXX_FHC KernelNodeParams(void* func, dim3 grid, dim3 block,
-                            unsigned int shmem, Args&... args) {
+  GCXX_FHC()
+  KernelNodeParams(void* func, dim3 grid, dim3 block, unsigned int shmem,
+                   Args&... args) {
     GCXX_STATIC_EXPECT(sizeof...(args) == NumParams, "Arg count mismatch!");
 
     std::size_t i = 0;
@@ -72,9 +73,10 @@ class KernelNodeParams : public KernelNodeParamsView {
   }
 
   // Constructor from pre-built array of void* pointers (used by builder)
-  GCXX_FHC KernelNodeParams(void* func, dim3 grid, dim3 block,
-                            unsigned int shmem,
-                            std::array<void*, NumParams> arg_ptrs)
+  GCXX_FHC()
+
+  KernelNodeParams(void* func, dim3 grid, dim3 block, unsigned int shmem,
+                   std::array<void*, NumParams> arg_ptrs)
       : kernelargs_(arg_ptrs) {
     params_.func           = func;
     params_.gridDim        = grid;
@@ -106,7 +108,7 @@ class KernelArgPack {
   std::tuple<Args&...> args;
   std::array<void*, sizeof...(Args)> ptrs{};
 
-  GCXX_FHC KernelArgPack(Args&... a) : args(a...) {
+  GCXX_FHC() KernelArgPack(Args&... a) : args(a...) {
     std::size_t i = 0;
     std::apply([&](auto&... unpacked) { ((ptrs[i++] = &unpacked), ...); },
                args);
@@ -122,10 +124,11 @@ class KernelParamsBuilder {
   std::vector<void*> arg_ptrs_{};
 
  public:
-  GCXX_FH static auto create() -> KernelParamsBuilder { return {}; }
+  GCXX_FH() static auto create() -> KernelParamsBuilder { return {}; }
 
   template <typename Kernel>
-  GCXX_FHC auto setKernel(Kernel k) -> KernelParamsBuilder& {
+  GCXX_FHC()
+  auto setKernel(Kernel k) -> KernelParamsBuilder& {
     GCXX_STATIC_EXPECT(
       details_::is_void_function_pointer<Kernel>::value,
       "Passed value must be a function pointer and function should "
@@ -134,49 +137,56 @@ class KernelParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC auto setGridDim(dim3 g) -> KernelParamsBuilder& {
+  GCXX_FHC() auto setGridDim(dim3 g) -> KernelParamsBuilder& {
     grid_ = g;
     return *this;
   }
 
-  GCXX_FHC auto setGridDim(unsigned int x = 1, unsigned int y = 1,
-                           unsigned int z = 1) -> KernelParamsBuilder& {
+  GCXX_FHC()
+
+  auto setGridDim(unsigned int x = 1, unsigned int y = 1,
+                  unsigned int z = 1) -> KernelParamsBuilder& {
 
     return setGridDim({x, y, z});
   }
 
-  GCXX_FHC auto setBlockDim(dim3 b) -> KernelParamsBuilder& {
+  GCXX_FHC() auto setBlockDim(dim3 b) -> KernelParamsBuilder& {
     block_ = b;
     return *this;
   }
 
-  GCXX_FHC auto setBlockDim(unsigned int x = 1, unsigned int y = 1,
-                            unsigned int z = 1) -> KernelParamsBuilder& {
+  GCXX_FHC()
+
+  auto setBlockDim(unsigned int x = 1, unsigned int y = 1,
+                   unsigned int z = 1) -> KernelParamsBuilder& {
     return setBlockDim({x, y, z});
   }
 
-  GCXX_FHC auto setSharedMemBytes(unsigned s) -> KernelParamsBuilder& {
+  GCXX_FHC() auto setSharedMemBytes(unsigned s) -> KernelParamsBuilder& {
     shmem_ = s;
     return *this;
   }
 
   template <typename VT>
-  GCXX_FHC auto setSharedMem(std::size_t numElems) -> KernelParamsBuilder& {
+  GCXX_FHC()
+  auto setSharedMem(std::size_t numElems) -> KernelParamsBuilder& {
     return setSharedMemBytes(numElems * sizeof(VT));
   }
 
-  GCXX_FHC auto addSharedMemBytes(unsigned s) -> KernelParamsBuilder& {
+  GCXX_FHC() auto addSharedMemBytes(unsigned s) -> KernelParamsBuilder& {
     shmem_ += s;
     return *this;
   }
 
   template <typename VT>
-  GCXX_FHC auto addSharedMem(std::size_t numElems) -> KernelParamsBuilder& {
+  GCXX_FHC()
+  auto addSharedMem(std::size_t numElems) -> KernelParamsBuilder& {
     return addSharedMemBytes(numElems * sizeof(VT));
   }
 
   template <typename... Args>
-  GCXX_FHC auto setArgs(Args&... args) -> KernelParamsBuilder& {
+  GCXX_FHC()
+  auto setArgs(Args&... args) -> KernelParamsBuilder& {
     GCXX_STATIC_EXPECT((std::is_trivially_copyable_v<Args> && ...),
                        "All kernel args must be trivially copyable");
 
@@ -188,7 +198,8 @@ class KernelParamsBuilder {
   }
 
   template <std::size_t NumParams>
-  GCXX_FHC gcxx::KernelNodeParams<NumParams> build() {
+  GCXX_FHC()
+  gcxx::KernelNodeParams<NumParams> build() {
     GCXX_RUNTIME_EXPECT(arg_ptrs_.size() == NumParams,
                         "Mismatch between arg_ptrs_.size() and Numparams");
     GCXX_RUNTIME_EXPECT(kernel_ != nullptr, "Need to set the kernel");
@@ -204,7 +215,7 @@ class KernelParamsBuilder {
 GCXX_NAMESPACE_DETAILS_END()
 
 // an helper to simply while using it
-GCXX_FH auto KernelParamsBuilder() -> details_::KernelParamsBuilder {
+GCXX_FH() auto KernelParamsBuilder() -> details_::KernelParamsBuilder {
   return details_::KernelParamsBuilder::create();
 }
 

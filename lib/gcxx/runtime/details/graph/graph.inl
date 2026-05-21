@@ -12,29 +12,33 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_FH auto Graph::Create(const flags::graphCreate createFlag) -> Graph {
+GCXX_FH() auto Graph::Create(const flags::graphCreate createFlag) -> Graph {
   return Graph{createFlag};
 }
 
-GCXX_FH Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT
+GCXX_FH()
+
+Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT()
     : GraphView(
         driver::graphCreate(static_cast<details_::flag_t>(createFlag))) {}
 
-GCXX_FH auto Graph::destroy() -> void {
+GCXX_FH() auto Graph::destroy() -> void {
   if (graph_ != driver::INVALID_GRAPH) {
     driver::graphDestroy(graph_);
     graph_ = driver::INVALID_GRAPH;
   }
 }
 
-GCXX_FH Graph::~Graph() GCXX_NOEXCEPT {
+GCXX_FH() Graph::~Graph() GCXX_NOEXCEPT() {
   destroy();
 }
 
-GCXX_FH Graph::Graph(Graph&& other) GCXX_NOEXCEPT
+GCXX_FH()
+
+Graph::Graph(Graph&& other) GCXX_NOEXCEPT()
     : GraphView(std::exchange(other.graph_, driver::INVALID_GRAPH)) {}
 
-GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT -> Graph& {
+GCXX_FH() auto Graph::operator=(Graph && other) GCXX_NOEXCEPT() -> Graph& {
   if (this != &other) {
     destroy();
     graph_ = std::exchange(other.graph_, driver::INVALID_GRAPH);
@@ -42,21 +46,21 @@ GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT -> Graph& {
   return *this;
 }
 
-GCXX_FH auto Graph::Release() GCXX_NOEXCEPT -> GraphView {
+GCXX_FH() auto Graph::Release() GCXX_NOEXCEPT() -> GraphView {
   auto oldGraph = graph_;
   graph_        = driver::INVALID_GRAPH;
   return GraphView{oldGraph};
 }
 
-GCXX_FH auto Graph::CreateFromRaw(deviceGraph_t graph) -> Graph {
+GCXX_FH() auto Graph::CreateFromRaw(deviceGraph_t graph) -> Graph {
   return Graph{graph};
 }
 
-GCXX_FH auto Graph::Instantiate() const -> GraphExec {
+GCXX_FH() auto Graph::Instantiate() const -> GraphExec {
   return GraphExec{*this};
 }
 
-GCXX_FH auto Graph::Clone() const -> Graph {
+GCXX_FH() auto Graph::Clone() const -> Graph {
   return Graph::CreateFromRaw(GraphView::Clone().getRawGraph());
 }
 

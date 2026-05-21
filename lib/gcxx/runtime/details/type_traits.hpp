@@ -34,8 +34,8 @@ template <typename... Args>
 struct is_void_function_pointer<void (*)(Args...)> : std::true_type {};
 
 template <typename VT>
-GCXX_CXPR inline bool is_void_function_pointer_v =
-  is_void_function_pointer<VT>::value;
+GCXX_CXPR()
+inline bool is_void_function_pointer_v = is_void_function_pointer<VT>::value;
 
 template <typename, typename = size_t>
 struct is_complete : std::false_type {};
@@ -57,7 +57,8 @@ template <typename VT, std::size_t N>
 struct is_std_array<std::array<VT, N>> : std::true_type {};
 
 template <typename VT>
-GCXX_CXPR inline bool is_std_array_v = is_std_array<VT>::value;
+GCXX_CXPR()
+inline bool is_std_array_v = is_std_array<VT>::value;
 
 template <typename, typename = void>
 struct has_size_and_data : std::false_type {};
@@ -69,7 +70,8 @@ struct has_size_and_data<
     : std::true_type {};
 
 template <typename VT>
-GCXX_CXPR inline bool has_size_and_data_v = has_size_and_data<VT>::value;
+GCXX_CXPR()
+inline bool has_size_and_data_v = has_size_and_data<VT>::value;
 
 template <typename T>
 using remove_pointer_t = typename std::remove_pointer<T>::type;
@@ -113,8 +115,8 @@ struct is_ptr_array_convertible
     : std::bool_constant<std::is_convertible_v<U (*)[], ET (*)[]>> {};
 
 template <typename U, typename ET>
-GCXX_CXPR inline bool is_ptr_array_convertible_v =
-  is_ptr_array_convertible<U, ET>::value;
+GCXX_CXPR()
+inline bool is_ptr_array_convertible_v = is_ptr_array_convertible<U, ET>::value;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Four convertibility traits mirroring std::span's SFINAE conditions.
@@ -139,8 +141,8 @@ struct is_iter_ptr_convertible<
         ET> {};
 
 template <typename It, typename ET>
-GCXX_CXPR inline bool is_iter_ptr_convertible_v =
-  is_iter_ptr_convertible<It, ET>::value;
+GCXX_CXPR()
+inline bool is_iter_ptr_convertible_v = is_iter_ptr_convertible<It, ET>::value;
 
 // ② Constructors 4, 5 & 6 — C-array / std::array
 template <typename Arr, typename ET, typename = void>
@@ -155,8 +157,8 @@ struct is_data_ptr_convertible<
         ET> {};
 
 template <typename Arr, typename ET>
-GCXX_CXPR inline bool is_data_ptr_convertible_v =
-  is_data_ptr_convertible<Arr, ET>::value;
+GCXX_CXPR()
+inline bool is_data_ptr_convertible_v = is_data_ptr_convertible<Arr, ET>::value;
 
 // ③ Constructor 7 — range
 template <typename R, typename ET, typename = void>
@@ -170,16 +172,16 @@ struct is_range_ptr_convertible<
         ET> {};
 
 template <typename R, typename ET>
-GCXX_CXPR inline bool is_range_ptr_convertible_v =
-  is_range_ptr_convertible<R, ET>::value;
+GCXX_CXPR()
+inline bool is_range_ptr_convertible_v = is_range_ptr_convertible<R, ET>::value;
 
 // ④ Constructor 9 — converting span constructor (U passed directly)
 template <typename U, typename ET>
 using is_type_ptr_convertible = is_ptr_array_convertible<U, ET>;
 
 template <typename U, typename ET>
-GCXX_CXPR inline bool is_type_ptr_convertible_v =
-  is_type_ptr_convertible<U, ET>::value;
+GCXX_CXPR()
+inline bool is_type_ptr_convertible_v = is_type_ptr_convertible<U, ET>::value;
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_END

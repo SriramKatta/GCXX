@@ -15,7 +15,7 @@ struct restrict_accessor : public Accessor {
   using offset_policy    = restrict_accessor<typename Accessor::offset_policy>;
   using element_type     = typename Accessor::element_type;
   using reference        = typename Accessor::reference;
-  using data_handle_type = element_type* GCXX_RESTRICT_KEYWORD;
+  using data_handle_type = element_type* GCXX_RESTRICT_KEYWORD();
 
   constexpr reference access(data_handle_type p, std::size_t i) const noexcept {
     return Accessor::access(p, i);

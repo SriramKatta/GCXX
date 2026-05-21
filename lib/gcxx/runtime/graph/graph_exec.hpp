@@ -15,31 +15,32 @@ class GraphView;
 
 class GraphExec : public GraphExecView {
  private:
-  GCXX_FH GraphExec(deviceGraphExec_t exec) GCXX_NOEXCEPT
-      : GraphExecView(exec) {}
+  GCXX_FH()
 
-  GCXX_FH auto destroy() -> void;
+  GraphExec(deviceGraphExec_t exec) GCXX_NOEXCEPT() : GraphExecView(exec) {}
+
+  GCXX_FH() auto destroy() -> void;
 
  public:
-  GCXX_FH GraphExec() GCXX_NOEXCEPT : GraphExecView() {}
+  GCXX_FH() GraphExec() GCXX_NOEXCEPT() : GraphExecView() {}
 
-  GCXX_FH explicit GraphExec(const GraphView& graph);
+  GCXX_FH() explicit GraphExec(const GraphView& graph);
 
-  GCXX_FH static auto Create(const GraphView& graph) -> GraphExec;
+  GCXX_FH() static auto Create(const GraphView& graph) -> GraphExec;
 
-  GCXX_FH static auto CreateFromRaw(deviceGraphExec_t exec) -> GraphExec;
+  GCXX_FH() static auto CreateFromRaw(deviceGraphExec_t exec) -> GraphExec;
 
-  GCXX_FH ~GraphExec() GCXX_NOEXCEPT;
+  GCXX_FH() ~GraphExec() GCXX_NOEXCEPT();
 
   GraphExec(const GraphExec&)            = delete;
   GraphExec& operator=(const GraphExec&) = delete;
 
-  GCXX_FH GraphExec(GraphExec&& other) GCXX_NOEXCEPT;
-  GCXX_FH auto operator=(GraphExec&& other) GCXX_NOEXCEPT->GraphExec&;
+  GCXX_FH() GraphExec(GraphExec&& other) GCXX_NOEXCEPT();
+  GCXX_FH() auto operator=(GraphExec&& other) GCXX_NOEXCEPT() -> GraphExec&;
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT -> GraphExecView;
+  GCXX_FH() auto Release() GCXX_NOEXCEPT() -> GraphExecView;
 
-  GCXX_FH auto Update(const GraphView& graph) -> void;
+  GCXX_FH() auto Update(const GraphView& graph) -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END()

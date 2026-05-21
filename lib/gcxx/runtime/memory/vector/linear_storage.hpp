@@ -32,54 +32,56 @@ class linear_storage {
   using const_iterator = const T*;
 
 
-  GCXX_HD explicit linear_storage(
-    const allocator_type& alloc = allocator_type());
+  GCXX_HD()
+  explicit linear_storage(const allocator_type& alloc = allocator_type());
 
 
-  GCXX_HD explicit linear_storage(
-    size_type n, const allocator_type& alloc = allocator_type());
+  GCXX_HD()
+  explicit linear_storage(size_type n,
+                          const allocator_type& alloc = allocator_type());
 
 
-  GCXX_HD explicit linear_storage(copy_allocator_t,
-                                  const linear_storage& other);
+  GCXX_HD()
+  explicit linear_storage(copy_allocator_t, const linear_storage& other);
 
 
-  GCXX_HD explicit linear_storage(copy_allocator_t, const linear_storage& other,
-                                  size_type n);
+  GCXX_HD()
+  explicit linear_storage(copy_allocator_t, const linear_storage& other,
+                          size_type n);
 
   linear_storage& operator=(const linear_storage& x) = delete;
 
 
-  GCXX_HD ~linear_storage();
+  GCXX_HD() ~linear_storage();
 
-  GCXX_HD size_type size() const;
+  GCXX_HD() size_type size() const;
 
-  GCXX_HD size_type max_size() const;
+  GCXX_HD() size_type max_size() const;
 
-  GCXX_HD pointer data();
+  GCXX_HD() pointer data();
 
-  GCXX_HD const_pointer data() const;
+  GCXX_HD() const_pointer data() const;
 
-  GCXX_HD iterator begin();
+  GCXX_HD() iterator begin();
 
-  GCXX_HD const_iterator begin() const;
+  GCXX_HD() const_iterator begin() const;
 
-  GCXX_HD iterator end();
+  GCXX_HD() iterator end();
 
-  GCXX_HD const_iterator end() const;
+  GCXX_HD() const_iterator end() const;
 
-  GCXX_HD reference operator[](size_type n);
+  GCXX_HD() reference operator[](size_type n);
 
-  GCXX_HD const_reference operator[](size_type n) const;
+  GCXX_HD() const_reference operator[](size_type n) const;
 
-  GCXX_HD allocator_type get_allocator() const;
+  GCXX_HD() allocator_type get_allocator() const;
 
   // note that allocate does *not* automatically call deallocate
-  GCXX_HD void allocate(size_type n);
+  GCXX_HD() void allocate(size_type n);
 
-  GCXX_HD void deallocate() noexcept;
+  GCXX_HD() void deallocate() noexcept;
 
-  GCXX_HD void swap(linear_storage& other) {
+  GCXX_HD() void swap(linear_storage& other) {
     using std::swap;
     swap(m_begin, other.m_begin);
     swap(m_size, other.m_size);
@@ -101,33 +103,36 @@ class linear_storage {
     }
   }
 
-  GCXX_HD void value_initialize_n(iterator first, size_type n);
+  GCXX_HD() void value_initialize_n(iterator first, size_type n);
 
-  GCXX_HD void uninitialized_fill_n(iterator first, size_type n,
-                                    const value_type& value);
+  GCXX_HD()
+  void uninitialized_fill_n(iterator first, size_type n,
+                            const value_type& value);
 
   template <typename InputIterator>
-  GCXX_HD iterator uninitialized_copy(InputIterator first, InputIterator last,
-                                      iterator result);
+  GCXX_HD()
+  iterator uninitialized_copy(InputIterator first, InputIterator last,
+                              iterator result);
 
   //   template <typename System, typename InputIterator>
-  //   GCXX_HD iterator uninitialized_copy(
+  //   GCXX_HD() iterator uninitialized_copy(
   //     thrust::execution_policy<System>& from_system, InputIterator first,
   //     InputIterator last, iterator result);
 
   //   template <typename InputIterator, typename Size>
-  //   GCXX_HD iterator uninitialized_copy_n(InputIterator first, Size n,
+  //   GCXX_HD() iterator uninitialized_copy_n(InputIterator first, Size n,
   //   iterator result);
 
   //   template <typename System, typename InputIterator, typename Size>
-  //   GCXX_HD iterator
+  //   GCXX_HD() iterator
   //   uninitialized_copy_n(thrust::execution_policy<System>& from_system,
   //   InputIterator first, Size n, iterator result);
 
-  GCXX_HD void destroy(iterator first, iterator last) noexcept;
+  GCXX_HD() void destroy(iterator first, iterator last) noexcept;
 
-  GCXX_HD void deallocate_on_allocator_mismatch(
-    const linear_storage& other) noexcept {
+  GCXX_HD()
+
+  void deallocate_on_allocator_mismatch(const linear_storage& other) noexcept {
     if constexpr (alloc_traits::propagate_on_container_copy_assignment::value) {
       if (m_allocator != other.m_allocator) {
         deallocate();
@@ -135,9 +140,11 @@ class linear_storage {
     }
   }
 
-  GCXX_HD void destroy_on_allocator_mismatch(
-    const linear_storage& other, [[maybe_unused]] iterator first,
-    [[maybe_unused]] iterator last) noexcept {
+  GCXX_HD()
+
+  void destroy_on_allocator_mismatch(const linear_storage& other,
+                                     [[maybe_unused]] iterator first,
+                                     [[maybe_unused]] iterator last) noexcept {
     if constexpr (alloc_traits::propagate_on_container_copy_assignment::value) {
       if (m_allocator != other.m_allocator) {
         destroy(first, last);
@@ -145,22 +152,22 @@ class linear_storage {
     }
   }
 
-  GCXX_HD void set_allocator(const allocator_type& alloc);
+  GCXX_HD() void set_allocator(const allocator_type& alloc);
 
-  GCXX_HD void propagate_allocator(const linear_storage& other) {
+  GCXX_HD() void propagate_allocator(const linear_storage& other) {
     if constexpr (alloc_traits::propagate_on_container_copy_assignment::value) {
       m_allocator = other.m_allocator;
     }
   }
 
-  GCXX_HD void propagate_allocator(linear_storage& other) {
+  GCXX_HD() void propagate_allocator(linear_storage& other) {
     if constexpr (alloc_traits::propagate_on_container_move_assignment::value) {
       m_allocator = std::move(other.m_allocator);
     }
   }
 
   // allow move assignment for a sane implementation of allocator propagation
-  GCXX_HD linear_storage& operator=(linear_storage&& other);
+  GCXX_HD() linear_storage& operator=(linear_storage&& other);
 
   //   _CCCL_SYNTHESIZE_SEQUENCE_ACCESS(linear_storage, const_iterator)
 
@@ -173,7 +180,7 @@ class linear_storage {
 
   size_type m_size;
 
-  friend GCXX_HD void swap(linear_storage& lhs, linear_storage& rhs) noexcept(
+  friend GCXX_HD() void swap(linear_storage& lhs, linear_storage& rhs) noexcept(
     noexcept(lhs.swap(rhs))) {
     lhs.swap(rhs);
   }

@@ -16,11 +16,11 @@ class GraphExecView;
 
 class ChildGraphNodeView : public GraphNodeView {
  public:
-  GCXX_FHC ChildGraphNodeView(GraphNodeView::deviceGraphNode_t node);
+  GCXX_FHC() ChildGraphNodeView(GraphNodeView::deviceGraphNode_t node);
 
-  GCXX_FH auto getGraph() -> GraphView;
+  GCXX_FH() auto getGraph() -> GraphView;
 
-  GCXX_FH auto setParams(GraphExecView exec, GraphView graph) -> void;
+  GCXX_FH() auto setParams(GraphExecView exec, GraphView graph) -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END()

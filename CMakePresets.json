@@ -299,14 +299,18 @@
       "displayName": "clang-tidy (CUDA)",
       "configurePreset": "debug_cuda_full",
       "inherits": "build_base",
-      "targets": ["gcxx.tidy"]
+      "targets": [
+        "gcxx.tidy"
+      ]
     },
     {
       "name": "build_tidy_hip",
       "displayName": "clang-tidy (HIP)",
       "configurePreset": "debug_hip_full",
       "inherits": "build_base",
-      "targets": ["gcxx.tidy"]
+      "targets": [
+        "gcxx.tidy"
+      ]
     }
   ],
   "testPresets": [

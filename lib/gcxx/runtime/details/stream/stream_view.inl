@@ -17,41 +17,53 @@ struct CaptureInfo {
   std::size_t pDependenciescount{};
 };
 
-GCXX_FHC StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
+GCXX_FHC()
+
+StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT()
     : stream_(rawStream) {}
 
-GCXX_FH constexpr auto StreamView::getRawStream()
-  GCXX_CONST_NOEXCEPT -> deviceStream_t {
+GCXX_FH()
+
+constexpr auto StreamView::getRawStream()
+  GCXX_CONST_NOEXCEPT() -> deviceStream_t {
   return stream_;
 }
 
-GCXX_FH constexpr StreamView::operator deviceStream_t() GCXX_CONST_NOEXCEPT {
+GCXX_FH()
+
+constexpr StreamView::operator deviceStream_t() GCXX_CONST_NOEXCEPT() {
   return getRawStream();
 }
 
-GCXX_FH auto StreamView::HasPendingWork() -> bool {
+GCXX_FH() auto StreamView::HasPendingWork() -> bool {
   const auto err = driver::streamQueryNothrow(stream_);
   return !details_::nonFatalErrorQuery(err);
 }
 
-GCXX_FH auto StreamView::Synchronize() const -> void {
+GCXX_FH() auto StreamView::Synchronize() const -> void {
   driver::streamSynchronize(stream_);
 }
 
-GCXX_FH auto StreamView::WaitOnEvent(const EventView& event,
-                                     flags::eventWait waitFlag) const -> void {
+GCXX_FH()
+
+auto StreamView::WaitOnEvent(const EventView& event,
+                             flags::eventWait waitFlag) const -> void {
   driver::StreamWaitEvent(this->stream_, event.getRawEvent(),
                           static_cast<details_::flag_t>(waitFlag));
 }
 
-GCXX_FH auto StreamView::BeginCapture(
-  const flags::streamCaptureMode createflag) const -> void {
+GCXX_FH()
+
+auto StreamView::BeginCapture(const flags::streamCaptureMode createflag) const
+  -> void {
   GCXX_SAFE_RUNTIME_CALL(
     StreamBeginCapture, "Failed to begin Stream Capture", this->getRawStream(),
     static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
 }
 
-GCXX_FH auto StreamView::BeginCaptureToGraph(
+GCXX_FH()
+
+auto StreamView::BeginCaptureToGraph(
   GraphView& graph_view,
   const flags::streamCaptureMode createflag) const -> void {
   GCXX_SAFE_RUNTIME_CALL(
@@ -60,15 +72,16 @@ GCXX_FH auto StreamView::BeginCaptureToGraph(
     static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
 }
 
-GCXX_FH auto StreamView::EndCapture() const -> Graph {
+GCXX_FH() auto StreamView::EndCapture() const -> Graph {
   GraphView::deviceGraph_t pgraph{nullptr};
   GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
                          this->getRawStream(), &pgraph);
   return Graph::CreateFromRaw(pgraph);
 }
 
-GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const
-  -> void {
+GCXX_FH()
+
+auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const -> void {
   // When using BeginCaptureToGraph, the capture happens into the existing
   // graph, so the returned handle from EndCapture is the same as
   // graph.getRawGraph(). We just need to call EndCapture to finalize the
@@ -83,8 +96,9 @@ GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const
 }
 
 #if GCXX_CUDA_MODE
-GCXX_FH auto StreamView::IsCapturing() const
-  -> gcxx::flags::streamCaptureStatus {
+GCXX_FH()
+
+auto StreamView::IsCapturing() const -> gcxx::flags::streamCaptureStatus {
   GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
   GCXX_SAFE_RUNTIME_CALL(StreamIsCapturing,
                          "Failed to query if the Stream is capturing", stream_,
@@ -92,7 +106,7 @@ GCXX_FH auto StreamView::IsCapturing() const
   return flags::to_streamCaptureStatus(status);
 }
 
-GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
+GCXX_FH() auto StreamView::GetCaptureInfo() const -> CaptureInfo {
   GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
   unsigned long long id{};
   GraphView::deviceGraph_t graph{};
@@ -112,7 +126,9 @@ GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
           pDependencies, numdeps};
 }
 
-GCXX_FH auto StreamView::UpdateCaptureDependencies(
+GCXX_FH()
+
+auto StreamView::UpdateCaptureDependencies(
   flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
   std::size_t numdeps) const -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamUpdateCaptureDependencies,
