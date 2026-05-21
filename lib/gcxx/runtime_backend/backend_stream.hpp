@@ -115,19 +115,7 @@ GCXX_FH auto streamGetCaptureInfo(
 #endif
     numDependencies_out);
 }
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 3, 0)
-GCXX_FH auto streamGetCaptureInfo_v3(
-  deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatusOut,
-  unsigned long long* idOut = nullptr, deviceGraph_t* graphOut = nullptr,
-  const deviceGraphNode_t** dependenciesOut = nullptr,
-  const deviceGraphEdgeData_t** edgeDataOut = nullptr,
-  std::size_t* numDependenciesOut           = nullptr) -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamGetCaptureInfo_v3,
-                         "Failed to get Capture info of Stream", stream,
-                         captureStatusOut, idOut, graphOut, dependenciesOut,
-                         edgeDataOut, numDependenciesOut);
-}
-#endif
+
 GCXX_FH auto streamGetDevice(deviceStream_t stream) -> int {
   int device{};
   GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, "Failed to get Stream device", stream,

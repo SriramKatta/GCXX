@@ -386,7 +386,7 @@ GCXX_FH auto graphGetEdges(deviceGraph_t graph, deviceGraphNode_t* from,
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     GraphGetEdges_v2,
 #else
-    GraphGetEdges_v2,
+    GraphGetEdges,
 #endif
     "Failed to get graph edges", graph, from, to,
 #if GCXX_CUDA_MODE()
@@ -737,22 +737,22 @@ GCXX_FH auto graphNodeGetDependencies(deviceGraphNode_t node,
     numDependencies);
 }
 
-GCXX_FH auto graphNodeGetDependentNodes(
-  deviceGraphNode_t node, deviceGraphNode_t* dependentNodes,
-  std::size_t* numDependentNodes) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphNodeGetDependentNodes,
-                         "Failed to get graph node dependents", node,
-                         dependentNodes, numDependentNodes);
-}
-#if GCXX_CUDA_MODE()
-GCXX_FH auto graphNodeGetDependentNodesV2(
-  deviceGraphNode_t node, deviceGraphNode_t* dependentNodes,
-  deviceGraphEdgeData_t* edgeData, std::size_t* numDependentNodes) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphNodeGetDependentNodes_v2,
-                         "Failed to get graph node dependents", node,
-                         dependentNodes, edgeData, numDependentNodes);
-}
+GCXX_FH auto graphNodeGetDependentNodes(deviceGraphNode_t node,
+                                        deviceGraphNode_t* pDependentNodes,
+                                        deviceGraphEdgeData_t* edgeData,
+                                        size_t* pNumDependentNodes) -> void {
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    GraphNodeGetDependentNodes_v2,
+#else
+    GraphNodeGetDependentNodes,
 #endif
+    "Failed to get graph node dependents", node, pDependentNodes,
+#if GCXX_CUDA_MODE()
+    edgeData,
+#endif
+    pNumDependentNodes);
+}
 
 GCXX_FH auto graphNodeGetEnabled(deviceGraphExec_t exec,
                                  deviceGraphNode_t node) -> unsigned int {
@@ -807,17 +807,8 @@ GCXX_FH auto graphRemoveDependencies(deviceGraph_t graph,
 #endif
                          numDependencies);
 }
-#if GCXX_CUDA_MODE()
-GCXX_FH auto graphRemoveDependenciesV2(deviceGraph_t graph,
-                                       const deviceGraphNode_t* from,
-                                       const deviceGraphNode_t* to,
-                                       const deviceGraphEdgeData_t* edgeData,
-                                       std::size_t numDependencies) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphRemoveDependencies_v2,
-                         "Failed to remove graph dependencies", graph, from, to,
-                         edgeData, numDependencies);
-}
 
+#if GCXX_CUDA_MODE()
 GCXX_FH auto userObjectCreate(deviceUserObject_t* objectOut, void* ptr,
                               deviceHostCallBackFn_t destroy,
                               unsigned int initialRefcount,

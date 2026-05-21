@@ -26,7 +26,7 @@ GCXX_FH auto eventElapsedTime(deviceEvent_t startEvent,
                               deviceEvent_t endEvent) -> float {
   float ms{};
   GCXX_SAFE_RUNTIME_CALL(
-#if GCXX_CUDA_MODE()
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     EventElapsedTime_v2,
 #else
     EventElapsedTime,
