@@ -14,7 +14,6 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH
-
 auto Device::set(device_t devId, bool resetOnDestruct) -> DeviceHandle {
   return DeviceHandle(devId, resetOnDestruct);
 }
@@ -55,7 +54,6 @@ GCXX_FH auto Device::getAttribute(const flags::deviceAttribute& attr) -> int {
 }
 
 GCXX_FH
-
 auto Device::getLimit(const flags::deviceLimit& limattr) -> std::size_t {
   std::size_t pval{};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetLimit, "Failed to get the device limit",
@@ -64,7 +62,6 @@ auto Device::getLimit(const flags::deviceLimit& limattr) -> std::size_t {
 }
 
 GCXX_FH
-
 auto Device::setLimit(const flags::deviceLimit& limattr,
                       std::size_t limval) -> void {
   GCXX_SAFE_RUNTIME_CALL(DeviceSetLimit, "Failed to set the device limit",

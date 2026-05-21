@@ -11,7 +11,6 @@
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
-
 GCXX_FH auto chooseDevice(const deviceProp_t& prop) -> int {
   int device{-1};
   GCXX_SAFE_RUNTIME_CALL(ChooseDevice, "Failed to choose device", &device,
@@ -67,10 +66,8 @@ GCXX_FH auto getMemPool(int device) -> deviceMemPool_t {
   return pool;
 }
 
-GCXX_FH
-
-auto deviceGetP2PAttribute(deviceP2PAttr_t attr, int srcDevice,
-                           int dstDevice) -> int {
+GCXX_FH auto deviceGetP2PAttribute(deviceP2PAttr_t attr, int srcDevice,
+                                   int dstDevice) -> int {
   int value{-1};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetP2PAttribute,
                          "Failed to get device P2P attribute", &value, attr,
@@ -108,9 +105,7 @@ GCXX_FH auto deviceSetLimit(deviceLimit_t lim, size_t value) -> void {
                          value);
 }
 
-GCXX_FH
-
-auto deviceSetMemPool(int device, const deviceMemPool_t& pool) -> void {
+GCXX_FH auto deviceSetMemPool(int device, const deviceMemPool_t& pool) -> void {
   GCXX_SAFE_RUNTIME_CALL(DeviceSetMemPool, "Failed to set memory pool", device,
                          pool);
 }
@@ -144,10 +139,8 @@ GCXX_FH auto deviceGetProp(int device) -> deviceProp_t {
   return prop;
 }
 
-GCXX_FH
-
-auto deviceInit(int device, unsigned int deviceFlags,
-                unsigned int flags) -> void {
+GCXX_FH auto deviceInit(int device, unsigned int deviceFlags,
+                        unsigned int flags) -> void {
   GCXX_SAFE_RUNTIME_CALL(InitDevice, "Failed to initialize device", device,
                          deviceFlags, flags);
 }
@@ -157,9 +150,7 @@ GCXX_FH auto ipcCloseMemHandle(void* devPtr) -> void {
                          devPtr);
 }
 
-GCXX_FH
-
-auto ipcGetEventHandle(deviceEvent_t event) -> deviceIpcEventHandle_t {
+GCXX_FH auto ipcGetEventHandle(deviceEvent_t event) -> deviceIpcEventHandle_t {
   deviceIpcEventHandle_t ipcHandle{};
   GCXX_SAFE_RUNTIME_CALL(IpcGetEventHandle, "Failed to get IPC event handle",
                          &ipcHandle, event);
@@ -173,9 +164,7 @@ GCXX_FH auto ipcGetMemHandle(void* devPtr) -> deviceIpcMemHandle_t {
   return ipcHandle;
 }
 
-GCXX_FH
-
-auto ipcOpeEventHandle(const deviceIpcEventHandle_t& ipcHandle)
+GCXX_FH auto ipcOpeEventHandle(const deviceIpcEventHandle_t& ipcHandle)
   -> deviceEvent_t {
   deviceEvent_t event{};
   GCXX_SAFE_RUNTIME_CALL(IpcOpenEventHandle, "Failed to open IPC event handle",
@@ -183,10 +172,8 @@ auto ipcOpeEventHandle(const deviceIpcEventHandle_t& ipcHandle)
   return event;
 }
 
-GCXX_FH
-
-auto ipcOpenMemHandle(const deviceIpcMemHandle_t& ipcHandle,
-                      unsigned int flags) -> void* {
+GCXX_FH auto ipcOpenMemHandle(const deviceIpcMemHandle_t& ipcHandle,
+                              unsigned int flags) -> void* {
   void* devPtr{};
   GCXX_SAFE_RUNTIME_CALL(IpcOpenMemHandle, "Failed to open IPC memory handle",
                          &devPtr, ipcHandle, flags);

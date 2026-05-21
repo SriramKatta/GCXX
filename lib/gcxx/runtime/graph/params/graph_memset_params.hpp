@@ -53,7 +53,6 @@ class MemsetParams : public MemsetParamsView {
   GCXX_FHC MemsetParams() = default;
 
   GCXX_FHC
-
   MemsetParams(void* dst, size_t pitch, unsigned int value,
                unsigned int elementSize, size_t width, size_t height) {
     params_.dst         = dst;

@@ -16,9 +16,7 @@ GCXX_FH auto Graph::Create(const flags::graphCreate createFlag) -> Graph {
   return Graph{createFlag};
 }
 
-GCXX_FH
-
-Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT
+GCXX_FH Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT
     : GraphView(
         driver::graphCreate(static_cast<details_::flag_t>(createFlag))) {}
 
@@ -33,9 +31,7 @@ GCXX_FH Graph::~Graph() GCXX_NOEXCEPT {
   destroy();
 }
 
-GCXX_FH
-
-Graph::Graph(Graph&& other) GCXX_NOEXCEPT
+GCXX_FH Graph::Graph(Graph&& other) GCXX_NOEXCEPT
     : GraphView(std::exchange(other.graph_, driver::INVALID_GRAPH)) {}
 
 GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT -> Graph& {

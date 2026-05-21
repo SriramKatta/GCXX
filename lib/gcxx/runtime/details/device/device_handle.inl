@@ -13,9 +13,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_FH
-
-DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
+GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
     : deviceId_(devId), resetOnDestruct_(resetOnDestruct) {
   makeCurrent();
 }
@@ -37,7 +35,6 @@ GCXX_FH auto DeviceHandle::Synchronize() const -> void {
 }
 
 GCXX_FH
-
 auto DeviceHandle::getAttribute(const flags::deviceAttribute& attr) const
   -> int {
   details_::EnsureCurrentDevice dev(deviceId_);
@@ -49,7 +46,6 @@ GCXX_FHC auto DeviceHandle::id() const -> device_t {
 }
 
 GCXX_FH
-
 auto DeviceHandle::getLimit(const flags::deviceLimit& limattr) const
   -> std::size_t {
   details_::EnsureCurrentDevice dev(deviceId_);
@@ -57,7 +53,6 @@ auto DeviceHandle::getLimit(const flags::deviceLimit& limattr) const
 }
 
 GCXX_FH
-
 auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
                             std::size_t limval) const -> void {
   details_::EnsureCurrentDevice dev(deviceId_);

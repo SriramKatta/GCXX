@@ -36,23 +36,19 @@ class StreamView {
     return s;
   }
 
-  GCXX_FH
-  constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
+  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
-  GCXX_FH
-  constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;  // NOLINT
+  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;  // NOLINT
 
   GCXX_FH auto HasPendingWork() -> bool;
 
   GCXX_FH auto Synchronize() const -> void;
 
-  GCXX_FH
-  auto WaitOnEvent(const EventView& event,
-                   flags::eventWait waitFlag = flags::eventWait::None) const
-    -> void;
+  GCXX_FH auto WaitOnEvent(
+    const EventView& event,
+    flags::eventWait waitFlag = flags::eventWait::None) const -> void;
 
-  GCXX_FH
-  auto RecordEvent(
+  GCXX_FH auto RecordEvent(
     flags::eventCreate createflag = flags::eventCreate::None,
     flags::eventRecord recordFlag = flags::eventRecord::None) const -> Event;
 
@@ -64,12 +60,10 @@ class StreamView {
     return stream_ == driver::INVALID_STREAM;
   }
 
-  GCXX_FH
-  auto BeginCapture(flags::streamCaptureMode createflag) const -> void;
+  GCXX_FH auto BeginCapture(flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH
-  auto BeginCaptureToGraph(GraphView& graph_view,
-                           flags::streamCaptureMode createflag) const -> void;
+  GCXX_FH auto BeginCaptureToGraph(
+    GraphView& graph_view, flags::streamCaptureMode createflag) const -> void;
 
   GCXX_FH auto EndCapture() const -> Graph;
 
@@ -84,10 +78,9 @@ class StreamView {
 
   GCXX_FH auto GetCaptureInfo() const -> CaptureInfo;
 
-  GCXX_FH
-  auto UpdateCaptureDependencies(flags::StreamUpdateCaptureDependencies flag,
-                                 deviceGraphNode_t* nodes,
-                                 std::size_t numdeps) const -> void;
+  GCXX_FH auto UpdateCaptureDependencies(
+    flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
+    std::size_t numdeps) const -> void;
 #endif
 };
 

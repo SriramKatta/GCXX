@@ -18,8 +18,7 @@ class Stream : public StreamView {
   GCXX_FH auto destroy() -> void;
 
  public:
-  GCXX_FH
-  explicit Stream(
+  GCXX_FH explicit Stream(
     flags::streamType createFlag       = flags::streamType::SyncWithNull,
     flags::streamPriority priorityFlag = flags::streamPriority::None);
 

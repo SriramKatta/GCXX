@@ -19,12 +19,10 @@ class Graph : public GraphView {
 
  public:
   GCXX_FH auto destroy() -> void;
-  GCXX_FH
-  Graph(const flags::graphCreate createFlag = flags::graphCreate::None)
+  GCXX_FH Graph(const flags::graphCreate createFlag = flags::graphCreate::None)
     GCXX_NOEXCEPT;
 
-  GCXX_FH
-  static auto Create(
+  GCXX_FH static auto Create(
     const flags::graphCreate createFlag = flags::graphCreate::None) -> Graph;
 
 

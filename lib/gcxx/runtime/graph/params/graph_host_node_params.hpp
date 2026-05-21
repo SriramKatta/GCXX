@@ -72,7 +72,6 @@ class HostNodeParamsBuilder {
   GCXX_FH static auto create() -> HostNodeParamsBuilder { return {}; }
 
   GCXX_FHC
-
   auto setHostCallbackFn(HostNodeParamsView::deviceHostCallBackFn_t func)
     -> HostNodeParamsBuilder& {
     func_ = func;

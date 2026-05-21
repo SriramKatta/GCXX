@@ -11,9 +11,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_FH
-
-Event::Event(const flags::eventCreate createFlag)
+GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : EventView(driver::INVALID_EVENT) {
   event_ =
     driver::eventCreateWithFlags(static_cast<details_::flag_t>(createFlag));
@@ -26,9 +24,7 @@ GCXX_FH Event::~Event() {
   }
 }
 
-GCXX_FH
-
-Event::Event(Event&& other) noexcept
+GCXX_FH Event::Event(Event&& other) noexcept
     : EventView(std::exchange(other.event_, driver::INVALID_EVENT)) {}
 
 GCXX_FH auto Event::Release() GCXX_NOEXCEPT -> EventView {
@@ -44,10 +40,8 @@ GCXX_FH auto Event::operator=(Event&& other) noexcept -> Event& {
 }
 
 // Implementation of recordEvent to break circular dependency
-GCXX_FH
-
-auto StreamView::RecordEvent(const flags::eventCreate createflag,
-                             const flags::eventRecord recordFlag) const
+GCXX_FH auto StreamView::RecordEvent(const flags::eventCreate createflag,
+                                     const flags::eventRecord recordFlag) const
   -> Event {
   Event event(createflag);
   event.RecordInStream(*this, recordFlag);

@@ -60,9 +60,7 @@ GCXX_FH auto Stream::Release() GCXX_NOEXCEPT -> StreamView {
   return StreamView(oldStream);
 }
 
-GCXX_FH
-
-Stream::Stream(Stream&& other) noexcept
+GCXX_FH Stream::Stream(Stream&& other) noexcept
     : StreamView(std::exchange(other.stream_, driver::INVALID_STREAM)) {}
 
 GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT -> StreamView {

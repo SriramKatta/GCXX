@@ -62,8 +62,6 @@ namespace memory {
       static_cast<VT*>(details_::device_managed_malloc(numElem * sizeof(VT))),
       details_::device_free};
   }
-
-
 }  // namespace memory
 
 GCXX_NAMESPACE_MAIN_END()

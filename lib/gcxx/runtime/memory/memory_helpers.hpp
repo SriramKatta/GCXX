@@ -48,8 +48,6 @@ namespace memory {
 #endif
       (xSize * sizeof(VT), ySize, zSize);
   }
-
-
 }  // namespace memory
 
 GCXX_NAMESPACE_MAIN_END()

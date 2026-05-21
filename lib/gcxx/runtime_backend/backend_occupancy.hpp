@@ -25,7 +25,6 @@ GCXX_FH auto occupancyAvailableDynamicSMemPerBlock(
   return dynamicSmemSize;
 }
 #endif
-
 template <class T>
 GCXX_FH auto occupancyMaxActiveBlocksPerMultiprocessorWithFlags(
   T func, int blockSize, std::size_t dynamicSMemSize,
@@ -36,7 +35,6 @@ GCXX_FH auto occupancyMaxActiveBlocksPerMultiprocessorWithFlags(
                          &numBlocks, func, blockSize, dynamicSMemSize, flags);
   return numBlocks;
 }
-
 #if GCXX_CUDA_MODE()
 template <class T>
 GCXX_FH auto occupancyMaxActiveClusters(
@@ -48,7 +46,6 @@ GCXX_FH auto occupancyMaxActiveClusters(
   return numClusters;
 }
 #endif
-
 template <class T>
 GCXX_FH auto occupancyMaxPotentialBlockSize(
   T func, std::size_t dynamicSMemSize = 0,
@@ -99,7 +96,6 @@ GCXX_FH auto occupancyMaxPotentialBlockSizeWithFlags(
                          blockSizeLimit, flags);
   return {minGridSize, blockSize};
 }
-
 #if GCXX_CUDA_MODE()
 template <class T>
 GCXX_FH auto occupancyMaxPotentialClusterSize(

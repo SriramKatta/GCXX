@@ -8,9 +8,7 @@
 // #undef GCXX_H
 // #endif
 
-// #ifdef GCXX_FH
-// #undef GCXX_FH
-// #endif
+// #ifdef GCXX_FH// #undef GCXX_FH// #endif
 
 // #ifdef GCXX_D
 // #undef GCXX_D

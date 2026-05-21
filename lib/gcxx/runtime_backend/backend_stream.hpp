@@ -19,17 +19,14 @@ GCXX_FH auto ctxResetPersistingL2Cache() -> void {
 }
 #endif
 
-GCXX_FH
-
-auto streamAddCallback(deviceStream_t stream, deviceStreamCallback_t callback,
-                       void* userData, unsigned int flags) -> void {
+GCXX_FH auto streamAddCallback(deviceStream_t stream,
+                               deviceStreamCallback_t callback, void* userData,
+                               unsigned int flags) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamAddCallback, "Failed to add Stream callback",
                          stream, callback, userData, flags);
 }
 
-GCXX_FH
-
-auto streamAttachMemAsync(
+GCXX_FH auto streamAttachMemAsync(
   deviceStream_t stream, void* devPtr, std::size_t length = 0,
   unsigned int flags = GCXX_RUNTIME_BACKEND(MemAttachSingle)) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamAttachMemAsync,
@@ -37,30 +34,24 @@ auto streamAttachMemAsync(
                          length, flags);
 }
 
-GCXX_FH
-
-auto streamBeginCapture(deviceStream_t stream,
-                        deviceStreamCaptureMode_t mode) -> void {
+GCXX_FH auto streamBeginCapture(deviceStream_t stream,
+                                deviceStreamCaptureMode_t mode) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamBeginCapture, "Failed to begin Stream Capture",
                          stream, mode);
 }
 
-GCXX_FH
-
-auto streamBeginCaptureToGraph(deviceStream_t stream, deviceGraph_t graph,
-                               const deviceGraphNode_t* dependencies,
-                               const deviceGraphEdgeData_t* dependencyData,
-                               std::size_t numDependencies,
-                               deviceStreamCaptureMode_t mode) -> void {
+GCXX_FH auto streamBeginCaptureToGraph(
+  deviceStream_t stream, deviceGraph_t graph,
+  const deviceGraphNode_t* dependencies,
+  const deviceGraphEdgeData_t* dependencyData, std::size_t numDependencies,
+  deviceStreamCaptureMode_t mode) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     StreamBeginCaptureToGraph, "Failed to begin Stream Capture to graph",
     stream, graph, dependencies, dependencyData, numDependencies, mode);
 }
-
 #if GCXX_CUDA_MODE()
-GCXX_FH
-
-auto streamCopyAttributes(deviceStream_t dst, deviceStream_t src) -> void {
+GCXX_FH auto streamCopyAttributes(deviceStream_t dst,
+                                  deviceStream_t src) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamCopyAttributes,
                          "Failed to copy Stream attributes", dst, src);
 }
@@ -75,10 +66,8 @@ auto streamCopyAttributes(deviceStream_t dst, deviceStream_t src) -> void {
 // }
 
 
-GCXX_FH
-
-auto streamCreateWithPriority(unsigned int flags,
-                              int priority) -> deviceStream_t {
+GCXX_FH auto streamCreateWithPriority(unsigned int flags,
+                                      int priority) -> deviceStream_t {
   deviceStream_t stream{NULL_STREAM};
   GCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority, "Failed to Create Stream",
                          &stream, flags, priority);
@@ -95,26 +84,22 @@ GCXX_FH auto streamEndCapture(deviceStream_t stream) -> deviceGraph_t {
                          stream, &graph);
   return graph;
 }
-
 #if GCXX_CUDA_MODE()
-GCXX_FH
-
-auto streamGetAttribute(deviceStream_t stream, deviceStreamAttrID_t attr,
-                        deviceStreamAttrValue_t* valueOut) -> void {
+GCXX_FH auto streamGetAttribute(deviceStream_t stream,
+                                deviceStreamAttrID_t attr,
+                                deviceStreamAttrValue_t* valueOut) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamGetAttribute, "Failed to get Stream attribute",
                          stream, attr, valueOut);
 }
 #endif
 
 
-GCXX_FH
-
-auto streamGetCaptureInfo(deviceStream_t stream,
-                          deviceStreamCaptureStatus_t* captureStatus_out,
-                          unsigned long long* id_out, deviceGraph_t* graph_out,
-                          const deviceGraphNode_t** dependencies_out,
-                          const deviceGraphEdgeData_t** edgeData_out,
-                          size_t* numDependencies_out) -> void {
+GCXX_FH auto streamGetCaptureInfo(
+  deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatus_out,
+  unsigned long long* id_out, deviceGraph_t* graph_out,
+  const deviceGraphNode_t** dependencies_out,
+  const deviceGraphEdgeData_t** edgeData_out,
+  size_t* numDependencies_out) -> void {
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     StreamGetCaptureInfo_v3,
@@ -130,11 +115,8 @@ auto streamGetCaptureInfo(deviceStream_t stream,
 #endif
     numDependencies_out);
 }
-
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 3, 0)
-GCXX_FH
-
-auto streamGetCaptureInfo_v3(
+GCXX_FH auto streamGetCaptureInfo_v3(
   deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatusOut,
   unsigned long long* idOut = nullptr, deviceGraph_t* graphOut = nullptr,
   const deviceGraphNode_t** dependenciesOut = nullptr,
@@ -146,7 +128,6 @@ auto streamGetCaptureInfo_v3(
                          edgeDataOut, numDependenciesOut);
 }
 #endif
-
 GCXX_FH auto streamGetDevice(deviceStream_t stream) -> int {
   int device{};
   GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, "Failed to get Stream device", stream,
@@ -175,40 +156,31 @@ GCXX_FH auto streamGetPriority(deviceStream_t stream) -> int {
   return priority;
 }
 
-GCXX_FH
-
-auto streamIsCapturing(deviceStream_t stream,
-                       deviceStreamCaptureStatus_t* captureStatus) -> void {
+GCXX_FH auto streamIsCapturing(
+  deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatus) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamIsCapturing,
                          "Failed to query if Stream is capturing", stream,
                          captureStatus);
 }
 
-GCXX_FH
-
-auto streamQueryNothrow(deviceStream_t stream) -> driver::deviceError_t {
+GCXX_FH auto streamQueryNothrow(deviceStream_t stream)
+  -> driver::deviceError_t {
   return GCXX_RUNTIME_BACKEND(StreamQuery)(stream);
 }
-
 #if GCXX_CUDA_MODE()
-GCXX_FH
-
-auto streamSetAttribute(deviceStream_t stream, deviceStreamAttrID_t attr,
-                        const deviceStreamAttrValue_t* value) -> void {
+GCXX_FH auto streamSetAttribute(deviceStream_t stream,
+                                deviceStreamAttrID_t attr,
+                                const deviceStreamAttrValue_t* value) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamSetAttribute, "Failed to set Stream attribute",
                          stream, attr, value);
 }
 #endif
-
-
 GCXX_FH auto streamSynchronize(deviceStream_t stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to synchronize Stream",
                          stream);
 }
 
-GCXX_FH
-
-auto streamUpdateCaptureDependencies(
+GCXX_FH auto streamUpdateCaptureDependencies(
   deviceStream_t stream, deviceGraphNode_t* dependencies,
   const deviceGraphEdgeData_t* dependencyData, std::size_t numDependencies,
   unsigned int flags = 0) -> void {
@@ -225,18 +197,15 @@ auto streamUpdateCaptureDependencies(
     numDependencies, flags);
 }
 
-GCXX_FH
-
-auto StreamWaitEvent(deviceStream_t stream, deviceEvent_t event,
-                     unsigned int waitFlag) -> void {
+GCXX_FH auto StreamWaitEvent(deviceStream_t stream, deviceEvent_t event,
+                             unsigned int waitFlag) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamWaitEvent,
                          "Failed to GPU Stream Wait on GPU Event", stream,
                          event, waitFlag);
 }
 
-GCXX_FH
-
-auto threadExchangeStreamCaptureMode(deviceStreamCaptureMode_t* mode) -> void {
+GCXX_FH auto threadExchangeStreamCaptureMode(deviceStreamCaptureMode_t* mode)
+  -> void {
   GCXX_SAFE_RUNTIME_CALL(ThreadExchangeStreamCaptureMode,
                          "Failed to exchange Stream Capture mode", mode);
 }

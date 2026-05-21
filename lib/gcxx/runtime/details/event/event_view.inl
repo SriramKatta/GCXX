@@ -15,16 +15,13 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_CXPR
-
 EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {}
 
 GCXX_CXPR
-
 EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT
     : event_(eventRef.getRawEvent()) {}
 
 GCXX_FHC
-
 auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
   return event_;
 }
@@ -38,7 +35,6 @@ GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
 }
 
 GCXX_CXPR
-
 auto EventView::operator=(const EventView& eventRef)
   GCXX_NOEXCEPT -> EventView& {
   event_ = eventRef.getRawEvent();
@@ -46,13 +42,11 @@ auto EventView::operator=(const EventView& eventRef)
 }
 
 GCXX_CXPR
-
 auto operator==(const EventView lhs, const EventView rhs) GCXX_NOEXCEPT->bool {
   return lhs.event_ == rhs.event_;
 }
 
 GCXX_CXPR
-
 auto operator!=(const EventView& lhs,
                 const EventView& rhs) GCXX_NOEXCEPT->bool {
   return !(lhs == rhs);
@@ -63,16 +57,13 @@ GCXX_FH auto EventView::HasOccurred() const -> bool {
   return details_::nonFatalErrorQuery(err);
 }
 
-GCXX_FH
-
-auto EventView::RecordInStream(const flags::eventRecord recordFlag) -> void {
+GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
+  -> void {
   RecordInStream(StreamView::Null(), recordFlag);
 }
 
-GCXX_FH
-
-auto EventView::RecordInStream(const StreamView& stream,
-                               const flags::eventRecord recordFlag) -> void {
+GCXX_FH auto EventView::RecordInStream(
+  const StreamView& stream, const flags::eventRecord recordFlag) -> void {
   driver::eventRecordWithFlags(event_, stream.getRawStream(),
                                static_cast<details_::flag_t>(recordFlag));
 }

@@ -11,7 +11,6 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FHC
-
 GraphExecView::GraphExecView(deviceGraphExec_t rawExec) : exec_(rawExec) {}
 
 GCXX_FHC auto GraphExecView::getRawExec() const -> deviceGraphExec_t {
@@ -22,10 +21,8 @@ GCXX_FHC GraphExecView::operator deviceGraphExec_t() const GCXX_NOEXCEPT {
   return exec_;
 }
 
-GCXX_FH
-
-auto GraphExecView::Launch(const StreamView& stream = StreamView::Null()) const
-  -> void {
+GCXX_FH auto GraphExecView::Launch(
+  const StreamView& stream = StreamView::Null()) const -> void {
   driver::graphLaunch(exec_, stream.getRawStream());
 }
 

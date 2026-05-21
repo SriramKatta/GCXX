@@ -21,7 +21,6 @@ GCXX_FH auto GraphNodeView::geToolsId() -> unsigned long long {
   return driver::graphNodeGetToolsId(node_);
 }
 #endif
-
 GCXX_FH auto GraphNodeView::getType() -> flags::graphNodeType {
   return static_cast<flags::graphNodeType>(driver::graphNodeGetType(node_));
 }

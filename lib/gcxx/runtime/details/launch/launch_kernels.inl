@@ -15,7 +15,6 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace launch {
-
   template <typename... ExpTypes, typename... ActTypes>
   GCXX_FH void CooperativeKernel(LaunchConfig& config,
                                  void (*kernel)(ExpTypes...),
@@ -26,9 +25,8 @@ namespace launch {
     //                        config.)
   }
 
-  GCXX_FH
-
-  void HostFunc(const StreamView sview, gcxxHostFn_t fn, void* userData) {
+  GCXX_FH void HostFunc(const StreamView sview, gcxxHostFn_t fn,
+                        void* userData) {
     GCXX_SAFE_RUNTIME_CALL(LaunchHostFunc, "Failed to launch hostfunc",
                            sview.getRawStream(), fn, userData);
   }

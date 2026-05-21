@@ -73,7 +73,6 @@ class KernelNodeParams : public KernelNodeParamsView {
 
   // Constructor from pre-built array of void* pointers (used by builder)
   GCXX_FHC
-
   KernelNodeParams(void* func, dim3 grid, dim3 block, unsigned int shmem,
                    std::array<void*, NumParams> arg_ptrs)
       : kernelargs_(arg_ptrs) {
@@ -141,7 +140,6 @@ class KernelParamsBuilder {
   }
 
   GCXX_FHC
-
   auto setGridDim(unsigned int x = 1, unsigned int y = 1,
                   unsigned int z = 1) -> KernelParamsBuilder& {
 
@@ -154,7 +152,6 @@ class KernelParamsBuilder {
   }
 
   GCXX_FHC
-
   auto setBlockDim(unsigned int x = 1, unsigned int y = 1,
                    unsigned int z = 1) -> KernelParamsBuilder& {
     return setBlockDim({x, y, z});

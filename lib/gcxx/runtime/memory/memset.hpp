@@ -18,18 +18,15 @@ GCXX_NAMESPACE_DETAILS_BEGIN()
 // ║          works on pointer with bytes to memset           ║
 // ╚════════════════════════════════════════════════════════╝
 
-GCXX_FH
-
-auto Memset(void* dev_ptr, const int value,
-            const std::size_t countinBytes) -> void {
+GCXX_FH auto Memset(void* dev_ptr, const int value,
+                    const std::size_t countinBytes) -> void {
   GCXX_SAFE_RUNTIME_CALL(Memset, "Failed to perform GPU memset", dev_ptr, value,
                          countinBytes);
 }
 
-GCXX_FH
-
-auto Memset(void* dev_ptr, const int value, const std::size_t countinBytes,
-            const StreamView& stream) -> void {
+GCXX_FH auto Memset(void* dev_ptr, const int value,
+                    const std::size_t countinBytes,
+                    const StreamView& stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(MemsetAsync, "Failed to perform Async GPU memset",
                          dev_ptr, value, countinBytes, stream.getRawStream());
 }
@@ -37,7 +34,6 @@ auto Memset(void* dev_ptr, const int value, const std::size_t countinBytes,
 GCXX_NAMESPACE_DETAILS_END()
 
 namespace memory {
-
   // ╔════════════════════════════════════════════════════════╗
   // ║         pointer version based on element type          ║
   // ╚════════════════════════════════════════════════════════╝
@@ -106,8 +102,6 @@ namespace memory {
     details_::Memset(destination.data(), value, destination.size_bytes(),
                      stream);
   }
-
-
 }  // namespace memory
 
 GCXX_NAMESPACE_MAIN_END()

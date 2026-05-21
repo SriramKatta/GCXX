@@ -58,7 +58,6 @@ class Memcpy3DParams : public Memcpy3DParamsView {
   GCXX_FHC Memcpy3DParams() = default;
 
   GCXX_FHC
-
   Memcpy3DParams(const gcxx::memory::devicePitchedPtr& srcPtr,
                  gcxx::memory::devicePos srcPos,
                  const gcxx::memory::devicePitchedPtr& dstPtr,
@@ -95,7 +94,6 @@ class Memcpy3DParamsBuilder {
   GCXX_FH static auto create() -> Memcpy3DParamsBuilder { return {}; }
 
   GCXX_FHC
-
   auto setSrcPtr(const gcxx::memory::devicePitchedPtr& ptr)
     -> Memcpy3DParamsBuilder& {
     srcPtr_ = ptr;
@@ -103,14 +101,12 @@ class Memcpy3DParamsBuilder {
   }
 
   GCXX_FHC
-
   auto setSrcPos(gcxx::memory::devicePos pos) -> Memcpy3DParamsBuilder& {
     srcPos_ = pos;
     return *this;
   }
 
   GCXX_FHC
-
   auto setDstPtr(const gcxx::memory::devicePitchedPtr& ptr)
     -> Memcpy3DParamsBuilder& {
     dstPtr_ = ptr;
@@ -118,14 +114,12 @@ class Memcpy3DParamsBuilder {
   }
 
   GCXX_FHC
-
   auto setDstPos(gcxx::memory::devicePos pos) -> Memcpy3DParamsBuilder& {
     dstPos_ = pos;
     return *this;
   }
 
   GCXX_FHC
-
   auto setExtent(gcxx::memory::deviceExtent ext) -> Memcpy3DParamsBuilder& {
     extent_ = ext;
     return *this;

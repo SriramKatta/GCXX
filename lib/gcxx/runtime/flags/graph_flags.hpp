@@ -64,7 +64,6 @@ enum class graphDebugDot : details_::flag_t {
     GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsConditionalNodeParams),
 #endif
 };
-
 inline auto operator|(const graphDebugDot& lhs,
                       const graphDebugDot& rhs) -> graphDebugDot {
   return static_cast<graphDebugDot>(static_cast<details_::flag_t>(lhs) |

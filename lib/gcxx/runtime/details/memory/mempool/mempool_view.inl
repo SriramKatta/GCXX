@@ -15,9 +15,8 @@ GCXX_FH auto MemPoolView::getRawMemPool() const -> deviceMemPool_t {
   return pool_;
 };
 
-GCXX_FH
-
-auto MemPoolView::GetDefaultMempool(const DeviceHandle& hand) -> MemPoolView {
+GCXX_FH auto MemPoolView::GetDefaultMempool(const DeviceHandle& hand)
+  -> MemPoolView {
   return hand.GetDefaultMemPool();
 }
 
@@ -50,9 +49,7 @@ GCXX_FH auto MemPoolView::SetAllowInternalDependencies(bool state) -> void {
                          static_cast<void*>(&threshold));
 }
 
-GCXX_FH
-
-auto MemPoolView::SetReleaseThreshold(std::uint64_t threshold) -> void {
+GCXX_FH auto MemPoolView::SetReleaseThreshold(std::uint64_t threshold) -> void {
   GCXX_SAFE_RUNTIME_CALL(MemPoolSetAttribute,
                          "Failed to set ReleaseThreshold of mempool", pool_,
                          static_cast<GCXX_RUNTIME_BACKEND(MemPoolAttr)>(
@@ -60,9 +57,8 @@ auto MemPoolView::SetReleaseThreshold(std::uint64_t threshold) -> void {
                          static_cast<void*>(&threshold));
 }
 
-GCXX_FH
-
-auto MemPoolView::SetReservedMemCurrent(std::uint64_t threshold) -> void {
+GCXX_FH auto MemPoolView::SetReservedMemCurrent(std::uint64_t threshold)
+  -> void {
   GCXX_SAFE_RUNTIME_CALL(MemPoolSetAttribute,
                          "Failed to set ReservedMemCurrent of mempool", pool_,
                          static_cast<GCXX_RUNTIME_BACKEND(MemPoolAttr)>(
@@ -70,9 +66,7 @@ auto MemPoolView::SetReservedMemCurrent(std::uint64_t threshold) -> void {
                          static_cast<void*>(&threshold));
 }
 
-GCXX_FH
-
-auto MemPoolView::SetReservedMemHigh(std::uint64_t threshold) -> void {
+GCXX_FH auto MemPoolView::SetReservedMemHigh(std::uint64_t threshold) -> void {
   GCXX_SAFE_RUNTIME_CALL(MemPoolSetAttribute,
                          "Failed to set ReservedMemHigh of mempool", pool_,
                          static_cast<GCXX_RUNTIME_BACKEND(MemPoolAttr)>(
