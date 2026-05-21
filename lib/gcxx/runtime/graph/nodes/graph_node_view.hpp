@@ -27,19 +27,19 @@ class GraphNodeView {
   deviceGraphNode_t node_;  // NOLINT
 
  public:
-  GCXX_FHC() GraphNodeView(deviceGraphNode_t node) : node_(node) {}
+  GCXX_FHC GraphNodeView(deviceGraphNode_t node) : node_(node) {}
 
-  GCXX_FHC() auto getRawNode() -> deviceGraphNode_t { return node_; }
+  GCXX_FHC auto getRawNode() -> deviceGraphNode_t { return node_; }
 
-  GCXX_FH() auto getContainingGraph() -> GraphView;
+  GCXX_FH auto getContainingGraph() -> GraphView;
 
-  GCXX_FH() auto getType() -> flags::graphNodeType;
+  GCXX_FH auto getType() -> flags::graphNodeType;
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
-  GCXX_FH() auto getLocalId() -> unsigned int;
+  GCXX_FH auto getLocalId() -> unsigned int;
 
-  GCXX_FH() auto getToolsId() -> unsigned long long;
+  GCXX_FH auto getToolsId() -> unsigned long long;
 
 #endif
 };

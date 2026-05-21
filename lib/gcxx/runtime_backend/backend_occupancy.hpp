@@ -13,11 +13,10 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 template <class T>
-GCXX_FH()
-auto occupancyAvailableDynamicSMemPerBlock(T* func, int numBlocks,
-                                           int blockSize) -> std::size_t {
+GCXX_FH auto occupancyAvailableDynamicSMemPerBlock(
+  T* func, int numBlocks, int blockSize) -> std::size_t {
   std::size_t dynamicSmemSize{};
   GCXX_SAFE_RUNTIME_CALL(
     OccupancyAvailableDynamicSMemPerBlock,
@@ -28,8 +27,7 @@ auto occupancyAvailableDynamicSMemPerBlock(T* func, int numBlocks,
 #endif
 
 template <class T>
-GCXX_FH()
-auto occupancyMaxActiveBlocksPerMultiprocessorWithFlags(
+GCXX_FH auto occupancyMaxActiveBlocksPerMultiprocessorWithFlags(
   T func, int blockSize, std::size_t dynamicSMemSize,
   unsigned int flags) -> int {
   int numBlocks{};
@@ -39,11 +37,10 @@ auto occupancyMaxActiveBlocksPerMultiprocessorWithFlags(
   return numBlocks;
 }
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 template <class T>
-GCXX_FH()
-auto occupancyMaxActiveClusters(T* func,
-                                const deviceLaunchConfig_t* config) -> int {
+GCXX_FH auto occupancyMaxActiveClusters(
+  T* func, const deviceLaunchConfig_t* config) -> int {
   int numClusters{};
   GCXX_SAFE_RUNTIME_CALL(OccupancyMaxActiveClusters,
                          "Failed to query max active clusters", &numClusters,
@@ -53,10 +50,9 @@ auto occupancyMaxActiveClusters(T* func,
 #endif
 
 template <class T>
-GCXX_FH()
-auto occupancyMaxPotentialBlockSize(T func, std::size_t dynamicSMemSize = 0,
-                                    int blockSizeLimit = 0)
-  -> std::pair<int, int> {
+GCXX_FH auto occupancyMaxPotentialBlockSize(
+  T func, std::size_t dynamicSMemSize = 0,
+  int blockSizeLimit = 0) -> std::pair<int, int> {
   int minGridSize{};
   int blockSize{};
   GCXX_SAFE_RUNTIME_CALL(
@@ -66,8 +62,7 @@ auto occupancyMaxPotentialBlockSize(T func, std::size_t dynamicSMemSize = 0,
 }
 
 template <typename UnaryFunction, class T>
-GCXX_FH()
-auto occupancyMaxPotentialBlockSizeVariableSMem(
+GCXX_FH auto occupancyMaxPotentialBlockSizeVariableSMem(
   T func, UnaryFunction blockSizeToDynamicSMemSize,
   int blockSizeLimit = 0) -> std::pair<int, int> {
   int minGridSize{};
@@ -80,8 +75,7 @@ auto occupancyMaxPotentialBlockSizeVariableSMem(
 }
 
 template <typename UnaryFunction, class T>
-GCXX_FH()
-auto occupancyMaxPotentialBlockSizeVariableSMemWithFlags(
+GCXX_FH auto occupancyMaxPotentialBlockSizeVariableSMemWithFlags(
   T func, UnaryFunction blockSizeToDynamicSMemSize, int blockSizeLimit = 0,
   unsigned int flags = 0) -> std::pair<int, int> {
   int minGridSize{};
@@ -94,8 +88,7 @@ auto occupancyMaxPotentialBlockSizeVariableSMemWithFlags(
 }
 
 template <class T>
-GCXX_FH()
-auto occupancyMaxPotentialBlockSizeWithFlags(
+GCXX_FH auto occupancyMaxPotentialBlockSizeWithFlags(
   T func, std::size_t dynamicSMemSize = 0, int blockSizeLimit = 0,
   unsigned int flags = 0) -> std::pair<int, int> {
   int minGridSize{};
@@ -107,10 +100,9 @@ auto occupancyMaxPotentialBlockSizeWithFlags(
   return {minGridSize, blockSize};
 }
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 template <class T>
-GCXX_FH()
-auto occupancyMaxPotentialClusterSize(
+GCXX_FH auto occupancyMaxPotentialClusterSize(
   T* func, const deviceLaunchConfig_t* config) -> int {
   int clusterSize{};
   GCXX_SAFE_RUNTIME_CALL(OccupancyMaxPotentialClusterSize,

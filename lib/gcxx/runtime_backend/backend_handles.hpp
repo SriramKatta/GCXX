@@ -29,9 +29,9 @@ using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Error Handles                      ║
 // ╚════════════════════════════════════════════════════════╝
-using deviceError_t                       = GCXX_RUNTIME_BACKEND(Error_t);
-GCXX_CXPR() inline auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
-GCXX_CXPR() inline auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
+using deviceError_t                     = GCXX_RUNTIME_BACKEND(Error_t);
+GCXX_CXPR inline auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
+GCXX_CXPR inline auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Stream Handles                      ║
@@ -46,7 +46,7 @@ inline static constexpr deviceStream_t NULL_STREAM{nullptr};  // NOLINT
 inline static const auto INVALID_STREAM = reinterpret_cast<deviceStream_t>(~0ULL);  // NOLINT
 // clang-format on
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 using deviceStreamAttrID_t    = GCXX_RUNTIME_BACKEND(StreamAttrID);
 using deviceStreamAttrValue_t = GCXX_RUNTIME_BACKEND(StreamAttrValue);
 #endif
@@ -75,7 +75,7 @@ using deviceMemcpy3DParams_t   = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
 using deviceMemsetParams_t     = GCXX_RUNTIME_BACKEND(MemsetParams);
 using deviceMemcpyKind_t       = GCXX_RUNTIME_BACKEND(MemcpyKind);
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 using deviceExternalSemaphoreSignalNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreSignalNodeParams);
 using deviceExternalSemaphoreWaitNodeParams_t =
@@ -96,7 +96,7 @@ inline constexpr deviceGraph_t INVALID_GRAPH{nullptr};           // NOLINT
 inline constexpr deviceGraphExec_t INVALID_GRAPH_EXEC{nullptr};  // NOLINT
 inline constexpr deviceGraphNode_t INVALID_GRAPH_NODE{nullptr};  // NOLINT
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 using deviceGraphConditionalHandle_t =
   GCXX_RUNTIME_BACKEND(GraphConditionalHandle);
 #endif

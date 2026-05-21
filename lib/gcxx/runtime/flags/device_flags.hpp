@@ -13,7 +13,7 @@ enum class deviceLimit : details_::flag_t {
   PrintfFifoSize = GCXX_RUNTIME_BACKEND(LimitPrintfFifoSize),
   MallocHeapSize = GCXX_RUNTIME_BACKEND(LimitMallocHeapSize),
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
   DevRuntimeSyncDepth = GCXX_RUNTIME_BACKEND(LimitDevRuntimeSyncDepth),
   DevRuntimePendingLaunchCount =
     GCXX_RUNTIME_BACKEND(LimitDevRuntimePendingLaunchCount),
@@ -160,7 +160,7 @@ enum class deviceAttribute : details_::flag_t {
   UnifiedAddressing         = GCXX_ATTRIBUTE_BACKEND(UnifiedAddressing),
   WarpSize                  = GCXX_ATTRIBUTE_BACKEND(WarpSize),
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
   CanFlushRemoteWrites = GCXX_ATTRIBUTE_BACKEND(CanFlushRemoteWrites),
   ClusterLaunch        = GCXX_ATTRIBUTE_BACKEND(ClusterLaunch),
   D3D12CigSupported    = GCXX_ATTRIBUTE_BACKEND(D3D12CigSupported),
@@ -226,7 +226,7 @@ enum class deviceAttribute : details_::flag_t {
 #endif
 #endif  // GCXX_CUDA_MODE
 
-#if GCXX_HIP_MODE
+#if GCXX_HIP_MODE()
 
 #endif  // GCXX_HIP_MODE
 };

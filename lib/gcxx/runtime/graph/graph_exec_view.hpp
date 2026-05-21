@@ -19,13 +19,13 @@ class GraphExecView {
   deviceGraphExec_t exec_{driver::INVALID_GRAPH_EXEC};  // NOLINT
 
  public:
-  GCXX_FHC() GraphExecView() = default;
-  GCXX_FHC() GraphExecView(deviceGraphExec_t rawExec);
-  GCXX_FHC() auto getRawExec() const -> deviceGraphExec_t;
-  GCXX_FHC() operator deviceGraphExec_t() const GCXX_NOEXCEPT();
+  GCXX_FHC GraphExecView() = default;
+  GCXX_FHC GraphExecView(deviceGraphExec_t rawExec);
+  GCXX_FHC auto getRawExec() const -> deviceGraphExec_t;
+  GCXX_FHC operator deviceGraphExec_t() const GCXX_NOEXCEPT;
 
-  GCXX_FH() auto Launch(const StreamView& stream) const -> void;
-  GCXX_FH() auto Upload(const StreamView& stream) const -> void;
+  GCXX_FH auto Launch(const StreamView& stream) const -> void;
+  GCXX_FH auto Upload(const StreamView& stream) const -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END()

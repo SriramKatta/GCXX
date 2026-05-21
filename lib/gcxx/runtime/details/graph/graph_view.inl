@@ -36,13 +36,13 @@ struct SwitchNodeResult {
   std::vector<GraphView> CasesbodyGraph;
 };
 
-GCXX_FHC() GraphView::GraphView(deviceGraph_t rawgraph) : graph_(rawgraph) {}
+GCXX_FHC GraphView::GraphView(deviceGraph_t rawgraph) : graph_(rawgraph) {}
 
-GCXX_FHC() auto GraphView::getRawGraph() const -> deviceGraph_t {
+GCXX_FHC auto GraphView::getRawGraph() const -> deviceGraph_t {
   return graph_;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::SaveDotfile(std::string_view fname,
                             flags::graphDebugDot flag) const -> void {
@@ -52,23 +52,23 @@ auto GraphView::SaveDotfile(std::string_view fname,
                              static_cast<details_::flag_t>(flag));
 }
 
-GCXX_FH() auto GraphView::GetNumNodes() const -> size_t {
+GCXX_FH auto GraphView::GetNumNodes() const -> size_t {
   return driver::graphGetNumNodes(graph_);
 }
 
-GCXX_FH() auto GraphView::GetNumEdges() const -> size_t {
+GCXX_FH auto GraphView::GetNumEdges() const -> size_t {
   return driver::graphGetNumEdges(graph_);
 }
 
-GCXX_FH() auto GraphView::Clone() const -> GraphView {
+GCXX_FH auto GraphView::Clone() const -> GraphView {
   return driver::graphClone(graph_);
 }
 
 // TODO : Need to make better implementation to remove repetions
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 // Create the conditional handle; no default value arg is provided, since i dont
 // want the condition value to be undefined at the start of each graph execution
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::CreateConditionalHandle(unsigned int defaultLaunchValue,
                                         flags::graphConditionalHandle flag)
@@ -77,14 +77,14 @@ auto GraphView::CreateConditionalHandle(unsigned int defaultLaunchValue,
     graph_, defaultLaunchValue, static_cast<details_::flag_t>(flag));
 }
 
-GCXX_FD()
+GCXX_FD
 
 auto GraphView::SetConditional(deviceGraphConditionalHandle_t handle,
                                unsigned int value) -> void {
   driver::graphSetConditional(handle, value);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle,
                           const deviceGraphNode_t* pDependencies,
@@ -105,7 +105,7 @@ auto GraphView::AddIfNode(deviceGraphConditionalHandle_t condHandle,
   return IfNodeResult{node, bodyGraph};
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
                               const deviceGraphNode_t* pDependencies,
@@ -127,7 +127,7 @@ auto GraphView::AddIfElseNode(deviceGraphConditionalHandle_t condHandle,
   return {node, ifBodyGraph, elseBodyGraph};
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand,
                              const deviceGraphNode_t* pDependencies,
@@ -148,7 +148,7 @@ auto GraphView::AddWhileNode(deviceGraphConditionalHandle_t condHand,
   return WhileNodeResult{node, GraphView(bodyGraph)};
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
                               std::size_t numCases,
@@ -177,7 +177,7 @@ auto GraphView::AddSwitchNode(deviceGraphConditionalHandle_t condHand,
 // ════════════════════════════════════════════════════════════════════════════
 
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddChildGraphNode(
   const GraphView& childGraph, const deviceGraphNode_t* pDependencies,
@@ -186,7 +186,7 @@ auto GraphView::AddChildGraphNode(
                                         pDependencies, numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddDependencies(const deviceGraphNode_t* from,
                                 const deviceGraphNode_t* to,
@@ -194,14 +194,14 @@ auto GraphView::AddDependencies(const deviceGraphNode_t* from,
   driver::graphAddDependencies(graph_, from, to, nullptr, numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddEmptyNode(const deviceGraphNode_t* pDependencies,
                              std::size_t numDependencies) -> deviceGraphNode_t {
   return driver::graphAddEmptyNode(graph_, pDependencies, numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddEventRecordNode(
   const EventView event, const deviceGraphNode_t* pDependencies,
@@ -210,7 +210,7 @@ auto GraphView::AddEventRecordNode(
                                          pDependencies, numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddEventWaitNode(
   const EventView event, const deviceGraphNode_t* pDependencies,
@@ -219,7 +219,7 @@ auto GraphView::AddEventWaitNode(
                                        pDependencies, numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddHostNode(
   const HostNodeParamsView::deviceHostNodeParams_t* params,
@@ -229,7 +229,7 @@ auto GraphView::AddHostNode(
                                   numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddKernelNode(
   const KernelNodeParamsView::deviceKernelNodeParams_t* params,
@@ -239,7 +239,7 @@ auto GraphView::AddKernelNode(
                                     numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemFreeNode(
   void* dptr, const deviceGraphNode_t* pDependencies,
@@ -248,7 +248,7 @@ auto GraphView::AddMemFreeNode(
                                      numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemcpyNode(
   const Memcpy3DParamsView::deviceMemcpy3DParams_t* params,
@@ -258,7 +258,7 @@ auto GraphView::AddMemcpyNode(
                                     numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemcpyNode1D(
   void* dst, const void* src, std::size_t countBytes,
@@ -268,7 +268,7 @@ auto GraphView::AddMemcpyNode1D(
                                       pDependencies, numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemsetNode(
   const MemsetParamsView::deviceMemsetParams_t* params,
@@ -279,7 +279,7 @@ auto GraphView::AddMemsetNode(
 }
 
 /// CPP STYLE
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddChildGraphNode(
   const GraphView& childGraph,
@@ -288,7 +288,7 @@ auto GraphView::AddChildGraphNode(
                            pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddDependencies(gcxx::span<const deviceGraphNode_t> from,
                                 gcxx::span<const deviceGraphNode_t> to)
@@ -298,14 +298,14 @@ auto GraphView::AddDependencies(gcxx::span<const deviceGraphNode_t> from,
   AddDependencies(from.data(), to.data(), from.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddEmptyNode(gcxx::span<const deviceGraphNode_t> pDependencies)
   -> deviceGraphNode_t {
   return AddEmptyNode(pDependencies.data(), pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddEventRecordNode(
   const EventView event,
@@ -313,7 +313,7 @@ auto GraphView::AddEventRecordNode(
   return AddEventRecordNode(event, pDependencies.data(), pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddEventWaitNode(
   const EventView event,
@@ -321,7 +321,7 @@ auto GraphView::AddEventWaitNode(
   return AddEventWaitNode(event, pDependencies.data(), pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddHostNode(const HostNodeParamsView params,
                             gcxx::span<const deviceGraphNode_t> pDependencies)
@@ -330,7 +330,7 @@ auto GraphView::AddHostNode(const HostNodeParamsView params,
                      pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddKernelNode(const KernelNodeParamsView params,
                               gcxx::span<const deviceGraphNode_t> pDependencies)
@@ -339,7 +339,7 @@ auto GraphView::AddKernelNode(const KernelNodeParamsView params,
                        pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemFreeNode(
   void* dptr,
@@ -347,7 +347,7 @@ auto GraphView::AddMemFreeNode(
   return AddMemFreeNode(dptr, pDependencies.data(), pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemcpyNode(const Memcpy3DParamsView params,
                               gcxx::span<const deviceGraphNode_t> pDependencies)
@@ -356,7 +356,7 @@ auto GraphView::AddMemcpyNode(const Memcpy3DParamsView params,
                        pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemcpyNode1D(
   void* dst, const void* src, std::size_t countBytes,
@@ -365,7 +365,7 @@ auto GraphView::AddMemcpyNode1D(
                          pDependencies.size());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto GraphView::AddMemsetNode(const MemsetParamsView params,
                               gcxx::span<const deviceGraphNode_t> pDependencies)

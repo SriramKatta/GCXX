@@ -15,11 +15,11 @@ namespace memory {
   using deviceExtent     = GCXX_RUNTIME_BACKEND(Extent);
 
   template <typename VT>
-  GCXX_FH()
-  auto makePitchedPtr(void* dPtr, size_t pitchelems = 1, size_t xSize = 1,
-                      size_t ySize = 1) -> devicePitchedPtr {
+  GCXX_FH auto makePitchedPtr(void* dPtr, size_t pitchelems = 1,
+                              size_t xSize = 1,
+                              size_t ySize = 1) -> devicePitchedPtr {
     return
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
       make_cudaPitchedPtr
 #else
       make_hipPitchedPtr
@@ -27,9 +27,9 @@ namespace memory {
       (dPtr, pitchelems * sizeof(VT), xSize, ySize);
   }
 
-  GCXX_FH() auto makePos(size_t x, size_t y, size_t z) -> devicePos {
+  GCXX_FH auto makePos(size_t x, size_t y, size_t z) -> devicePos {
     return
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
       make_cudaPos
 #else
       make_hipPos
@@ -38,11 +38,10 @@ namespace memory {
   }
 
   template <typename VT>
-  GCXX_FH()
-  auto makeExtent(size_t xSize = 1, size_t ySize = 1,
-                  size_t zSize = 1) -> deviceExtent {
+  GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1,
+                          size_t zSize = 1) -> deviceExtent {
     return
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
       make_cudaExtent
 #else
       make_hipExtent

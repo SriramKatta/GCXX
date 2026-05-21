@@ -13,8 +13,8 @@
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto deviceGetGraphMemAttribute(int device, deviceGraphMemAttributeType_t attr,
                                 void* value) -> void {
@@ -23,7 +23,7 @@ auto deviceGetGraphMemAttribute(int device, deviceGraphMemAttributeType_t attr,
                          attr, value);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto deviceSetGraphMemAttribute(int device, deviceGraphMemAttributeType_t attr,
                                 void* value) -> void {
@@ -32,28 +32,28 @@ auto deviceSetGraphMemAttribute(int device, deviceGraphMemAttributeType_t attr,
                          attr, value);
 }
 
-GCXX_FH() auto deviceGraphMemTrim(int device) -> void {
+GCXX_FH auto deviceGraphMemTrim(int device) -> void {
   GCXX_SAFE_RUNTIME_CALL(DeviceGraphMemTrim,
                          "Failed to trim device graph memory", device);
 }
 
-GCXX_FD() auto getCurrentGraphExec() -> deviceGraphExec_t {
+GCXX_FD auto getCurrentGraphExec() -> deviceGraphExec_t {
   return GCXX_RUNTIME_BACKEND(GetCurrentGraphExec)();
 }
 #endif
 
-GCXX_FH() auto graphCreate(details_::flag_t createFlag) -> deviceGraph_t {
+GCXX_FH auto graphCreate(details_::flag_t createFlag) -> deviceGraph_t {
   deviceGraph_t graph{INVALID_GRAPH};
   GCXX_SAFE_RUNTIME_CALL(GraphCreate, "Failed to create the graph", &graph,
                          createFlag);
   return graph;
 }
 
-GCXX_FH() auto graphDestroy(deviceGraph_t graph) -> void {
+GCXX_FH auto graphDestroy(deviceGraph_t graph) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphDestroy, "Failed to destroy the graph", graph);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphDebugDotPrint(deviceGraph_t graph, const char* filename,
                         details_::flag_t flag) -> void {
@@ -62,14 +62,14 @@ auto graphDebugDotPrint(deviceGraph_t graph, const char* filename,
                          filename, flag);
 }
 
-GCXX_FH() auto graphGetNumNodes(deviceGraph_t graph) -> std::size_t {
+GCXX_FH auto graphGetNumNodes(deviceGraph_t graph) -> std::size_t {
   std::size_t numNodes{};
   GCXX_SAFE_RUNTIME_CALL(GraphGetNodes, "Failed to get Count of Graph nodes",
                          graph, nullptr, &numNodes);
   return numNodes;
 }
 
-GCXX_FH() auto graphGetNumEdges(deviceGraph_t graph) -> std::size_t {
+GCXX_FH auto graphGetNumEdges(deviceGraph_t graph) -> std::size_t {
   std::size_t numEdges{};
   GCXX_SAFE_RUNTIME_CALL(GraphGetEdges, "Failed to get count of Graph edges",
                          graph, nullptr, nullptr,
@@ -80,15 +80,15 @@ GCXX_FH() auto graphGetNumEdges(deviceGraph_t graph) -> std::size_t {
   return numEdges;
 }
 
-GCXX_FH() auto graphClone(deviceGraph_t graph) -> deviceGraph_t {
+GCXX_FH auto graphClone(deviceGraph_t graph) -> deviceGraph_t {
   deviceGraph_t clonedGraph{INVALID_GRAPH};
   GCXX_SAFE_RUNTIME_CALL(GraphClone, "Failed to clone graph", &clonedGraph,
                          graph);
   return clonedGraph;
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphConditionalHandleCreate(
   deviceGraph_t graph, unsigned int defaultLaunchValue,
@@ -100,7 +100,7 @@ auto graphConditionalHandleCreate(
   return out;
 }
 
-GCXX_FD()
+GCXX_FD
 
 auto graphSetConditional(deviceGraphConditionalHandle_t handle,
                          unsigned int value) -> void {
@@ -109,7 +109,7 @@ auto graphSetConditional(deviceGraphConditionalHandle_t handle,
 
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddChildGraphNode(deviceGraph_t graph, deviceGraph_t childGraph,
                             const deviceGraphNode_t* dependencies,
@@ -121,7 +121,7 @@ auto graphAddChildGraphNode(deviceGraph_t graph, deviceGraph_t childGraph,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddDependencies(deviceGraph_t graph, const deviceGraphNode_t* from,
                           const deviceGraphNode_t* to,
@@ -134,13 +134,13 @@ auto graphAddDependencies(deviceGraph_t graph, const deviceGraphNode_t* from,
     GraphAddDependencies,
 #endif
     "Failed to Add Dependency between graph Nodes", graph, from, to,
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
     edgeData,
 #endif
     numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddEmptyNode(deviceGraph_t graph,
                        const deviceGraphNode_t* dependencies,
@@ -151,7 +151,7 @@ auto graphAddEmptyNode(deviceGraph_t graph,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddEventRecordNode(deviceGraph_t graph, deviceEvent_t event,
                              const deviceGraphNode_t* dependencies,
@@ -163,7 +163,7 @@ auto graphAddEventRecordNode(deviceGraph_t graph, deviceEvent_t event,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddEventWaitNode(deviceGraph_t graph, deviceEvent_t event,
                            const deviceGraphNode_t* dependencies,
@@ -175,7 +175,7 @@ auto graphAddEventWaitNode(deviceGraph_t graph, deviceEvent_t event,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddHostNode(deviceGraph_t graph, const deviceHostNodeParams_t* params,
                       const deviceGraphNode_t* dependencies,
@@ -186,7 +186,7 @@ auto graphAddHostNode(deviceGraph_t graph, const deviceHostNodeParams_t* params,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddKernelNode(deviceGraph_t graph,
                         const deviceKernelNodeParams_t* params,
@@ -200,8 +200,8 @@ auto graphAddKernelNode(deviceGraph_t graph,
 }
 
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphAddExternalSemaphoresSignalNode(
   deviceGraph_t graph, const deviceExternalSemaphoreSignalNodeParams_t* params,
@@ -215,7 +215,7 @@ auto graphAddExternalSemaphoresSignalNode(
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddExternalSemaphoresWaitNode(
   deviceGraph_t graph, const deviceExternalSemaphoreWaitNodeParams_t* params,
@@ -228,7 +228,7 @@ auto graphAddExternalSemaphoresWaitNode(
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddMemAllocNode(deviceGraph_t graph,
                           deviceMemAllocNodeParams_t* params,
@@ -242,7 +242,7 @@ auto graphAddMemAllocNode(deviceGraph_t graph,
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddMemFreeNode(deviceGraph_t graph, void* dptr,
                          const deviceGraphNode_t* dependencies,
@@ -254,7 +254,7 @@ auto graphAddMemFreeNode(deviceGraph_t graph, void* dptr,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddMemcpyNode(deviceGraph_t graph,
                         const deviceMemcpy3DParams_t* params,
@@ -267,7 +267,7 @@ auto graphAddMemcpyNode(deviceGraph_t graph,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddMemcpyNode1D(deviceGraph_t graph, void* dst, const void* src,
                           std::size_t countBytes,
@@ -282,8 +282,8 @@ auto graphAddMemcpyNode1D(deviceGraph_t graph, void* dst, const void* src,
 }
 
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphAddMemcpyNodeFromSymbol(
   deviceGraph_t graph, void* dst, const void* symbol, std::size_t count,
@@ -298,7 +298,7 @@ auto graphAddMemcpyNodeFromSymbol(
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddMemcpyNodeToSymbol(
   deviceGraph_t graph, const void* symbol, const void* src, std::size_t count,
@@ -314,7 +314,7 @@ auto graphAddMemcpyNodeToSymbol(
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphAddMemsetNode(deviceGraph_t graph, const deviceMemsetParams_t* params,
                         const deviceGraphNode_t* dependencies,
@@ -327,8 +327,8 @@ auto graphAddMemsetNode(deviceGraph_t graph, const deviceMemsetParams_t* params,
 }
 
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphAddNode(deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
                   const deviceGraphNode_t* pDependencies,
@@ -342,20 +342,20 @@ auto graphAddNode(deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
     GraphAddNode,
 #endif
     "Failed to add node to graph", pGraphNode, graph, pDependencies,
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
     dependencyData,
 #endif
     numDependencies, nodeParams);
 }
 #endif
 
-#if GCXX_CUDA_MODE
-GCXX_FH() auto graphDestroyNode(deviceGraphNode_t node) -> void {
+#if GCXX_CUDA_MODE()
+GCXX_FH auto graphDestroyNode(deviceGraphNode_t node) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphDestroyNode, "Failed to destroy graph node",
                          node);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphEventRecordNodeGetEvent(deviceGraphNode_t node) -> deviceEvent_t {
   deviceEvent_t event{INVALID_EVENT};
@@ -364,7 +364,7 @@ auto graphEventRecordNodeGetEvent(deviceGraphNode_t node) -> deviceEvent_t {
   return event;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphEventRecordNodeSetEvent(deviceGraphNode_t node,
                                   deviceEvent_t event) -> void {
@@ -372,7 +372,7 @@ auto graphEventRecordNodeSetEvent(deviceGraphNode_t node,
                          "Failed to set event record node event", node, event);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphEventWaitNodeGetEvent(deviceGraphNode_t node) -> deviceEvent_t {
   deviceEvent_t event{INVALID_EVENT};
@@ -381,7 +381,7 @@ auto graphEventWaitNodeGetEvent(deviceGraphNode_t node) -> deviceEvent_t {
   return event;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphEventWaitNodeSetEvent(deviceGraphNode_t node,
                                 deviceEvent_t event) -> void {
@@ -389,8 +389,8 @@ auto graphEventWaitNodeSetEvent(deviceGraphNode_t node,
                          "Failed to set event wait node event", node, event);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphExternalSemaphoresSignalNodeGetParams(
   deviceGraphNode_t node,
@@ -400,7 +400,7 @@ auto graphExternalSemaphoresSignalNodeGetParams(
                          node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExternalSemaphoresSignalNodeSetParams(
   deviceGraphNode_t node,
@@ -410,7 +410,7 @@ auto graphExternalSemaphoresSignalNodeSetParams(
                          node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExternalSemaphoresWaitNodeGetParams(
   deviceGraphNode_t node,
@@ -420,7 +420,7 @@ auto graphExternalSemaphoresWaitNodeGetParams(
                          node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExternalSemaphoresWaitNodeSetParams(
   deviceGraphNode_t node,
@@ -431,7 +431,7 @@ auto graphExternalSemaphoresWaitNodeSetParams(
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphGetNodes(deviceGraph_t graph, deviceGraphNode_t* nodes,
                    std::size_t* numNodes) -> void {
@@ -439,7 +439,7 @@ auto graphGetNodes(deviceGraph_t graph, deviceGraphNode_t* nodes,
                          nodes, numNodes);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphGetEdges(deviceGraph_t graph, deviceGraphNode_t* from,
                    deviceGraphNode_t* to, deviceGraphEdgeData_t* edgeData,
@@ -451,13 +451,13 @@ auto graphGetEdges(deviceGraph_t graph, deviceGraphNode_t* from,
     GraphGetEdges_v2,
 #endif
     "Failed to get graph edges", graph, from, to,
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
     edgeData,
 #endif
     numEdges);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphGetRootNodes(deviceGraph_t graph, deviceGraphNode_t* rootNodes,
                        std::size_t* numRootNodes) -> void {
@@ -465,7 +465,7 @@ auto graphGetRootNodes(deviceGraph_t graph, deviceGraphNode_t* rootNodes,
                          graph, rootNodes, numRootNodes);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphHostNodeGetParams(deviceGraphNode_t node,
                             deviceHostNodeParams_t* params) -> void {
@@ -473,7 +473,7 @@ auto graphHostNodeGetParams(deviceGraphNode_t node,
                          "Failed to get host node params", node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphHostNodeSetParams(deviceGraphNode_t node,
                             const deviceHostNodeParams_t* params) -> void {
@@ -483,7 +483,7 @@ auto graphHostNodeSetParams(deviceGraphNode_t node,
 
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphNodeGetType(deviceGraphNode_t node) -> deviceGraphNodeType_t {
   deviceGraphNodeType_t enumval{};
@@ -493,14 +493,14 @@ auto graphNodeGetType(deviceGraphNode_t node) -> deviceGraphNodeType_t {
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 1, 0)
-GCXX_FH() auto graphNodeGetLocalId(deviceGraphNode_t node) -> unsigned int {
+GCXX_FH auto graphNodeGetLocalId(deviceGraphNode_t node) -> unsigned int {
   unsigned int id{};
   GCXX_SAFE_RUNTIME_CALL(GraphNodeGetLocalId,
                          "Failed to query Local Id of graph node", node, &id);
   return id;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphNodeGetToolsId(deviceGraphNode_t node) -> unsigned long long {
   unsigned long long id{};
@@ -510,7 +510,7 @@ auto graphNodeGetToolsId(deviceGraphNode_t node) -> unsigned long long {
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphChildGraphNodeGetGraph(deviceGraphNode_t node) -> deviceGraph_t {
   deviceGraph_t graph{INVALID_GRAPH};
@@ -519,7 +519,7 @@ auto graphChildGraphNodeGetGraph(deviceGraphNode_t node) -> deviceGraph_t {
   return graph;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecChildGraphNodeSetParams(deviceGraphExec_t exec,
                                       deviceGraphNode_t node,
@@ -529,8 +529,8 @@ auto graphExecChildGraphNodeSetParams(deviceGraphExec_t exec,
                          graph);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphExecEventRecordNodeSetEvent(deviceGraphExec_t exec,
                                       deviceGraphNode_t node,
@@ -540,7 +540,7 @@ auto graphExecEventRecordNodeSetEvent(deviceGraphExec_t exec,
                          exec, node, event);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecEventWaitNodeSetEvent(deviceGraphExec_t exec,
                                     deviceGraphNode_t node,
@@ -550,8 +550,8 @@ auto graphExecEventWaitNodeSetEvent(deviceGraphExec_t exec,
                          node, event);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphExecExternalSemaphoresSignalNodeSetParams(
   deviceGraphExec_t exec, deviceGraphNode_t node,
@@ -562,7 +562,7 @@ auto graphExecExternalSemaphoresSignalNodeSetParams(
     node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecExternalSemaphoresWaitNodeSetParams(
   deviceGraphExec_t exec, deviceGraphNode_t node,
@@ -574,14 +574,14 @@ auto graphExecExternalSemaphoresWaitNodeSetParams(
 }
 #endif
 
-GCXX_FH() auto graphExecGetFlags(deviceGraphExec_t exec) -> unsigned long long {
+GCXX_FH auto graphExecGetFlags(deviceGraphExec_t exec) -> unsigned long long {
   unsigned long long flags{};
   GCXX_SAFE_RUNTIME_CALL(GraphExecGetFlags, "Failed to get graph exec flags",
                          exec, &flags);
   return flags;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecHostNodeSetParams(deviceGraphExec_t exec, deviceGraphNode_t node,
                                 const deviceHostNodeParams_t* params) -> void {
@@ -590,7 +590,7 @@ auto graphExecHostNodeSetParams(deviceGraphExec_t exec, deviceGraphNode_t node,
                          node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecKernelNodeSetParams(
   deviceGraphExec_t exec, deviceGraphNode_t node,
@@ -600,7 +600,7 @@ auto graphExecKernelNodeSetParams(
                          node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecMemcpyNodeSetParams(
   deviceGraphExec_t exec, deviceGraphNode_t node,
@@ -610,7 +610,7 @@ auto graphExecMemcpyNodeSetParams(
                          node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecMemcpyNodeSetParams1D(deviceGraphExec_t exec,
                                     deviceGraphNode_t node, void* dst,
@@ -621,8 +621,8 @@ auto graphExecMemcpyNodeSetParams1D(deviceGraphExec_t exec,
                          node, dst, src, count, kind);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphExecMemcpyNodeSetParamsFromSymbol(
   deviceGraphExec_t exec, deviceGraphNode_t node, void* dst, const void* symbol,
@@ -633,7 +633,7 @@ auto graphExecMemcpyNodeSetParamsFromSymbol(
     symbol, count, offset, kind);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecMemcpyNodeSetParamsToSymbol(deviceGraphExec_t exec,
                                           deviceGraphNode_t node,
@@ -647,7 +647,7 @@ auto graphExecMemcpyNodeSetParamsToSymbol(deviceGraphExec_t exec,
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecMemsetNodeSetParams(deviceGraphExec_t exec,
                                   deviceGraphNode_t node,
@@ -657,8 +657,8 @@ auto graphExecMemsetNodeSetParams(deviceGraphExec_t exec,
                          node, params);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphExecNodeSetParams(deviceGraphExec_t exec, deviceGraphNode_t node,
                             deviceGraphNodeParams_t* params) -> void {
@@ -670,7 +670,7 @@ auto graphExecNodeSetParams(deviceGraphExec_t exec, deviceGraphNode_t node,
 
 #endif
 
-GCXX_FH() auto graphInstantiate(deviceGraph_t graph) -> deviceGraphExec_t {
+GCXX_FH auto graphInstantiate(deviceGraph_t graph) -> deviceGraphExec_t {
   deviceGraphExec_t exec{INVALID_GRAPH_EXEC};
   GCXX_SAFE_RUNTIME_CALL(GraphInstantiate, "Failed to instantiate the graph",
                          &exec, graph, nullptr, nullptr, 0);
@@ -678,8 +678,8 @@ GCXX_FH() auto graphInstantiate(deviceGraph_t graph) -> deviceGraphExec_t {
 }
 
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphInstantiateWithFlags(deviceGraph_t graph,
                                unsigned long long flags) -> deviceGraphExec_t {
@@ -690,7 +690,7 @@ auto graphInstantiateWithFlags(deviceGraph_t graph,
   return exec;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphInstantiateWithParams(deviceGraph_t graph,
                                 deviceGraphInstantiateParams_t* params)
@@ -703,14 +703,14 @@ auto graphInstantiateWithParams(deviceGraph_t graph,
 }
 #endif
 
-GCXX_FH() auto graphExecDestroy(deviceGraphExec_t exec) -> void {
+GCXX_FH auto graphExecDestroy(deviceGraphExec_t exec) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphExecDestroy, "Failed to destroy graph exec",
                          exec);
 }
 
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphExecUpdate(deviceGraphExec_t exec, deviceGraph_t graph,
                      deviceGraphExecUpdateResultInfo_t* resultInfo) -> void {
@@ -719,19 +719,19 @@ auto graphExecUpdate(deviceGraphExec_t exec, deviceGraph_t graph,
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphExecUpdate(deviceGraphExec_t exec, deviceGraph_t graph) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphExecUpdate, "Failed to update graph exec", exec,
                          graph,
-#if GCXX_HIP_MODE
+#if GCXX_HIP_MODE()
                          NULL,
 #endif
                          nullptr);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphKernelNodeCopyAttributes(deviceGraphNode_t src,
                                    deviceGraphNode_t dst) -> void {
@@ -739,7 +739,7 @@ auto graphKernelNodeCopyAttributes(deviceGraphNode_t src,
                          "Failed to copy kernel node attributes", src, dst);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphKernelNodeGetAttribute(deviceGraphNode_t node,
                                  deviceKernelNodeAttrID_t attr,
@@ -749,7 +749,7 @@ auto graphKernelNodeGetAttribute(deviceGraphNode_t node,
                          value);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphKernelNodeGetParams(deviceGraphNode_t node,
                               deviceKernelNodeParams_t* params) -> void {
@@ -757,7 +757,7 @@ auto graphKernelNodeGetParams(deviceGraphNode_t node,
                          "Failed to get kernel node parameters", node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphKernelNodeSetAttribute(
   deviceGraphNode_t node, deviceKernelNodeAttrID_t attr,
@@ -767,7 +767,7 @@ auto graphKernelNodeSetAttribute(
                          value);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphKernelNodeSetParams(deviceGraphNode_t node,
                               const deviceKernelNodeParams_t* params) -> void {
@@ -775,8 +775,8 @@ auto graphKernelNodeSetParams(deviceGraphNode_t node,
                          "Failed to set kernel node parameters", node, params);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphMemAllocNodeGetParams(deviceGraphNode_t node,
                                 deviceMemAllocNodeParams_t* params) -> void {
@@ -785,14 +785,14 @@ auto graphMemAllocNodeGetParams(deviceGraphNode_t node,
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphMemFreeNodeGetParams(deviceGraphNode_t node, void* dptrOut) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphMemFreeNodeGetParams,
                          "Failed to get mem free node params", node, dptrOut);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphMemcpyNodeGetParams(deviceGraphNode_t node,
                               deviceMemcpy3DParams_t* params) -> void {
@@ -800,7 +800,7 @@ auto graphMemcpyNodeGetParams(deviceGraphNode_t node,
                          "Failed to get memcpy node params", node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphMemcpyNodeSetParams(deviceGraphNode_t node,
                               const deviceMemcpy3DParams_t* params) -> void {
@@ -808,7 +808,7 @@ auto graphMemcpyNodeSetParams(deviceGraphNode_t node,
                          "Failed to set memcpy node params", node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphMemcpyNodeSetParams1D(deviceGraphNode_t node, void* dst,
                                 const void* src, std::size_t count,
@@ -818,8 +818,8 @@ auto graphMemcpyNodeSetParams1D(deviceGraphNode_t node, void* dst,
                          count, kind);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphMemcpyNodeSetParamsFromSymbol(deviceGraphNode_t node, void* dst,
                                         const void* symbol, std::size_t count,
@@ -830,7 +830,7 @@ auto graphMemcpyNodeSetParamsFromSymbol(deviceGraphNode_t node, void* dst,
                          dst, symbol, count, offset, kind);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphMemcpyNodeSetParamsToSymbol(deviceGraphNode_t node,
                                       const void* symbol, const void* src,
@@ -842,7 +842,7 @@ auto graphMemcpyNodeSetParamsToSymbol(deviceGraphNode_t node,
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphMemsetNodeGetParams(deviceGraphNode_t node,
                               deviceMemsetParams_t* params) -> void {
@@ -850,7 +850,7 @@ auto graphMemsetNodeGetParams(deviceGraphNode_t node,
                          "Failed to get memset node params", node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphMemsetNodeSetParams(deviceGraphNode_t node,
                               const deviceMemsetParams_t* params) -> void {
@@ -858,7 +858,7 @@ auto graphMemsetNodeSetParams(deviceGraphNode_t node,
                          "Failed to set memset node params", node, params);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphNodeFindInClone(deviceGraphNode_t originalNode,
                           deviceGraph_t clonedGraph) -> deviceGraphNode_t {
@@ -869,7 +869,7 @@ auto graphNodeFindInClone(deviceGraphNode_t originalNode,
   return node;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphNodeGetDependencies(deviceGraphNode_t node,
                               deviceGraphNode_t* dependencies,
@@ -882,13 +882,13 @@ auto graphNodeGetDependencies(deviceGraphNode_t node,
     GraphNodeGetDependencies,
 #endif
     "Failed to get graph node dependencies", node, dependencies,
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
     edgeData,
 #endif
     numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphNodeGetDependentNodes(deviceGraphNode_t node,
                                 deviceGraphNode_t* dependentNodes,
@@ -898,8 +898,8 @@ auto graphNodeGetDependentNodes(deviceGraphNode_t node,
                          dependentNodes, numDependentNodes);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphNodeGetDependentNodesV2(deviceGraphNode_t node,
                                   deviceGraphNode_t* dependentNodes,
@@ -911,7 +911,7 @@ auto graphNodeGetDependentNodesV2(deviceGraphNode_t node,
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphNodeGetEnabled(deviceGraphExec_t exec,
                          deviceGraphNode_t node) -> unsigned int {
@@ -922,7 +922,7 @@ auto graphNodeGetEnabled(deviceGraphExec_t exec,
   return isEnabled;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphNodeSetEnabled(deviceGraphExec_t exec, deviceGraphNode_t node,
                          unsigned int isEnabled) -> void {
@@ -931,8 +931,8 @@ auto graphNodeSetEnabled(deviceGraphExec_t exec, deviceGraphNode_t node,
                          isEnabled);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphNodeSetParams(deviceGraphNode_t node,
                         deviceGraphNodeParams_t* params) -> void {
@@ -941,8 +941,8 @@ auto graphNodeSetParams(deviceGraphNode_t node,
 }
 #endif
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphRetainUserObject(deviceGraph_t graph, deviceUserObject_t object,
                            unsigned int count = 1,
@@ -952,7 +952,7 @@ auto graphRetainUserObject(deviceGraph_t graph, deviceUserObject_t object,
                          count, flags);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphReleaseUserObject(deviceGraph_t graph, deviceUserObject_t object,
                             unsigned int count = 1) -> void {
@@ -962,7 +962,7 @@ auto graphReleaseUserObject(deviceGraph_t graph, deviceUserObject_t object,
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphRemoveDependencies(deviceGraph_t graph, const deviceGraphNode_t* from,
                              const deviceGraphNode_t* to,
@@ -975,8 +975,8 @@ auto graphRemoveDependencies(deviceGraph_t graph, const deviceGraphNode_t* from,
                          numDependencies);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto graphRemoveDependenciesV2(deviceGraph_t graph,
                                const deviceGraphNode_t* from,
@@ -988,7 +988,7 @@ auto graphRemoveDependenciesV2(deviceGraph_t graph,
                          edgeData, numDependencies);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto userObjectCreate(deviceUserObject_t* objectOut, void* ptr,
                       deviceHostCallBackFn_t destroy,
@@ -998,7 +998,7 @@ auto userObjectCreate(deviceUserObject_t* objectOut, void* ptr,
                          objectOut, ptr, destroy, initialRefcount, flags);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto userObjectRelease(deviceUserObject_t object,
                        unsigned int count = 1) -> void {
@@ -1006,7 +1006,7 @@ auto userObjectRelease(deviceUserObject_t object,
                          object, count);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto userObjectRetain(deviceUserObject_t object,
                       unsigned int count = 1) -> void {
@@ -1017,13 +1017,13 @@ auto userObjectRetain(deviceUserObject_t object,
 
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto graphLaunch(deviceGraphExec_t exec, deviceStream_t stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphLaunch, "Failed to launch graph", exec, stream);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto graphUpload(deviceGraphExec_t exec, deviceStream_t stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphUpload, "Failed to upload graph", exec, stream);

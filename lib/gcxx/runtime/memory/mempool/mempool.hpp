@@ -14,11 +14,11 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class MemPool : public MemPoolView {
  public:
-  GCXX_FH() MemPool(const MemPoolProps&);
+  GCXX_FH MemPool(const MemPoolProps&);
 
-  GCXX_FH() auto destroy() -> void;
+  GCXX_FH auto destroy() -> void;
 
-  GCXX_FH() ~MemPool();
+  GCXX_FH ~MemPool();
 };
 
 GCXX_NAMESPACE_MAIN_END()

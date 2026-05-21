@@ -12,14 +12,14 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
 
-#if GCXX_CUDA_MODE
-GCXX_FH() auto ctxResetPersistingL2Cache() -> void {
+#if GCXX_CUDA_MODE()
+GCXX_FH auto ctxResetPersistingL2Cache() -> void {
   GCXX_SAFE_RUNTIME_CALL(CtxResetPersistingL2Cache,
                          "Failed to reset persisting L2 cache");
 }
 #endif
 
-GCXX_FH()
+GCXX_FH
 
 auto streamAddCallback(deviceStream_t stream, deviceStreamCallback_t callback,
                        void* userData, unsigned int flags) -> void {
@@ -27,7 +27,7 @@ auto streamAddCallback(deviceStream_t stream, deviceStreamCallback_t callback,
                          stream, callback, userData, flags);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto streamAttachMemAsync(
   deviceStream_t stream, void* devPtr, std::size_t length = 0,
@@ -37,7 +37,7 @@ auto streamAttachMemAsync(
                          length, flags);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto streamBeginCapture(deviceStream_t stream,
                         deviceStreamCaptureMode_t mode) -> void {
@@ -45,7 +45,7 @@ auto streamBeginCapture(deviceStream_t stream,
                          stream, mode);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto streamBeginCaptureToGraph(deviceStream_t stream, deviceGraph_t graph,
                                const deviceGraphNode_t* dependencies,
@@ -57,8 +57,8 @@ auto streamBeginCaptureToGraph(deviceStream_t stream, deviceGraph_t graph,
     stream, graph, dependencies, dependencyData, numDependencies, mode);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto streamCopyAttributes(deviceStream_t dst, deviceStream_t src) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamCopyAttributes,
@@ -67,7 +67,7 @@ auto streamCopyAttributes(deviceStream_t dst, deviceStream_t src) -> void {
 #endif
 
 // TODO : needed for device side stream allocation
-// GCXX_FD() auto streamCreateWithFlags(unsigned int flags) -> deviceStream_t {
+// GCXX_FD auto streamCreateWithFlags(unsigned int flags) -> deviceStream_t {
 //   deviceStream_t stream{NULL_STREAM};
 //   GCXX_SAFE_RUNTIME_CALL(StreamCreate, "Failed to Create Stream", &stream,
 //                          flags);
@@ -75,7 +75,7 @@ auto streamCopyAttributes(deviceStream_t dst, deviceStream_t src) -> void {
 // }
 
 
-GCXX_FH()
+GCXX_FH
 
 auto streamCreateWithPriority(unsigned int flags,
                               int priority) -> deviceStream_t {
@@ -85,19 +85,19 @@ auto streamCreateWithPriority(unsigned int flags,
   return stream;
 }
 
-GCXX_FH() auto streamDestroy(deviceStream_t stream) -> void {
+GCXX_FH auto streamDestroy(deviceStream_t stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamDestroy, "Failed to Destroy Stream", stream);
 }
 
-GCXX_FH() auto streamEndCapture(deviceStream_t stream) -> deviceGraph_t {
+GCXX_FH auto streamEndCapture(deviceStream_t stream) -> deviceGraph_t {
   deviceGraph_t graph{INVALID_GRAPH};
   GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
                          stream, &graph);
   return graph;
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto streamGetAttribute(deviceStream_t stream, deviceStreamAttrID_t attr,
                         deviceStreamAttrValue_t* valueOut) -> void {
@@ -107,7 +107,7 @@ auto streamGetAttribute(deviceStream_t stream, deviceStreamAttrID_t attr,
 #endif
 
 
-GCXX_FH()
+GCXX_FH
 
 auto streamGetCaptureInfo(deviceStream_t stream,
                           deviceStreamCaptureStatus_t* captureStatus_out,
@@ -125,14 +125,14 @@ auto streamGetCaptureInfo(deviceStream_t stream,
 #endif
     "Failed to get Capture info of Stream", stream, captureStatus_out, id_out,
     graph_out, dependencies_out,
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
     edgeData_out,
 #endif
     numDependencies_out);
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 3, 0)
-GCXX_FH()
+GCXX_FH
 
 auto streamGetCaptureInfo_v3(
   deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatusOut,
@@ -147,35 +147,35 @@ auto streamGetCaptureInfo_v3(
 }
 #endif
 
-GCXX_FH() auto streamGetDevice(deviceStream_t stream) -> int {
+GCXX_FH auto streamGetDevice(deviceStream_t stream) -> int {
   int device{};
   GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, "Failed to get Stream device", stream,
                          &device);
   return device;
 }
 
-GCXX_FH() auto streamGetFlags(deviceStream_t stream) -> unsigned int {
+GCXX_FH auto streamGetFlags(deviceStream_t stream) -> unsigned int {
   unsigned int flags{};
   GCXX_SAFE_RUNTIME_CALL(StreamGetFlags, "Failed to get Stream flags", stream,
                          &flags);
   return flags;
 }
 
-GCXX_FH() auto streamGetId(deviceStream_t stream) -> unsigned long long {
+GCXX_FH auto streamGetId(deviceStream_t stream) -> unsigned long long {
   unsigned long long streamId{};
   GCXX_SAFE_RUNTIME_CALL(StreamGetId, "Failed to get Stream Id", stream,
                          &streamId);
   return streamId;
 }
 
-GCXX_FH() auto streamGetPriority(deviceStream_t stream) -> int {
+GCXX_FH auto streamGetPriority(deviceStream_t stream) -> int {
   int priority{};
   GCXX_SAFE_RUNTIME_CALL(StreamGetPriority, "Failed to get Stream priority",
                          stream, &priority);
   return priority;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto streamIsCapturing(deviceStream_t stream,
                        deviceStreamCaptureStatus_t* captureStatus) -> void {
@@ -184,14 +184,14 @@ auto streamIsCapturing(deviceStream_t stream,
                          captureStatus);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto streamQueryNothrow(deviceStream_t stream) -> driver::deviceError_t {
   return GCXX_RUNTIME_BACKEND(StreamQuery)(stream);
 }
 
-#if GCXX_CUDA_MODE
-GCXX_FH()
+#if GCXX_CUDA_MODE()
+GCXX_FH
 
 auto streamSetAttribute(deviceStream_t stream, deviceStreamAttrID_t attr,
                         const deviceStreamAttrValue_t* value) -> void {
@@ -201,12 +201,12 @@ auto streamSetAttribute(deviceStream_t stream, deviceStreamAttrID_t attr,
 #endif
 
 
-GCXX_FH() auto streamSynchronize(deviceStream_t stream) -> void {
+GCXX_FH auto streamSynchronize(deviceStream_t stream) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamSynchronize, "Failed to synchronize Stream",
                          stream);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto streamUpdateCaptureDependencies(
   deviceStream_t stream, deviceGraphNode_t* dependencies,
@@ -225,7 +225,7 @@ auto streamUpdateCaptureDependencies(
     numDependencies, flags);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto StreamWaitEvent(deviceStream_t stream, deviceEvent_t event,
                      unsigned int waitFlag) -> void {
@@ -234,7 +234,7 @@ auto StreamWaitEvent(deviceStream_t stream, deviceEvent_t event,
                          event, waitFlag);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto threadExchangeStreamCaptureMode(deviceStreamCaptureMode_t* mode) -> void {
   GCXX_SAFE_RUNTIME_CALL(ThreadExchangeStreamCaptureMode,

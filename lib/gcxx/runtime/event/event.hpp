@@ -12,23 +12,23 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Event : public EventView {
  private:
-  GCXX_FH() auto destroy() -> void;
+  GCXX_FH auto destroy() -> void;
 
  public:
-  GCXX_FH()
+  GCXX_FH
   Event(const flags::eventCreate createFlag = flags::eventCreate::None);
 
-  GCXX_FH() ~Event();
+  GCXX_FH ~Event();
 
   Event(const Event&) = delete;
 
   Event& operator=(const Event&) = delete;
 
-  GCXX_FH() Event(Event&& other) noexcept;
+  GCXX_FH Event(Event&& other) noexcept;
 
-  GCXX_FH() auto operator=(Event&& other) noexcept -> Event&;
+  GCXX_FH auto operator=(Event&& other) noexcept -> Event&;
 
-  GCXX_FH() auto Release() GCXX_NOEXCEPT() -> EventView;
+  GCXX_FH auto Release() GCXX_NOEXCEPT -> EventView;
 
   operator deviceEvent_t() = delete;
 };

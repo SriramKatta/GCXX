@@ -10,7 +10,7 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
-GCXX_CXPR()
+GCXX_CXPR
 auto device_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate device memory", &ptr,
@@ -18,7 +18,7 @@ auto device_malloc = [](std::size_t numbytes) {
   return ptr;
 };
 
-GCXX_CXPR()
+GCXX_CXPR
 auto device_malloc_async = [](std::size_t numbytes,
                               const StreamView& sv = StreamView::Null()) {
   void* ptr = nullptr;
@@ -29,7 +29,7 @@ auto device_malloc_async = [](std::size_t numbytes,
 };
 
 
-GCXX_CXPR()
+GCXX_CXPR
 auto device_managed_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(
@@ -37,11 +37,11 @@ auto device_managed_malloc = [](std::size_t numbytes) {
   return ptr;
 };
 
-GCXX_CXPR()
+GCXX_CXPR
 auto host_malloc = [](std::size_t numbytes) {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
     MallocHost
 #elif GCXX_HIP_MODE
     HostMalloc
@@ -51,12 +51,12 @@ auto host_malloc = [](std::size_t numbytes) {
   return ptr;
 };
 
-GCXX_CXPR()
+GCXX_CXPR
 auto device_free = [](void* ptr) {
   GCXX_SAFE_RUNTIME_CALL(Free, "Failed to deallocate device memory", ptr);
 };
 
-GCXX_CXPR()
+GCXX_CXPR
 auto device_free_async = [](void* ptr,
                             const StreamView& sv = StreamView::Null()) {
   GCXX_SAFE_RUNTIME_CALL(FreeAsync,
@@ -64,7 +64,7 @@ auto device_free_async = [](void* ptr,
                          ptr, sv.getRawStream());
 };
 
-GCXX_CXPR()
+GCXX_CXPR
 auto host_free = [](void* ptr) {
   GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to deallocate Pinned host memory",
                          ptr);

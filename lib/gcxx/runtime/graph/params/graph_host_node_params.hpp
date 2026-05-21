@@ -26,28 +26,26 @@ class HostNodeParamsView {
  protected:
   deviceHostNodeParams_t params_{};  // NOLINT
 
-  GCXX_FHC() HostNodeParamsView() { std::memset(&params_, 0, sizeof(params_)); }
+  GCXX_FHC HostNodeParamsView() { std::memset(&params_, 0, sizeof(params_)); }
 
  public:
-  GCXX_FHC() auto getRawParams() const -> const deviceHostNodeParams_t& {
+  GCXX_FHC auto getRawParams() const -> const deviceHostNodeParams_t& {
     return params_;
   }
 
-  GCXX_FHC() auto getHostFunc() const -> const deviceHostCallBackFn_t {
+  GCXX_FHC auto getHostFunc() const -> const deviceHostCallBackFn_t {
     return params_.fn;
   }
 
-  GCXX_FHC() auto getUserData() const -> const void* {
-    return params_.userData;
-  }
+  GCXX_FHC auto getUserData() const -> const void* { return params_.userData; }
 };
 
 class HostNodeParams : public HostNodeParamsView {
 
  public:
-  GCXX_FHC() HostNodeParams() = default;
+  GCXX_FHC HostNodeParams() = default;
 
-  GCXX_FHC() HostNodeParams(deviceHostCallBackFn_t fn, void* Udata) {
+  GCXX_FHC HostNodeParams(deviceHostCallBackFn_t fn, void* Udata) {
     params_.fn       = fn;
     params_.userData = Udata;
   }
@@ -71,9 +69,9 @@ class HostNodeParamsBuilder {
 
 
  public:
-  GCXX_FH() static auto create() -> HostNodeParamsBuilder { return {}; }
+  GCXX_FH static auto create() -> HostNodeParamsBuilder { return {}; }
 
-  GCXX_FHC()
+  GCXX_FHC
 
   auto setHostCallbackFn(HostNodeParamsView::deviceHostCallBackFn_t func)
     -> HostNodeParamsBuilder& {
@@ -81,18 +79,18 @@ class HostNodeParamsBuilder {
     return *this;
   }
 
-  GCXX_FHC() auto setUserData(void* udata) -> HostNodeParamsBuilder& {
+  GCXX_FHC auto setUserData(void* udata) -> HostNodeParamsBuilder& {
     Udata_ = udata;
     return *this;
   }
 
-  GCXX_FHC() auto build() -> gcxx::HostNodeParams { return {func_, Udata_}; }
+  GCXX_FHC auto build() -> gcxx::HostNodeParams { return {func_, Udata_}; }
 };
 
 GCXX_NAMESPACE_DETAILS_END()
 
 // helper to simplify usage
-GCXX_FH() auto HostNodeParamsBuilder() -> details_::HostNodeParamsBuilder {
+GCXX_FH auto HostNodeParamsBuilder() -> details_::HostNodeParamsBuilder {
   return details_::HostNodeParamsBuilder::create();
 }
 

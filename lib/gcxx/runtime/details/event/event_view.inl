@@ -14,64 +14,62 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_CXPR()
+GCXX_CXPR
 
-EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT()
-    : event_(rawEvent) {}
+EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {}
 
-GCXX_CXPR()
+GCXX_CXPR
 
-EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT()
+EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT
     : event_(eventRef.getRawEvent()) {}
 
-GCXX_FHC()
+GCXX_FHC
 
-auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT() -> deviceEvent_t {
+auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
   return event_;
 }
 
-GCXX_CXPR() EventView::operator deviceEvent_t() GCXX_CONST_NOEXCEPT() {
+GCXX_CXPR EventView::operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
   return getRawEvent();
 }
 
-GCXX_CXPR() EventView::operator bool() GCXX_CONST_NOEXCEPT() {
+GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
   return event_ != driver::INVALID_EVENT;
 }
 
-GCXX_CXPR()
+GCXX_CXPR
 
 auto EventView::operator=(const EventView& eventRef)
-  GCXX_NOEXCEPT() -> EventView& {
+  GCXX_NOEXCEPT -> EventView& {
   event_ = eventRef.getRawEvent();
   return *this;
 }
 
-GCXX_CXPR()
+GCXX_CXPR
 
-auto operator==(const EventView lhs, const EventView rhs)
-  GCXX_NOEXCEPT() -> bool {
+auto operator==(const EventView lhs, const EventView rhs) GCXX_NOEXCEPT->bool {
   return lhs.event_ == rhs.event_;
 }
 
-GCXX_CXPR()
+GCXX_CXPR
 
-auto operator!=(const EventView& lhs, const EventView& rhs)
-  GCXX_NOEXCEPT() -> bool {
+auto operator!=(const EventView& lhs,
+                const EventView& rhs) GCXX_NOEXCEPT->bool {
   return !(lhs == rhs);
 }
 
-GCXX_FH() auto EventView::HasOccurred() const -> bool {
+GCXX_FH auto EventView::HasOccurred() const -> bool {
   const auto err = driver::eventQueryNoThrow(event_);
   return details_::nonFatalErrorQuery(err);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto EventView::RecordInStream(const flags::eventRecord recordFlag) -> void {
   RecordInStream(StreamView::Null(), recordFlag);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto EventView::RecordInStream(const StreamView& stream,
                                const flags::eventRecord recordFlag) -> void {
@@ -79,13 +77,12 @@ auto EventView::RecordInStream(const StreamView& stream,
                                static_cast<details_::flag_t>(recordFlag));
 }
 
-GCXX_FH() auto EventView::Synchronize() const -> void {
+GCXX_FH auto EventView::Synchronize() const -> void {
   driver::eventSynchronize(event_);
 }
 
 template <typename DurationT>
-GCXX_FH()
-auto EventView::ElapsedTimeSince(const EventView& startEvent) const
+GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
   -> DurationT {
   this->Synchronize();
   const auto ms =
@@ -94,9 +91,8 @@ auto EventView::ElapsedTimeSince(const EventView& startEvent) const
 }
 
 template <typename DurationT>
-GCXX_FH()
-auto EventView::ElapsedTimeBetween(const EventView& startEvent,
-                                   const EventView& endEvent) -> DurationT {
+GCXX_FH auto EventView::ElapsedTimeBetween(
+  const EventView& startEvent, const EventView& endEvent) -> DurationT {
   return endEvent.ElapsedTimeSince<DurationT>(startEvent);
 }
 

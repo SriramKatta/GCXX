@@ -425,7 +425,7 @@ void simpleSwitchGraph() {
 }
 
 int main(int argc, char** argv) {
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
   int driverVersion = 0;
 
   cudaDriverGetVersion(&driverVersion);

@@ -5,9 +5,12 @@
 #define GCXX_BACKEND_BACKEND_HPP_
 
 
-#ifdef GCXX_CUDA_MODE
+#include <gcxx/macros/backend_mode_macros.hpp>
+
+
+#if GCXX_CUDA_MODE()
 #include <gcxx/backend/cuda_backend.hpp>
-#elif GCXX_HIP_MODE
+#elif GCXX_HIP_MODE()
 #include <gcxx/backend/hip_backend.hpp>
 #else
 #error "One backend GCXX_CUDA_MODE or GCXX_HIP_MODE must be defined"
@@ -31,20 +34,20 @@ constexpr auto GCXX_RUNTIME_BACKEND_STR = TOSTRING(RUNTIME_BACKEND);
 
 // Macro to handle Backend handles with different names between CUDA and HIP
 // still starting with cuda/hip
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 #define GCXX_RUNTIME_BACKEND_ALT(cuda_name, hip_name) \
   GCXX_RUNTIME_BACKEND(cuda_name)
-#elif GCXX_HIP_MODE
+#elif GCXX_HIP_MODE()
 #define GCXX_RUNTIME_BACKEND_ALT(cuda_name, hip_name) \
   GCXX_RUNTIME_BACKEND(hip_name)
 #endif
 
 // Macro to handle attributes with different names between CUDA and HIP still
 // starting with cuda/hip
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 #define GCXX_ATTRIBUTE_BACKEND_ALT(cuda_name, hip_name) \
   GCXX_ATTRIBUTE_BACKEND(cuda_name)
-#elif GCXX_HIP_MODE
+#elif GCXX_HIP_MODE()
 #define GCXX_ATTRIBUTE_BACKEND_ALT(cuda_name, hip_name) \
   GCXX_ATTRIBUTE_BACKEND(hip_name)
 #endif

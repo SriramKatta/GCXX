@@ -9,10 +9,8 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_FH()
-
-Stream::Stream(const flags::streamType createFlag,
-               const flags::streamPriority priorityFlag)
+GCXX_FH Stream::Stream(const flags::streamType createFlag,
+                       const flags::streamPriority priorityFlag)
     : StreamView(driver::NULL_STREAM) {
   if (createFlag == flags::streamType::NullStream) {
     return;
@@ -22,7 +20,7 @@ Stream::Stream(const flags::streamType createFlag,
                          -static_cast<details_::flag_t>(priorityFlag));
 }
 
-GCXX_FH() auto Stream::operator=(Stream && other) GCXX_NOEXCEPT() -> Stream& {
+GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
   if (this != &other) {
     this->destroy();
     this->stream_ = std::exchange(other.stream_, driver::INVALID_STREAM);
@@ -30,10 +28,10 @@ GCXX_FH() auto Stream::operator=(Stream && other) GCXX_NOEXCEPT() -> Stream& {
   return *this;
 }
 
-GCXX_FH() auto Stream::destroy() -> void {
+GCXX_FH auto Stream::destroy() -> void {
   // since cudaStreamDestroy releases the handle after all work is done, to keep
   // similar behaviour
-#if GCXX_HIP_MODE
+#if GCXX_HIP_MODE()
   if (!isInvalidStream()) {
     Synchronize();
   }
@@ -52,22 +50,22 @@ GCXX_FH() auto Stream::destroy() -> void {
   stream_ = driver::INVALID_STREAM;
 }
 
-GCXX_FH() Stream::~Stream() {
+GCXX_FH Stream::~Stream() {
   this->destroy();
 }
 
-GCXX_FH() auto Stream::Release() GCXX_NOEXCEPT() -> StreamView {
+GCXX_FH auto Stream::Release() GCXX_NOEXCEPT -> StreamView {
   auto oldStream = stream_;
   stream_        = driver::INVALID_STREAM;
   return StreamView(oldStream);
 }
 
-GCXX_FH()
+GCXX_FH
 
 Stream::Stream(Stream&& other) noexcept
     : StreamView(std::exchange(other.stream_, driver::INVALID_STREAM)) {}
 
-GCXX_FH() constexpr auto Stream::get() GCXX_CONST_NOEXCEPT() -> StreamView {
+GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT -> StreamView {
   return *this;
 }
 

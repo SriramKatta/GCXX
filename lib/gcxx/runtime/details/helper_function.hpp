@@ -18,8 +18,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 // TODO : make a snesible implementation for both host and device compatibility
 
 template <class C>
-GCXX_FHDC()
-auto data(C& c) {
+GCXX_FHDC auto data(C& c) {
 #if GCXX_DEVICE_COMPILE
   using T = decltype(c.data());
   return static_cast<T>(nullptr);
@@ -29,8 +28,7 @@ auto data(C& c) {
 }
 
 template <class C>
-GCXX_FHDC()
-auto data(const C& c) {
+GCXX_FHDC auto data(const C& c) {
 #if GCXX_DEVICE_COMPILE
   using T = decltype(c.data());
   return static_cast<T>(nullptr);
@@ -40,26 +38,22 @@ auto data(const C& c) {
 }
 
 template <class T, std::size_t N>
-GCXX_FHDC()
-T* data(T (&array)[N]) noexcept {  // NOLINT
+GCXX_FHDC T* data(T (&array)[N]) noexcept {  // NOLINT
   return array;
 }
 
 template <class E>
-GCXX_FHDC()
-const E* data(std::initializer_list<E> il) noexcept {
+GCXX_FHDC const E* data(std::initializer_list<E> il) noexcept {
   return il.begin();
 }
 
 template <class C>
-GCXX_FHC()
-auto size(const C& c) {
+GCXX_FHC auto size(const C& c) {
   return c.size();
 }
 
 template <class T, std::size_t N>
-GCXX_FHDC()
-std::size_t size(const T (&)[N]) noexcept {  // NOLINT
+GCXX_FHDC std::size_t size(const T (&)[N]) noexcept {  // NOLINT
   return N;
 }
 
@@ -75,16 +69,14 @@ struct has_ptr_traits_to_address<
 
 // ---- overload 1: raw pointers ----
 template <class T>
-GCXX_FHDC()
-T* to_address(T* p) noexcept {
+GCXX_FHDC T* to_address(T* p) noexcept {
   static_assert(!std::is_function_v<T>);
   return p;
 }
 
 // ---- overload 2: fancy pointers ----
 template <class T>
-GCXX_FHDC()
-auto to_address(const T& p) noexcept {
+GCXX_FHDC auto to_address(const T& p) noexcept {
   if constexpr (has_ptr_traits_to_address<T>::value)
     return std::pointer_traits<T>::to_address(p);
   else {

@@ -143,7 +143,7 @@ void init_input(float* a, size_t size) {
     a[i] = (rand() & 0xFF) / (float)RAND_MAX;
 }
 
-void GCXXRT_CB() myHostNodeCallback(void* data) {
+void GCXXRT_CB myHostNodeCallback(void* data) {
   // Check status of GPU after stream operations are done
   auto* tmp = (callBackData_t*)(data);
   // checkCudaErrors(tmp->status);

@@ -14,7 +14,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 using DeviceProp = cudaDeviceProp;
 #elif GCXX_HIP_MODE
 using DeviceProp = hipDeviceProp_t;

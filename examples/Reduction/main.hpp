@@ -53,8 +53,7 @@ inline Args parse_args(int argc, char** argv) {
 // bandwidth also test with vec4_32a and vec4_16a to get
 // an idea of if they improve the performance
 template <typename VT>
-GCXX_FD()
-VT thread_partial_sum(const gcxx::span<VT> a) {
+GCXX_FD VT thread_partial_sum(const gcxx::span<VT> a) {
   VT sum{};
   int start  = threadIdx.x + blockDim.x * blockIdx.x;
   int stride = blockDim.x * gridDim.x;
@@ -79,8 +78,7 @@ VT thread_partial_sum(const gcxx::span<VT> a) {
 // to utilize the registers in place of shared memory since they would be even
 // quicker access
 template <typename VT>
-GCXX_FD()
-void in_block_reduction(VT* smem, size_t N) {
+GCXX_FD void in_block_reduction(VT* smem, size_t N) {
   const auto tid = threadIdx.x;
   for (size_t i = N / 2; i > 0; i >>= 1) {
     __syncthreads();
@@ -93,8 +91,7 @@ void in_block_reduction(VT* smem, size_t N) {
 // okay for now but not possible in terms of old cuda with no atomic support for
 // doubles
 template <typename VT>
-GCXX_FDC()
-void inter_block_reduction(VT* smem, VT* res) {
+GCXX_FDC void inter_block_reduction(VT* smem, VT* res) {
   if (threadIdx.x == 0) {
     atomicAdd(res, smem[0]);
   }

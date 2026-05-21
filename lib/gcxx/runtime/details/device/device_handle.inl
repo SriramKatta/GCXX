@@ -13,30 +13,30 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_FH()
+GCXX_FH
 
 DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
     : deviceId_(devId), resetOnDestruct_(resetOnDestruct) {
   makeCurrent();
 }
 
-GCXX_FH() DeviceHandle::~DeviceHandle() {
+GCXX_FH DeviceHandle::~DeviceHandle() {
   if (resetOnDestruct_) {
     details_::EnsureCurrentDevice hand(deviceId_);
     GCXX_SAFE_RUNTIME_CALL(DeviceReset, "Failed to reset ");
   }
 }
 
-GCXX_FH() auto DeviceHandle::makeCurrent() const -> void {
+GCXX_FH auto DeviceHandle::makeCurrent() const -> void {
   GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to Set device", deviceId_);
 }
 
-GCXX_FH() auto DeviceHandle::Synchronize() const -> void {
+GCXX_FH auto DeviceHandle::Synchronize() const -> void {
   details_::EnsureCurrentDevice hand(deviceId_);
   gcxx::Device::Synchronize();
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto DeviceHandle::getAttribute(const flags::deviceAttribute& attr) const
   -> int {
@@ -44,11 +44,11 @@ auto DeviceHandle::getAttribute(const flags::deviceAttribute& attr) const
   return gcxx::Device::getAttribute(attr);
 }
 
-GCXX_FHC() auto DeviceHandle::id() const -> device_t {
+GCXX_FHC auto DeviceHandle::id() const -> device_t {
   return deviceId_;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto DeviceHandle::getLimit(const flags::deviceLimit& limattr) const
   -> std::size_t {
@@ -56,7 +56,7 @@ auto DeviceHandle::getLimit(const flags::deviceLimit& limattr) const
   return gcxx::Device::getLimit(limattr);
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
                             std::size_t limval) const -> void {
@@ -64,22 +64,22 @@ auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
   gcxx::Device::setLimit(limattr, limval);
 }
 
-GCXX_FH() auto DeviceHandle::getDeviceProp() const -> DeviceProp {
+GCXX_FH auto DeviceHandle::getDeviceProp() const -> DeviceProp {
   details_::EnsureCurrentDevice dev(deviceId_);
   return gcxx::Device::getDeviceProp();
 }
 
-GCXX_FH() auto DeviceHandle::GetDefaultMemPool() const -> MemPoolView {
+GCXX_FH auto DeviceHandle::GetDefaultMemPool() const -> MemPoolView {
   details_::EnsureCurrentDevice dev(deviceId_);
   return gcxx::Device::GetDefaultMemPool();
 }
 
-GCXX_FH() auto DeviceHandle::SetMemPool(const MemPoolView& pool) -> void {
+GCXX_FH auto DeviceHandle::SetMemPool(const MemPoolView& pool) -> void {
   details_::EnsureCurrentDevice dev(deviceId_);
   return gcxx::Device::SetMemPool(pool);
 }
 
-GCXX_FH() auto DeviceHandle::GetMemPool() -> MemPoolView {
+GCXX_FH auto DeviceHandle::GetMemPool() -> MemPoolView {
   details_::EnsureCurrentDevice dev(deviceId_);
   return gcxx::Device::GetMemPool();
 }

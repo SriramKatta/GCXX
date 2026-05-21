@@ -26,12 +26,12 @@ enum class graphNodeType {
   ExtSemWait   = GCXX_RUNTIME_BACKEND(GraphNodeTypeExtSemaphoreWait),
   Alloc        = GCXX_RUNTIME_BACKEND(GraphNodeTypeMemAlloc),
   Free         = GCXX_RUNTIME_BACKEND(GraphNodeTypeMemFree),
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
   Conditional = GCXX_RUNTIME_BACKEND(GraphNodeTypeConditional),
 #endif
 };
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 enum class graphConditionalHandle : details_::flag_t {
   None    = 0,
   Default = cudaGraphCondAssignDefault,
@@ -59,7 +59,7 @@ enum class graphDebugDot : details_::flag_t {
   KernelNodeAttributes =
     GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsKernelNodeAttributes),
   Handles = GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsHandles),
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
   ConditionalNodeParams =
     GCXX_RUNTIME_BACKEND(GraphDebugDotFlagsConditionalNodeParams),
 #endif

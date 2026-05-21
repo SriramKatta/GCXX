@@ -13,16 +13,16 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_FHC()
+GCXX_FHC
 
 ChildGraphNodeView::ChildGraphNodeView(GraphNodeView::deviceGraphNode_t node)
     : GraphNodeView(node) {}
 
-GCXX_FH() auto ChildGraphNodeView::getGraph() -> GraphView {
+GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
   return {driver::graphChildGraphNodeGetGraph(node_)};
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto ChildGraphNodeView::setParams(GraphExecView exec,
                                    GraphView graph) -> void {

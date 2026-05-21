@@ -14,7 +14,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 // KernelNodeView Implementation
 // ════════════════════════════════════════════════════════════════════════════
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::GetParams(details_::deviceKernelNodeParams_t* params) const
   -> const KernelNodeView& {
@@ -23,13 +23,13 @@ auto KernelNodeView::GetParams(details_::deviceKernelNodeParams_t* params) const
   return *this;
 }
 
-GCXX_FH() auto KernelNodeView::GetParams() const -> KernelNodeParams {
+GCXX_FH auto KernelNodeView::GetParams() const -> KernelNodeParams {
   KernelNodeParams result;
   GetParams(result.getRawParams());
   return result;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::SetParams(const details_::deviceKernelNodeParams_t* params)
   -> KernelNodeView& {
@@ -38,14 +38,14 @@ auto KernelNodeView::SetParams(const details_::deviceKernelNodeParams_t* params)
   return *this;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::SetParams(const KernelNodeParams& params)
   -> KernelNodeView& {
   return SetParams(params.getRawParams());
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::GetAttribute(
   details_::deviceKernelNodeAttrID attr,
@@ -56,7 +56,7 @@ auto KernelNodeView::GetAttribute(
   return *this;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::SetAttribute(
   details_::deviceKernelNodeAttrID attr,
@@ -67,7 +67,7 @@ auto KernelNodeView::SetAttribute(
   return *this;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::CopyAttributesFrom(const KernelNodeView& src)
   -> KernelNodeView& {
@@ -77,7 +77,7 @@ auto KernelNodeView::CopyAttributesFrom(const KernelNodeView& src)
   return *this;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::SetParamsInExec(
   details_::deviceGraphExec_t exec,
@@ -88,7 +88,7 @@ auto KernelNodeView::SetParamsInExec(
   return *this;
 }
 
-GCXX_FH()
+GCXX_FH
 
 auto KernelNodeView::SetParamsInExec(details_::deviceGraphExec_t exec,
                                      const KernelNodeParams& params)
@@ -96,26 +96,26 @@ auto KernelNodeView::SetParamsInExec(details_::deviceGraphExec_t exec,
   return SetParamsInExec(exec, params.getRawParams());
 }
 
-#if GCXX_CUDA_MODE
+#if GCXX_CUDA_MODE()
 // ════════════════════════════════════════════════════════════════════════════
 // Device API Implementation (CUDA only)
 // ════════════════════════════════════════════════════════════════════════════
 
-GCXX_FD()
+GCXX_FD
 
 auto KernelNodeView::SetEnabled(details_::deviceGraphDeviceNode_t deviceNode,
                                 bool enable) -> void {
   GCXX_RUNTIME_BACKEND(GraphKernelNodeSetEnabled)(deviceNode, enable);
 }
 
-GCXX_FD()
+GCXX_FD
 
 auto KernelNodeView::SetGridDim(details_::deviceGraphDeviceNode_t deviceNode,
                                 dim3 gridDim) -> void {
   GCXX_RUNTIME_BACKEND(GraphKernelNodeSetGridDim)(deviceNode, gridDim);
 }
 
-GCXX_FD()
+GCXX_FD
 
 auto KernelNodeView::SetParam(details_::deviceGraphDeviceNode_t deviceNode,
                               size_t offset, const void* value,
@@ -124,7 +124,7 @@ auto KernelNodeView::SetParam(details_::deviceGraphDeviceNode_t deviceNode,
   (deviceNode, offset, value, size);
 }
 
-GCXX_FD()
+GCXX_FD
 
 auto KernelNodeView::ApplyUpdates(
   const details_::deviceGraphKernelNodeUpdate* updates,
