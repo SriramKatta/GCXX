@@ -224,6 +224,7 @@ enum class deviceAttribute : details_::flag_t {
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(12, 9, 0)
   VulkanCigSupported = GCXX_ATTRIBUTE_BACKEND(VulkanCigSupported),
 #endif
+#endif
 };
 
 
