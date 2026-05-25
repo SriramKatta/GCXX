@@ -35,9 +35,9 @@ GCXX_FH auto Device::Synchronize() -> void {
   GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "Failed to synchronize the device");
 }
 
-GCXX_FH auto Device::getDeviceProp() -> DeviceProp {
+GCXX_FH auto Device::getDeviceProp() -> driver::deviceProp_t {
   auto deviceId_ = get().id();
-  DeviceProp handle;
+  driver::deviceProp_t handle{};
   GCXX_SAFE_RUNTIME_CALL(GetDeviceProperties,
                          "Failed to query device properties", &handle,
                          deviceId_);

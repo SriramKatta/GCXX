@@ -59,7 +59,7 @@ auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
   gcxx::Device::setLimit(limattr, limval);
 }
 
-GCXX_FH auto DeviceHandle::getDeviceProp() const -> DeviceProp {
+GCXX_FH auto DeviceHandle::getDeviceProp() const -> driver::deviceProp_t {
   details_::EnsureCurrentDevice dev(deviceId_);
   return gcxx::Device::getDeviceProp();
 }

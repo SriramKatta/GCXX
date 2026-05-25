@@ -7,8 +7,8 @@
 #include <gcxx/internal/prologue.hpp>
 
 
-#include <gcxx/runtime/device/device_structs.hpp>
 #include <gcxx/runtime/flags/device_flags.hpp>
+#include <gcxx/runtime_backend/backend_device.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
@@ -30,7 +30,7 @@ class DeviceHandle {
 
   GCXX_FH auto Synchronize() const -> void;
 
-  GCXX_FH auto getDeviceProp() const -> DeviceProp;
+  GCXX_FH auto getDeviceProp() const -> driver::deviceProp_t;
 
   GCXX_FH auto getAttribute(const flags::deviceAttribute&) const -> int;
 

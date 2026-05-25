@@ -42,7 +42,6 @@ enum class graphConditionalNode : details_::flag_t {
   While  = GCXX_RUNTIME_BACKEND(GraphCondTypeWhile),
   Switch = GCXX_RUNTIME_BACKEND(GraphCondTypeSwitch),
 };
-
 #endif
 
 enum class graphDebugDot : details_::flag_t {

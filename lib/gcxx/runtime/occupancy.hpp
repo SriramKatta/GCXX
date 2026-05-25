@@ -14,14 +14,6 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace Occupancy {
-#if GCXX_CUDA_MODE()
-  template <typename func_t>
-  GCXX_FH auto AvailableDynamicSMemPerBlock(func_t* func, int numBlocks,
-                                            int blockSize) -> std::size_t {
-    return driver::occupancyAvailableDynamicSMemPerBlock(func, numBlocks,
-                                                         blockSize);
-  }
-#endif
 
   template <typename func_t>
   GCXX_FH auto MaxActiveBlocksPerMultiprocessor(
@@ -38,14 +30,6 @@ namespace Occupancy {
       func, blockSize, dynamicSMemSizeBytes,
       static_cast<details_::flag_t>(flag));
   }
-
-#if GCXX_CUDA_MODE()
-  template <typename func_t>
-  GCXX_FH auto MaxActiveClusters(
-    func_t* func, const driver::deviceLaunchConfig_t* config) -> int {
-    return driver::occupancyMaxActiveClusters(func, config);
-  }
-#endif
 
   template <typename func_t>
   GCXX_FH auto MaxPotentialBlockSize(
@@ -85,6 +69,19 @@ namespace Occupancy {
   }
 
 #if GCXX_CUDA_MODE()
+  template <typename func_t>
+  GCXX_FH auto AvailableDynamicSMemPerBlock(func_t* func, int numBlocks,
+                                            int blockSize) -> std::size_t {
+    return driver::occupancyAvailableDynamicSMemPerBlock(func, numBlocks,
+                                                         blockSize);
+  }
+
+  template <typename func_t>
+  GCXX_FH auto MaxActiveClusters(
+    func_t* func, const driver::deviceLaunchConfig_t* config) -> int {
+    return driver::occupancyMaxActiveClusters(func, config);
+  }
+
   template <typename func_t>
   GCXX_FH auto MaxPotentialClusterSize(
     func_t* func, const driver::deviceLaunchConfig_t* config) -> int {

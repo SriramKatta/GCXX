@@ -18,35 +18,19 @@ namespace memory {
   GCXX_FH auto makePitchedPtr(void* dPtr, size_t pitchelems = 1,
                               size_t xSize = 1,
                               size_t ySize = 1) -> devicePitchedPtr {
-    return
-#if GCXX_CUDA_MODE()
-      make_cudaPitchedPtr
-#else
-      make_hipPitchedPtr
-#endif
-      (dPtr, pitchelems * sizeof(VT), xSize, ySize);
+    return GCXX_DIRECT_BACKEND_ALT(make_cudaPitchedPtr, make_hipPitchedPtr)(
+      dPtr, pitchelems * sizeof(VT), xSize, ySize);
   }
 
   GCXX_FH auto makePos(size_t x, size_t y, size_t z) -> devicePos {
-    return
-#if GCXX_CUDA_MODE()
-      make_cudaPos
-#else
-      make_hipPos
-#endif
-      (x, y, z);
+    return GCXX_DIRECT_BACKEND_ALT(make_cudaPos, make_hipPos)(x, y, z);
   }
 
   template <typename VT>
   GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1,
                           size_t zSize = 1) -> deviceExtent {
-    return
-#if GCXX_CUDA_MODE()
-      make_cudaExtent
-#else
-      make_hipExtent
-#endif
-      (xSize * sizeof(VT), ySize, zSize);
+    return GCXX_DIRECT_BACKEND_ALT(make_cudaExtent, make_hipExtent)(
+      xSize * sizeof(VT), ySize, zSize);
   }
 }  // namespace memory
 
