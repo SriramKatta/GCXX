@@ -10,6 +10,7 @@
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>
+#include <gcxx/runtime_backend/backend_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
@@ -21,17 +22,14 @@ GCXX_NAMESPACE_DETAILS_BEGIN()
 
 GCXX_FH auto Copy(void* destination, const void* source,
                   const std::size_t countinBytes) -> void {
-  GCXX_SAFE_RUNTIME_CALL(Memcpy, "Failed to perform GPU copy", destination,
-                         source, countinBytes,
-                         GCXX_RUNTIME_BACKEND(MemcpyDefault));
+  driver::deviceCopy(destination, source, countinBytes);
 }
 
 GCXX_FH auto Copy(void* destination, const void* source,
                   const std::size_t countinBytes,
                   const StreamView& stream) -> void {
-  GCXX_SAFE_RUNTIME_CALL(
-    MemcpyAsync, "Failed to perform async GPU copy", destination, source,
-    countinBytes, GCXX_RUNTIME_BACKEND(MemcpyDefault), stream.getRawStream());
+  driver::deviceCopyAsync(destination, source, countinBytes,
+                          stream.getRawStream());
 }
 
 GCXX_NAMESPACE_DETAILS_END()

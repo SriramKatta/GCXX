@@ -5,19 +5,18 @@
 #define GCXX_RUNTIME_DETAILS_MEMEORY_MEMPOOL_MEMPOOL_INL_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_stream_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH MemPool::MemPool(const MemPoolProps& props) {
   auto vals = props.getRawMemPoolProps();
-  GCXX_SAFE_RUNTIME_CALL(MemPoolCreate, "failed to create memory pool", &pool_,
-                         &vals);
+  pool_     = driver::deviceMemPoolCreate(vals);
 }
 
 GCXX_FH auto MemPool::destroy() -> void {
   if (pool_) {
-    GCXX_SAFE_RUNTIME_CALL(MemPoolDestroy, "failed to destroy memory pool",
-                           pool_);
+    driver::deviceMemPoolDestroy(pool_);
   }
   pool_ = nullptr;
 }

@@ -8,6 +8,7 @@
 #include <gcxx/runtime/error/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 #include <gcxx/runtime_backend/backend_memory.hpp>
+#include <gcxx/runtime_backend/backend_stream_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 

@@ -13,7 +13,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-using deviceMemPool_t = GCXX_RUNTIME_BACKEND(MemPool_t);
+using deviceMemPool_t = driver::deviceMemPool_t;
 
 class MemPoolView {
  protected:

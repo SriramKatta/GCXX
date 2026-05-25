@@ -8,6 +8,8 @@
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
+#include <gcxx/runtime_backend/backend_memory.hpp>
 #include <type_traits>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
@@ -20,15 +22,14 @@ GCXX_NAMESPACE_DETAILS_BEGIN()
 
 GCXX_FH auto Memset(void* dev_ptr, const int value,
                     const std::size_t countinBytes) -> void {
-  GCXX_SAFE_RUNTIME_CALL(Memset, "Failed to perform GPU memset", dev_ptr, value,
-                         countinBytes);
+  driver::deviceMemset(dev_ptr, value, countinBytes);
 }
 
 GCXX_FH auto Memset(void* dev_ptr, const int value,
                     const std::size_t countinBytes,
                     const StreamView& stream) -> void {
-  GCXX_SAFE_RUNTIME_CALL(MemsetAsync, "Failed to perform Async GPU memset",
-                         dev_ptr, value, countinBytes, stream.getRawStream());
+  driver::deviceMemsetAsync(dev_ptr, value, countinBytes,
+                            stream.getRawStream());
 }
 
 GCXX_NAMESPACE_DETAILS_END()
