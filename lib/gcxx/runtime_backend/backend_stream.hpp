@@ -103,7 +103,7 @@ GCXX_FH auto streamGetCaptureInfo(
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     StreamGetCaptureInfo_v3,
-#elif GCXX_HIP_MODE
+#elif GCXX_HIP_MODE()
     StreamGetCaptureInfo_v2,
 #else
     StreamGetCaptureInfo,
@@ -179,7 +179,7 @@ GCXX_FH auto streamUpdateCaptureDependencies(
     StreamUpdateCaptureDependencies,
 #endif
     "Failed to update Stream Capture dependencies", stream, dependencies,
-#if !GCXX_HIP_MODE
+#if GCXX_CUDA_MODE()
     dependencyData,
 #endif
     numDependencies, flags);

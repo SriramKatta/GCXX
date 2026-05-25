@@ -142,8 +142,10 @@ GCXX_FH auto deviceGetProp(int device) -> deviceProp_t {
 
 GCXX_FH auto deviceInit(int device, unsigned int deviceFlags,
                         unsigned int flags) -> void {
+#if GCXX_CUDA_MODE()
   GCXX_SAFE_RUNTIME_CALL(InitDevice, "Failed to initialize device", device,
                          deviceFlags, flags);
+#endif
 }
 
 GCXX_FH auto ipcCloseMemHandle(void* devPtr) -> void {

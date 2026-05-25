@@ -6,7 +6,7 @@
 
 #if GCXX_CUDA_MODE()
 #include <cooperative_groups.h>
-#elif GCXX_HIP_MODE
+#elif GCXX_HIP_MODE()
 #include <hip/hip_cooperative_groups.h>
 #endif
 
