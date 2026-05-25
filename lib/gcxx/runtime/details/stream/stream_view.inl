@@ -46,24 +46,20 @@ GCXX_FH auto StreamView::WaitOnEvent(const EventView& event,
 
 GCXX_FH auto StreamView::BeginCapture(
   const flags::streamCaptureMode createflag) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(
-    StreamBeginCapture, "Failed to begin Stream Capture", this->getRawStream(),
-    static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
+  driver::streamBeginCapture(
+    stream_, static_cast<driver::deviceStreamCaptureMode_t>(createflag));
 }
 
 GCXX_FH auto StreamView::BeginCaptureToGraph(
   GraphView& graph_view,
   const flags::streamCaptureMode createflag) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(
-    StreamBeginCaptureToGraph, "Failed to begin Stream Capture to graph",
-    this->getRawStream(), graph_view.getRawGraph(), nullptr, nullptr, 0,
-    static_cast<GCXX_RUNTIME_BACKEND(StreamCaptureMode)>(createflag));
+  driver::streamBeginCaptureToGraph(
+    stream_, graph_view.getRawGraph(), nullptr, nullptr, 0,
+    static_cast<driver::deviceStreamCaptureMode_t>(createflag));
 }
 
 GCXX_FH auto StreamView::EndCapture() const -> Graph {
-  GraphView::deviceGraph_t pgraph{nullptr};
-  GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
-                         this->getRawStream(), &pgraph);
+  const auto pgraph = driver::streamEndCapture(stream_);
   return Graph::CreateFromRaw(pgraph);
 }
 
@@ -73,9 +69,7 @@ GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const
   // graph, so the returned handle from EndCapture is the same as
   // graph.getRawGraph(). We just need to call EndCapture to finalize the
   // capture.
-  GraphView::deviceGraph_t pgraph{nullptr};
-  GCXX_SAFE_RUNTIME_CALL(StreamEndCapture, "Failed to end Stream Capture",
-                         this->getRawStream(), &pgraph);
+  const auto pgraph = driver::streamEndCapture(stream_);
   // Assert that the returned graph is indeed the same as the one we passed in
   assert(pgraph == graph.getRawGraph() &&
          "EndCapture returned unexpected graph handle");
@@ -84,28 +78,20 @@ GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const
 #if GCXX_CUDA_MODE()
 GCXX_FH auto StreamView::IsCapturing() const
   -> gcxx::flags::streamCaptureStatus {
-  GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
-  GCXX_SAFE_RUNTIME_CALL(StreamIsCapturing,
-                         "Failed to query if the Stream is capturing", stream_,
-                         &status);
+  driver::deviceStreamCaptureStatus_t status{};
+  driver::streamIsCapturing(stream_, &status);
   return flags::to_streamCaptureStatus(status);
 }
 
 GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
-  GCXX_RUNTIME_BACKEND(StreamCaptureStatus) status{};
+  driver::deviceStreamCaptureStatus_t status{};
   unsigned long long id{};
   GraphView::deviceGraph_t graph{};
   const GraphView::deviceGraphNode_t* pDependencies = nullptr;
   std::size_t numdeps                               = 0;
 
-  GCXX_SAFE_RUNTIME_CALL(StreamGetCaptureInfo,
-                         "Failed to get Capture info of stream", stream_,
-                         &status, &id, &graph, &pDependencies,
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
-                         nullptr,
-#endif
-
-                         &numdeps);
+  driver::streamGetCaptureInfo(stream_, &status, &id, &graph, &pDependencies,
+                               nullptr, &numdeps);
 
   return {flags::to_streamCaptureStatus(status), id, GraphView(graph),
           pDependencies, numdeps};
@@ -114,13 +100,8 @@ GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
 GCXX_FH auto StreamView::UpdateCaptureDependencies(
   flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
   std::size_t numdeps) const -> void {
-  GCXX_SAFE_RUNTIME_CALL(StreamUpdateCaptureDependencies,
-                         "Failed to update Dependencies to the cpatured graph",
-                         stream_, nodes,
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)  // TODO : support dependency data
-                         nullptr,
-#endif
-                         numdeps, static_cast<details_::flag_t>(flag));
+  driver::streamUpdateCaptureDependencies(stream_, nodes, nullptr, numdeps,
+                                          static_cast<details_::flag_t>(flag));
 }
 #endif
 GCXX_NAMESPACE_MAIN_END()
