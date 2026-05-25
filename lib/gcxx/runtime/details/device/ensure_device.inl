@@ -13,18 +13,15 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 // Constructor: takes a CUDA stream
 GCXX_FH EnsureCurrentDevice::EnsureCurrentDevice(device_t new_dev) {
   // Get current device
-  GCXX_SAFE_RUNTIME_CALL(GetDevice, "Failed to get current GPU ID",
-                         &old_device_);
-
-  changed_ = (old_device_ != new_dev);
-
-  GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to Set Device", new_dev);
+  old_device_ = driver::deviceGet();
+  changed_    = (old_device_ != new_dev);
+  driver::deviceSet(new_dev);
 }
 
 // Destructor: restore old device if changed
 GCXX_FH EnsureCurrentDevice::~EnsureCurrentDevice() {
   if (changed_) {
-    GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to Reset GPU ID", old_device_);
+    driver::deviceSet(old_device_);
   }
 }
 

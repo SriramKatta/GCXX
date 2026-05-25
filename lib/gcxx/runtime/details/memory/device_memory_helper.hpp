@@ -7,70 +7,62 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/error/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
+#include <gcxx/runtime_backend/backend_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 
-GCXX_CXPR
-auto device_malloc = [](std::size_t numbytes) {
-  void* ptr = nullptr;
-  GCXX_SAFE_RUNTIME_CALL(Malloc, "Failed to allocate device memory", &ptr,
-                         numbytes);
-  return ptr;
+struct device_malloc_t {
+  auto operator()(std::size_t numbytes) const {
+    return driver::deviceMalloc(numbytes);
+  }
 };
 
-GCXX_CXPR
-auto device_malloc_async = [](std::size_t numbytes,
-                              const StreamView& sv = StreamView::Null()) {
-  void* ptr = nullptr;
-  GCXX_SAFE_RUNTIME_CALL(MallocAsync,
-                         "Failed to allocate device memory asynchronously",
-                         &ptr, numbytes, sv.getRawStream());
-  return ptr;
+struct device_malloc_async_t {
+  auto operator()(std::size_t numbytes,
+                  const StreamView& sv = StreamView::Null()) const {
+    return driver::deviceMallocAsync(numbytes, sv.getRawStream());
+  }
 };
 
-
-GCXX_CXPR
-auto device_managed_malloc = [](std::size_t numbytes) {
-  void* ptr = nullptr;
-  GCXX_SAFE_RUNTIME_CALL(
-    MallocManaged, "Failed to allocate managed device memory", &ptr, numbytes);
-  return ptr;
+struct device_managed_malloc_t {
+  auto operator()(std::size_t numbytes) const {
+    return driver::deviceMallocManaged(numbytes);
+  }
 };
 
-GCXX_CXPR
-auto host_malloc = [](std::size_t numbytes) {
-  void* ptr = nullptr;
-  GCXX_SAFE_RUNTIME_CALL(
-#if GCXX_CUDA_MODE()
-    MallocHost
-#elif GCXX_HIP_MODE
-    HostMalloc
-#endif
-    ,
-    "Failed to allocate Pinned host memory", &ptr, numbytes);
-  return ptr;
+struct host_malloc_t {
+  auto operator()(std::size_t numbytes) const {
+    return driver::deviceMallocHost(numbytes);
+  }
 };
 
-GCXX_CXPR
-auto device_free = [](void* ptr) {
-  GCXX_SAFE_RUNTIME_CALL(Free, "Failed to deallocate device memory", ptr);
+struct device_free_t {
+  auto operator()(void* ptr) const { driver::deviceFree(ptr); }
 };
 
-GCXX_CXPR
-auto device_free_async = [](void* ptr,
-                            const StreamView& sv = StreamView::Null()) {
-  GCXX_SAFE_RUNTIME_CALL(FreeAsync,
-                         "Failed to deallocate device memory asynchronously",
-                         ptr, sv.getRawStream());
+struct device_free_async_t {
+  auto operator()(void* ptr, const StreamView& sv = StreamView::Null()) const {
+    driver::deviceFreeAsync(ptr, sv.getRawStream());
+  }
 };
 
-GCXX_CXPR
-auto host_free = [](void* ptr) {
-  GCXX_SAFE_RUNTIME_CALL(FreeHost, "Failed to deallocate Pinned host memory",
-                         ptr);
+struct host_free_t {
+  auto operator()(void* ptr) const { driver::deviceFreeHost(ptr); }
 };
 
 GCXX_NAMESPACE_MAIN_DETAILS_END
+
+GCXX_NAMESPACE_MAIN_BEGIN()
+
+inline auto device_malloc         = details_::device_malloc_t{};
+inline auto device_managed_malloc = details_::device_managed_malloc_t{};
+inline auto device_malloc_async   = details_::device_malloc_async_t{};
+inline auto device_free           = details_::device_free_t{};
+inline auto device_free_async     = details_::device_free_async_t{};
+inline auto host_malloc           = details_::host_malloc_t{};
+inline auto host_free             = details_::host_free_t{};
+
+GCXX_NAMESPACE_MAIN_END()
 
 
 #endif

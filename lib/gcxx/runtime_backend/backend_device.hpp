@@ -52,14 +52,14 @@ GCXX_FH auto deviceGetDefaultMemoryPool(int device) -> deviceMemPool_t {
   return pool;
 }
 
-GCXX_FH auto deviceGetLimits(deviceLimit_t lim) -> size_t {
+GCXX_FH auto deviceGetLimit(deviceLimit_t lim) -> size_t {
   size_t pVal{};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetLimit, "Failed to get device limit", &pVal,
                          lim);
   return pVal;
 }
 
-GCXX_FH auto getMemPool(int device) -> deviceMemPool_t {
+GCXX_FH auto deviceGetMemPool(int device) -> deviceMemPool_t {
   deviceMemPool_t pool{};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetMemPool, "Failed to get memory pool", &pool,
                          device);
@@ -110,7 +110,7 @@ GCXX_FH auto deviceSetMemPool(int device, const deviceMemPool_t& pool) -> void {
                          pool);
 }
 
-GCXX_FH auto deviceSync() -> void {
+GCXX_FH auto deviceSynchronize() -> void {
   GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "Failed to synchronize device");
 }
 

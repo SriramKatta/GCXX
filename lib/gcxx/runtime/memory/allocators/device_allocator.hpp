@@ -22,10 +22,10 @@ class device_allocator {
   constexpr device_allocator(const device_allocator<U>&) noexcept {}
 
   [[nodiscard]] VT* allocate(std::size_t n) {
-    return static_cast<VT*>(details_::device_malloc(n * sizeof(VT)));
+    return static_cast<VT*>(device_malloc(n * sizeof(VT)));
   }
 
-  void deallocate(VT* p, std::size_t) noexcept { details_::device_free(p); }
+  void deallocate(VT* p, std::size_t) noexcept { device_free(p); }
 
   // Stateless allocators compare equal
   template <class U>

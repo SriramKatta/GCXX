@@ -22,45 +22,41 @@ namespace memory {
   using device_ptr = gcxx_unique_ptr<VT, std::function<void(VT*)>>;
 
   template <typename VT>
-  using host_pinned_ptr =
-    gcxx_unique_ptr<VT, decltype(details_::host_free)>;  // NOLINT
+  using host_pinned_ptr = gcxx_unique_ptr<VT, decltype(host_free)>;  // NOLINT
 
   template <typename VT>
-  using device_managed_ptr =
-    gcxx_unique_ptr<VT, decltype(details_::device_free)>;
+  using device_managed_ptr = gcxx_unique_ptr<VT, decltype(device_free)>;
 
   template <typename VT>
   auto make_device_unique_ptr(std::size_t numElem) -> device_ptr<VT> {
-    return device_ptr<VT>{
-      static_cast<VT*>(details_::device_malloc(numElem * sizeof(VT))),
-      [](VT* p) {
-        details_::device_free(static_cast<void*>(p));
-      }};
+    return device_ptr<VT>{static_cast<VT*>(device_malloc(numElem * sizeof(VT))),
+                          [](VT* p) {
+                            device_free(static_cast<void*>(p));
+                          }};
   }
 
   template <typename VT>
   auto make_device_unique_ptr(std::size_t numElem,
                               const StreamView& sv) -> device_ptr<VT> {
     return device_ptr<VT>{
-      static_cast<VT*>(details_::device_malloc_async(numElem * sizeof(VT), sv)),
+      static_cast<VT*>(device_malloc_async(numElem * sizeof(VT), sv)),
       [sv](VT* p) {
-        details_::device_free_async(static_cast<void*>(p), sv);
+        device_free_async(static_cast<void*>(p), sv);
       }};
   }
 
   template <typename VT>
   auto make_host_pinned_unique_ptr(std::size_t numElem) -> host_pinned_ptr<VT> {
     return host_pinned_ptr<VT>{
-      static_cast<VT*>(details_::host_malloc(numElem * sizeof(VT))),
-      details_::host_free};
+      static_cast<VT*>(host_malloc(numElem * sizeof(VT))), host_free};
   }
 
   template <typename VT>
   auto make_device_managed_unique_ptr(std::size_t numElem)
     -> device_managed_ptr<VT> {
     return device_managed_ptr<VT>{
-      static_cast<VT*>(details_::device_managed_malloc(numElem * sizeof(VT))),
-      details_::device_free};
+      static_cast<VT*>(device_managed_malloc(numElem * sizeof(VT))),
+      device_free};
   }
 }  // namespace memory
 

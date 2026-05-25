@@ -21,12 +21,12 @@ GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
 GCXX_FH DeviceHandle::~DeviceHandle() {
   if (resetOnDestruct_) {
     details_::EnsureCurrentDevice hand(deviceId_);
-    GCXX_SAFE_RUNTIME_CALL(DeviceReset, "Failed to reset ");
+    driver::deviceReset();
   }
 }
 
 GCXX_FH auto DeviceHandle::makeCurrent() const -> void {
-  GCXX_SAFE_RUNTIME_CALL(SetDevice, "Failed to Set device", deviceId_);
+  driver::deviceSet(deviceId_);
 }
 
 GCXX_FH auto DeviceHandle::Synchronize() const -> void {

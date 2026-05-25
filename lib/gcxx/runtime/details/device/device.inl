@@ -19,77 +19,59 @@ auto Device::set(device_t devId, bool resetOnDestruct) -> DeviceHandle {
 }
 
 GCXX_FH auto Device::get() -> DeviceHandle {
-  int dev_Id{};
-  GCXX_SAFE_RUNTIME_CALL(GetDevice, "Failed to get device Id", &dev_Id);
+  auto dev_Id = driver::deviceGet();
   return DeviceHandle(dev_Id);
 }
 
 GCXX_FH auto Device::count() -> int {
-  int num_dev{};
-  GCXX_SAFE_RUNTIME_CALL(GetDeviceCount, "Failed to Get device count",
-                         &num_dev);
+  auto num_dev = driver::deviceGetCount();
   return num_dev;
 }
 
 GCXX_FH auto Device::Synchronize() -> void {
-  GCXX_SAFE_RUNTIME_CALL(DeviceSynchronize, "Failed to synchronize the device");
+  driver::deviceSynchronize();
 }
 
 GCXX_FH auto Device::getDeviceProp() -> driver::deviceProp_t {
   auto deviceId_ = get().id();
-  driver::deviceProp_t handle{};
-  GCXX_SAFE_RUNTIME_CALL(GetDeviceProperties,
-                         "Failed to query device properties", &handle,
-                         deviceId_);
+  auto handle    = driver::deviceGetProp(deviceId_);
   return handle;
 }
 
 GCXX_FH auto Device::getAttribute(const flags::deviceAttribute& attr) -> int {
   auto deviceId_ = get().id();
-  int val{};
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetAttribute, "Failed to query device attribute",
-                         &val, static_cast<ATTRIBUTE_BACKEND_TYPE>(attr),
-                         deviceId_);
+  const auto val = driver::deviceGetAttribute(
+    static_cast<ATTRIBUTE_BACKEND_TYPE>(attr), deviceId_);
   return val;
 }
 
 GCXX_FH
 auto Device::getLimit(const flags::deviceLimit& limattr) -> std::size_t {
-  std::size_t pval{};
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetLimit, "Failed to get the device limit",
-                         &pval, static_cast<LIMIT_BACKEND_TYPE>(limattr));
+  std::size_t pval =
+    driver::deviceGetLimit(static_cast<LIMIT_BACKEND_TYPE>(limattr));
   return pval;
 }
 
 GCXX_FH
 auto Device::setLimit(const flags::deviceLimit& limattr,
                       std::size_t limval) -> void {
-  GCXX_SAFE_RUNTIME_CALL(DeviceSetLimit, "Failed to set the device limit",
-                         static_cast<LIMIT_BACKEND_TYPE>(limattr), limval);
+  driver::deviceSetLimit(static_cast<LIMIT_BACKEND_TYPE>(limattr), limval);
 }
 
 GCXX_FH auto Device::GetDefaultMemPool() -> MemPoolView {
   auto deviceId_ = get().id();
-  deviceMemPool_t pool{};
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetDefaultMemPool,
-                         "Failed to get the defalt mempool of  the device",
-                         &pool, deviceId_);
+  auto pool      = driver::deviceGetDefaultMemoryPool(deviceId_);
   return {pool};
 }
 
 GCXX_FH auto Device::SetMemPool(const MemPoolView& pool) -> void {
   auto deviceId_ = get().id();
-  GCXX_SAFE_RUNTIME_CALL(DeviceSetMemPool,
-                         "Failed to get the mempool of  the device", deviceId_,
-                         pool.getRawMemPool());
+  driver::deviceSetMemPool(deviceId_, pool.getRawMemPool());
 }
 
 GCXX_FH auto Device::GetMemPool() -> MemPoolView {
   auto deviceId_ = get().id();
-  deviceMemPool_t pool{};
-  GCXX_SAFE_RUNTIME_CALL(DeviceGetMemPool,
-                         "Failed to get the mempool of  the device", &pool,
-                         deviceId_);
+  auto pool      = driver::deviceGetMemPool(deviceId_);
   return {pool};
 }
 

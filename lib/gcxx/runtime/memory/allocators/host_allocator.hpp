@@ -22,10 +22,10 @@ class host_allocator {
   constexpr host_allocator(const host_allocator<U>&) noexcept {}
 
   [[nodiscard]] VT* allocate(std::size_t n) {
-    return static_cast<VT*>(details_::host_malloc(n * sizeof(VT)));
+    return static_cast<VT*>(host_malloc(n * sizeof(VT)));
   }
 
-  void deallocate(VT* p, std::size_t) noexcept { details_::host_free(p); }
+  void deallocate(VT* p, std::size_t) noexcept { host_free(p); }
 
   // Stateless allocators compare equal
   template <class U>

@@ -5,6 +5,7 @@
 #define GCXX_RUNTIME_DEVICE_ENSURE_DEVICE_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_device.hpp>
 
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
