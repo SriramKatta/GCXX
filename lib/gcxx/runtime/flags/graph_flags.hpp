@@ -6,7 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
 enum class graphCreate : details_::flag_t {
   None = 0  // as per cuda decumentation they may make new flags in future so
@@ -77,6 +77,6 @@ enum class graphInstantiate : details_::flag_t {
   NodePriority = GCXX_RUNTIME_BACKEND(GraphInstantiateFlagUseNodePriority),
 };
 
-GCXX_NAMESPACE_MAIN_FLAGS_END
+GCXX_NAMESPACE_MAIN_FLAGS_END()
 
 #endif

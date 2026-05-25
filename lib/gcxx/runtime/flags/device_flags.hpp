@@ -6,7 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
 enum class deviceLimit : details_::flag_t {
   StackSize      = GCXX_RUNTIME_BACKEND(LimitStackSize),
@@ -232,6 +232,6 @@ enum class deviceAttribute : details_::flag_t {
 };
 
 
-GCXX_NAMESPACE_MAIN_FLAGS_END
+GCXX_NAMESPACE_MAIN_FLAGS_END()
 
 #endif

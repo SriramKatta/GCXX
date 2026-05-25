@@ -12,7 +12,7 @@
 #include <gcxx/runtime/details/helper_function.hpp>
 
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 template <class _Tp>
 struct type_identity {
@@ -182,7 +182,7 @@ GCXX_CXPR inline bool is_type_ptr_convertible_v =
   is_type_ptr_convertible<U, ET>::value;
 
 
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 
 #endif

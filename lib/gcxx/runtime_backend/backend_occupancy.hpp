@@ -11,7 +11,7 @@
 
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
 #if GCXX_CUDA_MODE()
 template <class T>
@@ -108,6 +108,6 @@ GCXX_FH auto occupancyMaxPotentialClusterSize(
 }
 #endif
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

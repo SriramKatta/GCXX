@@ -6,7 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Device Handles                     ║
@@ -102,6 +102,6 @@ using deviceGraphConditionalHandle_t =
 #endif
 
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

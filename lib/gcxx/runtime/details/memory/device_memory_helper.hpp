@@ -9,7 +9,7 @@
 #include <gcxx/runtime/stream/stream_view.hpp>
 #include <gcxx/runtime_backend/backend_memory.hpp>
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 struct device_malloc_t {
   auto operator()(std::size_t numbytes) const {
@@ -50,7 +50,7 @@ struct host_free_t {
   auto operator()(void* ptr) const { driver::deviceFreeHost(ptr); }
 };
 
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 

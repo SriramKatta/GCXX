@@ -8,7 +8,7 @@
 
 #include <limits>
 
-GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
 /**
  * @brief Flags for selecting the type of GPU stream.
@@ -137,6 +137,6 @@ enum class StreamUpdateCaptureDependencies : details_::flag_t {
   Set = GCXX_RUNTIME_BACKEND(StreamSetCaptureDependencies),
 };
 #endif
-GCXX_NAMESPACE_MAIN_FLAGS_END
+GCXX_NAMESPACE_MAIN_FLAGS_END()
 
 #endif

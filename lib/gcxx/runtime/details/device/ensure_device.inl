@@ -8,7 +8,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 // Constructor: takes a CUDA stream
 GCXX_FH EnsureCurrentDevice::EnsureCurrentDevice(device_t new_dev) {
@@ -25,7 +25,7 @@ GCXX_FH EnsureCurrentDevice::~EnsureCurrentDevice() {
   }
 }
 
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 
 #endif

@@ -10,7 +10,7 @@
 
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
 GCXX_FH auto graphCreate(details_::flag_t createFlag) -> deviceGraph_t {
   deviceGraph_t graph{INVALID_GRAPH};
@@ -825,6 +825,6 @@ GCXX_FH auto graphExecUpdate(deviceGraphExec_t exec, deviceGraph_t graph,
 
 #endif
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

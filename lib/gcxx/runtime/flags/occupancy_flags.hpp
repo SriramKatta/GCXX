@@ -7,7 +7,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
 enum class occupancyType : details_::flag_t {
   Default = GCXX_RUNTIME_BACKEND(OccupancyDefault),
@@ -16,6 +16,6 @@ enum class occupancyType : details_::flag_t {
 };
 
 
-GCXX_NAMESPACE_MAIN_FLAGS_END
+GCXX_NAMESPACE_MAIN_FLAGS_END()
 
 #endif

@@ -10,7 +10,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █            Impl of std::size and std::data             █
@@ -88,7 +88,7 @@ GCXX_FHDC auto to_address(const T& p) noexcept {
   }
 }
 
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 
 #endif

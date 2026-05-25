@@ -8,7 +8,7 @@
 
 #include <limits>
 
-GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
 enum class MemAllocation : details_::flag_t {
   Invalid = GCXX_RUNTIME_BACKEND(MemAllocationTypeInvalid),
@@ -49,6 +49,6 @@ enum class MemPoolAttr : details_::flag_t {
 };
 
 
-GCXX_NAMESPACE_MAIN_FLAGS_END
+GCXX_NAMESPACE_MAIN_FLAGS_END()
 
 #endif

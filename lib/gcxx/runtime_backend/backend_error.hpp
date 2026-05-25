@@ -10,7 +10,8 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
+
 GCXX_FHD auto GetErrorName(deviceError_t err) -> const char* {
   return ::GCXX_RUNTIME_BACKEND(GetErrorName)(err);
 }
@@ -43,7 +44,7 @@ GCXX_FH auto make_message(deviceError_t err,
   return msg;
 }
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 
 #endif

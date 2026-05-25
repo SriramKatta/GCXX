@@ -14,7 +14,7 @@
 #include <gcxx/runtime/error/runtime_exception.hpp>
 #endif
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 using driver::deviceError_t;
 
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
@@ -38,7 +38,7 @@ GCXX_FH auto nonFatalErrorQuery(deviceError_t err) -> bool {
   return false;
 }
 
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 
 #endif

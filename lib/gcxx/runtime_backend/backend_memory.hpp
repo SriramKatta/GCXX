@@ -7,7 +7,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
 GCXX_FH auto deviceMalloc(std::size_t numBytes) -> void* {
   void* ptr{nullptr};
@@ -54,6 +54,6 @@ GCXX_FH auto deviceFreeHost(void* ptr) -> void {
                          "Failed to free pinned host memory", ptr);
 }
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

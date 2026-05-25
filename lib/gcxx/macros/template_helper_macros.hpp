@@ -13,10 +13,10 @@
 
 #include <gcxx/macros/namespace_macros.hpp>
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 template <class _Tp, bool _Bp>
 using requires_t = typename std::enable_if_t<_Bp, _Tp>;
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 ////////////////////////////////////////////////////////////////////////////////
 // GCXX_TEMPLATE / GCXX_REQUIRES

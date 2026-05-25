@@ -10,7 +10,7 @@
 
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
 #if GCXX_CUDA_MODE()
 GCXX_FH auto ctxResetPersistingL2Cache() -> void {
@@ -198,6 +198,6 @@ GCXX_FH auto threadExchangeStreamCaptureMode(deviceStreamCaptureMode_t* mode)
                          "Failed to exchange Stream Capture mode", mode);
 }
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

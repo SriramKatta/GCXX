@@ -10,7 +10,7 @@
 #include <type_traits>
 
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 namespace impl {
   template <int N>
@@ -203,7 +203,7 @@ template <typename LHS, typename RHS>
 using binary_vec_result_t = std::conditional_t<is_vectype_v<LHS>, LHS, RHS>;
 
 
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 /**
  * @brief

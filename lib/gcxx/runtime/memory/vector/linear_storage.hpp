@@ -9,7 +9,7 @@
 
 #include <memory>
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 struct copy_allocator_t {};
 
@@ -186,7 +186,7 @@ class linear_storage {
   }
 };  // end linear_storage
 
-GCXX_NAMESPACE_MAIN_DETAILS_END
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 
 #include <gcxx/macros/undefine_macros.hpp>

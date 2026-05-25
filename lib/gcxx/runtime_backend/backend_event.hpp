@@ -8,7 +8,7 @@
 
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
 GCXX_FH auto eventCreateWithFlags(details_::flag_t createFlag)
   -> deviceEvent_t {
@@ -51,6 +51,6 @@ GCXX_FH auto eventSynchronize(deviceEvent_t event) -> void {
                          event);
 }
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

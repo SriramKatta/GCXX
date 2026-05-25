@@ -10,7 +10,8 @@
 
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_DRIVER_BEGIN
+GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
+
 GCXX_FH auto chooseDevice(const deviceProp_t& prop) -> int {
   int device{-1};
   GCXX_SAFE_RUNTIME_CALL(ChooseDevice, "Failed to choose device", &device,
@@ -193,6 +194,6 @@ GCXX_FH auto deviceSetValid(int* dev_arr, int len) -> void {
                          dev_arr, len);
 }
 
-GCXX_NAMESPACE_MAIN_DRIVER_END
+GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

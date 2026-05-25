@@ -14,7 +14,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_FLAGS_BEGIN
+GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
 /**
  * @enum eventCreate
@@ -75,6 +75,6 @@ enum class eventWait : details_::flag_t {
     GCXX_RUNTIME_BACKEND(EventWaitExternal), /**< Wait on external event. */
 };
 
-GCXX_NAMESPACE_MAIN_FLAGS_END
+GCXX_NAMESPACE_MAIN_FLAGS_END()
 
 #endif
