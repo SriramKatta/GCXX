@@ -276,6 +276,28 @@ GCXX_FD auto getCurrentGraphExec() -> deviceGraphExec_t {
   return GCXX_RUNTIME_BACKEND(GetCurrentGraphExec)();
 }
 
+GCXX_FD auto graphKernelNodeSetEnabled(deviceGraphDeviceNode_t node,
+                                       bool enable) -> void {
+  GCXX_RUNTIME_BACKEND(GraphKernelNodeSetEnabled)(node, enable);
+}
+
+GCXX_FD auto graphKernelNodeSetGridDim(deviceGraphDeviceNode_t node,
+                                       dim3 gridDim) -> void {
+  GCXX_RUNTIME_BACKEND(GraphKernelNodeSetGridDim)(node, gridDim);
+}
+
+GCXX_FD auto graphKernelNodeSetParam(deviceGraphDeviceNode_t node,
+                                     std::size_t offset, const void* value,
+                                     std::size_t size) -> void {
+  GCXX_RUNTIME_BACKEND(GraphKernelNodeSetParam)(node, offset, value, size);
+}
+
+GCXX_FD auto graphKernelNodeUpdatesApply(
+  const deviceGraphKernelNodeUpdate_t* updates,
+  std::size_t updateCount) -> void {
+  GCXX_RUNTIME_BACKEND(GraphKernelNodeUpdatesApply)(updates, updateCount);
+}
+
 GCXX_FH auto graphConditionalHandleCreate(
   deviceGraph_t graph, unsigned int defaultLaunchValue,
   details_::flag_t flag) -> deviceGraphConditionalHandle_t {

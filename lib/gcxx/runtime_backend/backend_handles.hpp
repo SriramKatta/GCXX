@@ -90,6 +90,9 @@ using deviceKernelNodeAttrID_t    = GCXX_RUNTIME_BACKEND(KernelNodeAttrID);
 using deviceKernelNodeAttrValue_t = GCXX_RUNTIME_BACKEND(KernelNodeAttrValue);
 using deviceMemAllocNodeParams_t  = GCXX_RUNTIME_BACKEND(MemAllocNodeParams);
 using deviceUserObject_t          = GCXX_RUNTIME_BACKEND(UserObject_t);
+using deviceGraphDeviceNode_t     = GCXX_RUNTIME_BACKEND(GraphDeviceNode_t);
+using deviceGraphKernelNodeUpdate_t =
+  GCXX_RUNTIME_BACKEND(GraphKernelNodeUpdate);
 #endif
 
 inline constexpr deviceGraph_t INVALID_GRAPH{nullptr};           // NOLINT
