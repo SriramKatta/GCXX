@@ -13,9 +13,9 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-using deviceMemPool_t = driver::deviceMemPool_t;
-
 class MemPoolView {
+  using deviceMemPool_t = driver::deviceMemPool_t;
+
  protected:
   deviceMemPool_t pool_{
     nullptr};  // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)

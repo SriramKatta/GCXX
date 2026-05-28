@@ -34,6 +34,7 @@ using deviceIpcMemHandle_t   = GCXX_RUNTIME_BACKEND(IpcMemHandle_t);
 // ║                   Execution Handles                    ║
 // ╚════════════════════════════════════════════════════════╝
 using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
+using deviceKenel_t        = GCXX_RUNTIME_BACKEND(Kernel_t);
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Error Handles                      ║

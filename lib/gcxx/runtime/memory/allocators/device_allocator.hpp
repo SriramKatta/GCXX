@@ -41,11 +41,7 @@ class device_allocator {
   // needed since std::vector by default constructs the object on host
   // irrespective of memory space
   template <typename U>
-  constexpr void construct(U* p) {
-    // ::new (static_cast<void*>(p)) U;
-    // GCXX_SAFE_RUNTIME_CALL(Memset, "Failed to memset the data", p, 0,
-    // sizeof(U));
-  }
+  constexpr void construct(U* p) {}
 };
 
 GCXX_NAMESPACE_MAIN_DETAILS_END()

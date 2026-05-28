@@ -41,11 +41,8 @@ GCXX_FH auto Stream::destroy() -> void {
     return;
   }
 
-  // NOTE : seems that this is not needed;
-  // need to verify in multi gpu rigrously
-  // int deviceId = -1;
-  // GCXX_SAFE_RUNTIME_CALL(StreamGetDevice, (stream_, &deviceId));
-  // details_::EnsureCurrentDevice e(deviceId);
+  // NOTE : seems that this is not needed; we dont need to set the device back
+  // to the device dtream is created on before destroying the stream
   driver::streamDestroy(stream_);
   stream_ = driver::INVALID_STREAM;
 }

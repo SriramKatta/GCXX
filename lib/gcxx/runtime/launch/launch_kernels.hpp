@@ -9,17 +9,18 @@
 
 #include <gcxx/runtime/launch/launch_config.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
+#include <gcxx/runtime_backend/backend_launch.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace launch {
-  using gcxxHostFn_t = GCXX_RUNTIME_BACKEND(HostFn_t);
+  using gcxxHostCallBackFn_t = driver::deviceHostCallBackFn_t;
 
   template <typename... ExpTypes, typename... ActTypes>
   GCXX_FH void CooperativeKernel(LaunchConfig&, void (*)(ExpTypes...),
                                  ActTypes&&...);
 
-  GCXX_FH void HostFunc(const StreamView, gcxxHostFn_t, void*);
+  GCXX_FH void HostFunc(const StreamView, gcxxHostCallBackFn_t, void*);
 
 
   template <typename... ExpTypes, typename... ActTypes>

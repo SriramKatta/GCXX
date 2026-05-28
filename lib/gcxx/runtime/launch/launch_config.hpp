@@ -7,18 +7,13 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/stream/stream_view.hpp>
-
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
-using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
-GCXX_NAMESPACE_MAIN_DETAILS_END()
-
+#include <gcxx/runtime_backend/backend_launch.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 class LaunchConfig {
  private:
-  //  cudaLaunchConfig_t
-  using deviceLaunchConfig_t   = details_::deviceLaunchConfig_t;
+  using deviceLaunchConfig_t   = driver::deviceLaunchConfig_t;
   deviceLaunchConfig_t config_ = {0};
 
  public:
