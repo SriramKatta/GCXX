@@ -31,6 +31,7 @@ int main(int argc, char const* argv[]) {
   std::iota(vec.begin(), vec.end(), static_cast<datatype>(1));
 
   gcxx::span lin_span(vec);
+  gcxx::restrict_span res_lin_span(vec);
 
   fmt::println("linear data : ");
   print_linear(lin_span);

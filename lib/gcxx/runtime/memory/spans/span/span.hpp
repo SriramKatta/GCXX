@@ -331,7 +331,22 @@ class span_base {
       "span.ctor from a source span of diffrent type failed");
   }
 
-  GCXX_FHDC span_base(const span_base& other) noexcept = default;
+  GCXX_TEMPLATE(typename U, std::size_t N,
+                template <typename, std::size_t> class OtherStorage,
+                template <typename, std::size_t> class OtherView,
+                std::size_t E = Extent)
+  GCXX_REQUIRES(
+    (E == gcxx::dynamic_extent || N == gcxx::dynamic_extent || E == N)
+      GCXX_AND details_::is_type_ptr_convertible_v<U, element_type>
+        GCXX_AND !std::is_same_v<OtherStorage<U, N>, span_storage_base<U, N>>)
+
+  GCXX_FHC span_base(
+    const span_base<U, N, OtherStorage, OtherView>& source) noexcept
+      : m_storage(source.data(), source.size()) {
+    GCXX_RUNTIME_EXPECT(
+      extent == gcxx::dynamic_extent || extent == source.size(),
+      "span.ctor from a source span of diffrent storage type failed");
+  }
 
   // ==========================================================
   //                         destructor
@@ -402,16 +417,17 @@ class span_base {
   //                          subviews
   // ==========================================================
 
+  using spanview_base_dext = span_view_base<element_type, gcxx::dynamic_extent>;
+
   template <std::size_t Count>
   GCXX_FHDC auto first() const -> span_view_base<element_type, Count> {
     GCXX_STATIC_EXPECT(Extent == gcxx::dynamic_extent || Count <= Extent,
                        "Span.first count greater than size");
     GCXX_RUNTIME_EXPECT(Count <= size(), "Span.first count greater than size");
-    return span_view_base<element_type, Count>(data(), Count);
+    return span_view_base<element_type, Count>{data(), Count};
   }
 
-  GCXX_FHDC auto first(size_type count) const
-    -> span_view_base<element_type, gcxx::dynamic_extent> {
+  GCXX_FHDC auto first(size_type count) const -> spanview_base_dext {
     GCXX_RUNTIME_EXPECT(count <= size(), "Span.first count greater thansize");
     return {data(), count};
   }
@@ -425,8 +441,7 @@ class span_base {
                                                Count);
   }
 
-  GCXX_FHDC auto last(size_type count) const
-    -> span_view_base<element_type, gcxx::dynamic_extent> {
+  GCXX_FHDC auto last(size_type count) const -> spanview_base_dext {
     GCXX_RUNTIME_EXPECT(count <= size(), "Span.last count greater than size");
     return {data() + (size() - count), count};
   }
@@ -453,7 +468,7 @@ class span_base {
 
   GCXX_FHDC auto subspan(size_type offset,
                          size_type count = gcxx::dynamic_extent) const
-    -> span_view_base<element_type, gcxx::dynamic_extent> {
+    -> spanview_base_dext {
     GCXX_RUNTIME_EXPECT(offset <= size() && (count == gcxx::dynamic_extent ||
                                              offset + count <= size()),
                         "Span.subspan contract violated");
@@ -496,9 +511,8 @@ template <class T, std::size_t N>
 span(const std::array<T, N>&) -> span<const T, N>;
 
 template <class R>
-span(R&&)
-  -> span<
-    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+span(R&&) -> span<
+  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                     Restrcit Span                      █
@@ -518,9 +532,8 @@ class restrict_span
 // █             Restrcit Span Deduction guides             █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class It, class EndOrSize>
-restrict_span(It, EndOrSize)
-  -> restrict_span<
-    std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
+restrict_span(It, EndOrSize) -> restrict_span<
+  std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
 
 template <class T, std::size_t N>
 restrict_span(T (&)[N]) -> restrict_span<T, N>;
@@ -532,9 +545,8 @@ template <class T, std::size_t N>
 restrict_span(const std::array<T, N>&) -> restrict_span<const T, N>;
 
 template <class R>
-restrict_span(R&&)
-  -> restrict_span<
-    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+restrict_span(R&&) -> restrict_span<
+  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // ╔════════════════════════════════════════════════════════╗
 // ║           Public span-like concept and helpers         ║

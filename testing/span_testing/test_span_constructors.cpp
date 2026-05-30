@@ -56,11 +56,11 @@ TEST(SpanConstructors, IteratorAndSentinelConstructDynamicAndStaticExtents) {
 TEST(SpanConstructors, CArrayConstructorPreservesDataAndChecksExtent) {
   int values[]{1, 2, 3, 4, 5};
 
-  static_assert(std::is_constructible_v<gcxx::span<int>, int(&)[5]>);
-  static_assert(std::is_constructible_v<gcxx::span<int, 5>, int(&)[5]>);
-  static_assert(!std::is_constructible_v<gcxx::span<int, 4>, int(&)[5]>);
-  static_assert(std::is_constructible_v<gcxx::span<const int>, int(&)[5]>);
-  static_assert(!std::is_constructible_v<gcxx::span<int>, const int(&)[5]>);
+  static_assert(std::is_constructible_v<gcxx::span<int>, int (&)[5]>);
+  static_assert(std::is_constructible_v<gcxx::span<int, 5>, int (&)[5]>);
+  static_assert(!std::is_constructible_v<gcxx::span<int, 4>, int (&)[5]>);
+  static_assert(std::is_constructible_v<gcxx::span<const int>, int (&)[5]>);
+  static_assert(!std::is_constructible_v<gcxx::span<int>, const int (&)[5]>);
 
   gcxx::span<int> dynamic{values};
   gcxx::span<int, 5> fixed{values};
@@ -242,4 +242,31 @@ TEST(SpanSubviews, StaticSubviewsReturnPublicWrapperTypes) {
   EXPECT_EQ(middle.size(), 3U);
   EXPECT_EQ(restrict_middle.data(), values + 1);
   EXPECT_EQ(restrict_middle.size(), 3U);
+}
+
+TEST(SpanConstructors, CrossStorageConversions) {
+  int values[]{1, 2, 3, 4, 5};
+
+  // Converting between span and restrict_span should be allowed when
+  // element types and extents are compatible.
+  static_assert(
+    std::is_constructible_v<gcxx::span<int>, gcxx::restrict_span<int, 5>&>);
+  static_assert(std::is_constructible_v<gcxx::span<const int>,
+                                        gcxx::restrict_span<int, 5>&>);
+  static_assert(
+    std::is_constructible_v<gcxx::span<int, 5>, gcxx::restrict_span<int>&>);
+  static_assert(
+    !std::is_constructible_v<gcxx::span<int, 4>, gcxx::restrict_span<int, 5>&>);
+
+  gcxx::restrict_span<int, 5> rs{values};
+  gcxx::span s_from_rs{rs};
+
+  EXPECT_EQ(s_from_rs.data(), values);
+  EXPECT_EQ(s_from_rs.size(), std::size(values));
+
+  // And the reverse: constructing a restrict_span from a plain span
+  gcxx::span<int> s{values};
+  gcxx::restrict_span<int> rs_from_s{s};
+  EXPECT_EQ(rs_from_s.data(), values);
+  EXPECT_EQ(rs_from_s.size(), std::size(values));
 }
