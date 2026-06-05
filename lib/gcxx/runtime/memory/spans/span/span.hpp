@@ -60,13 +60,11 @@ GCXX_CXPR inline bool is_gcxx_span_specialization_v =
 
 // Specialisation: T has .data() → pointer and .size() → integral.
 template <typename T>
-struct is_span_like_impl<
-  T, std::void_t<decltype(gcxx::details_::data(std::declval<T&>())),
-                 decltype(gcxx::details_::size(std::declval<T&>()))>>
+struct is_span_like_impl<T, std::void_t<decltype(std::declval<T&>().data()),
+                                        decltype(std::declval<T&>().size())>>
     : std::bool_constant<
-        std::is_pointer_v<decltype(gcxx::details_::data(std::declval<T&>()))> &&
-        std::is_integral_v<decltype(gcxx::details_::size(
-          std::declval<T&>()))>> {};
+        std::is_pointer_v<decltype(std::declval<T&>().data())> &&
+        std::is_integral_v<decltype(std::declval<T&>().size())>> {};
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                      Span Storage                      █

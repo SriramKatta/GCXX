@@ -74,6 +74,47 @@ GCXX_CXPR inline bool has_size_and_data_v = has_size_and_data<VT>::value;
 template <typename T>
 using remove_pointer_t = typename std::remove_pointer<T>::type;
 
+// Simpler: check if .get() returns a pointer in one go
+template <typename T, typename = void>
+struct is_pointer_or_has_get : std::is_pointer<T> {};
+
+template <typename T>
+struct is_pointer_or_has_get<T, std::void_t<decltype(std::declval<T>().get())>>
+    : std::is_pointer<decltype(std::declval<T>().get())> {};
+
+template <typename T>
+inline constexpr bool is_pointer_or_has_get_v = is_pointer_or_has_get<T>::value;
+
+// Primary template: not a pointer and no .get()
+template <typename T, typename = void>
+struct pointed_to_type;
+
+// Specialization for raw pointers
+template <typename T>
+struct pointed_to_type<T*> {
+  using type = T;
+};
+
+// Specialization for types with .get() that returns a pointer
+template <typename T>
+struct pointed_to_type<T, std::void_t<decltype(std::declval<T>().get())>> {
+  using type = std::remove_pointer_t<decltype(std::declval<T>().get())>;
+};
+
+// Helper alias template
+template <typename T>
+using pointed_to_type_t = typename pointed_to_type<T>::type;
+
+template <typename VT>
+GCXX_FH auto get_raw_pointer(VT* ptr) {
+  return ptr;
+}
+
+template <typename VT>
+GCXX_FH auto get_raw_pointer(VT&& ptr) -> decltype(ptr.get()) {
+  return ptr.get();
+}
+
 
 // TODO : add a condition compilation since this is avialble in c++20
 // Helper to check if T& is a valid type (T is not void, basically)

@@ -5,6 +5,7 @@
 #define GCXX_API_RUNTIME_MEMORY_MEMSET_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>
@@ -15,75 +16,52 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace memory {
-  // ╔════════════════════════════════════════════════════════╗
-  // ║         pointer version based on element type          ║
-  // ╚════════════════════════════════════════════════════════╝
-  template <typename VT>
-  GCXX_FH auto Memset(VT* dev_ptr, const int value,
-                      const std::size_t numElements) -> void {
-    driver::deviceMemset((void*)dev_ptr, value, numElements * sizeof(VT));
-  }
-
-  template <typename VT>
-  GCXX_FH auto Memset(const VT* dev_ptr, const int value,
-                      const std::size_t numElements, const StreamView& stream)
-    -> void {
-    driver::deviceMemsetAsync((void*)dev_ptr, value, numElements * sizeof(VT),
-                              stream);
-  }
 
   // ╔════════════════════════════════════════════════════════╗
-  // ║      smart pointer version based on element type       ║
+  // ║   smart / raw pointer version based on element type    ║
   // ╚════════════════════════════════════════════════════════╝
+  GCXX_TEMPLATE(typename Ptr)
+  GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
 
-  template <typename VT>
-  GCXX_FH auto Memset(device_ptr<VT>& destination, const int value,
-                      const std::size_t numElements) -> void {
-    driver::deviceMemset(destination.get(), value, numElements * sizeof(VT));
-  }
-
-  template <typename VT>
-  GCXX_FH auto Memset(device_ptr<VT>& destination, const int value,
-                      const std::size_t numElements, const StreamView& stream)
-    -> void {
-    driver::deviceMemsetAsync(destination.get(), value,
-                              numElements * sizeof(VT), stream);
-  }
-
-  // Generic pointer-like handle (e.g., std::unique_ptr with custom deleter)
-  template <typename Ptr,
-            typename = std::void_t<decltype(std::declval<Ptr&>().get())>>
   GCXX_FH auto Memset(Ptr& handle, const int value,
                       const std::size_t numElements) -> void {
-    using raw_ptr_t = decltype(std::declval<Ptr&>().get());
-    using VT        = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
-    driver::deviceMemset(handle.get(), value, numElements * sizeof(VT));
+    auto raw_ptr = details_::get_raw_pointer(handle);
+    using VT     = typename details_::pointed_to_type_t<Ptr>;
+    driver::deviceMemset(raw_ptr, value, numElements * sizeof(VT));
   }
 
-  template <typename Ptr,
-            typename = std::void_t<decltype(std::declval<Ptr&>().get())>>
+  GCXX_TEMPLATE(typename Ptr)
+  GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
+
   GCXX_FH auto Memset(Ptr& handle, const int value,
-                      const std::size_t numElements, const StreamView& stream)
-    -> void {
-    using raw_ptr_t = decltype(std::declval<Ptr&>().get());
-    using VT        = std::remove_pointer_t<std::remove_cv_t<raw_ptr_t>>;
-    driver::deviceMemsetAsync(handle.get(), value, numElements * sizeof(VT),
-                              stream);
-  }
-
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                 works on span variants                 ║
-  // ╚════════════════════════════════════════════════════════╝
-  template <typename VT>
-  GCXX_FH auto Memset(span<VT> destination, const int value) -> void {
-    driver::deviceMemset(destination.data(), value, destination.size_bytes());
-  }
-
-  template <typename VT>
-  GCXX_FH auto Memset(const span<VT> destination, const int value,
+                      const std::size_t numElements,
                       const StreamView& stream) -> void {
-    driver::deviceMemsetAsync(destination.data(), value,
-                              destination.size_bytes(), stream);
+    auto raw_ptr = details_::get_raw_pointer(handle);
+    using VT     = typename details_::pointed_to_type_t<Ptr>;
+    driver::deviceMemsetAsync(raw_ptr, value, numElements * sizeof(VT), stream);
+  }
+
+
+  // ╔════════════════════════════════════════════════════════╗
+  // ║  works on any type that can be converted into a span   ║
+  // ╚════════════════════════════════════════════════════════╝
+  GCXX_TEMPLATE(typename DSTTY)
+  GCXX_REQUIRES(is_span_like_v<DSTTY>)
+
+  GCXX_FH auto Memset(DSTTY&& destination, const int value) -> void {
+    driver::deviceMemset(
+      details_::to_address(details_::data(destination)), value,
+      details_::size(destination) * sizeof(span_element_t<DSTTY>));
+  }
+
+  GCXX_TEMPLATE(typename DSTTY)
+  GCXX_REQUIRES(is_span_like_v<DSTTY>)
+
+  GCXX_FH auto Memset(DSTTY destination, const int value,
+                      const StreamView& stream) -> void {
+    driver::deviceMemsetAsync(
+      details_::to_address(details_::data(destination)), value,
+      details_::size(destination) * sizeof(span_element_t<DSTTY>), stream);
   }
 }  // namespace memory
 

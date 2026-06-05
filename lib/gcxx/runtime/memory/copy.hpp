@@ -16,21 +16,30 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace memory {
   // ╔════════════════════════════════════════════════════════╗
-  // ║    pointer and count version based on element type     ║
+  // ║    smart / raw pointer version based on element type   ║
   // ╚════════════════════════════════════════════════════════╝
-  template <typename VT>
-  GCXX_FH auto Copy(VT* destination, const VT* source,
+  GCXX_TEMPLATE(typename Ptr)
+  GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
+
+  GCXX_FH auto Copy(Ptr destination, const Ptr source,
                     const std::size_t numElements) -> void {
-    driver::deviceCopy((void*)destination, (const void*)source,
-                       numElements * sizeof(VT));
+    auto src_raw_ptr = details_::get_raw_pointer(source);
+    auto dst_raw_ptr = details_::get_raw_pointer(destination);
+    using VT         = typename details_::pointed_to_type_t<Ptr>;
+    driver::deviceCopy(dst_raw_ptr, src_raw_ptr, numElements * sizeof(VT));
   }
 
-  template <typename VT>
-  GCXX_FH auto Copy(const VT* destination, const VT* source,
-                    const std::size_t numElements, const StreamView& stream)
-    -> void {
-    driver::deviceCopyAsync((void*)destination, (const void*)source,
-                            numElements * sizeof(VT), stream);
+  GCXX_TEMPLATE(typename Ptr)
+  GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
+
+  GCXX_FH auto Copy(Ptr destination, const Ptr source,
+                    const std::size_t numElements,
+                    const StreamView& stream) -> void {
+    auto src_raw_ptr = details_::get_raw_pointer(source);
+    auto dst_raw_ptr = details_::get_raw_pointer(destination);
+    using VT         = typename details_::pointed_to_type_t<Ptr>;
+    driver::deviceCopyAsync(dst_raw_ptr, src_raw_ptr, numElements * sizeof(VT),
+                            stream);
   }
 
   // ╔════════════════════════════════════════════════════════╗
