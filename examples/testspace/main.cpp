@@ -8,7 +8,6 @@
 GCXX_TEMPLATE(typename VT)
 GCXX_REQUIRES(std::is_arithmetic_v<VT> GCXX_AND std::is_floating_point_v<VT> ||
               std::is_integral_v<VT>)
-
 void print_float_int(const VT& val) {
   fmt::print("{}\n", val);
 }

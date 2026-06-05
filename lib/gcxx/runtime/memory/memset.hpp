@@ -22,7 +22,6 @@ namespace memory {
   // ╚════════════════════════════════════════════════════════╝
   GCXX_TEMPLATE(typename Ptr)
   GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-
   GCXX_FH auto Memset(Ptr& handle, const int value,
                       const std::size_t numElements) -> void {
     auto raw_ptr = details_::get_raw_pointer(handle);
@@ -32,10 +31,9 @@ namespace memory {
 
   GCXX_TEMPLATE(typename Ptr)
   GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-
   GCXX_FH auto Memset(Ptr& handle, const int value,
-                      const std::size_t numElements, const StreamView& stream)
-    -> void {
+                      const std::size_t numElements,
+                      const StreamView& stream) -> void {
     auto raw_ptr = details_::get_raw_pointer(handle);
     using VT     = typename details_::pointed_to_type_t<Ptr>;
     driver::deviceMemsetAsync(raw_ptr, value, numElements * sizeof(VT), stream);
@@ -47,7 +45,6 @@ namespace memory {
   // ╚════════════════════════════════════════════════════════╝
   GCXX_TEMPLATE(typename DSTTY)
   GCXX_REQUIRES(is_span_like_v<DSTTY>)
-
   GCXX_FH auto Memset(DSTTY&& destination, const int value) -> void {
     driver::deviceMemset(
       details_::to_address(details_::data(destination)), value,
@@ -56,7 +53,6 @@ namespace memory {
 
   GCXX_TEMPLATE(typename DSTTY)
   GCXX_REQUIRES(is_span_like_v<DSTTY>)
-
   GCXX_FH auto Memset(DSTTY&& destination, const int value,
                       const StreamView& stream) -> void {
     driver::deviceMemsetAsync(

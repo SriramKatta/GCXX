@@ -61,7 +61,6 @@ ObjCSpaceBeforeProtocolList: true
 PointerAlignment: Left
 ReferenceAlignment: Pointer
 ReflowComments: true
-SeparateDefinitionBlocks: Always  # Only support since clang-format 14
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: true

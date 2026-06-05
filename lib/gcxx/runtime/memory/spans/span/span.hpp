@@ -198,7 +198,6 @@ class span_base {
   GCXX_TEMPLATE(typename It, std::size_t E = Extent)
   GCXX_REQUIRES(gcxx::details_::is_iter_ptr_convertible_v<It, element_type>
                   GCXX_AND(E == gcxx::dynamic_extent))
-
   GCXX_FHDC span_base(It first, size_type count)
       : m_storage(gcxx::details_::to_address(first), count) {
     GCXX_RUNTIME_EXPECT(extent == gcxx::dynamic_extent || extent == count,
@@ -209,7 +208,6 @@ class span_base {
   GCXX_REQUIRES(
     gcxx::details_::is_iter_ptr_convertible_v<It, element_type> GCXX_AND E !=
     gcxx::dynamic_extent)
-
   GCXX_FHDC explicit span_base(It first, size_type count)
       : m_storage(gcxx::details_::to_address(first), count) {
     GCXX_RUNTIME_EXPECT(extent == gcxx::dynamic_extent || extent == count,
@@ -222,7 +220,6 @@ class span_base {
       gcxx::details_::is_iter_ptr_convertible_v<End, element_type>
         GCXX_AND !std::is_convertible_v<End, std::size_t>
           GCXX_AND(E == gcxx::dynamic_extent))
-
   GCXX_FHDC span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
     GCXX_RUNTIME_EXPECT(
@@ -236,7 +233,6 @@ class span_base {
       gcxx::details_::is_iter_ptr_convertible_v<End, element_type>
         GCXX_AND !std::is_convertible_v<End, std::size_t>
           GCXX_AND(E != gcxx::dynamic_extent))
-
   GCXX_FHDC explicit span_base(It first, End last)
       : m_storage(gcxx::details_::to_address(first), last - first) {
     GCXX_RUNTIME_EXPECT(
@@ -248,7 +244,6 @@ class span_base {
   GCXX_REQUIRES(
     (E == gcxx::dynamic_extent || E == N) GCXX_AND
       details_::is_data_ptr_convertible_v<element_type (&)[N], element_type>)
-
   GCXX_FHDC span_base(
     gcxx::details_::type_identity_t<element_type> (&arr)[N]) noexcept
       : m_storage(arr, N) {}
@@ -257,7 +252,6 @@ class span_base {
   GCXX_REQUIRES((E == gcxx::dynamic_extent || E == N)
                   GCXX_AND details_::is_data_ptr_convertible_v<std::array<U, N>,
                                                                element_type>)
-
   GCXX_FHC span_base(std::array<U, N>& arr) noexcept
       : m_storage(arr.data(), N) {}
 
@@ -265,7 +259,6 @@ class span_base {
   GCXX_REQUIRES(
     (E == gcxx::dynamic_extent || E == N) GCXX_AND
       details_::is_data_ptr_convertible_v<const std::array<U, N>, element_type>)
-
   GCXX_FHC span_base(const std::array<U, N>& arr) noexcept
       : m_storage(arr.data(), N) {}
 
@@ -277,7 +270,6 @@ class span_base {
           GCXX_AND !gcxx::details_::is_std_array_v<details_::uncvref_t<R>>
             GCXX_AND !details_::is_gcxx_span_specialization_v<R>
               GCXX_AND(E == gcxx::dynamic_extent))
-
   GCXX_FHC span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
     GCXX_RUNTIME_EXPECT(
@@ -293,7 +285,6 @@ class span_base {
           GCXX_AND !gcxx::details_::is_std_array_v<details_::uncvref_t<R>>
             GCXX_AND !details_::is_gcxx_span_specialization_v<R>
               GCXX_AND(E != gcxx::dynamic_extent))
-
   GCXX_FHC explicit span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
     GCXX_RUNTIME_EXPECT(
@@ -306,7 +297,6 @@ class span_base {
     (E == gcxx::dynamic_extent || N == gcxx::dynamic_extent || E == N)
       GCXX_AND details_::is_type_ptr_convertible_v<U, element_type>
         GCXX_AND(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
-
   GCXX_FHC explicit span_base(
     const span_base<U, N, span_storage_base, span_view_base>& source) noexcept
       : m_storage(source.data(), source.size()) {
@@ -320,7 +310,6 @@ class span_base {
     (E == gcxx::dynamic_extent || N == gcxx::dynamic_extent || E == N)
       GCXX_AND details_::is_type_ptr_convertible_v<U, element_type>
         GCXX_AND !(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
-
   GCXX_FHC span_base(
     const span_base<U, N, span_storage_base, span_view_base>& source) noexcept
       : m_storage(source.data(), source.size()) {
@@ -337,7 +326,6 @@ class span_base {
     (E == gcxx::dynamic_extent || N == gcxx::dynamic_extent || E == N)
       GCXX_AND details_::is_type_ptr_convertible_v<U, element_type>
         GCXX_AND !std::is_same_v<OtherStorage<U, N>, span_storage_base<U, N>>)
-
   GCXX_FHC span_base(
     const span_base<U, N, OtherStorage, OtherView>& source) noexcept
       : m_storage(source.data(), source.size()) {
