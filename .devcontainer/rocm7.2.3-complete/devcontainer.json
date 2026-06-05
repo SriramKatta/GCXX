@@ -26,8 +26,6 @@
     "vscode": {
       "extensions": [
         "ms-vscode.cpptools-extension-pack",
-        "anthropic.claude-code",
-        "OpenAI.chatgpt",
         "NVIDIA.nsight-vscode-edition",
         "ms-vscode.makefile-tools",
         "jeff-hykin.better-cpp-syntax",
