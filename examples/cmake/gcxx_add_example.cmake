@@ -36,15 +36,19 @@ function(gcxx_add_example)
     set(ARG_SOURCES main.cpp)
   endif()
 
-  # Tag every source file with the GPU language (CUDA / HIP)
-  foreach(_src IN LISTS ARG_SOURCES)
-    set_source_files_properties(${_src} PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
-  endforeach()
+  # Tag every source file with the GPU language (CUDA / HIP) when available.
+  # In CPU-only mode GCXX_GPU_LANG may be empty, so skip tagging to avoid
+  # calling set_source_files_properties with empty LANGUAGE value.
+  if(GCXX_GPU_LANG)
+    foreach(_src IN LISTS ARG_SOURCES)
+      set_source_files_properties(${_src} PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
+    endforeach()
 
-  # Tag header files so IDEs pick up the correct language for intellisense
-  foreach(_hdr IN LISTS ARG_HEADERS)
-    set_source_files_properties(${_hdr} PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
-  endforeach()
+    # Tag header files so IDEs pick up the correct language for intellisense
+    foreach(_hdr IN LISTS ARG_HEADERS)
+      set_source_files_properties(${_hdr} PROPERTIES LANGUAGE ${GCXX_GPU_LANG})
+    endforeach()
+  endif()
 
   gcxx_tidy_add_target(
     TARGET

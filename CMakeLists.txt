@@ -37,14 +37,15 @@ option(GCXX_DISABLE_RUNTIME_CHECKS "Disable runtime checks for performance" OFF)
 
 # basically XOR(GCXX_CUDA_MODE, GCXX_HIP_MODE); since only one mode can be
 # active at a time
-if((GCXX_CUDA_MODE AND GCXX_HIP_MODE) OR (NOT GCXX_CUDA_MODE AND NOT
-                                                                 GCXX_HIP_MODE)
-)
+if(GCXX_CUDA_MODE AND GCXX_HIP_MODE)
   message(
     FATAL_ERROR
       "Exactly one GPU back-end must be enabled: "
       "set either GCXX_CUDA_MODE=${GCXX_CUDA_MODE} or GCXX_HIP_MODE=${GCXX_HIP_MODE} (but not both)."
   )
+elseif(NOT GCXX_CUDA_MODE AND NOT GCXX_HIP_MODE)
+  message(STATUS "No GPU mode is selected; falling back to CPU mode")
+  set(GCXX_CPU_MODE ON)
 endif()
 
 if(GCXX_CUDA_MODE)
@@ -52,9 +53,7 @@ if(GCXX_CUDA_MODE)
       "CUDA"
       CACHE STRING "GPU programming language to use"
   )
-endif()
-
-if(GCXX_HIP_MODE)
+elseif(GCXX_HIP_MODE)
   set(GCXX_GPU_LANG
       "HIP"
       CACHE STRING "GPU programming language to use"
@@ -66,13 +65,17 @@ if(GCXX_HIP_MODE)
   list(APPEND CMAKE_PREFIX_PATH "${ROCM_ROOT}")
 endif()
 
-enable_language(${GCXX_GPU_LANG})
+if(NOT GCXX_CPU_MODE)
+  enable_language(${GCXX_GPU_LANG})
+endif()
 set(CMAKE_CXX_STANDARD ${GCXX_CXX_STANDARD})
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_${GCXX_GPU_LANG}_STANDARD ${GCXX_CXX_STANDARD})
-set(CMAKE_${GCXX_GPU_LANG}_EXTENSIONS OFF)
-set(CMAKE_${GCXX_GPU_LANG}_STANDARD_REQUIRED ON)
+if(NOT GCXX_CPU_MODE)
+  set(CMAKE_${GCXX_GPU_LANG}_STANDARD ${GCXX_CXX_STANDARD})
+  set(CMAKE_${GCXX_GPU_LANG}_EXTENSIONS OFF)
+  set(CMAKE_${GCXX_GPU_LANG}_STANDARD_REQUIRED ON)
+endif()
 
 if(GCXX_CUDA_MODE)
   find_package(CUDAToolkit REQUIRED)

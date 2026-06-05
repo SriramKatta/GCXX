@@ -19,9 +19,15 @@ set_property(
 
 target_compile_features(${LIB_INTERNAL_NAME} INTERFACE cxx_std_17)
 
-target_compile_definitions(
-  ${LIB_INTERNAL_NAME} INTERFACE "CMAKE_GCXX_${GCXX_GPU_LANG}_MODE"
-)
+if(GCXX_CPU_MODE)
+  target_compile_definitions(
+    ${LIB_INTERNAL_NAME} INTERFACE "CMAKE_GCXX_CPU_MODE"
+  )
+else()
+  target_compile_definitions(
+    ${LIB_INTERNAL_NAME} INTERFACE "CMAKE_GCXX_${GCXX_GPU_LANG}_MODE"
+  )
+endif()
 
 if(GCXX_WITH_EXCEPTIONS)
   target_compile_definitions(

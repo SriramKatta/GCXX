@@ -5,7 +5,47 @@
 #define GCXX_MACROS_FUNCTION_DECORATOR_MACROS_HPP_
 
 #include <gcxx/macros/backend_mode_macros.hpp>
+#if GCXX_CPU_MODE()
+#ifndef GCXX_H
+#define GCXX_H
+#endif
 
+#ifndef GCXX_FH
+#define GCXX_FH inline
+#endif
+
+#ifndef GCXX_FC
+#define GCXX_FC inline constexpr
+#endif
+
+#ifndef GCXX_FHC
+#define GCXX_FHC inline constexpr
+#endif
+
+#ifndef GCXX_D
+#define GCXX_D
+#endif
+
+#ifndef GCXX_FD
+#define GCXX_FD inline
+#endif
+
+#ifndef GCXX_FDC
+#define GCXX_FDC inline constexpr
+#endif
+
+#ifndef GCXX_HD
+#define GCXX_HD
+#endif
+
+#ifndef GCXX_FHD
+#define GCXX_FHD inline
+#endif
+
+#ifndef GCXX_FHDC
+#define GCXX_FHDC inline constexpr
+#endif
+#else
 #ifndef GCXX_H
 #define GCXX_H __host__
 #endif
@@ -44,6 +84,7 @@
 
 #ifndef GCXX_FHDC
 #define GCXX_FHDC __forceinline__ __host__ __device__ constexpr
+#endif
 #endif
 
 #ifndef GCXX_CXPR

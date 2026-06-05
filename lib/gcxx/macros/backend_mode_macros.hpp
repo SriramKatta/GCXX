@@ -16,4 +16,10 @@
 #define GCXX_HIP_MODE() 0
 #endif
 
+#if defined(CMAKE_GCXX_CPU_MODE)
+#define GCXX_CPU_MODE() 1
+#else
+#define GCXX_CPU_MODE() 0
+#endif
+
 #endif

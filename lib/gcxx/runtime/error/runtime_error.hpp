@@ -7,6 +7,23 @@
 #include <iostream>
 
 #include <gcxx/internal/prologue.hpp>
+
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
+
+#if GCXX_CPU_MODE()
+using deviceError_t = int;
+
+inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
+  std::cerr << msg << "\n";
+  std::abort();
+}
+
+GCXX_FH auto nonFatalErrorQuery(deviceError_t err) -> bool {
+  return err == 0;
+}
+
+#else
+
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
 #include <gcxx/runtime_backend/backend_error.hpp>
@@ -14,7 +31,6 @@
 #include <gcxx/runtime/error/runtime_exception.hpp>
 #endif
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 using driver::deviceError_t;
 
 inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
@@ -37,6 +53,8 @@ GCXX_FH auto nonFatalErrorQuery(deviceError_t err) -> bool {
   }
   return false;
 }
+
+#endif
 
 GCXX_NAMESPACE_MAIN_DETAILS_END()
 

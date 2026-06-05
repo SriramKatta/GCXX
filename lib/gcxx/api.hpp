@@ -6,6 +6,14 @@
 // clang-format off
 #include <gcxx/internal/prologue.hpp>
 
+
+
+// make spans available by default without pulling runtime
+#include <gcxx/spans.hpp>
+
+// heavy runtime API (GPU-related) is included only when not in CPU-only mode
+#if !GCXX_CPU_MODE()
+
 // section for types
 #include <gcxx/types/shared_mem.hpp>
 #include <gcxx/types/vector_types.hpp>
@@ -30,6 +38,7 @@
 
 // section for memory API
 #include <gcxx/runtime/memory.hpp>
+#endif
 
 // clang-format on
 #endif

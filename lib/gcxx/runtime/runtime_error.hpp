@@ -5,6 +5,12 @@
 #define GCXX_RUNTIME_RUNTIME_ERROR_HPP_
 #include <cassert>
 
+#if GCXX_CPU_MODE()
+
+#define GCXX_SAFE_RUNTIME_CALL(BASEFUNCNAME, MSG, ...) ((void)0)
+
+#else
+
 #include <gcxx/runtime/error/runtime_error.hpp>
 
 #ifndef GCXX_DISABLE_RUNTIME_CHECKS
@@ -35,6 +41,8 @@
     GCXX_DISCARD_RETURN_VALUES(                           \
       ::GCXX_RUNTIME_BACKEND(BASEFUNCNAME)(__VA_ARGS__)); \
   } while (0)
+
+#endif
 
 #endif
 
