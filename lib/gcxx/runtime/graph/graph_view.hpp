@@ -35,10 +35,6 @@ class GraphView {
   using deviceGraphConditionalHandle_t = driver::deviceGraphConditionalHandle_t;
 #endif
 
- protected:
-  deviceGraph_t graph_{driver::INVALID_GRAPH};  // NOLINT
-
- public:
   GCXX_FHC GraphView() = default;
   GCXX_FHC GraphView(deviceGraph_t rawgraph);
   GCXX_FHC auto getRawGraph() const -> deviceGraph_t;
@@ -193,6 +189,9 @@ class GraphView {
   GCXX_FH auto AddMemsetNode(const MemsetParamsView params,
                              gcxx::span<const deviceGraphNode_t> pDependencies =
                                {}) -> deviceGraphNode_t;
+
+ protected:
+  deviceGraph_t m_graph{driver::INVALID_GRAPH};  // NOLINT
 };
 
 GCXX_NAMESPACE_MAIN_END()

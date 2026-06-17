@@ -11,9 +11,6 @@
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 class [[maybe_unused]] EnsureCurrentDevice {
- private:
-  int old_device_{};
-  bool changed_{false};
 
  public:
   GCXX_FH EnsureCurrentDevice(device_t);
@@ -26,6 +23,10 @@ class [[maybe_unused]] EnsureCurrentDevice {
   EnsureCurrentDevice& operator=(const EnsureCurrentDevice&)  = delete;
   EnsureCurrentDevice(const EnsureCurrentDevice&&)            = delete;
   EnsureCurrentDevice& operator=(const EnsureCurrentDevice&&) = delete;
+
+ private:
+  int m_old_device{};
+  bool m_changed{false};
 };
 
 GCXX_NAMESPACE_MAIN_DETAILS_END()

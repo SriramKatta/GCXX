@@ -21,9 +21,9 @@ GCXX_FH Graph::Graph(const flags::graphCreate createFlag) GCXX_NOEXCEPT
         driver::graphCreate(static_cast<details_::flag_t>(createFlag))) {}
 
 GCXX_FH auto Graph::destroy() -> void {
-  if (graph_ != driver::INVALID_GRAPH) {
-    driver::graphDestroy(graph_);
-    graph_ = driver::INVALID_GRAPH;
+  if (m_graph != driver::INVALID_GRAPH) {
+    driver::graphDestroy(m_graph);
+    m_graph = driver::INVALID_GRAPH;
   }
 }
 
@@ -32,19 +32,19 @@ GCXX_FH Graph::~Graph() GCXX_NOEXCEPT {
 }
 
 GCXX_FH Graph::Graph(Graph&& other) GCXX_NOEXCEPT
-    : GraphView(std::exchange(other.graph_, driver::INVALID_GRAPH)) {}
+    : GraphView(std::exchange(other.m_graph, driver::INVALID_GRAPH)) {}
 
 GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT -> Graph& {
   if (this != &other) {
     destroy();
-    graph_ = std::exchange(other.graph_, driver::INVALID_GRAPH);
+    m_graph = std::exchange(other.m_graph, driver::INVALID_GRAPH);
   }
   return *this;
 }
 
 GCXX_FH auto Graph::Release() GCXX_NOEXCEPT -> GraphView {
-  auto oldGraph = graph_;
-  graph_        = driver::INVALID_GRAPH;
+  auto oldGraph = m_graph;
+  m_graph       = driver::INVALID_GRAPH;
   return GraphView{oldGraph};
 }
 

@@ -15,7 +15,7 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
   if (createFlag == flags::streamType::NullStream) {
     return;
   }
-  stream_ = driver::streamCreateWithPriority(
+  m_stream = driver::streamCreateWithPriority(
     static_cast<details_::flag_t>(createFlag),
     -static_cast<details_::flag_t>(priorityFlag));
 }
@@ -23,7 +23,7 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
 GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
   if (this != &other) {
     this->destroy();
-    this->stream_ = std::exchange(other.stream_, driver::INVALID_STREAM);
+    this->m_stream = std::exchange(other.m_stream, driver::INVALID_STREAM);
   }
   return *this;
 }
@@ -43,8 +43,8 @@ GCXX_FH auto Stream::destroy() -> void {
 
   // NOTE : seems that this is not needed; we dont need to set the device back
   // to the device dtream is created on before destroying the stream
-  driver::streamDestroy(stream_);
-  stream_ = driver::INVALID_STREAM;
+  driver::streamDestroy(m_stream);
+  m_stream = driver::INVALID_STREAM;
 }
 
 GCXX_FH Stream::~Stream() {
@@ -52,13 +52,13 @@ GCXX_FH Stream::~Stream() {
 }
 
 GCXX_FH auto Stream::Release() GCXX_NOEXCEPT -> StreamView {
-  auto oldStream = stream_;
-  stream_        = driver::INVALID_STREAM;
+  auto oldStream = m_stream;
+  m_stream       = driver::INVALID_STREAM;
   return StreamView(oldStream);
 }
 
 GCXX_FH Stream::Stream(Stream&& other) noexcept
-    : StreamView(std::exchange(other.stream_, driver::INVALID_STREAM)) {}
+    : StreamView(std::exchange(other.m_stream, driver::INVALID_STREAM)) {}
 
 GCXX_FH constexpr auto Stream::get() GCXX_CONST_NOEXCEPT -> StreamView {
   return *this;

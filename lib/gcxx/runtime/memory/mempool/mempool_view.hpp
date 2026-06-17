@@ -14,16 +14,12 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 class MemPoolView {
+ public:
   using deviceMemPool_t = driver::deviceMemPool_t;
 
- protected:
-  deviceMemPool_t pool_{
-    nullptr};  // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
-
- public:
   MemPoolView() = default;
 
-  MemPoolView(deviceMemPool_t pool) : pool_(pool) {}
+  MemPoolView(deviceMemPool_t pool) : m_pool(pool) {}
 
   GCXX_FH auto getRawMemPool() const -> deviceMemPool_t;
 
@@ -46,6 +42,10 @@ class MemPoolView {
   GCXX_FH auto GetReservedMemHigh() -> std::uint64_t;
   GCXX_FH auto GetUsedMemCurrent() -> std::uint64_t;
   GCXX_FH auto GetUsedMemHigh() -> std::uint64_t;
+
+ protected:
+  deviceMemPool_t m_pool{
+    nullptr};  // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
 };
 
 GCXX_NAMESPACE_MAIN_END()

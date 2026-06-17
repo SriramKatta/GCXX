@@ -13,29 +13,29 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH Event::Event(const flags::eventCreate createFlag)
     : EventView(driver::INVALID_EVENT) {
-  event_ =
+  m_event =
     driver::eventCreateWithFlags(static_cast<details_::flag_t>(createFlag));
 }
 
 GCXX_FH Event::~Event() {
-  if (event_ != driver::INVALID_EVENT) {
-    driver::eventDestroy(event_);
-    event_ = driver::INVALID_EVENT;
+  if (m_event != driver::INVALID_EVENT) {
+    driver::eventDestroy(m_event);
+    m_event = driver::INVALID_EVENT;
   }
 }
 
 GCXX_FH Event::Event(Event&& other) noexcept
-    : EventView(std::exchange(other.event_, driver::INVALID_EVENT)) {}
+    : EventView(std::exchange(other.m_event, driver::INVALID_EVENT)) {}
 
 GCXX_FH auto Event::Release() GCXX_NOEXCEPT -> EventView {
-  auto oldEvent = event_;
-  event_        = driver::INVALID_EVENT;
+  auto oldEvent = m_event;
+  m_event       = driver::INVALID_EVENT;
   return {oldEvent};
 }
 
 GCXX_FH auto Event::operator=(Event&& other) noexcept -> Event& {
   if (this != &other)
-    this->event_ = std::exchange(other.event_, driver::INVALID_EVENT);
+    this->m_event = std::exchange(other.m_event, driver::INVALID_EVENT);
   return *this;
 }
 

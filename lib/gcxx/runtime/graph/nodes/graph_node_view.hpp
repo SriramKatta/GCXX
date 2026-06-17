@@ -23,13 +23,9 @@ class GraphNodeView {
  public:
   using deviceGraphNode_t = driver::deviceGraphNode_t;
 
- protected:
-  deviceGraphNode_t node_;  // NOLINT
+  GCXX_FHC GraphNodeView(deviceGraphNode_t node) : m_node(node) {}
 
- public:
-  GCXX_FHC GraphNodeView(deviceGraphNode_t node) : node_(node) {}
-
-  GCXX_FHC auto getRawNode() -> deviceGraphNode_t { return node_; }
+  GCXX_FHC auto getRawNode() -> deviceGraphNode_t { return m_node; }
 
   GCXX_FH auto getContainingGraph() -> GraphView;
 
@@ -42,6 +38,9 @@ class GraphNodeView {
   GCXX_FH auto getToolsId() -> unsigned long long;
 
 #endif
+
+ protected:
+  deviceGraphNode_t m_node;  // NOLINT
 };
 
 GCXX_NAMESPACE_MAIN_END()

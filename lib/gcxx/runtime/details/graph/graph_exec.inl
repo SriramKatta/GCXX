@@ -24,8 +24,8 @@ GCXX_FH auto GraphExec::CreateFromRaw(deviceGraphExec_t exec) -> GraphExec {
 }
 
 GCXX_FH auto GraphExec::destroy() -> void {
-  if (exec_ != driver::INVALID_GRAPH_EXEC) {
-    driver::graphExecDestroy(exec_);
+  if (m_exec != driver::INVALID_GRAPH_EXEC) {
+    driver::graphExecDestroy(m_exec);
   }
 }
 
@@ -34,25 +34,25 @@ GCXX_FH GraphExec::~GraphExec() GCXX_NOEXCEPT {
 }
 
 GCXX_FH GraphExec::GraphExec(GraphExec&& other) GCXX_NOEXCEPT
-    : GraphExecView(std::exchange(other.exec_, driver::INVALID_GRAPH_EXEC)) {}
+    : GraphExecView(std::exchange(other.m_exec, driver::INVALID_GRAPH_EXEC)) {}
 
 GCXX_FH auto GraphExec::operator=(GraphExec&& other)
   GCXX_NOEXCEPT -> GraphExec& {
   if (this != &other) {
     destroy();
-    exec_ = std::exchange(other.exec_, driver::INVALID_GRAPH_EXEC);
+    m_exec = std::exchange(other.m_exec, driver::INVALID_GRAPH_EXEC);
   }
   return *this;
 }
 
 GCXX_FH auto GraphExec::Release() GCXX_NOEXCEPT -> GraphExecView {
-  auto oldExec = exec_;
-  exec_        = driver::INVALID_GRAPH_EXEC;
+  auto oldExec = m_exec;
+  m_exec       = driver::INVALID_GRAPH_EXEC;
   return GraphExecView{oldExec};
 }
 
 GCXX_FH auto GraphExec::Update(const GraphView& graph) -> void {
-  driver::graphExecUpdate(exec_, graph.getRawGraph());
+  driver::graphExecUpdate(m_exec, graph.getRawGraph());
 }
 
 GCXX_NAMESPACE_MAIN_END()

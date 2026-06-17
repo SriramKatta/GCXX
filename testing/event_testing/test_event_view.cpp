@@ -13,19 +13,19 @@ using namespace gcxx;
 class EventViewTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    stream_ = driver::streamCreateWithPriority(
+    m_stream = driver::streamCreateWithPriority(
       static_cast<details_::flag_t>(flags::streamType::SyncWithNull), 0);
-    event_ = driver::eventCreateWithFlags(
+    m_event = driver::eventCreateWithFlags(
       static_cast<details_::flag_t>(flags::eventCreate::None));
   }
 
   void TearDown() override {
-    driver::eventDestroy(event_);
-    driver::streamDestroy(stream_);
+    driver::eventDestroy(m_event);
+    driver::streamDestroy(m_stream);
   }
 
-  driver::deviceStream_t stream_{driver::NULL_STREAM};
-  driver::deviceEvent_t event_{driver::INVALID_EVENT};
+  driver::deviceStream_t m_stream{driver::NULL_STREAM};
+  driver::deviceEvent_t m_event{driver::INVALID_EVENT};
 };
 
 TEST_F(EventViewTest, DefaultConstructor) {
@@ -35,16 +35,16 @@ TEST_F(EventViewTest, DefaultConstructor) {
 }
 
 TEST_F(EventViewTest, ConstructFromRawEvent) {
-  EventView view(event_);
-  EXPECT_EQ(view.getRawEvent(), event_);
+  EventView view(m_event);
+  EXPECT_EQ(view.getRawEvent(), m_event);
   EXPECT_TRUE(static_cast<bool>(view));
 }
 
 TEST_F(EventViewTest, CopyConstructor) {
-  EventView view1(event_);
+  EventView view1(m_event);
   EventView view2(view1);
   EXPECT_EQ(view1.getRawEvent(), view2.getRawEvent());
-  EXPECT_EQ(view2.getRawEvent(), event_);
+  EXPECT_EQ(view2.getRawEvent(), m_event);
 }
 
 TEST_F(EventViewTest, CopyAssignmentRebindsToSameEvent) {
@@ -52,29 +52,29 @@ TEST_F(EventViewTest, CopyAssignmentRebindsToSameEvent) {
   event2 = driver::eventCreateWithFlags(
     static_cast<details_::flag_t>(flags::eventCreate::None));
 
-  EventView source(event_);
+  EventView source(m_event);
   EventView target(event2);
   target = source;
 
-  EXPECT_EQ(target.getRawEvent(), event_);
+  EXPECT_EQ(target.getRawEvent(), m_event);
   EXPECT_TRUE(target == source);
 
   driver::eventDestroy(event2);
 }
 
 TEST_F(EventViewTest, ImplicitConversionToRaw) {
-  EventView view(event_);
+  EventView view(m_event);
   driver::deviceEvent_t raw = view;
-  EXPECT_EQ(raw, event_);
+  EXPECT_EQ(raw, m_event);
 }
 
 TEST_F(EventViewTest, getRawEventMethod) {
-  EventView view(event_);
-  EXPECT_EQ(view.getRawEvent(), event_);
+  EventView view(m_event);
+  EXPECT_EQ(view.getRawEvent(), m_event);
 }
 
 TEST_F(EventViewTest, BoolConversionValidEvent) {
-  EventView view(event_);
+  EventView view(m_event);
   EXPECT_TRUE(static_cast<bool>(view));
 }
 
@@ -96,8 +96,8 @@ TEST(EventViewDurationTest, ConvertsMillisecondsToSupportedDurations) {
 }
 
 TEST_F(EventViewTest, EqualityOperatorSameEvent) {
-  EventView view1(event_);
-  EventView view2(event_);
+  EventView view1(m_event);
+  EventView view2(m_event);
   EXPECT_TRUE(view1 == view2);
 }
 
@@ -106,7 +106,7 @@ TEST_F(EventViewTest, EqualityOperatorDifferentEvents) {
   event2 = driver::eventCreateWithFlags(
     static_cast<details_::flag_t>(flags::eventCreate::None));
 
-  EventView view1(event_);
+  EventView view1(m_event);
   EventView view2(event2);
   EXPECT_FALSE(view1 == view2);
 
@@ -118,7 +118,7 @@ TEST_F(EventViewTest, InequalityOperator) {
   event2 = driver::eventCreateWithFlags(
     static_cast<details_::flag_t>(flags::eventCreate::None));
 
-  EventView view1(event_);
+  EventView view1(m_event);
   EventView view2(event2);
   EXPECT_TRUE(view1 != view2);
 
@@ -126,23 +126,23 @@ TEST_F(EventViewTest, InequalityOperator) {
 }
 
 TEST_F(EventViewTest, InequalityOperatorSameEvent) {
-  EventView view1(event_);
-  EventView view2(event_);
+  EventView view1(m_event);
+  EventView view2(m_event);
   EXPECT_FALSE(view1 != view2);
 }
 
 TEST_F(EventViewTest, RecordInStreamWithView) {
-  EventView view(event_);
-  StreamView s(stream_);
+  EventView view(m_event);
+  StreamView s(m_stream);
 
   view.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   EXPECT_TRUE(view.HasOccurred());
 }
 
 TEST_F(EventViewTest, RecordInDefaultStream) {
-  EventView view(event_);
+  EventView view(m_event);
 
   view.RecordInStream();
   view.Synchronize();
@@ -151,8 +151,8 @@ TEST_F(EventViewTest, RecordInDefaultStream) {
 }
 
 TEST_F(EventViewTest, Synchronize) {
-  EventView view(event_);
-  StreamView s(stream_);
+  EventView view(m_event);
+  StreamView s(m_stream);
 
   view.RecordInStream(s);
   view.Synchronize();
@@ -161,11 +161,11 @@ TEST_F(EventViewTest, Synchronize) {
 }
 
 TEST_F(EventViewTest, HasOccurredAfterRecord) {
-  EventView view(event_);
-  StreamView s(stream_);
+  EventView view(m_event);
+  StreamView s(m_stream);
 
   view.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   EXPECT_TRUE(view.HasOccurred());
 }
@@ -180,13 +180,13 @@ TEST_F(EventViewTest, ElapsedTimeSince) {
 
   EventView start(startEvent);
   EventView end(endEvent);
-  StreamView s(stream_);
+  StreamView s(m_stream);
 
   start.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   end.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   auto elapsed = end.ElapsedTimeSince(start);
   EXPECT_GE(elapsed.count(), 0.0f);
@@ -205,13 +205,13 @@ TEST_F(EventViewTest, ElapsedTimeBetween) {
 
   EventView start(startEvent);
   EventView end(endEvent);
-  StreamView s(stream_);
+  StreamView s(m_stream);
 
   start.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   end.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   auto elapsed = EventView::ElapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);
@@ -230,13 +230,13 @@ TEST_F(EventViewTest, ElapsedTimeWithDifferentDurationTypes) {
 
   EventView start(startEvent);
   EventView end(endEvent);
-  StreamView s(stream_);
+  StreamView s(m_stream);
 
   start.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   end.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   auto elapsedMs   = end.ElapsedTimeSince<milliSec>(start);
   auto elapsedUs   = end.ElapsedTimeSince<microSec>(start);
@@ -259,8 +259,8 @@ TEST_F(EventViewTest, EventViewFromEvent) {
 }
 
 TEST_F(EventViewTest, MultipleViewsSameEvent) {
-  EventView view1(event_);
-  EventView view2(event_);
+  EventView view1(m_event);
+  EventView view2(m_event);
   EventView view3(view1);
 
   EXPECT_EQ(view1.getRawEvent(), view2.getRawEvent());

@@ -11,10 +11,9 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Event : public EventView {
- private:
-  GCXX_FH auto destroy() -> void;
 
  public:
+  GCXX_FH auto destroy() -> void;
   GCXX_FH Event(const flags::eventCreate createFlag = flags::eventCreate::None);
 
   GCXX_FH ~Event();

@@ -23,21 +23,20 @@ class HostNodeParamsView {
   using deviceHostCallBackFn_t = driver::deviceHostCallBackFn_t;
   using deviceHostNodeParams_t = driver::deviceHostNodeParams_t;
 
- protected:
-  deviceHostNodeParams_t params_{};  // NOLINT
 
-  GCXX_FHC HostNodeParamsView() { std::memset(&params_, 0, sizeof(params_)); }
-
- public:
   GCXX_FHC auto getRawParams() const -> const deviceHostNodeParams_t& {
-    return params_;
+    return m_params;
   }
 
   GCXX_FHC auto getHostFunc() const -> const deviceHostCallBackFn_t {
-    return params_.fn;
+    return m_params.fn;
   }
 
-  GCXX_FHC auto getUserData() const -> const void* { return params_.userData; }
+  GCXX_FHC auto getUserData() const -> const void* { return m_params.userData; }
+
+ protected:
+  GCXX_FHC HostNodeParamsView() { std::memset(&m_params, 0, sizeof(m_params)); }
+  deviceHostNodeParams_t m_params{};  // NOLINT
 };
 
 class HostNodeParams : public HostNodeParamsView {
@@ -46,11 +45,11 @@ class HostNodeParams : public HostNodeParamsView {
   GCXX_FHC HostNodeParams() = default;
 
   GCXX_FHC HostNodeParams(deviceHostCallBackFn_t fn, void* Udata) {
-    params_.fn       = fn;
-    params_.userData = Udata;
+    m_params.fn       = fn;
+    m_params.userData = Udata;
   }
 
-  // Disable move/copy to ensure params_ remains stable
+  // Disable move/copy to ensure m_params remains stable
   HostNodeParams(const HostNodeParams&) = delete;
   HostNodeParams(HostNodeParams&&)      = delete;
 
@@ -63,27 +62,26 @@ class HostNodeParams : public HostNodeParamsView {
 GCXX_NAMESPACE_DETAILS_BEGIN()
 
 class HostNodeParamsBuilder {
- private:
-  HostNodeParamsView::deviceHostCallBackFn_t func_{};
-  void* Udata_{nullptr};
-
-
  public:
   GCXX_FH static auto create() -> HostNodeParamsBuilder { return {}; }
 
   GCXX_FHC
   auto setHostCallbackFn(HostNodeParamsView::deviceHostCallBackFn_t func)
     -> HostNodeParamsBuilder& {
-    func_ = func;
+    m_func = func;
     return *this;
   }
 
   GCXX_FHC auto setUserData(void* udata) -> HostNodeParamsBuilder& {
-    Udata_ = udata;
+    m_Udata = udata;
     return *this;
   }
 
-  GCXX_FHC auto build() -> gcxx::HostNodeParams { return {func_, Udata_}; }
+  GCXX_FHC auto build() -> gcxx::HostNodeParams { return {m_func, m_Udata}; }
+
+ private:
+  HostNodeParamsView::deviceHostCallBackFn_t m_func{};
+  void* m_Udata{nullptr};
 };
 
 GCXX_NAMESPACE_DETAILS_END()

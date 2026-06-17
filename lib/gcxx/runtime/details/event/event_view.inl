@@ -15,15 +15,16 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_CXPR
-EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT : event_(rawEvent) {}
+EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT : m_event(rawEvent) {
+}
 
 GCXX_CXPR
 EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT
-    : event_(eventRef.getRawEvent()) {}
+    : m_event(eventRef.getRawEvent()) {}
 
 GCXX_FHC
 auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
-  return event_;
+  return m_event;
 }
 
 GCXX_CXPR EventView::operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
@@ -31,19 +32,19 @@ GCXX_CXPR EventView::operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
 }
 
 GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
-  return event_ != driver::INVALID_EVENT;
+  return m_event != driver::INVALID_EVENT;
 }
 
 GCXX_CXPR
 auto EventView::operator=(const EventView& eventRef)
   GCXX_NOEXCEPT -> EventView& {
-  event_ = eventRef.getRawEvent();
+  m_event = eventRef.getRawEvent();
   return *this;
 }
 
 GCXX_CXPR
 auto operator==(const EventView lhs, const EventView rhs) GCXX_NOEXCEPT->bool {
-  return lhs.event_ == rhs.event_;
+  return lhs.m_event == rhs.m_event;
 }
 
 GCXX_CXPR
@@ -53,7 +54,7 @@ auto operator!=(const EventView& lhs,
 }
 
 GCXX_FH auto EventView::HasOccurred() const -> bool {
-  const auto err = driver::eventQueryNoThrow(event_);
+  const auto err = driver::eventQueryNoThrow(m_event);
   return details_::nonFatalErrorQuery(err);
 }
 
@@ -64,12 +65,12 @@ GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
 
 GCXX_FH auto EventView::RecordInStream(
   const StreamView& stream, const flags::eventRecord recordFlag) -> void {
-  driver::eventRecordWithFlags(event_, stream.getRawStream(),
+  driver::eventRecordWithFlags(m_event, stream.getRawStream(),
                                static_cast<details_::flag_t>(recordFlag));
 }
 
 GCXX_FH auto EventView::Synchronize() const -> void {
-  driver::eventSynchronize(event_);
+  driver::eventSynchronize(m_event);
 }
 
 template <typename DurationT>

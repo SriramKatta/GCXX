@@ -18,13 +18,11 @@ class Graph;
 struct CaptureInfo;
 
 class StreamView {
-  using deviceGraphNode_t = driver::deviceGraphNode_t;
-
- protected:
-  using deviceStream_t = driver::deviceStream_t;
-  deviceStream_t stream_{driver::NULL_STREAM};  // NOLINT
 
  public:
+  using deviceGraphNode_t = driver::deviceGraphNode_t;
+  using deviceStream_t    = driver::deviceStream_t;
+
   explicit GCXX_FHC StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT;
 
   StreamView()               = delete;
@@ -53,17 +51,18 @@ class StreamView {
     flags::eventRecord recordFlag = flags::eventRecord::None) const -> Event;
 
   GCXX_FHDC auto isNullStream() const -> bool {
-    return stream_ == driver::NULL_STREAM;
+    return m_stream == driver::NULL_STREAM;
   }
 
   GCXX_FHD auto isInvalidStream() const -> bool {
-    return stream_ == driver::INVALID_STREAM;
+    return m_stream == driver::INVALID_STREAM;
   }
 
   GCXX_FH auto BeginCapture(flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH auto BeginCaptureToGraph(
-    GraphView& graph_view, flags::streamCaptureMode createflag) const -> void;
+  GCXX_FH auto BeginCaptureToGraph(GraphView& graph_view,
+                                   flags::streamCaptureMode createflag) const
+    -> void;
 
   GCXX_FH auto EndCapture() const -> Graph;
 
@@ -82,6 +81,9 @@ class StreamView {
     flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
     std::size_t numdeps) const -> void;
 #endif
+
+ protected:
+  deviceStream_t m_stream{driver::NULL_STREAM};  // NOLINT
 };
 
 GCXX_NAMESPACE_MAIN_END()

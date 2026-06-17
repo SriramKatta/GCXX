@@ -15,9 +15,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 class MemPoolView;
 
 class DeviceHandle {
- private:
-  const device_t deviceId_;
-  const bool resetOnDestruct_;
+
 
  public:
   DeviceHandle() = delete;
@@ -45,6 +43,10 @@ class DeviceHandle {
   GCXX_FH auto SetMemPool(const MemPoolView&) -> void;
 
   GCXX_FH auto GetMemPool() -> MemPoolView;
+
+ private:
+  const device_t m_deviceId;
+  const bool m_resetOnDestruct;
 };
 
 GCXX_NAMESPACE_MAIN_END()

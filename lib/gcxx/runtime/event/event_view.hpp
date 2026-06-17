@@ -45,11 +45,10 @@ class StreamView;
  *
  */
 class EventView {
- protected:
-  using deviceEvent_t = driver::deviceEvent_t;
-  deviceEvent_t event_{driver::INVALID_EVENT};  // NOLINT
 
  public:
+  using deviceEvent_t = driver::deviceEvent_t;
+
   /** @brief Default constructor - creates an EventView with an invalid/null
    * event */
   EventView() = default;
@@ -148,6 +147,9 @@ class EventView {
   template <typename DurationT = milliSec>
   GCXX_FH static auto ElapsedTimeBetween(
     const EventView& startEvent, const EventView& endEvent) -> DurationT;
+
+ protected:
+  deviceEvent_t m_event{driver::INVALID_EVENT};  // NOLINT
 };
 
 GCXX_NAMESPACE_MAIN_END()

@@ -22,7 +22,7 @@ GCXX_FH auto GraphNodeView::getToolsId() -> unsigned long long {
 }
 #endif
 GCXX_FH auto GraphNodeView::getType() -> flags::graphNodeType {
-  return static_cast<flags::graphNodeType>(driver::graphNodeGetType(node_));
+  return static_cast<flags::graphNodeType>(driver::graphNodeGetType(m_node));
 }
 
 GCXX_NAMESPACE_MAIN_END()

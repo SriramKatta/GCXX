@@ -11,23 +11,23 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FHC
-GraphExecView::GraphExecView(deviceGraphExec_t rawExec) : exec_(rawExec) {}
+GraphExecView::GraphExecView(deviceGraphExec_t rawExec) : m_exec(rawExec) {}
 
 GCXX_FHC auto GraphExecView::getRawExec() const -> deviceGraphExec_t {
-  return exec_;
+  return m_exec;
 }
 
 GCXX_FHC GraphExecView::operator deviceGraphExec_t() const GCXX_NOEXCEPT {
-  return exec_;
+  return m_exec;
 }
 
 GCXX_FH auto GraphExecView::Launch(
   const StreamView& stream = StreamView::Null()) const -> void {
-  driver::graphLaunch(exec_, stream.getRawStream());
+  driver::graphLaunch(m_exec, stream.getRawStream());
 }
 
 GCXX_FH auto GraphExecView::Upload(const StreamView& stream) const -> void {
-  driver::graphUpload(exec_, stream.getRawStream());
+  driver::graphUpload(m_exec, stream.getRawStream());
 }
 
 GCXX_NAMESPACE_MAIN_END()

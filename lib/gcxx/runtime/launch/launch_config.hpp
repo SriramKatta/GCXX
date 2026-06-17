@@ -12,11 +12,8 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 class LaunchConfig {
- private:
-  using deviceLaunchConfig_t   = driver::deviceLaunchConfig_t;
-  deviceLaunchConfig_t config_ = {0};
-
  public:
+  using deviceLaunchConfig_t = driver::deviceLaunchConfig_t;
   LaunchConfig(dim3 griddim = {1, 1, 1}, dim3 blockdim = {1, 1, 1},
                std::size_t smemBytes = 0,
                const StreamView& sv  = StreamView::Null())
@@ -24,6 +21,9 @@ class LaunchConfig {
   }
 
   void print() {}
+
+ private:
+  deviceLaunchConfig_t config_ = {0};
 };
 
 GCXX_NAMESPACE_MAIN_END()

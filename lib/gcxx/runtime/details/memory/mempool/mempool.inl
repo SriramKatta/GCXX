@@ -11,14 +11,14 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH MemPool::MemPool(const MemPoolProps& props) {
   auto vals = props.getRawMemPoolProps();
-  pool_     = driver::deviceMemPoolCreate(vals);
+  m_pool    = driver::deviceMemPoolCreate(vals);
 }
 
 GCXX_FH auto MemPool::destroy() -> void {
-  if (pool_) {
-    driver::deviceMemPoolDestroy(pool_);
+  if (m_pool) {
+    driver::deviceMemPoolDestroy(m_pool);
   }
-  pool_ = nullptr;
+  m_pool = nullptr;
 }
 
 GCXX_FH MemPool::~MemPool() {

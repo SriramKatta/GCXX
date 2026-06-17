@@ -13,7 +13,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_FH auto MemPoolView::getRawMemPool() const -> deviceMemPool_t {
-  return pool_;
+  return m_pool;
 };
 
 GCXX_FH auto MemPoolView::GetDefaultMempool(const DeviceHandle& hand)
@@ -24,7 +24,7 @@ GCXX_FH auto MemPoolView::GetDefaultMempool(const DeviceHandle& hand)
 GCXX_FH auto MemPoolView::SetFollowEventDependencies(bool state) -> void {
   int threshold = static_cast<int>(state);
   driver::deviceMemPoolSetAttribute(
-    pool_,
+    m_pool,
     static_cast<driver::deviceMemPoolAttr_t>(
       flags::MemPoolAttr::FollowEventDependencies),
     static_cast<void*>(&threshold));
@@ -32,7 +32,7 @@ GCXX_FH auto MemPoolView::SetFollowEventDependencies(bool state) -> void {
 
 GCXX_FH auto MemPoolView::SetAllowOpportunistic(bool state) -> void {
   int threshold = static_cast<int>(state);
-  driver::deviceMemPoolSetAttribute(pool_,
+  driver::deviceMemPoolSetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::AllowOpportunistic),
                                     static_cast<void*>(&threshold));
@@ -41,14 +41,14 @@ GCXX_FH auto MemPoolView::SetAllowOpportunistic(bool state) -> void {
 GCXX_FH auto MemPoolView::SetAllowInternalDependencies(bool state) -> void {
   int threshold = static_cast<int>(state);
   driver::deviceMemPoolSetAttribute(
-    pool_,
+    m_pool,
     static_cast<driver::deviceMemPoolAttr_t>(
       flags::MemPoolAttr::AllowInternalDependencies),
     static_cast<void*>(&threshold));
 }
 
 GCXX_FH auto MemPoolView::SetReleaseThreshold(std::uint64_t threshold) -> void {
-  driver::deviceMemPoolSetAttribute(pool_,
+  driver::deviceMemPoolSetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::ReleaseThreshold),
                                     static_cast<void*>(&threshold));
@@ -56,21 +56,21 @@ GCXX_FH auto MemPoolView::SetReleaseThreshold(std::uint64_t threshold) -> void {
 
 GCXX_FH auto MemPoolView::SetReservedMemCurrent(std::uint64_t threshold)
   -> void {
-  driver::deviceMemPoolSetAttribute(pool_,
+  driver::deviceMemPoolSetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::ReservedMemCurrent),
                                     static_cast<void*>(&threshold));
 }
 
 GCXX_FH auto MemPoolView::SetReservedMemHigh(std::uint64_t threshold) -> void {
-  driver::deviceMemPoolSetAttribute(pool_,
+  driver::deviceMemPoolSetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::ReservedMemHigh),
                                     static_cast<void*>(&threshold));
 }
 
 GCXX_FH auto MemPoolView::SetUsedMemCurrent(std::uint64_t threshold) -> void {
-  driver::deviceMemPoolSetAttribute(pool_,
+  driver::deviceMemPoolSetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::UsedMemCurrent),
                                     static_cast<void*>(&threshold));
@@ -78,7 +78,7 @@ GCXX_FH auto MemPoolView::SetUsedMemCurrent(std::uint64_t threshold) -> void {
 
 GCXX_FH auto MemPoolView::SetUsedMemHigh(std::uint64_t threshold) -> void {
   driver::deviceMemPoolSetAttribute(
-    pool_,
+    m_pool,
     static_cast<driver::deviceMemPoolAttr_t>(flags::MemPoolAttr::UsedMemHigh),
     static_cast<void*>(&threshold));
 }
@@ -86,7 +86,7 @@ GCXX_FH auto MemPoolView::SetUsedMemHigh(std::uint64_t threshold) -> void {
 GCXX_FH auto MemPoolView::GetFollowEventDependencies() -> bool {
   int retval{};
   driver::deviceMemPoolGetAttribute(
-    pool_,
+    m_pool,
     static_cast<driver::deviceMemPoolAttr_t>(
       flags::MemPoolAttr::FollowEventDependencies),
     static_cast<void*>(&retval));
@@ -95,7 +95,7 @@ GCXX_FH auto MemPoolView::GetFollowEventDependencies() -> bool {
 
 GCXX_FH auto MemPoolView::GetAllowOpportunistic() -> bool {
   int retval{};
-  driver::deviceMemPoolGetAttribute(pool_,
+  driver::deviceMemPoolGetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::AllowOpportunistic),
                                     static_cast<void*>(&retval));
@@ -105,7 +105,7 @@ GCXX_FH auto MemPoolView::GetAllowOpportunistic() -> bool {
 GCXX_FH auto MemPoolView::GetAllowInternalDependencies() -> bool {
   int retval{};
   driver::deviceMemPoolGetAttribute(
-    pool_,
+    m_pool,
     static_cast<driver::deviceMemPoolAttr_t>(
       flags::MemPoolAttr::AllowInternalDependencies),
     static_cast<void*>(&retval));
@@ -114,7 +114,7 @@ GCXX_FH auto MemPoolView::GetAllowInternalDependencies() -> bool {
 
 GCXX_FH auto MemPoolView::GetReleaseThreshold() -> std::uint64_t {
   std::uint64_t retval{};
-  driver::deviceMemPoolGetAttribute(pool_,
+  driver::deviceMemPoolGetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::ReleaseThreshold),
                                     static_cast<void*>(&retval));
@@ -123,7 +123,7 @@ GCXX_FH auto MemPoolView::GetReleaseThreshold() -> std::uint64_t {
 
 GCXX_FH auto MemPoolView::GetReservedMemCurrent() -> std::uint64_t {
   std::uint64_t retval{};
-  driver::deviceMemPoolGetAttribute(pool_,
+  driver::deviceMemPoolGetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::ReservedMemCurrent),
                                     static_cast<void*>(&retval));
@@ -132,7 +132,7 @@ GCXX_FH auto MemPoolView::GetReservedMemCurrent() -> std::uint64_t {
 
 GCXX_FH auto MemPoolView::GetReservedMemHigh() -> std::uint64_t {
   std::uint64_t retval{};
-  driver::deviceMemPoolGetAttribute(pool_,
+  driver::deviceMemPoolGetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::ReservedMemHigh),
                                     static_cast<void*>(&retval));
@@ -141,7 +141,7 @@ GCXX_FH auto MemPoolView::GetReservedMemHigh() -> std::uint64_t {
 
 GCXX_FH auto MemPoolView::GetUsedMemCurrent() -> std::uint64_t {
   std::uint64_t retval{};
-  driver::deviceMemPoolGetAttribute(pool_,
+  driver::deviceMemPoolGetAttribute(m_pool,
                                     static_cast<driver::deviceMemPoolAttr_t>(
                                       flags::MemPoolAttr::UsedMemCurrent),
                                     static_cast<void*>(&retval));
@@ -151,7 +151,7 @@ GCXX_FH auto MemPoolView::GetUsedMemCurrent() -> std::uint64_t {
 GCXX_FH auto MemPoolView::GetUsedMemHigh() -> std::uint64_t {
   std::uint64_t retval{};
   driver::deviceMemPoolGetAttribute(
-    pool_,
+    m_pool,
     static_cast<driver::deviceMemPoolAttr_t>(flags::MemPoolAttr::UsedMemHigh),
     static_cast<void*>(&retval));
   return retval;

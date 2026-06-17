@@ -16,8 +16,8 @@ namespace memory {
 
   template <typename VT>
   GCXX_FH auto makePitchedPtr(void* dPtr, size_t pitchelems = 1,
-                              size_t xSize = 1, size_t ySize = 1)
-    -> devicePitchedPtr {
+                              size_t xSize = 1,
+                              size_t ySize = 1) -> devicePitchedPtr {
     return GCXX_DIRECT_BACKEND_ALT(make_cudaPitchedPtr, make_hipPitchedPtr)(
       dPtr, pitchelems * sizeof(VT), xSize, ySize);
   }
@@ -27,8 +27,8 @@ namespace memory {
   }
 
   template <typename VT>
-  GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1, size_t zSize = 1)
-    -> deviceExtent {
+  GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1,
+                          size_t zSize = 1) -> deviceExtent {
     return GCXX_DIRECT_BACKEND_ALT(make_cudaExtent, make_hipExtent)(
       xSize * sizeof(VT), ySize, zSize);
   }

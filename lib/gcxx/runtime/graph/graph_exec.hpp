@@ -18,9 +18,9 @@ class GraphExec : public GraphExecView {
   GCXX_FH GraphExec(deviceGraphExec_t exec) GCXX_NOEXCEPT
       : GraphExecView(exec) {}
 
+ public:
   GCXX_FH auto destroy() -> void;
 
- public:
   GCXX_FH GraphExec() GCXX_NOEXCEPT : GraphExecView() {}
 
   GCXX_FH explicit GraphExec(const GraphView& graph);

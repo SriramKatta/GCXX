@@ -19,10 +19,10 @@ struct CaptureInfo {
 
 GCXX_FHC
 StreamView::StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT
-    : stream_(rawStream) {}
+    : m_stream(rawStream) {}
 
 GCXX_FHC auto StreamView::getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t {
-  return stream_;
+  return m_stream;
 }
 
 GCXX_FHC StreamView::operator deviceStream_t() GCXX_CONST_NOEXCEPT {
@@ -30,36 +30,36 @@ GCXX_FHC StreamView::operator deviceStream_t() GCXX_CONST_NOEXCEPT {
 }
 
 GCXX_FH auto StreamView::HasPendingWork() -> bool {
-  const auto err = driver::streamQueryNothrow(stream_);
+  const auto err = driver::streamQueryNothrow(m_stream);
   return !details_::nonFatalErrorQuery(err);
 }
 
 GCXX_FH auto StreamView::Synchronize() const -> void {
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 }
 
 GCXX_FH auto StreamView::WaitOnEvent(const EventView& event,
                                      flags::eventWait waitFlag) const -> void {
-  driver::StreamWaitEvent(this->stream_, event.getRawEvent(),
+  driver::StreamWaitEvent(this->m_stream, event.getRawEvent(),
                           static_cast<details_::flag_t>(waitFlag));
 }
 
 GCXX_FH auto StreamView::BeginCapture(
   const flags::streamCaptureMode createflag) const -> void {
   driver::streamBeginCapture(
-    stream_, static_cast<driver::deviceStreamCaptureMode_t>(createflag));
+    m_stream, static_cast<driver::deviceStreamCaptureMode_t>(createflag));
 }
 
 GCXX_FH auto StreamView::BeginCaptureToGraph(
-  GraphView& graph_view,
-  const flags::streamCaptureMode createflag) const -> void {
+  GraphView& graph_view, const flags::streamCaptureMode createflag) const
+  -> void {
   driver::streamBeginCaptureToGraph(
-    stream_, graph_view.getRawGraph(), nullptr, nullptr, 0,
+    m_stream, graph_view.getRawGraph(), nullptr, nullptr, 0,
     static_cast<driver::deviceStreamCaptureMode_t>(createflag));
 }
 
 GCXX_FH auto StreamView::EndCapture() const -> Graph {
-  const auto pgraph = driver::streamEndCapture(stream_);
+  const auto pgraph = driver::streamEndCapture(m_stream);
   return Graph::CreateFromRaw(pgraph);
 }
 
@@ -69,7 +69,7 @@ GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const
   // graph, so the returned handle from EndCapture is the same as
   // graph.getRawGraph(). We just need to call EndCapture to finalize the
   // capture.
-  const auto pgraph = driver::streamEndCapture(stream_);
+  const auto pgraph = driver::streamEndCapture(m_stream);
   // Assert that the returned graph is indeed the same as the one we passed in
   assert(pgraph == graph.getRawGraph() &&
          "EndCapture returned unexpected graph handle");
@@ -79,7 +79,7 @@ GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const
 GCXX_FH auto StreamView::IsCapturing() const
   -> gcxx::flags::streamCaptureStatus {
   driver::deviceStreamCaptureStatus_t status{};
-  driver::streamIsCapturing(stream_, &status);
+  driver::streamIsCapturing(m_stream, &status);
   return flags::to_streamCaptureStatus(status);
 }
 
@@ -90,7 +90,7 @@ GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
   const GraphView::deviceGraphNode_t* pDependencies = nullptr;
   std::size_t numdeps                               = 0;
 
-  driver::streamGetCaptureInfo(stream_, &status, &id, &graph, &pDependencies,
+  driver::streamGetCaptureInfo(m_stream, &status, &id, &graph, &pDependencies,
                                nullptr, &numdeps);
 
   return {flags::to_streamCaptureStatus(status), id, GraphView(graph),
@@ -100,7 +100,7 @@ GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
 GCXX_FH auto StreamView::UpdateCaptureDependencies(
   flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
   std::size_t numdeps) const -> void {
-  driver::streamUpdateCaptureDependencies(stream_, nodes, nullptr, numdeps,
+  driver::streamUpdateCaptureDependencies(m_stream, nodes, nullptr, numdeps,
                                           static_cast<details_::flag_t>(flag));
 }
 #endif

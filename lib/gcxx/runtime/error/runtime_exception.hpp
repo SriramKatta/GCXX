@@ -15,12 +15,13 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 class Exception : public std::runtime_error {
  public:
   Exception(details_::deviceError_t err, std::string_view context)
-      : std::runtime_error(details_::make_message(err, context)), error_(err) {}
+      : std::runtime_error(details_::make_message(err, context)),
+        m_error(err) {}
 
-  details_::deviceError_t error() const noexcept { return error_; }
+  details_::deviceError_t error() const noexcept { return m_error; }
 
  private:
-  details_::deviceError_t error_;
+  details_::deviceError_t m_error;
 };
 
 GCXX_NAMESPACE_MAIN_END()

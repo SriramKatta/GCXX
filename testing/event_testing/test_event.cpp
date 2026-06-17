@@ -12,13 +12,13 @@ using namespace gcxx;
 class EventTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    stream_ = driver::streamCreateWithPriority(
+    m_stream = driver::streamCreateWithPriority(
       static_cast<details_::flag_t>(flags::streamType::SyncWithNull), 0);
   }
 
-  void TearDown() override { driver::streamDestroy(stream_); }
+  void TearDown() override { driver::streamDestroy(m_stream); }
 
-  driver::deviceStream_t stream_{driver::NULL_STREAM};
+  driver::deviceStream_t m_stream{driver::NULL_STREAM};
 };
 
 TEST_F(EventTest, ConstructAndDestroy) {
@@ -89,20 +89,20 @@ TEST_F(EventTest, ReleasedHandleRemainsUsableThroughView) {
 TEST_F(EventTest, RecordAndElapsedTime) {
   Event start;
   Event end;
-  StreamView s(stream_);
+  StreamView s(m_stream);
 
   start.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   end.RecordInStream(s);
-  driver::streamSynchronize(stream_);
+  driver::streamSynchronize(m_stream);
 
   auto elapsed = Event::ElapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);
 }
 
 TEST_F(EventTest, StreamViewRecordEventReturnsRecordedEvent) {
-  StreamView s(stream_);
+  StreamView s(m_stream);
 
   auto event = s.RecordEvent();
   s.Synchronize();

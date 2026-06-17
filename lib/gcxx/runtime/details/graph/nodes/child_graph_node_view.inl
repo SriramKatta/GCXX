@@ -18,12 +18,12 @@ ChildGraphNodeView::ChildGraphNodeView(GraphNodeView::deviceGraphNode_t node)
     : GraphNodeView(node) {}
 
 GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
-  return {driver::graphChildGraphNodeGetGraph(node_)};
+  return {driver::graphChildGraphNodeGetGraph(m_node)};
 }
 
 GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec,
                                            GraphView graph) -> void {
-  driver::graphExecChildGraphNodeSetParams(exec.getRawExec(), node_,
+  driver::graphExecChildGraphNodeSetParams(exec.getRawExec(), m_node,
                                            graph.getRawGraph());
 }
 
