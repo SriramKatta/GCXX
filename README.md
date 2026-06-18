@@ -37,24 +37,9 @@ Choose one of the following development approaches:
 
 ### Development Environment Setup
 
-#### Using Development Containers (Recommended)
+Pre-configured development containers are available in `.devcontainer/`. See [.devcontainer/README.md](.devcontainer/README.md) for usage instructions and available configurations.
 
-GCXX provides pre-configured development containers with all necessary tools. This is the recommended approach as it ensures a consistent environment.
-
-**With VS Code:**
-1. Install the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
-2. Open the GCXX repository in VS Code
-3. Click "Reopen in Container" when prompted
-
-**From the command line:**
-```bash
-docker-compose up -d
-docker-compose exec dev bash
-```
-
-#### Local Development (Without Containers)
-
-If you prefer to set up your environment locally, ensure you have all prerequisites installed (C++17 compiler, CMake, GPU backend).
+For local development (without containers), ensure you have a C++17 compiler, CMake 3.20+, and at least one supported GPU backend (CUDA or HIP) installed.
 
 ---
 
