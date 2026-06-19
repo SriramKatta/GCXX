@@ -9,6 +9,9 @@
       "CONTAINER_NAME": "gcxx-rocm7.1.1"
     }
   },
+  "mounts": [
+    "source=${localEnv:HOME},target=/host-home,type=bind"
+  ],
   "runArgs": [
     "--init",
     "--name",

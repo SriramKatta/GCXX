@@ -9,6 +9,9 @@
       "CONTAINER_NAME": "gcxx-cuda12.8-gcc13"
     }
   },
+  "mounts": [
+    "source=${localEnv:HOME},target=/host-home,type=bind"
+  ],
   "runArgs": [
     "--init",
     "--name",

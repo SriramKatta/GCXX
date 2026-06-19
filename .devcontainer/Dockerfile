@@ -44,5 +44,11 @@ RUN if [ "${CREATE_RENDER_GROUP}" = "true" ]; then getent group render || groupa
     && echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode \
     && chmod 0440 /etc/sudoers.d/vscode
 
+RUN ln -sfn /host-home/.ssh /home/vscode/.ssh \
+    && ln -sfn /host-home/.gitignore /home/vscode/.gitignore \
+    && chown -h vscode:vscode /home/vscode/.ssh /home/vscode/.gitignore
+
 USER vscode
+RUN git config --global core.excludesFile ~/.gitignore
+
 WORKDIR /workspaces/GCXX

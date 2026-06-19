@@ -9,6 +9,9 @@
       "CONTAINER_NAME": "gcxx-nvhpc25.7-cuda12.9-gcc13"
     }
   },
+  "mounts": [
+    "source=${localEnv:HOME},target=/host-home,type=bind"
+  ],
   "runArgs": [
     "--init",
     "--name",
