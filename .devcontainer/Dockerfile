@@ -1,4 +1,4 @@
-ARG BASE_IMAGE
+ARG BASE_IMAGE=unset
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -49,6 +49,7 @@ RUN ln -sfn /host-home/.ssh /home/vscode/.ssh \
     && chown -h vscode:vscode /home/vscode/.ssh /home/vscode/.gitignore
 
 USER vscode
-RUN git config --global core.excludesFile ~/.gitignore
+RUN git config --global core.excludesFile ~/.gitignore \
+    && git config --global include.path /host-home/.gitconfig
 
 WORKDIR /workspaces/GCXX
