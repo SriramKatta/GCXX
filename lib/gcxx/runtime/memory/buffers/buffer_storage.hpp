@@ -101,7 +101,7 @@ class buffer_storage {
 
   /// Size of the allocated block in bytes (0 for empty storage).
   GCXX_FHDC auto size_bytes() const noexcept -> size_type {
-    return m_num_elems;
+    return m_num_elems * sizeof(VT);
   }
 
   /// The memory resource the storage was allocated from.
