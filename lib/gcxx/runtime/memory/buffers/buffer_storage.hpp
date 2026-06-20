@@ -35,10 +35,17 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 //   void* allocate(std::size_t num_bytes, gcxx::StreamView)
 //   void  deallocate(void* ptr, gcxx::StreamView)
 // ─────────────────────────────────────────────────────────────────────────────
-template <typename Resource>
+template <typename VT, typename Resource>
 class buffer_storage {
  public:
-  using size_type = std::size_t;
+  using value_type             = VT;
+  using size_type              = std::size_t;
+  using pointer                = VT*;
+  using const_pointer          = const VT*;
+  using iterator               = pointer;
+  using const_iterator         = const_pointer;
+  using reverse_iterator       = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   /// Empty storage (no allocation). Resource is default-constructed.
   buffer_storage() noexcept(noexcept(Resource{})) : m_resource{} {}
@@ -47,11 +54,11 @@ class buffer_storage {
   /// If allocation throws, m_ptr is left null and the resource/stream members
   /// are cleaned up by their own destructors — no leak.
   buffer_storage(gcxx::StreamView stream, Resource resource,
-                 size_type num_bytes)
+                 size_type num_elems)
       : m_resource(std::move(resource)),
         m_stream(stream),
-        m_ptr(m_resource.allocate(num_bytes, m_stream)),
-        m_num_bytes(num_bytes) {}
+        m_ptr(m_resource.allocate(sizeof(VT) * num_elems, m_stream)),
+        m_num_elems(num_elems) {}
 
   ~buffer_storage() { release(); }
 
@@ -62,10 +69,10 @@ class buffer_storage {
       : m_resource(other.m_resource),
         m_stream(other.m_stream),
         m_ptr(other.m_ptr),
-        m_num_bytes(other.m_num_bytes) {
+        m_num_elems(other.m_num_elems) {
     other.m_ptr       = nullptr;
     other.m_stream    = gcxx::StreamView::Null();
-    other.m_num_bytes = 0;
+    other.m_num_elems = 0;
   }
 
   buffer_storage& operator=(buffer_storage&& other) noexcept {
@@ -77,10 +84,10 @@ class buffer_storage {
       m_resource        = other.m_resource;
       m_stream          = other.m_stream;
       m_ptr             = other.m_ptr;
-      m_num_bytes       = other.m_num_bytes;
+      m_num_elems       = other.m_num_elems;
       other.m_ptr       = nullptr;
       other.m_stream    = gcxx::StreamView::Null();
-      other.m_num_bytes = 0;
+      other.m_num_elems = 0;
     }
     return *this;
   }
@@ -94,7 +101,7 @@ class buffer_storage {
 
   /// Size of the allocated block in bytes (0 for empty storage).
   GCXX_FHDC auto size_bytes() const noexcept -> size_type {
-    return m_num_bytes;
+    return m_num_elems;
   }
 
   /// The memory resource the storage was allocated from.
@@ -123,7 +130,7 @@ class buffer_storage {
       m_resource.deallocate(m_ptr, s);
       m_ptr       = nullptr;
       m_stream    = gcxx::StreamView::Null();
-      m_num_bytes = 0;
+      m_num_elems = 0;
     }
   }
 
@@ -131,14 +138,14 @@ class buffer_storage {
   Resource m_resource;
   gcxx::StreamView m_stream{gcxx::StreamView::Null()};
   void* m_ptr{nullptr};
-  size_type m_num_bytes{0};
+  size_type m_num_elems{0};
 
   auto release() noexcept -> void {
     if (m_ptr != nullptr) {
       m_resource.deallocate(m_ptr, m_stream);
       m_ptr       = nullptr;
       m_stream    = gcxx::StreamView::Null();
-      m_num_bytes = 0;
+      m_num_elems = 0;
     }
   }
 };

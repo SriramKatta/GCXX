@@ -52,19 +52,21 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename VT, typename Resource>
 class buffer {
+  static_assert(std::is_trivially_constructible_v<VT>,
+                "buffer<VT, Resource> requires trivially constructable VT");
   static_assert(std::is_trivially_destructible_v<VT>,
                 "buffer<VT, Resource> requires trivially destructible VT");
 
  public:
-  using value_type             = VT;
-  using size_type              = std::size_t;
-  using pointer                = VT*;
-  using const_pointer          = const VT*;
-  using iterator               = pointer;
-  using const_iterator         = const_pointer;
-  using reverse_iterator       = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-  using buffer_t               = buffer_storage<Resource>;
+  using buffer_t               = buffer_storage<VT, Resource>;
+  using value_type             = typename buffer_t::value_type;
+  using size_type              = typename buffer_t::size_type;
+  using pointer                = typename buffer_t::pointer;
+  using const_pointer          = typename buffer_t::const_pointer;
+  using iterator               = typename buffer_t::iterator;
+  using const_iterator         = typename buffer_t::const_iterator;
+  using reverse_iterator       = typename buffer_t::reverse_iterator;
+  using const_reverse_iterator = typename buffer_t::const_reverse_iterator;
 
   /// Empty buffer (no allocation). Resource and stream are default/unset.
   buffer() noexcept(noexcept(Resource{})) : m_storage{} {}
@@ -75,7 +77,7 @@ class buffer {
   /// Allocate n elements from resource on stream (CCCL ctor order:
   /// stream, resource, size). Storage is uninitialized.
   buffer(gcxx::StreamView stream, Resource resource, size_type n)
-      : m_storage(stream, std::move(resource), n * sizeof(VT)) {}
+      : m_storage(stream, std::move(resource), n) {}
 
   /// Destructor is defaulted: raw memory is released by m_storage's RAII.
   ~buffer() = default;
@@ -163,17 +165,8 @@ class buffer {
   GCXX_FH auto storage() const noexcept -> const buffer_t& { return m_storage; }
 
  private:
-  buffer_t m_storage;
+  buffer_t m_storage{};
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// make_buffer: factory deducing the resource type (cf. cuda::make_buffer).
-// ─────────────────────────────────────────────────────────────────────────────
-template <typename T, typename Resource>
-GCXX_FH auto make_buffer(gcxx::StreamView stream, Resource resource,
-                         std::size_t n) -> buffer<T, Resource> {
-  return buffer<T, Resource>(stream, std::move(resource), n);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Convenience aliases.
