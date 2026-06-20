@@ -11,29 +11,38 @@ namespace {
 
   // Pooled allocation sizes used below; named to keep them out of the
   // readability-magic-numbers / bugprone-argument-comment crosshairs.
-  constexpr std::size_t kSmallAllocBytes = 1024;
-  constexpr std::size_t kLargeAllocBytes = 4096;
+  constexpr std::size_t kSmallAllocBytes         = 1024;
+  constexpr std::size_t kLargeAllocBytes         = 4096;
   constexpr std::uint64_t kReleaseThresholdBytes = 1U << 20;  // 1 MiB
+
+  // Query the device count via the raw backend call (not the throwing
+  // driver:: wrapper, which aborts when GCXX_WITH_EXCEPTIONS is off) so the
+  // fixture can skip gracefully on hosts without a usable GPU driver.
+  auto gpuAvailable() -> bool {
+    int count      = 0;
+    const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
+    return err == gcxx::driver::deviceErrSuccess && count > 0;
+  }
 
 }  // namespace
 
 class MemPoolViewTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    if (gcxx::driver::deviceGetCount() == 0) {
+    if (!gpuAvailable()) {
       GTEST_SKIP() << "No GPU device available; skipping pool view tests";
     }
   }
 };
 
 TEST_F(MemPoolViewTest, GetDefaultMempoolViaStatic) {
-  const auto dev = gcxx::Device::get();
+  const auto dev               = gcxx::Device::get();
   const gcxx::MemPoolView view = gcxx::MemPoolView::GetDefaultMempool(dev);
   EXPECT_NE(view.getRawMemPool(), nullptr);
 }
 
 TEST_F(MemPoolViewTest, GetDefaultMempoolViaHandle) {
-  const auto dev = gcxx::Device::get();
+  const auto dev               = gcxx::Device::get();
   const gcxx::MemPoolView view = dev.GetDefaultMemPool();
   EXPECT_NE(view.getRawMemPool(), nullptr);
 }

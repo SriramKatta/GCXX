@@ -14,12 +14,21 @@ namespace {
     return props;
   }
 
+  // Query the device count via the raw backend call (not the throwing
+  // driver:: wrapper, which aborts when GCXX_WITH_EXCEPTIONS is off) so the
+  // fixture can skip gracefully on hosts without a usable GPU driver.
+  auto gpuAvailable() -> bool {
+    int count      = 0;
+    const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
+    return err == gcxx::driver::deviceErrSuccess && count > 0;
+  }
+
 }  // namespace
 
 class MemPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    if (gcxx::driver::deviceGetCount() == 0) {
+    if (!gpuAvailable()) {
       GTEST_SKIP() << "No GPU device available; skipping pool ownership tests";
     }
   }

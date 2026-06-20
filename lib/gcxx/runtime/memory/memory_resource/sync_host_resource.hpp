@@ -23,8 +23,6 @@ class sync_host_resource {
   GCXX_FH auto deallocate(void* ptr, gcxx::StreamView) -> void {
     driver::deviceFreeHost(ptr);
   }
-
-  GCXX_FHDC static auto is_device() -> bool { return false; }
 };
 
 GCXX_NAMESPACE_MEMORY_END()

@@ -23,8 +23,6 @@ class async_device_resource {
   GCXX_FH auto deallocate(void* ptr, gcxx::StreamView sv) -> void {
     driver::deviceFreeAsync(ptr, sv.getRawStream());
   }
-
-  GCXX_FHDC static auto is_device() -> bool { return true; }
 };
 
 GCXX_NAMESPACE_MEMORY_END()

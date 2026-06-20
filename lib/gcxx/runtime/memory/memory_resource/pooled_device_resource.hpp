@@ -22,7 +22,6 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 // Satisfies the buffer<VT, Resource> resource concept:
 //   void* allocate(std::size_t num_bytes, gcxx::StreamView)
 //   void  deallocate(void* ptr, gcxx::StreamView)
-//   static bool is_device()
 class pooled_device_resource {
  public:
   pooled_device_resource() = default;
@@ -37,8 +36,6 @@ class pooled_device_resource {
   GCXX_FH auto deallocate(void* ptr, gcxx::StreamView sv) -> void {
     driver::deviceFreeAsync(ptr, sv.getRawStream());
   }
-
-  GCXX_FHDC static auto is_device() -> bool { return true; }
 
   GCXX_FH auto pool() const -> MemPoolView { return m_pool; }
 

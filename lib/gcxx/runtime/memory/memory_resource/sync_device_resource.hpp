@@ -22,8 +22,6 @@ class sync_device_resource {
   GCXX_FH auto deallocate(void* ptr, gcxx::StreamView) -> void {
     driver::deviceFree(ptr);
   }
-
-  GCXX_FHDC static auto is_device() -> bool { return true; }
 };
 
 GCXX_NAMESPACE_MEMORY_END()
