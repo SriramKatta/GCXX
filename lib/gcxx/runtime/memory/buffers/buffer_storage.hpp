@@ -74,10 +74,10 @@ class buffer_storage {
       // Resources (e.g. pooled_device_resource) are cheap, shareable handles
       // that may be reused to allocate further buffers — copy, don't move, so
       // the moved-from storage retains a valid resource for reallocation.
-      m_resource   = other.m_resource;
-      m_stream     = other.m_stream;
-      m_ptr        = other.m_ptr;
-      m_num_bytes  = other.m_num_bytes;
+      m_resource        = other.m_resource;
+      m_stream          = other.m_stream;
+      m_ptr             = other.m_ptr;
+      m_num_bytes       = other.m_num_bytes;
       other.m_ptr       = nullptr;
       other.m_stream    = gcxx::StreamView::Null();
       other.m_num_bytes = 0;

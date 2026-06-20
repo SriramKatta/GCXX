@@ -116,7 +116,6 @@ GCXX_FH auto get_raw_pointer(VT&& ptr) -> decltype(ptr.get()) {
 }
 
 
-// TODO : add a condition compilation since this is avialble in c++20
 // Helper to check if T& is a valid type (T is not void, basically)
 template <class T>
 using with_reference = T&;

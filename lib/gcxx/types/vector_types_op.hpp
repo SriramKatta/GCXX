@@ -186,11 +186,9 @@ namespace impl {
     };
 
     struct remainder {
-      template <typename VT>
-      GCXX_FHDC auto operator()(VT a, VT b)
-        -> std::enable_if_t<std::is_integral_v<VT>, VT> {
-        return a % b;
-      }
+      GCXX_TEMPLATE(typename VT)
+      GCXX_REQUIRES(std::is_integral_v<VT>)
+      GCXX_FHDC auto operator()(VT a, VT b) -> VT { return a % b; }
     };
   }  // namespace op
 
@@ -214,8 +212,8 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
  * @param rhs
  * @return gcxx::details_::binary_vec_result_t<LHS, RHS>
  */
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::binary_vec_op_v<LHS, RHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator+(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
@@ -223,8 +221,8 @@ GCXX_FHDC auto operator+(const LHS& lhs, const RHS& rhs)
   return apply_binary_dispatch(lhs, rhs, sum{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::binary_vec_op_v<LHS, RHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator-(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
@@ -232,8 +230,8 @@ GCXX_FHDC auto operator-(const LHS& lhs, const RHS& rhs)
   return apply_binary_dispatch(lhs, rhs, difference{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::binary_vec_op_v<LHS, RHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator*(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
@@ -241,8 +239,8 @@ GCXX_FHDC auto operator*(const LHS& lhs, const RHS& rhs)
   return apply_binary_dispatch(lhs, rhs, product{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::binary_vec_op_v<LHS, RHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator/(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
@@ -250,8 +248,8 @@ GCXX_FHDC auto operator/(const LHS& lhs, const RHS& rhs)
   return apply_binary_dispatch(lhs, rhs, quotient{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::binary_vec_op_v<LHS, RHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator%(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
@@ -259,24 +257,24 @@ GCXX_FHDC auto operator%(const LHS& lhs, const RHS& rhs)
   return apply_binary_dispatch(lhs, rhs, remainder{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator+=(LHS& lhs, const RHS& rhs) -> LHS& {
   using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::sum;
   return apply_inplace_dispatch(lhs, rhs, sum{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator-=(LHS& lhs, const RHS& rhs) -> LHS& {
   using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::difference;
   return apply_inplace_dispatch(lhs, rhs, difference{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator/=(LHS& lhs, const RHS& rhs) -> LHS& {
 
   using gcxx::details_::impl::apply_inplace_dispatch;
@@ -284,16 +282,16 @@ GCXX_FHDC auto operator/=(LHS& lhs, const RHS& rhs) -> LHS& {
   return apply_inplace_dispatch(lhs, rhs, quotient{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator*=(LHS& lhs, const RHS& rhs) -> LHS& {
   using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::product;
   return apply_inplace_dispatch(lhs, rhs, product{});
 }
 
-template <typename LHS, typename RHS,
-          std::enable_if_t<gcxx::details_::is_vectype_v<LHS>, int> = 0>
+GCXX_TEMPLATE(typename LHS, typename RHS)
+GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator%=(LHS& lhs, const RHS& rhs) -> LHS& {
   using gcxx::details_::impl::apply_inplace_dispatch;
   using gcxx::details_::impl::op::remainder;

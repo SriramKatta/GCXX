@@ -16,12 +16,6 @@
 #include <gcxx/runtime/details/helper_function.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 
-/*
-https://godbolt.org/z/qb5vq7sh9
-TODO : use this as refrence to extend and support restrict span keeping most of
-the code same
-*/
-
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 template <class VT, std::size_t Extent>
@@ -116,6 +110,7 @@ struct span_storage : size_holder<Extent> {
 };
 
 // CAN'T US CRTP since it would discard the RESTRIC_KEYWORD
+// https://godbolt.org/z/qb5vq7sh9
 template <typename VT, std::size_t Extent>
 struct restrict_span_storage : size_holder<Extent> {
   using data_handle_type = VT* GCXX_RESTRICT_KEYWORD();
