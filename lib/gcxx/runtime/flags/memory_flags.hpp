@@ -34,6 +34,12 @@ enum class MemLocation : details_::flag_t {
   HostNumaCurrent = GCXX_RUNTIME_BACKEND(MemLocationTypeHostNumaCurrent),
 };
 
+enum class MemAccessFlags : details_::flag_t {
+  None      = GCXX_RUNTIME_BACKEND(MemAccessFlagsProtNone),
+  ReadOnly  = GCXX_RUNTIME_BACKEND(MemAccessFlagsProtRead),
+  ReadWrite = GCXX_RUNTIME_BACKEND(MemAccessFlagsProtReadWrite),
+};
+
 
 enum class MemPoolAttr : details_::flag_t {
   FollowEventDependencies =

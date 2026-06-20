@@ -22,8 +22,8 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 // ╚════════════════════════════════════════════════════════╝
 GCXX_TEMPLATE(typename Ptr)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-GCXX_FH auto Memset(Ptr& handle, const int value, const std::size_t numElements)
-  -> void {
+GCXX_FH auto Memset(Ptr& handle, const int value,
+                    const std::size_t numElements) -> void {
   auto raw_ptr = details_::get_raw_pointer(handle);
   using VT     = typename details_::pointed_to_type_t<Ptr>;
   driver::deviceMemset(raw_ptr, value, numElements * sizeof(VT));

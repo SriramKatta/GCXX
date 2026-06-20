@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 #pragma once
-#ifndef GCXX_RUNTIME_MEMEORY_MEMPOOL_MEMPOOL_PROPS_HPP_
-#define GCXX_RUNTIME_MEMEORY_MEMPOOL_MEMPOOL_PROPS_HPP_
+#ifndef GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_PROPS_HPP_
+#define GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_PROPS_HPP_
 
 #include <cstddef>
 #include <cstring>
@@ -10,6 +10,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/flags/memory_flags.hpp>
+#include <gcxx/runtime_backend/backend_handles.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
@@ -41,6 +42,30 @@ struct MemPoolProps {
     props.usage   = usage;
 #endif
     return props;
+  }
+};
+
+// Descriptor describing how a pool may be accessed from a memory location.
+// Used by MemPoolView::SetAccess / GetAccess.
+struct MemAccessDesc {
+  flags::MemLocation locationType{flags::MemLocation::Device};
+  int locationId{0};
+  flags::MemAccessFlags flags{flags::MemAccessFlags::ReadWrite};
+
+  GCXX_FH auto getRawMemAccessDesc() const -> driver::deviceMemAccessDesc_t {
+    driver::deviceMemAccessDesc_t desc{};
+    desc.location.type =
+      static_cast<decltype(desc.location.type)>(locationType);
+    desc.location.id = locationId;
+    desc.flags       = static_cast<driver::deviceMemAccessFlags_t>(flags);
+    return desc;
+  }
+
+  GCXX_FH auto getRawMemLocation() const -> driver::deviceMemLocation_t {
+    driver::deviceMemLocation_t loc{};
+    loc.type = static_cast<decltype(loc.type)>(locationType);
+    loc.id   = locationId;
+    return loc;
   }
 };
 

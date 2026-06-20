@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 #pragma once
-#ifndef GCXX_RUNTIME_MEMEORY_MEMPOOL_MEMPOOL_VIEW_HPP_
-#define GCXX_RUNTIME_MEMEORY_MEMPOOL_MEMPOOL_VIEW_HPP_
+#ifndef GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_VIEW_HPP_
+#define GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_VIEW_HPP_
 
 #include <gcxx/internal/prologue.hpp>
 
+#include <cstddef>
 #include <cstdint>
 
 #include <gcxx/runtime/device/device_handle.hpp>
 #include <gcxx/runtime/flags/memory_flags.hpp>
+#include <gcxx/runtime/memory/mempool/mempool_props.hpp>
+#include <gcxx/runtime/stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
@@ -24,6 +27,49 @@ class MemPoolView {
   GCXX_FH auto getRawMemPool() const -> deviceMemPool_t;
 
   GCXX_FH static auto GetDefaultMempool(const DeviceHandle&) -> MemPoolView;
+
+  GCXX_FH auto MallocFromPoolAsync(std::size_t numBytes,
+                                   const StreamView& stream) const -> void*;
+
+  GCXX_FH auto TrimTo(std::size_t minBytesToKeep) const -> void;
+
+  GCXX_FH auto SetAccess(const MemAccessDesc* descList,
+                         std::size_t count) -> void;
+  GCXX_FH auto SetAccess(const MemAccessDesc& desc) -> void;
+  GCXX_FH auto GetAccess(const MemAccessDesc& location) const
+    -> flags::MemAccessFlags;
+
+  // ── IPC / inter-process sharing ─────────────────────────────────────────
+  // ExportPointer/ImportPointer share a single allocation across pool
+  // instances within the same process. ExportToShareableHandle /
+  // ImportFromShareableHandle share an entire pool across processes via an
+  // OS handle (POSIX fd on Linux, Win32 HANDLE on Windows). The shareable
+  // handle pointer is typed as void* to match the driver ABI.
+  using deviceMemPoolPtrExportData_t = driver::deviceMemPoolPtrExportData_t;
+
+  GCXX_FH static auto ExportPointer(void* ptr) -> deviceMemPoolPtrExportData_t;
+
+  GCXX_FH auto ImportPointer(deviceMemPoolPtrExportData_t* exportData) const
+    -> void*;
+
+  GCXX_FH auto ExportToShareableHandle(void* shareableHandle,
+                                       flags::MemAllocationHandle handleType,
+                                       unsigned int handleFlags) const -> void;
+
+  GCXX_FH static auto ImportFromShareableHandle(
+    void* shareableHandle, flags::MemAllocationHandle handleType,
+    unsigned int handleFlags) -> MemPoolView;
+
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+  // ── CUDA 13+ location-keyed pool API ────────────────────────────────────
+  GCXX_FH static auto GetDefaultMemPoolByLocation(
+    const MemAccessDesc& location, flags::MemAllocation type) -> MemPoolView;
+  GCXX_FH static auto GetMemPoolByLocation(
+    const MemAccessDesc& location, flags::MemAllocation type) -> MemPoolView;
+  GCXX_FH static auto SetMemPoolByLocation(const MemAccessDesc& location,
+                                           flags::MemAllocation type,
+                                           MemPoolView pool) -> void;
+#endif
 
   GCXX_FH auto SetFollowEventDependencies(bool state) -> void;
   GCXX_FH auto SetAllowOpportunistic(bool state) -> void;

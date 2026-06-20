@@ -57,7 +57,6 @@ TEST(MemsetTest, DeviceBufferOverloadIsCallable) {
   using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
 
   EXPECT_TRUE(
-    (std::is_same_v<decltype(gcxx::memory::Memset(
-                      std::declval<device_buf&>(), 0)),
-                    void>));
+    (std::is_same_v<
+      decltype(gcxx::memory::Memset(std::declval<device_buf&>(), 0)), void>));
 }

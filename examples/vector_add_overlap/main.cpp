@@ -45,8 +45,10 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  gcxx::memory::host_buffer<datatype> h_a(arg.N);
-  gcxx::memory::device_buffer<datatype> d_a(arg.N);
+  auto h_a = gcxx::memory::host_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::memory::sync_host_resource{}, arg.N);
+  auto d_a = gcxx::memory::device_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::memory::sync_device_resource{}, arg.N);
 
 
   gcxx::span h_a_span(h_a);

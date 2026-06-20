@@ -51,8 +51,8 @@ GCXX_FH auto StreamView::BeginCapture(
 }
 
 GCXX_FH auto StreamView::BeginCaptureToGraph(
-  GraphView& graph_view, const flags::streamCaptureMode createflag) const
-  -> void {
+  GraphView& graph_view,
+  const flags::streamCaptureMode createflag) const -> void {
   driver::streamBeginCaptureToGraph(
     m_stream, graph_view.getRawGraph(), nullptr, nullptr, 0,
     static_cast<driver::deviceStreamCaptureMode_t>(createflag));
