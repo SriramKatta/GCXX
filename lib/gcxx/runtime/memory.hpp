@@ -12,8 +12,7 @@
 
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 
-#include <gcxx/runtime/memory/vector/device_vector.hpp>
-#include <gcxx/runtime/memory/vector/host_vector.hpp>
+#include <gcxx/runtime/memory/buffers/buffer.hpp>
 
 
 #include <gcxx/runtime/memory/copy.hpp>

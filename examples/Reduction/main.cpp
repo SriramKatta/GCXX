@@ -27,8 +27,8 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  auto h_a = gcxx::host_vector<datatype>(arg.N);
-  auto d_a = gcxx::device_vector<datatype>(arg.N);
+  auto h_a = gcxx::memory::host_buffer<datatype>(arg.N);
+  auto d_a = gcxx::memory::device_buffer<datatype>(arg.N);
 
   gcxx::span h_a_span(h_a);
   gcxx::span d_a_span(d_a);
