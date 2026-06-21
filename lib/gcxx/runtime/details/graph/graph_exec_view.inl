@@ -32,6 +32,4 @@ GCXX_FH auto GraphExecView::Upload(const StreamView& stream) const -> void {
 
 GCXX_NAMESPACE_MAIN_END()
 
-#include <gcxx/macros/undefine_macros.hpp>
-
 #endif

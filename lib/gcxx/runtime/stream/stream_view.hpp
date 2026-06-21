@@ -60,8 +60,9 @@ class StreamView {
 
   GCXX_FH auto BeginCapture(flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH auto BeginCaptureToGraph(
-    GraphView& graph_view, flags::streamCaptureMode createflag) const -> void;
+  GCXX_FH auto BeginCaptureToGraph(GraphView& graph_view,
+                                   flags::streamCaptureMode createflag) const
+    -> void;
 
   GCXX_FH auto EndCapture() const -> Graph;
 
@@ -90,5 +91,5 @@ GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/stream/stream_view.inl>
 
-#include <gcxx/macros/undefine_macros.hpp>
+
 #endif

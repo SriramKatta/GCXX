@@ -32,5 +32,5 @@ GCXX_NAMESPACE_MAIN_END()
 
 #include <gcxx/runtime/details/graph/graph_exec_view.inl>
 
-#include <gcxx/macros/undefine_macros.hpp>
+
 #endif
