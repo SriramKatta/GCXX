@@ -13,6 +13,7 @@
 
 #include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
+#include <gcxx/runtime/memory/fill.hpp>
 #include <gcxx/runtime/memory/memory_resource/async_device_resource.hpp>
 #include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
 #include <gcxx/runtime/memory/memory_resource/sync_device_resource.hpp>
@@ -74,10 +75,31 @@ class buffer {
   /// Empty buffer, explicit lazy-intent tag.
   explicit buffer(no_init_t) noexcept(noexcept(Resource{})) : m_storage{} {}
 
+  /// Empty buffer bound to an explicit stream + resource (no allocation).
+  buffer(gcxx::StreamView stream, Resource resource) noexcept(
+    std::is_nothrow_move_constructible<Resource>::value)
+      : m_storage(stream, std::move(resource)) {}
+
   /// Allocate n elements from resource on stream (CCCL ctor order:
   /// stream, resource, size). Storage is uninitialized.
   buffer(gcxx::StreamView stream, Resource resource, size_type n)
       : m_storage(stream, std::move(resource), n) {}
+
+  /// Allocate n elements from resource on stream; storage is left
+  /// uninitialized (explicit no-init tag).
+  buffer(gcxx::StreamView stream, Resource resource, size_type n, no_init_t)
+      : m_storage(stream, std::move(resource), n) {}
+
+  /// Allocate n elements from resource on stream and initialize every element
+  /// to value. Dispatches to memset when value is zero, otherwise to a fill
+  /// kernel. Exception-safe: if initialization throws after the storage
+  /// subobject has allocated, m_storage's destructor reclaims the memory.
+  buffer(gcxx::StreamView stream, Resource resource, size_type n,
+         const value_type& value)
+      : m_storage(stream, std::move(resource), n) {
+    pointer p = data();
+    Fill(p, value, n, stream);
+  }
 
   /// Destructor is defaulted: raw memory is released by m_storage's RAII.
   ~buffer() = default;

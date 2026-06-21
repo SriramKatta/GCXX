@@ -16,6 +16,7 @@
 
 
 #include <gcxx/runtime/memory/copy.hpp>
+#include <gcxx/runtime/memory/fill.hpp>
 #include <gcxx/runtime/memory/memory_helpers.hpp>
 #include <gcxx/runtime/memory/memset.hpp>
 

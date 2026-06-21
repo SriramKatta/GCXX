@@ -5,6 +5,7 @@
 #define GCXX_RUNTIME_MEMORY_BUFFERS_BUFFER_STORAGE_HPP_
 
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 
 #include <gcxx/internal/prologue.hpp>
@@ -49,6 +50,16 @@ class buffer_storage {
 
   /// Empty storage (no allocation). Resource is default-constructed.
   buffer_storage() noexcept(noexcept(Resource{})) : m_resource{} {}
+
+  /// Empty storage bound to an explicit stream + resource (no allocation).
+  /// Useful for buffers that want a ready stream/resource but defer the
+  /// allocation to a later resize().
+  buffer_storage(gcxx::StreamView stream, Resource resource) noexcept(
+    std::is_nothrow_move_constructible<Resource>::value)
+      : m_resource(std::move(resource)),
+        m_stream(stream),
+        m_ptr(nullptr),
+        m_num_elems(0) {}
 
   /// Allocate num_bytes from resource on stream. Storage is uninitialized.
   /// If allocation throws, m_ptr is left null and the resource/stream members
