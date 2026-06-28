@@ -22,7 +22,7 @@ class LaunchConfig {
 
   void print() {}
 
- private:
+ public:
   deviceLaunchConfig_t config_ = {0};
 };
 
