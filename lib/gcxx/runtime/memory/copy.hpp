@@ -30,9 +30,8 @@ GCXX_FH auto Copy(Ptr destination, const Ptr source,
 
 GCXX_TEMPLATE(typename Ptr)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-GCXX_FH auto Copy(Ptr destination, const Ptr source,
-                  const std::size_t numElements,
-                  const StreamView& stream) -> void {
+GCXX_FH auto Copy(const StreamView& stream, Ptr destination, const Ptr source,
+                  const std::size_t numElements) -> void {
   auto src_raw_ptr = details_::get_raw_pointer(source);
   auto dst_raw_ptr = details_::get_raw_pointer(destination);
   using VT         = typename details_::pointed_to_type_t<Ptr>;
@@ -54,8 +53,8 @@ GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source) -> void {
 
 GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
 GCXX_REQUIRES(is_span_like_v<DSTTY> GCXX_AND is_span_like_v<SRCTY>)
-GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source,
-                  const StreamView& stream) -> void {
+GCXX_FH auto Copy(const StreamView& stream, DSTTY&& destination,
+                  SRCTY&& source) -> void {
   driver::deviceCopyAsync(
     details_::to_address(details_::data(destination)),
     details_::to_address(details_::data(source)),

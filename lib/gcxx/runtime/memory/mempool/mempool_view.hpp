@@ -28,8 +28,8 @@ class MemPoolView {
 
   GCXX_FH static auto GetDefaultMempool(const DeviceHandle&) -> MemPoolView;
 
-  GCXX_FH auto MallocFromPoolAsync(std::size_t numBytes,
-                                   const StreamView& stream) const -> void*;
+  GCXX_FH auto MallocFromPoolAsync(const StreamView& stream,
+                                   std::size_t numBytes) const -> void*;
 
   GCXX_FH auto TrimTo(std::size_t minBytesToKeep) const -> void;
 

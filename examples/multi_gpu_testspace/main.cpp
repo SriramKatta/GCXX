@@ -237,8 +237,8 @@ void launch_initialize_boundaries(real* __restrict__ const a_new,
   // initialize_boundaries<<<my_ny / 128 + 1, 128>>>(a_new, a, pi, offset, N,
   //                                                 my_ny);
   // CUDA_CALL(cudaGetLastError());
-  gcxx::launch::Kernel({128}, {my_ny / 128 + 1}, initialize_boundaries, a_new,
-                       a, pi, offset, N, my_ny);
+  gcxx::launch::Kernel(gcxx::Stream::Null(), {128}, {my_ny / 128 + 1}, 0,
+                       initialize_boundaries, a_new, a, pi, offset, N, my_ny);
 }
 
 void launch_jacobi_kernel(real* __restrict__ const a_new,

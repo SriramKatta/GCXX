@@ -98,7 +98,7 @@ class buffer {
          const value_type& value)
       : m_storage(stream, std::move(resource), n) {
     pointer p = data();
-    Fill(p, value, n, stream);
+    Fill(stream, p, value, n);
   }
 
   /// Destructor is defaulted: raw memory is released by m_storage's RAII.

@@ -42,13 +42,13 @@ __global__ void fill_kernel(VT* ptr, VT value, std::size_t n) {
 //   value != VT{}  -> fill_kernel (typed write per element)
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename VT>
-GCXX_FH auto fill_dispatch(VT* ptr, const VT& value, std::size_t n,
-                           const StreamView& stream) -> void {
+GCXX_FH auto fill_dispatch(const StreamView& stream, VT* ptr, const VT& value,
+                           std::size_t n) -> void {
   if (n == 0) {
     return;
   }
   if (value == VT{}) {
-    Memset(ptr, 0, n, stream);
+    Memset(stream, ptr, 0, n);
   } else {
     constexpr unsigned int block_size = 256;
     const unsigned int grid_size =
@@ -65,16 +65,16 @@ GCXX_TEMPLATE(typename Ptr, typename Val)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
 GCXX_FH auto Fill(Ptr& handle, const Val& value,
                   const std::size_t numElements) -> void {
-  Fill(handle, value, numElements, StreamView::Null());
+  Fill(StreamView::Null(), handle, value, numElements);
 }
 
 GCXX_TEMPLATE(typename Ptr, typename Val)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-GCXX_FH auto Fill(Ptr& handle, const Val& value, const std::size_t numElements,
-                  const StreamView& stream) -> void {
+GCXX_FH auto Fill(const StreamView& stream, Ptr& handle, const Val& value,
+                  const std::size_t numElements) -> void {
   using element_t = typename details_::pointed_to_type_t<Ptr>;
-  fill_dispatch(details_::get_raw_pointer(handle),
-                static_cast<element_t>(value), numElements, stream);
+  fill_dispatch(stream, details_::get_raw_pointer(handle),
+                static_cast<element_t>(value), numElements);
 }
 
 // ╔════════════════════════════════════════════════════════╗
@@ -83,17 +83,16 @@ GCXX_FH auto Fill(Ptr& handle, const Val& value, const std::size_t numElements,
 GCXX_TEMPLATE(typename DSTTY, typename Val)
 GCXX_REQUIRES(is_span_like_v<DSTTY>)
 GCXX_FH auto Fill(DSTTY&& destination, const Val& value) -> void {
-  Fill(std::forward<DSTTY>(destination), value, StreamView::Null());
+  Fill(StreamView::Null(), std::forward<DSTTY>(destination), value);
 }
 
 GCXX_TEMPLATE(typename DSTTY, typename Val)
 GCXX_REQUIRES(is_span_like_v<DSTTY>)
-GCXX_FH auto Fill(DSTTY&& destination, const Val& value,
-                  const StreamView& stream) -> void {
+GCXX_FH auto Fill(const StreamView& stream, DSTTY&& destination,
+                  const Val& value) -> void {
   using element_t = span_element_t<DSTTY>;
-  fill_dispatch(details_::to_address(details_::data(destination)),
-                static_cast<element_t>(value), details_::size(destination),
-                stream);
+  fill_dispatch(stream, details_::to_address(details_::data(destination)),
+                static_cast<element_t>(value), details_::size(destination));
 }
 GCXX_NAMESPACE_MEMORY_END()
 

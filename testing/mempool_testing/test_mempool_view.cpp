@@ -74,7 +74,7 @@ TEST_F(MemPoolViewTest, MallocFromPoolAsyncReturnsPointer) {
   const gcxx::MemPoolView view = pool.get();
 
   const gcxx::StreamView stream = gcxx::StreamView::Null();
-  void* const ptr = view.MallocFromPoolAsync(kSmallAllocBytes, stream);
+  void* const ptr = view.MallocFromPoolAsync(stream, kSmallAllocBytes);
   EXPECT_NE(ptr, nullptr);
 
   gcxx::driver::deviceFreeAsync(ptr, stream.getRawStream());
@@ -86,7 +86,7 @@ TEST_F(MemPoolViewTest, TrimToIsCallable) {
 
   // Allocate then trim; keeping 0 bytes releases all idle memory back to OS.
   const gcxx::StreamView stream = gcxx::StreamView::Null();
-  void* const ptr = view.MallocFromPoolAsync(kLargeAllocBytes, stream);
+  void* const ptr = view.MallocFromPoolAsync(stream, kLargeAllocBytes);
   ASSERT_NE(ptr, nullptr);
   gcxx::driver::deviceFreeAsync(ptr, stream.getRawStream());
 

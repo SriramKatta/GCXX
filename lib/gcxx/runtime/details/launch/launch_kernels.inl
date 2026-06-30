@@ -32,13 +32,6 @@ namespace launch {
     driver::launchHostFunc(sview.getRawStream(), fn, userData);
   }
 
-  template <typename... ExpTypes, typename... ActTypes>
-  GCXX_FH void Kernel(dim3 griddim, dim3 blockdim, void (*kernel)(ExpTypes...),
-                      ActTypes&&... args) {
-    Kernel(StreamView::Null(), griddim, blockdim, 0, kernel,
-           std::forward<ActTypes>(args)...);
-  }
-
   // TODO : add sfinae to check if the kernel is __global__
   template <typename... ExpTypes, typename... ActTypes>
   GCXX_FH void Kernel(StreamView sv, dim3 griddim, dim3 blockdim,

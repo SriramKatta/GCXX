@@ -111,14 +111,14 @@ __global__ void kernel_reduction(const gcxx::span<VT> a, VT* result) {
 template <typename VT>
 VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
                            gcxx::span<VT>& ptr) {
-  auto res_raii = gcxx::memory::make_device_unique_ptr<VT>(1, str);
-  gcxx::memory::Memset(res_raii, 0, 1, str);
+  auto res_raii = gcxx::memory::make_device_unique_ptr<VT>(str, 1);
+  gcxx::memory::Memset(str, res_raii, 0, 1);
   VT* res = res_raii.get();
 
   gcxx::launch::Kernel(str, arg.blocks, arg.threads, arg.threads * sizeof(VT),
                        kernel_reduction<VT>, ptr, res);
 
   auto res_host = gcxx::memory::make_host_pinned_unique_ptr<VT>(1);
-  gcxx::memory::Copy(res_host.get(), res_raii.get(), 1, str);
+  gcxx::memory::Copy(str, res_host.get(), res_raii.get(), 1);
   return *res_host;
 }

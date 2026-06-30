@@ -25,7 +25,7 @@ GCXX_FH auto MemPoolView::GetDefaultMempool(const DeviceHandle& hand)
 }
 
 GCXX_FH auto MemPoolView::MallocFromPoolAsync(
-  std::size_t numBytes, const StreamView& stream) const -> void* {
+  const StreamView& stream, std::size_t numBytes) const -> void* {
   return driver::deviceMallocFromPoolAsync(numBytes, m_pool,
                                            stream.getRawStream());
 }

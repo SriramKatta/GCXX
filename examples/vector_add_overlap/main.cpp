@@ -72,11 +72,11 @@ int main(int argc, char** argv) {
       size_t count   = std::min(base_count, arg.N - offset);
       auto h_subspan = h_a_span.subspan(offset, count);
       auto d_subspan = d_a_span.subspan(offset, count);
-      gcxx::memory::Copy(d_subspan, h_subspan, stream);
+      gcxx::memory::Copy(stream, d_subspan, h_subspan);
       launch_scalar_kernel(arg, stream, d_subspan);
       launch_vec2_kernel(arg, stream, d_subspan);
       launch_vec4_kernel(arg, stream, d_subspan);
-      gcxx::memory::Copy(h_subspan, d_subspan, stream);
+      gcxx::memory::Copy(stream, h_subspan, d_subspan);
     }
   }
 

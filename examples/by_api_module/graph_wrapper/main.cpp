@@ -278,12 +278,12 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::Copy(inputVec_d, inputVec_h, inputSize, stream1);
+  gcxx::memory::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
-  gcxx::memory::Memset(outputVec_d, 0, numOfBlocks, stream2);
+  gcxx::memory::Memset(stream2, outputVec_d, 0, numOfBlocks);
   memsetEvent1.RecordInStream(stream2);
 
-  gcxx::memory::Memset(result_d, 0, 1, stream3);
+  gcxx::memory::Memset(stream3, result_d, 0, 1);
   memsetEvent2.RecordInStream(stream3);
 
   stream1.WaitOnEvent(memsetEvent1);
@@ -296,7 +296,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::Copy(&result_h, result_d, 1, stream1);
+  gcxx::memory::Copy(stream1, &result_h, result_d, 1);
 
 
   callBackData_t hostFnData = {nullptr};
@@ -346,12 +346,12 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::Copy(inputVec_d, inputVec_h, inputSize, stream1);
+  gcxx::memory::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
-  gcxx::memory::Memset(outputVec_d, 0, numOfBlocks, stream2);
+  gcxx::memory::Memset(stream2, outputVec_d, 0, numOfBlocks);
   memsetEvent1.RecordInStream(stream2);
 
-  gcxx::memory::Memset(result_d, 0, 1, stream3);
+  gcxx::memory::Memset(stream3, result_d, 0, 1);
   memsetEvent2.RecordInStream(stream3);
 
   stream1.WaitOnEvent(memsetEvent1);
@@ -364,7 +364,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::Copy(&result_h, result_d, 1, stream1);
+  gcxx::memory::Copy(stream1, &result_h, result_d, 1);
 
 
   callBackData_t hostFnData = {nullptr};

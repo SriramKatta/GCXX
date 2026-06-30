@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
   gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
   auto H2Dstart = str.RecordEvent();
-  gcxx::memory::Copy(d_a_span, h_a_span, str);
+  gcxx::memory::Copy(str, d_a_span, h_a_span);
   auto H2Dend = str.RecordEvent();
 
   auto scalar_kern_time =
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 
 
   auto D2Hstart = str.RecordEvent();
-  gcxx::memory::Copy(h_a_span, d_a_span, str);
+  gcxx::memory::Copy(str, h_a_span, d_a_span);
   auto D2Hend = str.RecordEvent();
 
   D2Hend.Synchronize();
