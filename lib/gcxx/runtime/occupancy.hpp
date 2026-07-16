@@ -32,10 +32,9 @@ namespace Occupancy {
   }
 
   template <typename func_t>
-  GCXX_FH auto MaxPotentialBlockSize(func_t func,
-                                     std::size_t dynamicSMemSize = 0,
-                                     int blockSizeLimit          = 0)
-    -> std::pair<int, int> {
+  GCXX_FH auto MaxPotentialBlockSize(
+    func_t func, std::size_t dynamicSMemSize = 0,
+    int blockSizeLimit = 0) -> std::pair<int, int> {
     return driver::occupancyMaxPotentialBlockSize(func, dynamicSMemSize,
                                                   blockSizeLimit);
   }
@@ -78,9 +77,8 @@ namespace Occupancy {
   }
 
   template <typename func_t>
-  GCXX_FH auto MaxActiveClusters(func_t* func,
-                                 const driver::deviceLaunchConfig_t* config)
-    -> int {
+  GCXX_FH auto MaxActiveClusters(
+    func_t* func, const driver::deviceLaunchConfig_t* config) -> int {
     return driver::occupancyMaxActiveClusters(func, config);
   }
 
