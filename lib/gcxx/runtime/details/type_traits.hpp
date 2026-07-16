@@ -46,8 +46,9 @@ struct is_complete<T, decltype(sizeof(T))> : std::true_type {};
 template <typename T>
 inline constexpr bool is_complete_v = is_complete<T>::value;
 
+// std::lib has this from c++20
 template <typename VT>
-using uncvref_t =
+using remove_cvref_t =
   typename std::remove_cv_t<typename std::remove_reference_t<VT>>;
 
 template <typename>
@@ -83,7 +84,8 @@ struct is_pointer_or_has_get<T, std::void_t<decltype(std::declval<T>().get())>>
     : std::is_pointer<decltype(std::declval<T>().get())> {};
 
 template <typename T>
-inline constexpr bool is_pointer_or_has_get_v = is_pointer_or_has_get<T>::value;
+inline constexpr bool is_pointer_or_has_get_v =
+  is_pointer_or_has_get<remove_cvref_t<T>>::value;
 
 // Primary template: not a pointer and no .get()
 template <typename T, typename = void>
@@ -103,7 +105,7 @@ struct pointed_to_type<T, std::void_t<decltype(std::declval<T>().get())>> {
 
 // Helper alias template
 template <typename T>
-using pointed_to_type_t = typename pointed_to_type<T>::type;
+using pointed_to_type_t = typename pointed_to_type<remove_cvref_t<T>>::type;
 
 template <typename VT>
 GCXX_FH auto get_raw_pointer(VT* ptr) {

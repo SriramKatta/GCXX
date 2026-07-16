@@ -50,7 +50,7 @@ struct is_gcxx_span_specialization<gcxx::restrict_span<T, Extent>>
 
 template <typename T>
 GCXX_CXPR inline bool is_gcxx_span_specialization_v =
-  is_gcxx_span_specialization<uncvref_t<T>>::value;
+  is_gcxx_span_specialization<remove_cvref_t<T>>::value;
 
 // Specialisation: T has .data() → pointer and .size() → integral.
 template <typename T>
@@ -261,8 +261,8 @@ class span_base {
   GCXX_REQUIRES(
     details_::has_size_and_data_v<R> GCXX_AND
       is_range_ptr_convertible_v<R, element_type>
-        GCXX_AND !std::is_array_v<details_::uncvref_t<R>>
-          GCXX_AND !gcxx::details_::is_std_array_v<details_::uncvref_t<R>>
+        GCXX_AND !std::is_array_v<details_::remove_cvref_t<R>>
+          GCXX_AND !gcxx::details_::is_std_array_v<details_::remove_cvref_t<R>>
             GCXX_AND !details_::is_gcxx_span_specialization_v<R>
               GCXX_AND(E == gcxx::dynamic_extent))
   GCXX_FHC span_base(R&& r)
@@ -276,8 +276,8 @@ class span_base {
   GCXX_REQUIRES(
     details_::has_size_and_data_v<R> GCXX_AND
       is_range_ptr_convertible_v<R, element_type>
-        GCXX_AND !std::is_array_v<details_::uncvref_t<R>>
-          GCXX_AND !gcxx::details_::is_std_array_v<details_::uncvref_t<R>>
+        GCXX_AND !std::is_array_v<details_::remove_cvref_t<R>>
+          GCXX_AND !gcxx::details_::is_std_array_v<details_::remove_cvref_t<R>>
             GCXX_AND !details_::is_gcxx_span_specialization_v<R>
               GCXX_AND(E != gcxx::dynamic_extent))
   GCXX_FHC explicit span_base(R&& r)
@@ -492,9 +492,8 @@ template <class T, std::size_t N>
 span(const std::array<T, N>&) -> span<const T, N>;
 
 template <class R>
-span(R&&)
-  -> span<
-    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+span(R&&) -> span<
+  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                     Restrcit Span                      █
@@ -514,9 +513,8 @@ class restrict_span
 // █             Restrcit Span Deduction guides             █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class It, class EndOrSize>
-restrict_span(It, EndOrSize)
-  -> restrict_span<
-    std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
+restrict_span(It, EndOrSize) -> restrict_span<
+  std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
 
 template <class T, std::size_t N>
 restrict_span(T (&)[N]) -> restrict_span<T, N>;
@@ -528,9 +526,8 @@ template <class T, std::size_t N>
 restrict_span(const std::array<T, N>&) -> restrict_span<const T, N>;
 
 template <class R>
-restrict_span(R&&)
-  -> restrict_span<
-    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+restrict_span(R&&) -> restrict_span<
+  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // ╔════════════════════════════════════════════════════════╗
 // ║           Public span-like concept and helpers         ║
@@ -540,14 +537,14 @@ restrict_span(R&&)
 /// Works with references and cv-qualified types.
 template <typename T>
 using span_element_t = std::remove_pointer_t<decltype(details_::data(
-  std::declval<details_::uncvref_t<T>&>()))>;
+  std::declval<details_::remove_cvref_t<T>&>()))>;
 
 /// True for any T that exposes .data() → pointer and .size() → integral.
 /// Satisfied by gcxx::span, gcxx::restrict_span, std::span, std::vector,
 /// std::array, and any user type with those two members.
 template <typename T>
 GCXX_CONCEPT is_span_like_v =
-  details_::is_span_like_impl<details_::uncvref_t<T>>::value;
+  details_::is_span_like_impl<details_::remove_cvref_t<T>>::value;
 
 /// True when T is span-like and its element type is array-convertible to ET.
 /// Use this to constrain Copy, kernel launch, or other generic range APIs.
