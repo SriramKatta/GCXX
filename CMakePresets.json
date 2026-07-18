@@ -182,8 +182,7 @@
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-debug",
       "cacheVariables": {
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
-          "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug",
-        "GCXX_ENABLE_CLANG_TIDY": "ON"
+          "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
       }
     },
     {
@@ -211,7 +210,24 @@
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-debug",
       "cacheVariables": {
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
-          "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug",
+          "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
+      }
+    },
+    {
+      "name": "tidy_cuda",
+      "displayName": "CUDA Debug (clang-tidy)",
+      "inherits": "debug_cuda_full",
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-tidy",
+      "cacheVariables": {
+        "GCXX_ENABLE_CLANG_TIDY": "ON"
+      }
+    },
+    {
+      "name": "tidy_hip",
+      "displayName": "HIP Debug (clang-tidy)",
+      "inherits": "debug_hip_full",
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-tidy",
+      "cacheVariables": {
         "GCXX_ENABLE_CLANG_TIDY": "ON"
       }
     }
@@ -297,7 +313,7 @@
     {
       "name": "build_tidy_cuda",
       "displayName": "clang-tidy (CUDA)",
-      "configurePreset": "debug_cuda_full",
+      "configurePreset": "tidy_cuda",
       "inherits": "build_base",
       "targets": [
         "gcxx.tidy"
@@ -306,7 +322,7 @@
     {
       "name": "build_tidy_hip",
       "displayName": "clang-tidy (HIP)",
-      "configurePreset": "debug_hip_full",
+      "configurePreset": "tidy_hip",
       "inherits": "build_base",
       "targets": [
         "gcxx.tidy"
@@ -544,7 +560,7 @@
       "steps": [
         {
           "type": "configure",
-          "name": "debug_cuda_full"
+          "name": "tidy_cuda"
         },
         {
           "type": "build",
@@ -558,7 +574,7 @@
       "steps": [
         {
           "type": "configure",
-          "name": "debug_hip_full"
+          "name": "tidy_hip"
         },
         {
           "type": "build",
