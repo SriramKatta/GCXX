@@ -29,34 +29,54 @@ namespace {
     }
   }
 
-}  // namespace
-
-TEST(MemsetTest, RawPointerOverloadIsCallable) {
-  EXPECT_TRUE(
-    (std::is_same_v<decltype(gcxx::memory::Memset(
-                      std::declval<std::uint32_t*&>(), 0, std::size_t{4})),
-                    void>));
-}
-
-TEST(MemsetTest, UniquePointerOverloadIsCallable) {
   using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
-
-  EXPECT_TRUE(
-    (std::is_same_v<decltype(gcxx::memory::Memset(std::declval<device_ptr&>(),
-                                                  0, std::size_t{4})),
-                    void>));
-}
-
-TEST(MemsetTest, SpanOverloadIsCallable) {
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Memset(
-                                std::declval<gcxx::span<std::uint32_t>&>(), 0)),
-                              void>));
-}
-
-TEST(MemsetTest, DeviceBufferOverloadIsCallable) {
   using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
 
-  EXPECT_TRUE(
-    (std::is_same_v<
-      decltype(gcxx::memory::Memset(std::declval<device_buf&>(), 0)), void>));
+  // Satisfies neither is_pointer_or_has_get_v nor is_span_like_v — the
+  // universal negative case for every overload's SFINAE constraint.
+  struct NotAHandle {};
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Detection traits per overload shape. Args... is the handle candidate;
+  // value/count are concrete. Positive asserts check each accepted shape;
+  // negative asserts check rejection — something the old decltype(...) type
+  // check could not do at all.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Memset(handle, value, count) — sync, pointer/smart-pointer.
+  GCXX_DEFINE_IS_CALLABLE(is_memset_ptr_callable,
+                          gcxx::memory::Memset(std::declval<Args>()..., 0,
+                                               std::size_t{4}));
+
+  // Memset(spanLike, value) — sync, span-like.
+  GCXX_DEFINE_IS_CALLABLE(is_memset_span_callable,
+                          gcxx::memory::Memset(std::declval<Args>()..., 0));
+
+}  // namespace
+
+// =============================================================================
+// Positive: every tested overload resolves for the handle shapes it accepts.
+// =============================================================================
+
+TEST(MemsetSfinaeTest, AcceptsValidHandleShapes) {
+  static_assert(is_memset_ptr_callable_v<std::uint32_t*&>);
+  static_assert(is_memset_ptr_callable_v<device_ptr&>);
+  static_assert(is_memset_span_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(is_memset_span_callable_v<device_buf&>);
+}
+
+// =============================================================================
+// Negative: each overload rejects the wrong handle shape. This is the part
+// the old decltype(...) type check could not do at all.
+// =============================================================================
+
+TEST(MemsetSfinaeTest, RejectsInvalidHandleShapes) {
+  // Pointer overload rejects spans (no .get()), NotAHandle, plain values.
+  static_assert(!is_memset_ptr_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(!is_memset_ptr_callable_v<NotAHandle>);
+
+  // Span overload rejects raw pointers (no .data()/.size() members),
+  // NotAHandle.
+  static_assert(!is_memset_span_callable_v<std::uint32_t*>);
+  static_assert(!is_memset_span_callable_v<NotAHandle>);
 }

@@ -3,8 +3,8 @@
 #include "tests_common.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
-#include <type_traits>
 
 #include <gcxx/api.hpp>
 
@@ -23,7 +23,64 @@ namespace {
   template <typename VT>
   using mock_buffer = gcxx::memory::buffer<VT, host_mock_resource>;
 
+  using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
+  using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
+
+  // Satisfies neither is_pointer_or_has_get_v nor is_span_like_v — the
+  // universal negative case for every overload's SFINAE constraint.
+  struct NotAHandle {};
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Detection traits per overload shape. Args... is the candidate pack; the
+  // rest of the call (stream, resource, count) is concrete. Positive asserts
+  // check each accepted shape; negative asserts check rejection — something
+  // the old decltype(...) type check could not do at all.
+  //
+  // value-init ctor: Args = the value type (last ctor arg).
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  GCXX_DEFINE_IS_CALLABLE(
+    is_buf_value_init_callable,
+    mock_buffer<std::uint32_t>(std::declval<gcxx::StreamView>(),
+                               std::declval<host_mock_resource>(),
+                               std::size_t{4}, std::declval<Args>()...));
+
+  GCXX_DEFINE_IS_CALLABLE(is_fill_ptr_callable,
+                          gcxx::memory::Fill(std::declval<Args>()...,
+                                             std::uint32_t{0}, std::size_t{4}));
+
+  GCXX_DEFINE_IS_CALLABLE(is_fill_span_callable,
+                          gcxx::memory::Fill(std::declval<Args>()...,
+                                             std::uint32_t{0}));
+
 }  // namespace
+
+// =============================================================================
+// Positive: value-init ctor + each Fill overload resolve for accepted shapes.
+// =============================================================================
+TEST(BufferSfinaeTest, AcceptsValidHandleShapes) {
+  static_assert(is_buf_value_init_callable_v<std::uint32_t>);
+  static_assert(is_fill_ptr_callable_v<std::uint32_t*&>);
+  static_assert(is_fill_ptr_callable_v<device_ptr&>);
+  static_assert(is_fill_span_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(is_fill_span_callable_v<device_buf&>);
+}
+
+// =============================================================================
+// Negative: each overload rejects the wrong handle / value shape. This is the
+// part the old decltype(...) type check could not do at all.
+// =============================================================================
+TEST(BufferSfinaeTest, RejectsInvalidHandleShapes) {
+  static_assert(!is_buf_value_init_callable_v<NotAHandle>);
+
+  // Pointer Fill rejects spans (no .get()), NotAHandle.
+  static_assert(!is_fill_ptr_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(!is_fill_ptr_callable_v<NotAHandle>);
+
+  // Span Fill rejects raw pointers (no .data()/.size() members), NotAHandle.
+  static_assert(!is_fill_span_callable_v<std::uint32_t*>);
+  static_assert(!is_fill_span_callable_v<NotAHandle>);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // buffer(stream, resource) — empty buffer bound to a stream + resource.
@@ -72,25 +129,10 @@ TEST(BufferCtorTest, NoInitCtorZeroSizeHasZeroSize) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // buffer(stream, resource, n, value) — value-initialized. The dispatch
-// (memset for zero, kernel for non-zero) needs a GPU to execute, so here we
-// only assert the constructors are callable (compile-time), mirroring the
-// Memset callable-tests.
+// (memset for zero, kernel for non-zero) needs a GPU to execute, so callability
+// is asserted at namespace scope above (is_buf_value_init_callable); here we
+// only run the zero-size path.
 // ─────────────────────────────────────────────────────────────────────────────
-TEST(BufferCtorTest, ValueInitCtorIsCallableWithZero) {
-  using buf_t = mock_buffer<std::uint32_t>;
-  EXPECT_TRUE((std::is_same_v<decltype(buf_t(std::declval<gcxx::StreamView>(),
-                                             std::declval<host_mock_resource>(),
-                                             std::size_t{4}, std::uint32_t{0})),
-                              buf_t>));
-}
-
-TEST(BufferCtorTest, ValueInitCtorIsCallableWithNonZero) {
-  using buf_t = mock_buffer<std::uint32_t>;
-  EXPECT_TRUE((std::is_same_v<decltype(buf_t(std::declval<gcxx::StreamView>(),
-                                             std::declval<host_mock_resource>(),
-                                             std::size_t{4}, std::uint32_t{7})),
-                              buf_t>));
-}
 
 // n == 0 actually constructs via the value-init ctor, which forces the whole
 // Fill / fill_dispatch template to instantiate (so the fill_kernel + launch
@@ -100,25 +142,4 @@ TEST(BufferCtorTest, ValueInitZeroSizeInstantiatesFillPath) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{0}, 0);
   EXPECT_EQ(buf.size(), 0);
-}
-
-TEST(BufferCtorTest, FillOverloadsAreCallable) {
-  using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
-  using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
-
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<std::uint32_t*&>(),
-                                std::uint32_t{0}, std::size_t{4})),
-                              void>));
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<device_ptr&>(), std::uint32_t{0},
-                                std::size_t{4})),
-                              void>));
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<gcxx::span<std::uint32_t>&>(),
-                                std::uint32_t{0})),
-                              void>));
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<device_buf&>(), std::uint32_t{0})),
-                              void>));
 }
