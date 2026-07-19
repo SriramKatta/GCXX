@@ -11,13 +11,18 @@
 namespace {
 
   // Host-only resource (malloc/free) so ctor/size logic can be exercised
-  // without a GPU or the CUDA runtime.
+  // without a GPU or the CUDA runtime. T3: must advertise host_accessible
+  // to satisfy buffer's static_assert on execution-space properties.
   struct host_mock_resource {
     void* allocate(std::size_t num_bytes, gcxx::StreamView) {
       return std::malloc(num_bytes);
     }
 
     void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
+
+    friend constexpr void get_property(const host_mock_resource&,
+                                       gcxx::memory::host_accessible) noexcept {
+    }
   };
 
   template <typename VT>

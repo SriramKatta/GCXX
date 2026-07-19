@@ -4,6 +4,7 @@ set(SRC_BASE_NAMES
     test_buffer_constructors
     test_buffer_accessors
     test_buffer_constructors_range
+    test_buffer_properties
     test_basic_resource
     test_copy
 )

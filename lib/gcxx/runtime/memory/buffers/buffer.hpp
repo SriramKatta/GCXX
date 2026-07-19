@@ -15,6 +15,7 @@
 
 #include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
+#include <gcxx/runtime/memory/buffers/properties.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
 #include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
@@ -58,6 +59,13 @@ template <typename VT, typename Resource>
 class buffer {
   static_assert(std::is_trivially_copyable_v<VT>,
                 "buffer<VT, Resource> requires trivially copyable VT");
+
+  // T3: Resource must advertise at least one execution-space property
+  // (host_accessible or device_accessible) via friend get_property. Catches
+  // misuse early instead of silently disabling all element accessors.
+  static_assert(contains_execution_space_property_v<Resource>,
+                "buffer<VT, Resource> requires Resource to advertise "
+                "device_accessible or host_accessible");
 
  public:
   using buffer_t               = buffer_storage<VT, Resource>;
@@ -136,6 +144,26 @@ class buffer {
       Copy(stream, data(), const_cast<value_type*>(std::data(rng)), rng.size());
     }
   }
+
+  /// Cross-space deep copy ctor (T3). Allocate other.size() elements from
+  /// resource on stream and copy from `other` (which may use a different
+  /// Resource with different accessibility properties). SFINAE rejects
+  /// same-type buffers (use the regular copy ctor — which is deleted, so this
+  /// prevents accidental implicit copies too).
+  /// ponytail: const_cast because gcxx::memory::Copy's static_assert requires
+  /// same-type pointers; other.data() returns const_pointer. See the
+  /// initializer_list ctor for the same workaround.
+  GCXX_TEMPLATE(typename OtherResource)
+  GCXX_REQUIRES(!std::is_same_v<OtherResource, Resource>)
+  buffer(gcxx::StreamView stream, Resource resource,
+         const buffer<value_type, OtherResource>& other)
+      : m_storage(stream, std::move(resource), other.size()) {
+    if (other.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+      Copy(stream, data(), const_cast<value_type*>(other.data()), other.size());
+    }
+  }
+
   /// Destructor is defaulted: raw memory is released by m_storage's RAII.
   ~buffer() = default;
 
@@ -176,41 +204,61 @@ class buffer {
     return const_reverse_iterator(begin());
   }
 
-  // ─────────────────────────── element access (T1) ──────────────────────────
-  // No host_accessible gating yet (no property system). Gating lands at T3.
+  // ─────────────────────────── element access (T3) ──────────────────────────
+  // Gated on host_accessible: dereferencing device-only memory from the host
+  // is UB, so the accessors are SFINAE-removed unless Resource advertises
+  // host_accessible via friend get_property. Mirrors CCCL buffer.h:484-565.
+  // first/last/subspan below remain un-gated — they return spans (views),
+  // which is safe to construct without touching memory.
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FHDC auto operator[](size_type i) noexcept -> reference {
     GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
     return data()[i];
   }
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FHDC auto operator[](size_type i) const noexcept -> const_reference {
     GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
     return data()[i];
   }
 
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FH auto at(size_type i) -> reference {
     if (i >= size())
       throw std::out_of_range{"buffer::at"};
     return data()[i];
   }
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FH auto at(size_type i) const -> const_reference {
     if (i >= size())
       throw std::out_of_range{"buffer::at"};
     return data()[i];
   }
 
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FHDC auto front() noexcept -> reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
     return data()[0];
   }
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FHDC auto front() const noexcept -> const_reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
     return data()[0];
   }
 
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FHDC auto back() noexcept -> reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
     return data()[size() - 1];
   }
+  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_REQUIRES(H)
   GCXX_FHDC auto back() const noexcept -> const_reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
     return data()[size() - 1];

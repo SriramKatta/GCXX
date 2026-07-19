@@ -17,7 +17,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::basic_resource<AllocFn, FreeFn>
+// gcxx::memory::basic_resource<AllocFn, FreeFn, Properties...>
 //
 // Resource template that composes two function objects (from
 // device_memory_helper.hpp) into the buffer<VT, Resource> concept shape:
@@ -35,6 +35,11 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 //     async. Stream is threaded through to the underlying driver call, which
 //     handles ordering natively (no extra sync needed).
 //
+// Properties... carry the resource's accessibility (device_accessible,
+// host_accessible) at the type level. They are advertised via a friend
+// `get_property` overload so has_property_v<basic_resource<...>, P> works
+// without per-alias boilerplate.
+//
 // The 3 forwarder resource classes this replaces (sync_device_resource,
 // sync_host_resource, async_device_resource) were 1:1 wrappers over these
 // same function objects; this template deletes ~90 LOC of boilerplate and
@@ -46,7 +51,7 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 // shows the extra sync hurts, the upgrade path is an opt-out trait — but
 // don't add it preemptively.
 // ─────────────────────────────────────────────────────────────────────────────
-template <typename AllocFn, typename FreeFn>
+template <typename AllocFn, typename FreeFn, typename... Properties>
 class basic_resource {
  public:
   constexpr basic_resource() = default;
@@ -73,12 +78,37 @@ class basic_resource {
     }
   }
 
-  friend bool operator==(const basic_resource&, const basic_resource&) noexcept {
+  friend bool operator==(const basic_resource&,
+                         const basic_resource&) noexcept {
     return true;
   }
   friend bool operator!=(const basic_resource& lhs,
                          const basic_resource& rhs) noexcept {
     return !(lhs == rhs);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Property advertisement: respond to get_property(_, P) for every P in
+  // Properties... so has_property_v<basic_resource<...>, P> detects them
+  // via ADL. Mirrors the per-resource `friend void get_property` pattern
+  // used by CCCL's legacy_managed_memory_resource.
+  //
+  // ponytail: the SFINAE on this friend is delicate. The natural form
+  //   template <typename Property,
+  //             enable_if_t<(is_same_v<Property, Properties> || ...), int> = 0>
+  // fails on NVCC/EDG when Properties is empty: the OR-fold becomes the
+  // constant `false` with no dependency on Property, so EDG evaluates it
+  // eagerly during class instantiation and hard-errors. Wrapping the check
+  // in property_match_t<Property> forces dependence on Property, deferring
+  // evaluation to the point of friend call.
+  // ─────────────────────────────────────────────────────────────────────────
+  template <typename Property>
+  struct property_match_t
+      : std::bool_constant<(std::is_same_v<Property, Properties> || ...)> {};
+
+  template <typename Property,
+            std::enable_if_t<property_match_t<Property>::value, int> = 0>
+  friend constexpr void get_property(const basic_resource&, Property) noexcept {
   }
 
  private:

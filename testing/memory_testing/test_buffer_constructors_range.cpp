@@ -21,6 +21,11 @@ namespace {
       return std::malloc(num_bytes);
     }
     void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
+
+    // T3: must advertise host_accessible to satisfy buffer's static_assert.
+    friend constexpr void get_property(const host_mock_resource&,
+                                       gcxx::memory::host_accessible) noexcept {
+    }
   };
 
   template <typename VT>
@@ -29,11 +34,10 @@ namespace {
   // Detects whether `buffer(stream, resource, T{})` resolves to the range
   // ctor. Used to assert the SFINAE boundary: integral types must hit the
   // size ctor, not the range ctor.
-  GCXX_DEFINE_IS_CALLABLE(
-    is_range_ctor_callable,
-    mock_buffer<int>(std::declval<gcxx::StreamView>(),
-                     std::declval<host_mock_resource>(),
-                     std::declval<Args>()...));
+  GCXX_DEFINE_IS_CALLABLE(is_range_ctor_callable,
+                          mock_buffer<int>(std::declval<gcxx::StreamView>(),
+                                           std::declval<host_mock_resource>(),
+                                           std::declval<Args>()...));
 
 }  // namespace
 
@@ -79,9 +83,9 @@ TEST(BufferRangeCtorSfinaeTest, AcceptsSizedRanges) {
 // make_buffer factory: forwards to the matching ctor.
 // =============================================================================
 TEST(MakeBufferTest, MakeBufferWithSize) {
-  auto buf = gcxx::memory::make_buffer<int>(gcxx::StreamView::Null(),
-                                            host_mock_resource{}, std::size_t{8},
-                                            gcxx::memory::no_init);
+  auto buf = gcxx::memory::make_buffer<int>(
+    gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{8},
+    gcxx::memory::no_init);
   EXPECT_EQ(buf.size(), 8);
 }
 

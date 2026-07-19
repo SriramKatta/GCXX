@@ -27,9 +27,9 @@ namespace {
   // ─────────────────────────────────────────────────────────────────────────────
 
   // Copy(dst, src, count) — sync, pointer/smart-pointer.
-  GCXX_DEFINE_IS_CALLABLE(
-    is_copy_ptrs_sync_callable,
-    gcxx::memory::Copy(std::declval<Args>()..., std::size_t{4}));
+  GCXX_DEFINE_IS_CALLABLE(is_copy_ptrs_sync_callable,
+                          gcxx::memory::Copy(std::declval<Args>()...,
+                                             std::size_t{4}));
 
   // Copy(stream, dst, src, count) — async, pointer/smart-pointer.
   GCXX_DEFINE_IS_CALLABLE(
@@ -43,17 +43,6 @@ namespace {
     gcxx::memory::Copy(std::declval<const gcxx::StreamView&>(),
                        std::declval<Args>()...));
 
-  // gcxx wraps every runtime call in GCXX_SAFE_RUNTIME_CALL, which (with
-  // GCXX_WITH_EXCEPTIONS off) std::abort()s on failure. So a plain device-count
-  // query would kill the test binary on a GPU-less host. Probe the raw backend
-  // call directly: it returns an error code instead of aborting, letting us
-  // skip GPU-dependent tests gracefully.
-  auto haveCudaDevice() -> bool {
-    int count      = 0;
-    const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
-    return err == gcxx::driver::deviceErrSuccess && count > 0;
-  }
-
 }  // namespace
 
 // =============================================================================
@@ -64,16 +53,16 @@ namespace {
 // =============================================================================
 
 TEST(CopySfinaeTest, AcceptsValidArgumentShapes) {
-  static_assert( is_copy_ptrs_sync_callable_v<u32*&, u32*&>);
-  static_assert( is_copy_ptrs_sync_callable_v<u32*, u32*>);
-  static_assert( is_copy_ptrs_sync_callable_v<device_ptr&, device_ptr&>);
+  static_assert(is_copy_ptrs_sync_callable_v<u32*&, u32*&>);
+  static_assert(is_copy_ptrs_sync_callable_v<u32*, u32*>);
+  static_assert(is_copy_ptrs_sync_callable_v<device_ptr&, device_ptr&>);
 
-  static_assert( is_copy_ptrs_async_callable_v<u32*&, u32*&>);
-  static_assert( is_copy_ptrs_async_callable_v<device_ptr&, device_ptr&>);
+  static_assert(is_copy_ptrs_async_callable_v<u32*&, u32*&>);
+  static_assert(is_copy_ptrs_async_callable_v<device_ptr&, device_ptr&>);
 
-  static_assert( is_copy_spans_async_callable_v<gcxx::span<u32>&,
-                                                gcxx::span<u32>&>);
-  static_assert( is_copy_spans_async_callable_v<device_buf&, device_buf&>);
+  static_assert(
+    is_copy_spans_async_callable_v<gcxx::span<u32>&, gcxx::span<u32>&>);
+  static_assert(is_copy_spans_async_callable_v<device_buf&, device_buf&>);
 }
 
 // =============================================================================
@@ -83,11 +72,11 @@ TEST(CopySfinaeTest, AcceptsValidArgumentShapes) {
 
 TEST(CopySfinaeTest, RejectsInvalidArgumentShapes) {
   // Pointer overloads reject spans (no .get()), NotAHandle, and plain values.
-  static_assert(!is_copy_ptrs_sync_callable_v<gcxx::span<u32>&,
-                                             gcxx::span<u32>&>);
+  static_assert(
+    !is_copy_ptrs_sync_callable_v<gcxx::span<u32>&, gcxx::span<u32>&>);
   static_assert(!is_copy_ptrs_sync_callable_v<NotAHandle, NotAHandle>);
-  static_assert(!is_copy_ptrs_async_callable_v<gcxx::span<u32>&,
-                                              gcxx::span<u32>&>);
+  static_assert(
+    !is_copy_ptrs_async_callable_v<gcxx::span<u32>&, gcxx::span<u32>&>);
 
   // Span overloads reject raw pointers (no .data()/.size() members),
   // NotAHandle.
@@ -101,7 +90,7 @@ TEST(CopySfinaeTest, RejectsInvalidArgumentShapes) {
 // =============================================================================
 
 TEST(CopyTest, RawPointerSyncRoundTrip) {
-  if (!haveCudaDevice())
+  if (!gcxx::testing::haveCudaDevice())
     GTEST_SKIP() << "no CUDA device";
 
   constexpr std::size_t N = 1024;
@@ -121,7 +110,7 @@ TEST(CopyTest, RawPointerSyncRoundTrip) {
 }
 
 TEST(CopyTest, RawPointerAsyncRoundTrip) {
-  if (!haveCudaDevice())
+  if (!gcxx::testing::haveCudaDevice())
     GTEST_SKIP() << "no CUDA device";
 
   constexpr std::size_t N = 1024;
@@ -142,7 +131,7 @@ TEST(CopyTest, RawPointerAsyncRoundTrip) {
 }
 
 TEST(CopyTest, SpanAsyncRoundTrip) {
-  if (!haveCudaDevice())
+  if (!gcxx::testing::haveCudaDevice())
     GTEST_SKIP() << "no CUDA device";
 
   constexpr std::size_t N = 512;

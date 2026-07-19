@@ -8,6 +8,8 @@
 
 #include <type_traits>
 
+#include <gcxx/api.hpp>
+
 // Stamps out a SFINAE detection trait: std::true_type iff __VA_ARGS__ is
 // well-formed for the given Args... Write the expression using Args...
 // where the candidate types go. Enables both positive AND negative asserts
@@ -37,5 +39,22 @@
   template <typename... VT>                                                   \
   static constexpr bool Name##_v = Name<VT...>::value;
 
+namespace gcxx::testing {
+
+// True iff a usable CUDA device is present on the host. Used to skip
+// GPU-dependent tests gracefully on GPU-less CI.
+//
+// Why a direct backend probe instead of gcxx::Device::count(): the wrapped
+// API funnels everything through GCXX_SAFE_RUNTIME_CALL, which (with
+// GCXX_WITH_EXCEPTIONS off) std::abort()s on failure. A plain device-count
+// query would kill the test binary on a GPU-less host. Going through the
+// raw backend returns an error code we can branch on.
+inline auto haveCudaDevice() -> bool {
+  int count      = 0;
+  const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
+  return err == gcxx::driver::deviceErrSuccess && count > 0;
+}
+
+}  // namespace gcxx::testing
 
 #endif

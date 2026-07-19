@@ -45,8 +45,10 @@ namespace {
     explicit mock_async_alloc_t(int* c = nullptr, gcxx::StreamView* s = nullptr)
         : call_count_(c), stream_seen_(s) {}
     void* operator()(std::size_t, gcxx::StreamView sv) const {
-      if (call_count_) ++*call_count_;
-      if (stream_seen_) *stream_seen_ = sv;
+      if (call_count_)
+        ++*call_count_;
+      if (stream_seen_)
+        *stream_seen_ = sv;
       return mock_alloc_sentinel();
     }
   };
@@ -57,8 +59,10 @@ namespace {
     explicit mock_async_free_t(int* c = nullptr, gcxx::StreamView* s = nullptr)
         : call_count_(c), stream_seen_(s) {}
     void operator()(void*, gcxx::StreamView sv) const {
-      if (call_count_) ++*call_count_;
-      if (stream_seen_) *stream_seen_ = sv;
+      if (call_count_)
+        ++*call_count_;
+      if (stream_seen_)
+        *stream_seen_ = sv;
     }
   };
 
@@ -70,26 +74,31 @@ namespace {
 TEST(BasicResourceAliasTest, AliasesAreBasicResourceInstantiations) {
   using gcxx::memory::async_device_resource;
   using gcxx::memory::basic_resource;
+  using gcxx::memory::device_accessible;
+  using gcxx::memory::host_accessible;
   using gcxx::memory::managed_device_resource;
   using gcxx::memory::sync_device_resource;
   using gcxx::memory::sync_host_resource;
 
-  static_assert(std::is_same_v<
-                sync_device_resource,
-                basic_resource<gcxx::details_::device_malloc_t,
-                               gcxx::details_::device_free_t>>);
+  static_assert(
+    std::is_same_v<
+      sync_device_resource,
+      basic_resource<gcxx::details_::device_malloc_t,
+                     gcxx::details_::device_free_t, device_accessible>>);
   static_assert(std::is_same_v<
                 sync_host_resource,
                 basic_resource<gcxx::details_::host_malloc_t,
-                               gcxx::details_::host_free_t>>);
+                               gcxx::details_::host_free_t, host_accessible>>);
   static_assert(
-    std::is_same_v<async_device_resource,
-                   basic_resource<gcxx::details_::device_malloc_async_t,
-                                  gcxx::details_::device_free_async_t>>);
+    std::is_same_v<
+      async_device_resource,
+      basic_resource<gcxx::details_::device_malloc_async_t,
+                     gcxx::details_::device_free_async_t, device_accessible>>);
   static_assert(
     std::is_same_v<managed_device_resource,
                    basic_resource<gcxx::details_::device_managed_malloc_t,
-                                  gcxx::details_::device_free_t>>);
+                                  gcxx::details_::device_free_t,
+                                  device_accessible, host_accessible>>);
 }
 
 // =============================================================================
@@ -107,8 +116,8 @@ TEST(BasicResourceDispatchTest, SyncFunctionObjectsAreOneArg) {
 
 TEST(BasicResourceDispatchTest, AsyncFunctionObjectsTakeStream) {
   using namespace gcxx::details_;
-  static_assert(std::is_invocable_v<device_malloc_async_t, std::size_t,
-                                    gcxx::StreamView>);
+  static_assert(
+    std::is_invocable_v<device_malloc_async_t, std::size_t, gcxx::StreamView>);
   static_assert(
     std::is_invocable_v<device_free_async_t, void*, gcxx::StreamView>);
 }
@@ -139,19 +148,18 @@ TEST(BasicResourceDispatchTest, AsyncBranchThreadsStreamThrough) {
   using mock_resource =
     gcxx::memory::basic_resource<mock_async_alloc_t, mock_async_free_t>;
 
-  int alloc_calls = 0;
-  int free_calls = 0;
-  gcxx::StreamView alloc_stream_seen = gcxx::StreamView::Null();
-  gcxx::StreamView free_stream_seen = gcxx::StreamView::Null();
+  int alloc_calls        = 0;
+  int free_calls         = 0;
+  auto alloc_stream_seen = gcxx::StreamView::Null();
+  auto free_stream_seen  = gcxx::StreamView::Null();
   // Use the null stream as the "marker" — the real test is that the same
   // StreamView value flows through. StreamView has no public ctor from raw
   // stream in a way we can fake here, so we just confirm the same value the
   // caller passed in propagates.
   const gcxx::StreamView passed = gcxx::StreamView::Null();
 
-  mock_resource res{
-    mock_async_alloc_t{&alloc_calls, &alloc_stream_seen},
-    mock_async_free_t{&free_calls, &free_stream_seen}};
+  mock_resource res{mock_async_alloc_t{&alloc_calls, &alloc_stream_seen},
+                    mock_async_free_t{&free_calls, &free_stream_seen}};
 
   void* p = res.allocate(std::size_t{16}, passed);
   EXPECT_EQ(alloc_calls, 1);
@@ -172,14 +180,14 @@ TEST(BasicResourceDispatchTest, AsyncBranchThreadsStreamThrough) {
 // =============================================================================
 TEST(BasicResourceAliasTest, DeviceBufferAliasResolves) {
   using gcxx::memory::device_buffer;
-  static_assert(
-    std::is_same_v<device_buffer<int>,
-                   gcxx::memory::buffer<int, gcxx::memory::sync_device_resource>>);
+  static_assert(std::is_same_v<
+                device_buffer<int>,
+                gcxx::memory::buffer<int, gcxx::memory::sync_device_resource>>);
 }
 
 TEST(BasicResourceAliasTest, HostBufferAliasResolves) {
   using gcxx::memory::host_buffer;
-  static_assert(
-    std::is_same_v<host_buffer<int>,
-                   gcxx::memory::buffer<int, gcxx::memory::sync_host_resource>>);
+  static_assert(std::is_same_v<
+                host_buffer<int>,
+                gcxx::memory::buffer<int, gcxx::memory::sync_host_resource>>);
 }
