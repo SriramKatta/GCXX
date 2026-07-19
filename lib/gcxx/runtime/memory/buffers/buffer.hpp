@@ -17,10 +17,8 @@
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
-#include <gcxx/runtime/memory/memory_resource/async_device_resource.hpp>
 #include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/sync_device_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/sync_host_resource.hpp>
+#include <gcxx/runtime/memory/memory_resource/resources.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
