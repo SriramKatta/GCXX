@@ -2,6 +2,8 @@ set(SRC_BASE_NAMES
     test_memset
     test_buffer_size
     test_buffer_constructors
+    test_buffer_accessors
+    test_buffer_constructors_range
     test_copy
 )
 

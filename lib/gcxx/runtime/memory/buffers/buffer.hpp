@@ -5,7 +5,9 @@
 #define GCXX_RUNTIME_MEMORY_BUFFERS_BUFFER_HPP_
 
 #include <cstddef>
+#include <initializer_list>
 #include <iterator>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 
@@ -13,11 +15,14 @@
 
 #include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
+#include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
 #include <gcxx/runtime/memory/memory_resource/async_device_resource.hpp>
 #include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
 #include <gcxx/runtime/memory/memory_resource/sync_device_resource.hpp>
 #include <gcxx/runtime/memory/memory_resource/sync_host_resource.hpp>
+#include <gcxx/runtime/memory/spans/spans.hpp>
+#include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
@@ -53,14 +58,14 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename VT, typename Resource>
 class buffer {
-  static_assert(std::is_trivially_constructible_v<VT>,
-                "buffer<VT, Resource> requires trivially constructable VT");
-  static_assert(std::is_trivially_destructible_v<VT>,
-                "buffer<VT, Resource> requires trivially destructible VT");
+  static_assert(std::is_trivially_copyable_v<VT>,
+                "buffer<VT, Resource> requires trivially copyable VT");
 
  public:
   using buffer_t               = buffer_storage<VT, Resource>;
   using value_type             = typename buffer_t::value_type;
+  using reference              = value_type&;
+  using const_reference        = const value_type&;
   using size_type              = typename buffer_t::size_type;
   using pointer                = typename buffer_t::pointer;
   using const_pointer          = typename buffer_t::const_pointer;
@@ -101,6 +106,38 @@ class buffer {
     Fill(stream, p, value, n);
   }
 
+  /// Allocate il.size() elements and copy from the initializer list.
+  /// Uses the existing gcxx::memory::Copy (async device-side copy).
+  // ponytail: const_cast because gcxx::memory::Copy's static_assert requires
+  // same-type pointers (int* vs const int* fail). The destination is freshly
+  // allocated uninitialized storage owned by this buffer; writing through it
+  // is safe. Loosen Copy's assert (remove_cv on both sides) if more const
+  // source use cases appear.
+  buffer(gcxx::StreamView stream, Resource resource,
+         std::initializer_list<value_type> il)
+      : m_storage(stream, std::move(resource), il.size()) {
+    if (il.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+      Copy(stream, data(), const_cast<value_type*>(il.begin()), il.size());
+    }
+  }
+  /// Allocate rng.size() elements and copy from a sized range.
+  /// SFINAE on non-integral Range to avoid shadowing the (stream, resource, n)
+  /// ctor.
+  GCXX_TEMPLATE(typename Range)
+  GCXX_REQUIRES(!std::is_integral_v<std::decay_t<Range>>)
+  buffer(gcxx::StreamView stream, Resource resource, Range&& rng)
+      : m_storage(stream, std::move(resource),
+                  static_cast<size_type>(rng.size())) {
+    if (rng.size() != 0) {
+      // ponytail: same const_cast story as the initializer_list ctor above.
+      // std::data(rng) returns a raw pointer (int* for mutable vector,
+      // const int* for const vector / initializer_list); std::begin(rng)
+      // would return a wrapped iterator that const_cast can't handle.
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+      Copy(stream, data(), const_cast<value_type*>(std::data(rng)), rng.size());
+    }
+  }
   /// Destructor is defaulted: raw memory is released by m_storage's RAII.
   ~buffer() = default;
 
@@ -139,6 +176,87 @@ class buffer {
   }
   GCXX_FHDC auto rend() const noexcept -> const_reverse_iterator {
     return const_reverse_iterator(begin());
+  }
+
+  // ─────────────────────────── element access (T1) ──────────────────────────
+  // No host_accessible gating yet (no property system). Gating lands at T3.
+  GCXX_FHDC auto operator[](size_type i) noexcept -> reference {
+    GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
+    return data()[i];
+  }
+  GCXX_FHDC auto operator[](size_type i) const noexcept -> const_reference {
+    GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
+    return data()[i];
+  }
+
+  GCXX_FH auto at(size_type i) -> reference {
+    if (i >= size())
+      throw std::out_of_range{"buffer::at"};
+    return data()[i];
+  }
+  GCXX_FH auto at(size_type i) const -> const_reference {
+    if (i >= size())
+      throw std::out_of_range{"buffer::at"};
+    return data()[i];
+  }
+
+  GCXX_FHDC auto front() noexcept -> reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
+    return data()[0];
+  }
+  GCXX_FHDC auto front() const noexcept -> const_reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
+    return data()[0];
+  }
+
+  GCXX_FHDC auto back() noexcept -> reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
+    return data()[size() - 1];
+  }
+  GCXX_FHDC auto back() const noexcept -> const_reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
+    return data()[size() - 1];
+  }
+
+  // ─────────────────────────────── slicing (T1) ─────────────────────────────
+  // Returns gcxx::span (the project's own span — spans/span/span.hpp).
+  GCXX_FHDC auto first(size_type n) noexcept -> gcxx::span<value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::first count out of range");
+    return {data(), n};
+  }
+  GCXX_FHDC auto first(size_type n) const noexcept
+    -> gcxx::span<const value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::first count out of range");
+    return {data(), n};
+  }
+
+  GCXX_FHDC auto last(size_type n) noexcept -> gcxx::span<value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::last count out of range");
+    return {data() + size() - n, n};
+  }
+  GCXX_FHDC auto last(size_type n) const noexcept
+    -> gcxx::span<const value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::last count out of range");
+    return {data() + size() - n, n};
+  }
+
+  GCXX_FHDC auto subspan(size_type offset,
+                         size_type count = gcxx::dynamic_extent) noexcept
+    -> gcxx::span<value_type> {
+    GCXX_RUNTIME_EXPECT(offset <= size(),
+                        "buffer::subspan offset out of range");
+    return count == gcxx::dynamic_extent
+             ? gcxx::span<value_type>{data() + offset, size() - offset}
+             : gcxx::span<value_type>{data() + offset, count};
+  }
+  GCXX_FHDC auto subspan(size_type offset,
+                         size_type count = gcxx::dynamic_extent) const noexcept
+    -> gcxx::span<const value_type> {
+    GCXX_RUNTIME_EXPECT(offset <= size(),
+                        "buffer::subspan offset out of range");
+    return count == gcxx::dynamic_extent
+             ? gcxx::span<const value_type>{data() + offset, size() - offset}
+             : gcxx::span<const value_type>{data() + offset, count};
   }
 
   // ─────────────────────────────── observers ────────────────────────────────
@@ -189,6 +307,18 @@ class buffer {
  private:
   buffer_t m_storage{};
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// make_buffer: CTAD-friendly factory. Single variadic template — perfect
+// forwarding picks the right ctor overload. ponytail: not 10 overloads like
+// CCCL; add overloads only if a call site needs them.
+// ─────────────────────────────────────────────────────────────────────────────
+template <typename VT, typename Resource, typename... Args>
+GCXX_FH auto make_buffer(gcxx::StreamView stream, Resource resource,
+                         Args&&... args) -> buffer<VT, Resource> {
+  return buffer<VT, Resource>{stream, std::move(resource),
+                              std::forward<Args>(args)...};
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Convenience aliases.
