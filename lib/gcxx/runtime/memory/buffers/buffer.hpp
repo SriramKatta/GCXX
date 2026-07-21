@@ -15,7 +15,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
-#include <gcxx/runtime/memory/iterators/heterogeneous_iterator.hpp>
+#include <gcxx/runtime/iterators/heterogeneous_iterator.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
 #include <gcxx/runtime/memory/buffers/properties.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
