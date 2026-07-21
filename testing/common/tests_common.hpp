@@ -26,34 +26,34 @@
 //       gcxx::memory::Memset(std::declval<Args>()..., 0, std::size_t{0}));
 //   static_assert( is_memset_callable_v<int*>);
 //   static_assert(!is_memset_callable_v<NotAHandle>);
-#define GCXX_DEFINE_IS_CALLABLE(Name, ...)                                    \
-  template <typename... Args>                                                 \
-  using Name##_detail = decltype(__VA_ARGS__);                                \
-  template <template <typename...> class Op, typename, typename... Args>      \
-  struct Name##_detector : std::false_type {};                                \
-  template <template <typename...> class Op, typename... Args>                \
-  struct Name##_detector<Op, std::void_t<Op<Args...>>, Args...>               \
-      : std::true_type {};                                                    \
-  template <typename... VT>                                                   \
-  struct Name : Name##_detector<Name##_detail, void, VT...> {};               \
-  template <typename... VT>                                                   \
+#define GCXX_DEFINE_IS_CALLABLE(Name, ...)                               \
+  template <typename... Args>                                            \
+  using Name##_detail = decltype(__VA_ARGS__);                           \
+  template <template <typename...> class Op, typename, typename... Args> \
+  struct Name##_detector : std::false_type {};                           \
+  template <template <typename...> class Op, typename... Args>           \
+  struct Name##_detector<Op, std::void_t<Op<Args...>>, Args...>          \
+      : std::true_type {};                                               \
+  template <typename... VT>                                              \
+  struct Name : Name##_detector<Name##_detail, void, VT...> {};          \
+  template <typename... VT>                                              \
   static constexpr bool Name##_v = Name<VT...>::value;
 
 namespace gcxx::testing {
 
-// True iff a usable CUDA device is present on the host. Used to skip
-// GPU-dependent tests gracefully on GPU-less CI.
-//
-// Why a direct backend probe instead of gcxx::Device::count(): the wrapped
-// API funnels everything through GCXX_SAFE_RUNTIME_CALL, which (with
-// GCXX_WITH_EXCEPTIONS off) std::abort()s on failure. A plain device-count
-// query would kill the test binary on a GPU-less host. Going through the
-// raw backend returns an error code we can branch on.
-inline auto haveCudaDevice() -> bool {
-  int count      = 0;
-  const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
-  return err == gcxx::driver::deviceErrSuccess && count > 0;
-}
+  // True iff a usable CUDA device is present on the host. Used to skip
+  // GPU-dependent tests gracefully on GPU-less CI.
+  //
+  // Why a direct backend probe instead of gcxx::Device::count(): the wrapped
+  // API funnels everything through GCXX_SAFE_RUNTIME_CALL, which (with
+  // GCXX_WITH_EXCEPTIONS off) std::abort()s on failure. A plain device-count
+  // query would kill the test binary on a GPU-less host. Going through the
+  // raw backend returns an error code we can branch on.
+  inline auto haveCudaDevice() -> bool {
+    int count      = 0;
+    const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
+    return err == gcxx::driver::deviceErrSuccess && count > 0;
+  }
 
 }  // namespace gcxx::testing
 

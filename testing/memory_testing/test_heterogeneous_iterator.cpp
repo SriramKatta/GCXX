@@ -39,9 +39,10 @@ TEST(HeterogeneousIteratorTest, BufferIteratorIsHeterogeneous) {
   static_assert(
     std::is_same_v<host_buf::iterator, gcxx::heterogeneous_iterator<
                                          int, gcxx::memory::host_accessible>>);
-  static_assert(std::is_same_v<host_buf::const_iterator,
-                               gcxx::heterogeneous_iterator<
-                                 const int, gcxx::memory::host_accessible>>);
+  static_assert(
+    std::is_same_v<
+      host_buf::const_iterator,
+      gcxx::heterogeneous_iterator<const int, gcxx::memory::host_accessible>>);
 }
 
 // =============================================================================

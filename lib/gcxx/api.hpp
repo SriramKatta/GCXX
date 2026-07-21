@@ -31,5 +31,8 @@
 // section for memory API
 #include <gcxx/runtime/memory.hpp>
 
+// section for iterators
+#include <gcxx/runtime/iterators/stride_iterator.hpp>
+
 // clang-format on
 #endif
