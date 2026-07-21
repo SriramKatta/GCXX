@@ -54,7 +54,8 @@ TEST(StrideIteratorTest, SubscriptAdvancesByStride) {
 TEST(StrideIteratorTest, StdAlgorithmInterop) {
   // Every 2nd element from a[0]: 0,2,4,6. The end sentinel (a+8) is stride-
   // aligned with begin (a): (8-0)/2 == 4 stride steps. operator-(end,begin)
-  // requires aligned bases; an unaligned end would truncate on integer division.
+  // requires aligned bases; an unaligned end would truncate on integer
+  // division.
   int a[8]   = {0, 1, 2, 3, 4, 5, 6, 7};
   auto begin = gcxx::make_stride_iterator(a, 2);
   auto end   = gcxx::make_stride_iterator(a + 8, 2);

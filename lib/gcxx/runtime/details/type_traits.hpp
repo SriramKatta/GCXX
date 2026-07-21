@@ -37,14 +37,9 @@ template <typename VT>
 GCXX_CXPR inline bool is_void_function_pointer_v =
   is_void_function_pointer<VT>::value;
 
-template <typename, typename = size_t>
-struct is_complete : std::false_type {};
 
 template <typename T>
-struct is_complete<T, decltype(sizeof(T))> : std::true_type {};
-
-template <typename T>
-inline constexpr bool is_complete_v = is_complete<T>::value;
+GCXX_CONCEPT is_complete_v = GCXX_REQUIRES_EXPR((T))(sizeof(T));
 
 // std::lib has this from c++20
 template <typename VT>
@@ -60,32 +55,23 @@ struct is_std_array<std::array<VT, N>> : std::true_type {};
 template <typename VT>
 GCXX_CXPR inline bool is_std_array_v = is_std_array<VT>::value;
 
-template <typename, typename = void>
-struct has_size_and_data : std::false_type {};
 
 template <typename VT>
-struct has_size_and_data<
-  VT, std::void_t<decltype(gcxx::details_::size(std::declval<VT&>())),
-                  decltype(gcxx::details_::data(std::declval<VT&>()))>>
-    : std::true_type {};
-
-template <typename VT>
-GCXX_CXPR inline bool has_size_and_data_v = has_size_and_data<VT>::value;
+GCXX_CONCEPT has_size_and_data_v = GCXX_REQUIRES_EXPR((VT), VT& v)(
+  gcxx::details_::size(v), gcxx::details_::data(v));
 
 template <typename T>
 using remove_pointer_t = typename std::remove_pointer<T>::type;
 
-// Simpler: check if .get() returns a pointer in one go
-template <typename T, typename = void>
-struct is_pointer_or_has_get : std::is_pointer<T> {};
 
 template <typename T>
-struct is_pointer_or_has_get<T, std::void_t<decltype(std::declval<T>().get())>>
-    : std::is_pointer<decltype(std::declval<T>().get())> {};
+GCXX_CONCEPT has_get_to_pointer_v =
+  GCXX_REQUIRES_EXPR((T), T t)(requires(std::is_pointer_v<decltype(t.get())>));
+
 
 template <typename T>
-inline constexpr bool is_pointer_or_has_get_v =
-  is_pointer_or_has_get<remove_cvref_t<T>>::value;
+GCXX_CONCEPT is_pointer_or_has_get_v = std::is_pointer_v<remove_cvref_t<T>> ||
+                                       has_get_to_pointer_v<remove_cvref_t<T>>;
 
 // Primary template: not a pointer and no .get()
 template <typename T, typename = void>
