@@ -19,9 +19,7 @@ namespace {
 
     void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
 
-    friend constexpr void get_property(const host_mock_resource&,
-                                       gcxx::memory::host_accessible) noexcept {
-    }
+    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
   };
 
   template <typename VT>

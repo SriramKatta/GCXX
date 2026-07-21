@@ -22,10 +22,8 @@ namespace {
     }
     void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
 
-    // T3: must advertise host_accessible to satisfy buffer's static_assert.
-    friend constexpr void get_property(const host_mock_resource&,
-                                       gcxx::memory::host_accessible) noexcept {
-    }
+    // Advertise host_accessible to satisfy buffer's static_assert.
+    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
   };
 
   template <typename VT>

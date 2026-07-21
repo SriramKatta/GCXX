@@ -60,9 +60,9 @@ class buffer {
   static_assert(std::is_trivially_copyable_v<VT>,
                 "buffer<VT, Resource> requires trivially copyable VT");
 
-  // T3: Resource must advertise at least one execution-space property
-  // (host_accessible or device_accessible) via friend get_property. Catches
-  // misuse early instead of silently disabling all element accessors.
+  // Resource must advertise at least one execution-space property
+  // (host_accessible or device_accessible) via its `using properties` member.
+  // Catches misuse early instead of silently disabling all element accessors.
   static_assert(contains_execution_space_property_v<Resource>,
                 "buffer<VT, Resource> requires Resource to advertise "
                 "device_accessible or host_accessible");
@@ -207,9 +207,9 @@ class buffer {
   // ─────────────────────────── element access (T3) ──────────────────────────
   // Gated on host_accessible: dereferencing device-only memory from the host
   // is UB, so the accessors are SFINAE-removed unless Resource advertises
-  // host_accessible via friend get_property. Mirrors CCCL buffer.h:484-565.
-  // first/last/subspan below remain un-gated — they return spans (views),
-  // which is safe to construct without touching memory.
+  // host_accessible via its `using properties` member. Mirrors CCCL
+  // buffer.h:484-565. first/last/subspan below remain un-gated — they return
+  // spans (views), which is safe to construct without touching memory.
   GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto operator[](size_type i) noexcept -> reference {
@@ -350,6 +350,13 @@ class buffer {
   GCXX_FH auto storage() noexcept -> buffer_t& { return m_storage; }
   GCXX_FH auto storage() const noexcept -> const buffer_t& { return m_storage; }
 
+  // ─────────────────────────── property advertisement ────────────────────────
+  // Lazy variant: a buffer<VT, Resource> forwards its Resource's accessibility
+  // so has_property_v<buffer<VT, Resource>, P> mirrors has_property_v<Resource,
+  // P>. Exposed as a `using properties` member (the Option-B mechanism — no ADL
+  // get_property). Phase 4 gives the buffer its own Properties pack.
+  using properties = typename Resource::properties;
+
  private:
   buffer_t m_storage{};
 };
@@ -374,12 +381,6 @@ using device_buffer = buffer<VT, sync_device_resource>;
 
 template <typename VT>
 using host_buffer = buffer<VT, sync_host_resource>;
-
-template <typename VT>
-using device_buffer_async = buffer<VT, async_device_resource>;
-
-template <typename VT>
-using device_buffer_pooled = buffer<VT, pooled_device_resource>;
 
 GCXX_NAMESPACE_MEMORY_END()
 

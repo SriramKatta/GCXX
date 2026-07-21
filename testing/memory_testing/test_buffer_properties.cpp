@@ -6,7 +6,8 @@
 //   * has_property_v / is_host_accessible_v / is_device_accessible_v /
 //     contains_execution_space_property_v behave correctly for resources
 //     with and without property advertisements.
-//   * basic_resource<...> propagates Properties to has_property_v queries.
+//   * synchronous_resource<...> exposes Properties via `using properties`
+//     (read by has_property_v).
 //   * buffer's static_assert rejects resources with no execution-space
 //     property (compile-fail — verified via a negative-test alias that
 //     deliberately omits properties; here we only assert the POSITIVE cases
@@ -28,28 +29,24 @@ namespace {
 
   // Mock that advertises host_accessible.
   struct host_mock_resource {
+    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
     void* allocate(std::size_t n, gcxx::StreamView) { return std::malloc(n); }
     void deallocate(void* p, gcxx::StreamView) { std::free(p); }
-    friend constexpr void get_property(const host_mock_resource&,
-                                       gcxx::memory::host_accessible) noexcept {}
   };
 
   // Mock that advertises device_accessible only.
   struct device_mock_resource {
+    using properties = gcxx::memory::TypeSet<gcxx::memory::device_accessible>;
     void* allocate(std::size_t n, gcxx::StreamView) { return std::malloc(n); }
     void deallocate(void* p, gcxx::StreamView) { std::free(p); }
-    friend constexpr void get_property(const device_mock_resource&,
-                                       gcxx::memory::device_accessible) noexcept {}
   };
 
   // Mock that advertises BOTH (e.g. managed memory).
   struct host_device_mock_resource {
+    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible,
+                                             gcxx::memory::device_accessible>;
     void* allocate(std::size_t n, gcxx::StreamView) { return std::malloc(n); }
     void deallocate(void* p, gcxx::StreamView) { std::free(p); }
-    friend constexpr void get_property(const host_device_mock_resource&,
-                                       gcxx::memory::host_accessible) noexcept {}
-    friend constexpr void get_property(const host_device_mock_resource&,
-                                       gcxx::memory::device_accessible) noexcept {}
   };
 
   template <typename VT, typename R>
@@ -62,19 +59,20 @@ namespace {
 // =============================================================================
 TEST(PropertyTest, HasPropertyDetectsAdvertisedProperty) {
   static_assert(gcxx::memory::has_property_v<host_mock_resource,
-                                              gcxx::memory::host_accessible>);
+                                             gcxx::memory::host_accessible>);
   static_assert(!gcxx::memory::has_property_v<host_mock_resource,
-                                               gcxx::memory::device_accessible>);
-  static_assert(gcxx::memory::has_property_v<device_mock_resource,
                                               gcxx::memory::device_accessible>);
+  static_assert(gcxx::memory::has_property_v<device_mock_resource,
+                                             gcxx::memory::device_accessible>);
   static_assert(!gcxx::memory::has_property_v<device_mock_resource,
-                                               gcxx::memory::host_accessible>);
+                                              gcxx::memory::host_accessible>);
 }
 
 TEST(PropertyTest, HasPropertyHandlesBothAdvertisements) {
   using R = host_device_mock_resource;
   static_assert(gcxx::memory::has_property_v<R, gcxx::memory::host_accessible>);
-  static_assert(gcxx::memory::has_property_v<R, gcxx::memory::device_accessible>);
+  static_assert(
+    gcxx::memory::has_property_v<R, gcxx::memory::device_accessible>);
 }
 
 TEST(PropertyTest, ConvenienceTraitsMatchHasProperty) {
@@ -83,7 +81,8 @@ TEST(PropertyTest, ConvenienceTraitsMatchHasProperty) {
   static_assert(gcxx::memory::is_device_accessible_v<device_mock_resource>);
   static_assert(!gcxx::memory::is_device_accessible_v<host_mock_resource>);
   static_assert(gcxx::memory::is_host_accessible_v<host_device_mock_resource>);
-  static_assert(gcxx::memory::is_device_accessible_v<host_device_mock_resource>);
+  static_assert(
+    gcxx::memory::is_device_accessible_v<host_device_mock_resource>);
 }
 
 TEST(PropertyTest, ContainsExecutionSpacePropertyForAllVariants) {
@@ -91,33 +90,101 @@ TEST(PropertyTest, ContainsExecutionSpacePropertyForAllVariants) {
     gcxx::memory::contains_execution_space_property_v<host_mock_resource>);
   static_assert(
     gcxx::memory::contains_execution_space_property_v<device_mock_resource>);
-  static_assert(
-    gcxx::memory::contains_execution_space_property_v<host_device_mock_resource>);
+  static_assert(gcxx::memory::contains_execution_space_property_v<
+                host_device_mock_resource>);
 }
 
 // =============================================================================
-// basic_resource propagates Properties via friend get_property.
+// synchronous_resource exposes Properties via `using properties` (read by
+// has_property_v). pooled_device_resource is hand-written but advertises the
+// same way.
 // =============================================================================
-TEST(PropertyTest, BasicResourceAdvertisesProperties) {
-  using gcxx::memory::async_device_resource;
+TEST(PropertyTest, ResourcesAdvertiseProperties) {
   using gcxx::memory::device_accessible;
   using gcxx::memory::host_accessible;
   using gcxx::memory::managed_device_resource;
+  using gcxx::memory::pooled_device_resource;
   using gcxx::memory::sync_device_resource;
   using gcxx::memory::sync_host_resource;
 
-  static_assert(gcxx::memory::has_property_v<sync_device_resource, device_accessible>);
-  static_assert(!gcxx::memory::has_property_v<sync_device_resource, host_accessible>);
+  static_assert(
+    gcxx::memory::has_property_v<sync_device_resource, device_accessible>);
+  static_assert(
+    !gcxx::memory::has_property_v<sync_device_resource, host_accessible>);
 
-  static_assert(gcxx::memory::has_property_v<sync_host_resource, host_accessible>);
-  static_assert(!gcxx::memory::has_property_v<sync_host_resource, device_accessible>);
-
-  static_assert(gcxx::memory::has_property_v<async_device_resource, device_accessible>);
-  static_assert(!gcxx::memory::has_property_v<async_device_resource, host_accessible>);
+  static_assert(
+    gcxx::memory::has_property_v<sync_host_resource, host_accessible>);
+  static_assert(
+    !gcxx::memory::has_property_v<sync_host_resource, device_accessible>);
 
   // managed_device_resource advertises both
-  static_assert(gcxx::memory::has_property_v<managed_device_resource, device_accessible>);
-  static_assert(gcxx::memory::has_property_v<managed_device_resource, host_accessible>);
+  static_assert(
+    gcxx::memory::has_property_v<managed_device_resource, device_accessible>);
+  static_assert(
+    gcxx::memory::has_property_v<managed_device_resource, host_accessible>);
+
+  // pooled_device_resource is hand-written (not a synchronous_resource alias)
+  // but advertises device_accessible the same way.
+  static_assert(
+    gcxx::memory::has_property_v<pooled_device_resource, device_accessible>);
+  static_assert(
+    !gcxx::memory::has_property_v<pooled_device_resource, host_accessible>);
+  static_assert(
+    gcxx::memory::contains_execution_space_property_v<pooled_device_resource>);
+}
+
+// =============================================================================
+// Buffer forwards its Resource's accessibility (T3 parity: CCCL buffer.h:789
+// advertises the buffer's own Properties). has_property_v<buffer<VT, R>, P>
+// must mirror has_property_v<R, P> exactly — no more, no less.
+// =============================================================================
+TEST(PropertyTest, BufferForwardsResourceProperties) {
+  using gcxx::memory::device_accessible;
+  using gcxx::memory::host_accessible;
+
+  // host-only resource -> host-only buffer
+  static_assert(gcxx::memory::has_property_v<buf<int, host_mock_resource>,
+                                             host_accessible>);
+  static_assert(!gcxx::memory::has_property_v<buf<int, host_mock_resource>,
+                                              device_accessible>);
+
+  // device-only resource -> device-only buffer
+  static_assert(gcxx::memory::has_property_v<buf<int, device_mock_resource>,
+                                             device_accessible>);
+  static_assert(!gcxx::memory::has_property_v<buf<int, device_mock_resource>,
+                                              host_accessible>);
+
+  // both-accessible resource -> both-accessible buffer (managed memory)
+  static_assert(
+    gcxx::memory::has_property_v<buf<int, host_device_mock_resource>,
+                                 host_accessible>);
+  static_assert(
+    gcxx::memory::has_property_v<buf<int, host_device_mock_resource>,
+                                 device_accessible>);
+}
+
+TEST(PropertyTest, BufferForwardsRealResourceProperties) {
+  using gcxx::memory::device_accessible;
+  using gcxx::memory::device_buffer;
+  using gcxx::memory::host_accessible;
+  using gcxx::memory::host_buffer;
+  using gcxx::memory::managed_device_resource;
+
+  // The public aliases forward too — so generic code can query a buffer's
+  // accessibility without naming its Resource.
+  static_assert(
+    gcxx::memory::has_property_v<device_buffer<int>, device_accessible>);
+  static_assert(
+    !gcxx::memory::has_property_v<device_buffer<int>, host_accessible>);
+  static_assert(
+    gcxx::memory::has_property_v<host_buffer<int>, host_accessible>);
+  static_assert(
+    !gcxx::memory::has_property_v<host_buffer<int>, device_accessible>);
+
+  // managed memory is both host- and device-accessible.
+  using managed_buf = gcxx::memory::buffer<int, managed_device_resource>;
+  static_assert(gcxx::memory::has_property_v<managed_buf, device_accessible>);
+  static_assert(gcxx::memory::has_property_v<managed_buf, host_accessible>);
 }
 
 // =============================================================================
@@ -127,9 +194,11 @@ TEST(PropertyTest, BasicResourceAdvertisesProperties) {
 // =============================================================================
 TEST(PropertyAccessorGatingTest, HostAccessibleResourceHasSubscript) {
   using B = buf<int, host_mock_resource>;
-  static_assert(std::is_same_v<decltype(std::declval<B&>()[std::size_t{0}]), int&>);
-  static_assert(std::is_same_v<
-                decltype(std::declval<const B&>()[std::size_t{0}]), const int&>);
+  static_assert(
+    std::is_same_v<decltype(std::declval<B&>()[std::size_t{0}]), int&>);
+  static_assert(
+    std::is_same_v<decltype(std::declval<const B&>()[std::size_t{0}]),
+                   const int&>);
 }
 
 TEST(PropertyAccessorGatingTest, HostAccessibleResourceHasFrontBack) {
@@ -141,7 +210,8 @@ TEST(PropertyAccessorGatingTest, HostAccessibleResourceHasFrontBack) {
 TEST(PropertyAccessorGatingTest, HostAccessibleResourceHasAt) {
   using B = buf<int, host_mock_resource>;
   // at() throws — return type is reference.
-  static_assert(std::is_same_v<decltype(std::declval<B&>().at(std::size_t{0})), int&>);
+  static_assert(
+    std::is_same_v<decltype(std::declval<B&>().at(std::size_t{0})), int&>);
 }
 
 // =============================================================================
@@ -181,6 +251,6 @@ TEST(BufferCrossSpaceCtorTest, SameTypeResourceRejected) {
   // ctor is callable for DIFFERENT resources.
   using src_t = buf<int, host_mock_resource>;
   using dst_t = buf<int, device_mock_resource>;
-  static_assert(std::is_constructible_v<
-                dst_t, gcxx::StreamView, device_mock_resource, const src_t&>);
+  static_assert(std::is_constructible_v<dst_t, gcxx::StreamView,
+                                        device_mock_resource, const src_t&>);
 }

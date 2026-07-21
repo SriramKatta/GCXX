@@ -7,49 +7,43 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/memory/device_memory_helper.hpp>
 #include <gcxx/runtime/memory/buffers/properties.hpp>
-#include <gcxx/runtime/memory/memory_resource/basic_resource.hpp>
+#include <gcxx/runtime/memory/memory_resource/synchronous_resource.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Resource aliases — instantiate basic_resource with the function objects
-// from device_memory_helper.hpp. Each alias carries its accessibility
-// property (device_accessible / host_accessible) so buffer's SFINAE gating
-// (operator[] etc.) can detect it via has_property_v.
+// Resource aliases — instantiate synchronous_resource with the sync allocator
+// function objects from device_memory_helper.hpp. Each alias carries its
+// accessibility property (device_accessible / host_accessible) via the
+// synchronous_resource Properties... pack, exposed as `using properties`.
 //
-// sync_*      : sync alloc + sync free. basic_resource syncs the stream
-//               before each free.
-// async_*     : stream-ordered alloc + free; no extra sync.
-// managed_*   : bonus — was missing before T2. device_managed_malloc already
-//               existed in device_memory_helper.hpp but no resource wrapped it.
+// sync_*      : sync alloc + sync free. synchronous_resource syncs the stream
+//               before each free (NCCL/NVSHMEM-safe; correct-but-slower for
+//               plain cudaMalloc/cudaFreeHost).
+// managed_*   : unified memory (both host- and device-accessible).
+//
+// Async/stream-ordered device allocation uses pooled_device_resource (the pool
+// resource), not a wrapper here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // cudaMalloc / cudaFree — sync, device-visible.
-// Replaces the old sync_device_resource class.
 using sync_device_resource =
-  basic_resource<details_::device_malloc_t, details_::device_free_t,
-                 device_accessible>;
+  synchronous_resource<details_::device_malloc_t, details_::device_free_t,
+                       device_accessible>;
 
 // cudaMallocHost / cudaFreeHost — sync, host-visible.
-// Replaces the old sync_host_resource class.
 using sync_host_resource =
-  basic_resource<details_::host_malloc_t, details_::host_free_t,
-                 host_accessible>;
+  synchronous_resource<details_::host_malloc_t, details_::host_free_t,
+                       host_accessible>;
 
-// cudaMallocAsync / cudaFreeAsync — stream-ordered, device-visible.
-// Replaces the old async_device_resource class.
-using async_device_resource =
-  basic_resource<details_::device_malloc_async_t, details_::device_free_async_t,
-                 device_accessible>;
-
-// cudaMallocManaged / cudaFree — sync, unified memory (both host and device
-// visible). Bonus: previously missing (the function object existed but no
-// resource wrapped it).
+// cudaMallocManaged / cudaFree — sync, unified memory (host- and
+// device-visible).
 using managed_device_resource =
-  basic_resource<details_::device_managed_malloc_t, details_::device_free_t,
-                 device_accessible, host_accessible>;
+  synchronous_resource<details_::device_managed_malloc_t,
+                       details_::device_free_t, device_accessible,
+                       host_accessible>;
 
 GCXX_NAMESPACE_MEMORY_END()
 

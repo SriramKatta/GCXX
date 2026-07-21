@@ -13,6 +13,7 @@
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 
 #include <gcxx/runtime/memory/buffers/buffer.hpp>
+#include <gcxx/runtime/memory/memory_resource/any_resource.hpp>
 
 
 #include <gcxx/runtime/memory/copy.hpp>

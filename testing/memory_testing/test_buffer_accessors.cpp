@@ -13,19 +13,17 @@
 namespace {
 
   // Host-only resource (malloc/free) so accessor logic can be exercised
-  // without a GPU or the CUDA runtime. T3: must advertise host_accessible
-  // so the buffer's SFINAE-gated element accessors (operator[], at, front,
-  // back) are visible.
+  // without a GPU or the CUDA runtime. Advertises host_accessible via
+  // `using properties` so the buffer's SFINAE-gated element accessors
+  // (operator[], at, front, back) are visible.
   struct host_mock_resource {
+    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
+
     void* allocate(std::size_t num_bytes, gcxx::StreamView) {
       return std::malloc(num_bytes);
     }
 
     void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
-
-    friend constexpr void get_property(const host_mock_resource&,
-                                       gcxx::memory::host_accessible) noexcept {
-    }
   };
 
   template <typename VT>
