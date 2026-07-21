@@ -15,6 +15,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
+#include <gcxx/runtime/memory/buffers/heterogeneous_iterator.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
 #include <gcxx/runtime/memory/buffers/properties.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
@@ -65,17 +66,17 @@ class buffer {
 
  public:
   /// The buffer's accessibility contract (uniform with resources).
-  using properties             = TypeSet<Properties...>;
-  using buffer_t               = buffer_storage<VT>;
-  using value_type             = VT;
-  using reference              = value_type&;
-  using const_reference        = const value_type&;
-  using size_type              = std::size_t;
-  using pointer                = value_type*;
-  using const_pointer          = const value_type*;
-  using iterator               = pointer;  // Phase 5: heterogeneous_iterator
-  using const_iterator         = const_pointer;
-  using reverse_iterator       = std::reverse_iterator<iterator>;
+  using properties       = TypeSet<Properties...>;
+  using buffer_t         = buffer_storage<VT>;
+  using value_type       = VT;
+  using reference        = value_type&;
+  using const_reference  = const value_type&;
+  using size_type        = std::size_t;
+  using pointer          = value_type*;
+  using const_pointer    = const value_type*;
+  using iterator         = heterogeneous_iterator<VT, Properties...>;
+  using const_iterator   = heterogeneous_iterator<const VT, Properties...>;
+  using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   // ─────────────────────── resource-taking ctors ─────────────────────────────
@@ -224,15 +225,21 @@ class buffer {
     return static_cast<const_pointer>(m_storage.get());
   }
 
-  GCXX_FHDC auto begin() noexcept -> iterator { return data(); }
-  GCXX_FHDC auto begin() const noexcept -> const_iterator { return data(); }
-  GCXX_FHDC auto end() noexcept -> iterator { return data() + size(); }
-  GCXX_FHDC auto end() const noexcept -> const_iterator {
-    return data() + size();
+  GCXX_FHDC auto begin() noexcept -> iterator { return iterator(data()); }
+  GCXX_FHDC auto begin() const noexcept -> const_iterator {
+    return const_iterator(data());
   }
-  GCXX_FHDC auto cbegin() const noexcept -> const_iterator { return data(); }
+  GCXX_FHDC auto end() noexcept -> iterator {
+    return iterator(data() + size());
+  }
+  GCXX_FHDC auto end() const noexcept -> const_iterator {
+    return const_iterator(data() + size());
+  }
+  GCXX_FHDC auto cbegin() const noexcept -> const_iterator {
+    return const_iterator(data());
+  }
   GCXX_FHDC auto cend() const noexcept -> const_iterator {
-    return data() + size();
+    return const_iterator(data() + size());
   }
   GCXX_FHDC auto rbegin() const noexcept -> const_reverse_iterator {
     return const_reverse_iterator(end());
