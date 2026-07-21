@@ -161,6 +161,15 @@ template <typename Resource, typename... Ps>
 inline constexpr bool resource_has_all_v =
   (has_property_v<Resource, Ps> && ...);
 
+/// The memory_accessibility implied by a type's static `properties` set. The
+/// Option-B answer to CCCL's dynamic_accessibility_property query — under
+/// Option-B accessibility is always known at compile time from R::properties,
+/// so the "dynamic" query is a static fold.
+template <typename R>
+inline constexpr memory_accessibility resource_accessibility_v =
+  accessibility_from_static_properties<is_host_accessible_v<R>,
+                                       is_device_accessible_v<R>>();
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Pack-keyed traits (over a property PACK, e.g. the buffer's own
 // Properties...). Drive accessor gating and cross-properties ctor SFINAE.

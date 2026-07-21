@@ -10,6 +10,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 
+#include <gcxx/runtime/memory/memory_resource/any_resource.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
@@ -17,26 +18,25 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::buffer_storage<Resource>
+// gcxx::memory::buffer_storage<VT>
 //
-// RAII owner of a raw, untyped byte block obtained from a memory resource in
-// stream order. Its sole responsibility is to allocate on construction and
-// deallocate on destruction (or via explicit destroy()). It deliberately holds
-// no typed pointer and no initialization logic — those concerns belong to
-// higher-level containers (e.g. buffer<VT, Resource>), which compose this for
-// memory lifetime while managing typed access themselves.
+// RAII owner of a raw, untyped byte block obtained from a TYPE-ERASED memory
+// resource (any_resource) in stream order. The resource's concrete type is
+// erased at construction (by buffer<VT, Properties...>); this layer holds only
+// the any_resource and the raw block. Storage carries NO Properties — those
+// live on the buffer type — so buffer<int, host_accessible> and
+// buffer<int, device_accessible> share the same buffer_storage<int> erasure,
+// which makes the cross-properties copy ctor straightforward.
 //
 // Splitting raw ownership from typed initialization guarantees that if a
-// composing object's constructor throws after the storage subobject has been
-// fully constructed, the storage destructor runs and returns the memory to the
-// resource. Without this split, a partially-constructed object would leak the
-// allocation because its own destructor never runs.
+// composing object's constructor throws after storage is allocated, the
+// storage destructor runs and returns the memory — no leak.
 //
-// Resource concept (duck-typed):
+// Resource concept (the any_resource interface):
 //   void* allocate(std::size_t num_bytes, gcxx::StreamView)
 //   void  deallocate(void* ptr, gcxx::StreamView)
 // ─────────────────────────────────────────────────────────────────────────────
-template <typename VT, typename Resource>
+template <typename VT>
 class buffer_storage {
  public:
   using value_type             = VT;
@@ -47,28 +47,24 @@ class buffer_storage {
   using const_iterator         = const_pointer;
   using reverse_iterator       = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using resource_type          = any_resource;
 
-  /// Empty storage (no allocation). Resource is default-constructed.
-  buffer_storage() noexcept(noexcept(Resource{})) : m_resource{} {}
+  /// Empty storage (no allocation, no resource).
+  buffer_storage() noexcept = default;
 
-  /// Empty storage bound to an explicit stream + resource (no allocation).
-  /// Useful for buffers that want a ready stream/resource but defer the
-  /// allocation to a later resize().
-  buffer_storage(gcxx::StreamView stream, Resource resource) noexcept(
-    std::is_nothrow_move_constructible<Resource>::value)
-      : m_resource(std::move(resource)),
-        m_stream(stream),
-        m_ptr(nullptr),
-        m_num_elems(0) {}
+  /// Empty storage bound to a stream + type-erased resource (no allocation).
+  buffer_storage(gcxx::StreamView stream, resource_type res) noexcept
+      : m_resource(std::move(res)), m_stream(stream) {}
 
-  /// Allocate num_bytes from resource on stream. Storage is uninitialized.
-  /// If allocation throws, m_ptr is left null and the resource/stream members
-  /// are cleaned up by their own destructors — no leak.
-  buffer_storage(gcxx::StreamView stream, Resource resource,
+  /// Allocate num_elems elements from the type-erased resource on stream.
+  /// Storage is uninitialized. A zero-size request allocates nothing.
+  buffer_storage(gcxx::StreamView stream, resource_type res,
                  size_type num_elems)
-      : m_resource(std::move(resource)),
+      : m_resource(std::move(res)),
         m_stream(stream),
-        m_ptr(m_resource.allocate(sizeof(VT) * num_elems, m_stream)),
+        m_ptr(num_elems != 0
+                ? m_resource.allocate(sizeof(VT) * num_elems, m_stream)
+                : nullptr),
         m_num_elems(num_elems) {}
 
   ~buffer_storage() { release(); }
@@ -77,7 +73,7 @@ class buffer_storage {
   buffer_storage& operator=(const buffer_storage&) = delete;
 
   buffer_storage(buffer_storage&& other) noexcept
-      : m_resource(other.m_resource),
+      : m_resource(std::move(other.m_resource)),
         m_stream(other.m_stream),
         m_ptr(other.m_ptr),
         m_num_elems(other.m_num_elems) {
@@ -89,10 +85,7 @@ class buffer_storage {
   buffer_storage& operator=(buffer_storage&& other) noexcept {
     if (this != &other) {
       release();
-      // Resources (e.g. pooled_device_resource) are cheap, shareable handles
-      // that may be reused to allocate further buffers — copy, don't move, so
-      // the moved-from storage retains a valid resource for reallocation.
-      m_resource        = other.m_resource;
+      m_resource        = std::move(other.m_resource);
       m_stream          = other.m_stream;
       m_ptr             = other.m_ptr;
       m_num_elems       = other.m_num_elems;
@@ -115,10 +108,14 @@ class buffer_storage {
     return m_num_elems * sizeof(VT);
   }
 
-  /// The memory resource the storage was allocated from.
-  GCXX_FH auto memory_resource() const noexcept -> const Resource& {
+  /// The type-erased memory resource the storage was allocated from.
+  GCXX_FH auto memory_resource() const noexcept -> const resource_type& {
     return m_resource;
   }
+
+  /// Clone the stored resource (for resize / cross-properties copy). Each call
+  /// heap-allocates a copy of the erased resource.
+  GCXX_FH auto borrow_resource() const -> resource_type { return m_resource; }
 
   /// The stream associated with this storage (used for deallocation).
   GCXX_FHDC auto stream() const noexcept -> gcxx::StreamView {
@@ -146,7 +143,7 @@ class buffer_storage {
   }
 
  private:
-  Resource m_resource;
+  resource_type m_resource;
   gcxx::StreamView m_stream{gcxx::StreamView::Null()};
   void* m_ptr{nullptr};
   size_type m_num_elems{0};

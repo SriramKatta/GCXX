@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 //
-// Phase 3 coverage for any_resource<Properties...>: type-erasure round-trip
-// (dispatch to the held resource), copy (clone) independence, move (source
-// empties), the `using properties` advertisement, resource_accessibility_v,
-// and the construction-time property contract (a resource missing a claimed
-// Property is rejected — verified via the resource_has_all_v trait, since gtest
-// can't assert a static_assert failure at runtime).
+// Phase 3/4 coverage for any_resource (the non-templated type-erased
+// allocator): type-erasure round-trip (dispatch to the held resource), copy
+// (clone) independence, move (source empties), empty state. Properties live on
+// the buffer type, not any_resource; the resource_has_all_v contract is
+// enforced by the buffer ctor (covered in test_buffer_properties).
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -19,7 +18,7 @@
 namespace {
 
   // Copyable mock: counts allocate/deallocate via shared pointers (a clone
-  // keeps counting into the same counters). Advertises host_accessible.
+  // keeps counting into the same counters).
   struct counting_mock_resource {
     using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
     int* alloc_count_;
@@ -46,8 +45,7 @@ namespace {
 TEST(AnyResourceTest, DispatchesToHeldResource) {
   int allocs = 0;
   int frees  = 0;
-  gcxx::memory::any_resource<gcxx::memory::host_accessible> ar(
-    counting_mock_resource{&allocs, &frees});
+  gcxx::memory::any_resource ar(counting_mock_resource{&allocs, &frees});
 
   EXPECT_TRUE(static_cast<bool>(ar));
   void* p = ar.allocate(std::size_t{32}, gcxx::StreamView::Null());
@@ -59,14 +57,13 @@ TEST(AnyResourceTest, DispatchesToHeldResource) {
 }
 
 // =============================================================================
-// Copy: a clone is an independent holder but dispatches to its own copy of the
-// resource (the shared counters still advance).
+// Copy: a clone is an independent holder that dispatches to its own copy of
+// the resource (the shared counters still advance).
 // =============================================================================
 TEST(AnyResourceTest, CopyIsIndependent) {
   int allocs = 0;
   int frees  = 0;
-  gcxx::memory::any_resource<gcxx::memory::host_accessible> ar(
-    counting_mock_resource{&allocs, &frees});
+  gcxx::memory::any_resource ar(counting_mock_resource{&allocs, &frees});
 
   auto ar2 = ar;  // copy
   EXPECT_TRUE(static_cast<bool>(ar));
@@ -89,8 +86,7 @@ TEST(AnyResourceTest, CopyIsIndependent) {
 // =============================================================================
 TEST(AnyResourceTest, MoveEmptiesSource) {
   int allocs = 0;
-  gcxx::memory::any_resource<gcxx::memory::host_accessible> ar(
-    counting_mock_resource{&allocs, nullptr});
+  gcxx::memory::any_resource ar(counting_mock_resource{&allocs, nullptr});
   auto ar2 = std::move(ar);
   EXPECT_FALSE(static_cast<bool>(ar));  // moved-from
   EXPECT_TRUE(static_cast<bool>(ar2));
@@ -103,45 +99,6 @@ TEST(AnyResourceTest, MoveEmptiesSource) {
 // Empty default-constructed any_resource.
 // =============================================================================
 TEST(AnyResourceTest, DefaultIsEmpty) {
-  gcxx::memory::any_resource<gcxx::memory::host_accessible> ar;
+  gcxx::memory::any_resource ar;
   EXPECT_FALSE(static_cast<bool>(ar));
-}
-
-// =============================================================================
-// Properties: any_resource advertises its Properties via `using properties`,
-// and resource_accessibility_v reflects them.
-// =============================================================================
-TEST(AnyResourceTest, AdvertisesProperties) {
-  using gcxx::memory::any_resource;
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::host_accessible;
-  using gcxx::memory::memory_accessibility;
-  using gcxx::memory::resource_accessibility_v;
-
-  static_assert(gcxx::memory::has_property_v<any_resource<device_accessible>,
-                                             device_accessible>);
-  static_assert(!gcxx::memory::has_property_v<any_resource<device_accessible>,
-                                              host_accessible>);
-
-  static_assert(resource_accessibility_v<any_resource<device_accessible>> ==
-                memory_accessibility::device);
-  static_assert(resource_accessibility_v<any_resource<host_accessible>> ==
-                memory_accessibility::host);
-  static_assert(resource_accessibility_v<
-                  any_resource<host_accessible, device_accessible>> ==
-                memory_accessibility::host_device);
-}
-
-// =============================================================================
-// Construction contract: a resource must advertise ⊇ Properties. The
-// any_resource ctor static_asserts resource_has_all_v; here we confirm the
-// trait is false for a mismatched resource (so the ctor would be rejected).
-// =============================================================================
-TEST(AnyResourceTest, RejectsMismatchedResourceTrait) {
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::resource_has_all_v;
-  // counting_mock_resource advertises host_accessible only:
-  static_assert(
-    resource_has_all_v<counting_mock_resource, gcxx::memory::host_accessible>);
-  static_assert(!resource_has_all_v<counting_mock_resource, device_accessible>);
 }

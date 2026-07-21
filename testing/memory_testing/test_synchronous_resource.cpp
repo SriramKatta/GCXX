@@ -124,15 +124,15 @@ TEST(SynchronousResourceDispatchTest, AllocateCallsSyncAllocator) {
 // Sanity: the buffer aliases still resolve through resources.hpp.
 // =============================================================================
 TEST(SynchronousResourceAliasTest, DeviceBufferAliasResolves) {
+  using gcxx::memory::device_accessible;
   using gcxx::memory::device_buffer;
-  static_assert(std::is_same_v<
-                device_buffer<int>,
-                gcxx::memory::buffer<int, gcxx::memory::sync_device_resource>>);
+  static_assert(std::is_same_v<device_buffer<int>,
+                               gcxx::memory::buffer<int, device_accessible>>);
 }
 
 TEST(SynchronousResourceAliasTest, HostBufferAliasResolves) {
+  using gcxx::memory::host_accessible;
   using gcxx::memory::host_buffer;
-  static_assert(std::is_same_v<
-                host_buffer<int>,
-                gcxx::memory::buffer<int, gcxx::memory::sync_host_resource>>);
+  static_assert(std::is_same_v<host_buffer<int>,
+                               gcxx::memory::buffer<int, host_accessible>>);
 }

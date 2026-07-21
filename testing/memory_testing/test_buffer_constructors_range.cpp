@@ -27,7 +27,7 @@ namespace {
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, host_mock_resource>;
+  using mock_buffer = gcxx::memory::buffer<VT, gcxx::memory::host_accessible>;
 
   // Detects whether `buffer(stream, resource, T{})` resolves to the range
   // ctor. Used to assert the SFINAE boundary: integral types must hit the
@@ -81,15 +81,15 @@ TEST(BufferRangeCtorSfinaeTest, AcceptsSizedRanges) {
 // make_buffer factory: forwards to the matching ctor.
 // =============================================================================
 TEST(MakeBufferTest, MakeBufferWithSize) {
-  auto buf = gcxx::memory::make_buffer<int>(
+  auto buf = gcxx::memory::make_buffer<int, gcxx::memory::host_accessible>(
     gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{8},
     gcxx::memory::no_init);
   EXPECT_EQ(buf.size(), 8);
 }
 
 TEST(MakeBufferTest, MakeBufferWithInitializerList) {
-  auto buf = gcxx::memory::make_buffer<int>(gcxx::StreamView::Null(),
-                                            host_mock_resource{},
-                                            std::initializer_list<int>{});
+  auto buf = gcxx::memory::make_buffer<int, gcxx::memory::host_accessible>(
+    gcxx::StreamView::Null(), host_mock_resource{},
+    std::initializer_list<int>{});
   EXPECT_EQ(buf.size(), 0);
 }

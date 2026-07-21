@@ -24,7 +24,7 @@ namespace {
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, host_mock_resource>;
+  using mock_buffer = gcxx::memory::buffer<VT, gcxx::memory::host_accessible>;
 
   using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
   using device_buf = gcxx::memory::device_buffer<std::uint32_t>;

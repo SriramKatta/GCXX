@@ -10,7 +10,6 @@
 #include <utility>
 
 #include <gcxx/internal/prologue.hpp>
-#include <gcxx/runtime/memory/buffers/properties.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
@@ -19,50 +18,43 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::any_resource<Properties...>
+// gcxx::memory::any_resource
 //
-// A type-erased, owning, copyable holder for any resource whose advertised
-// properties ⊇ Properties... . Lets a buffer<VT, Properties...> store ONE
-// resource type regardless of the concrete allocator the user passed at
-// construction (the decoupling that makes `device_buffer<T>` a single type).
+// A non-templated, type-erased, owning, copyable holder for ANY resource
+// matching the concept:
+//   void* allocate(std::size_t num_bytes, gcxx::StreamView)
+//   void  deallocate(void* ptr, gcxx::StreamView)
+//
+// Under the Option-B property mechanism, accessibility (Properties) lives on
+// the BUFFER type (buffer<VT, Properties...>), validated at construction via
+// resource_has_all_v. The type-erased allocator does not carry Properties — it
+// is just an opaque allocate/deallocate handle. This keeps buffer_storage<VT>
+// (and thus the cross-properties copy ctor) independent of the property pack:
+// a buffer<int, host_accessible> and buffer<int, device_accessible> share the
+// same any_resource / buffer_storage<int> erasure, differing only in their
+// Properties.
 //
 // The concrete resource is held behind a virtual interface (model<R>), copied
-// via clone(). Properties are carried by the any_resource<Properties...> TYPE
-// (not a runtime property vtable) and exposed as `using properties`; the
-// construction-time `static_assert` enforces the resource matches. This is the
-// Option-B adaptation of CCCL's any_resource — no virtual get_property, no
-// dynamic_accessibility_property vtable; accessibility is always known
-// statically from Properties (see resource_accessibility_v below).
-//
-// ponytail (deferred): SBO. The current implementation heap-allocates one
-// model<R> per resource (and one per clone, e.g. on resize/cross-copy). That is
-// negligible next to the driver allocate/free it wraps, but a small-buffer
-// optimization for stateless resources is a future refinement. Correctness and
-// clarity first.
+// via clone(). ponytail (deferred): SBO — the current implementation
+// heap-allocates one model<R> per resource (and one per clone, e.g. on resize /
+// cross-copy). Negligible next to the driver allocate/free it wraps; a
+// small-buffer optimization for stateless resources is a future refinement.
 // ─────────────────────────────────────────────────────────────────────────────
-template <typename... Properties>
 class any_resource {
  public:
-  /// Advertised accessibility — read by has_property_v / resource_has_all_v.
-  using properties = TypeSet<Properties...>;
-
   /// Empty (no resource). allocate/deallocate on an empty any_resource assert.
   any_resource() noexcept = default;
 
   /// Type-erase a concrete resource. The resource must be copy constructible
-  /// (any_resource owns a copy, cloned on copy/resize) and must advertise every
-  /// one of Properties... via its `using properties` member.
+  /// (any_resource owns a copy, cloned on copy/resize). Property validation is
+  /// the caller's responsibility (the buffer ctor enforces it via
+  /// resource_has_all_v before erasure).
   template <typename Resource, typename = std::enable_if_t<!std::is_same_v<
                                  std::decay_t<Resource>, any_resource>>>
   any_resource(Resource&& r) {
     static_assert(std::is_copy_constructible_v<std::decay_t<Resource>>,
                   "any_resource owns a copy of the resource; it must be copy "
                   "constructible");
-    static_assert(
-      resource_has_all_v<std::decay_t<Resource>, Properties...>,
-      "resource properties do not satisfy this any_resource's Properties "
-      "(e.g. a host_accessible resource cannot back a device_accessible "
-      "buffer)");
     impl_.reset(new model<std::decay_t<Resource>>(std::forward<Resource>(r)));
   }
 
@@ -117,17 +109,6 @@ class any_resource {
 
   std::unique_ptr<interface> impl_;
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// resource_accessibility_v<R>: the memory_accessibility implied by a type's
-// static `properties` set. The Option-B answer to CCCL's
-// dynamic_accessibility_property query — accessibility is always known at
-// compile time from R::properties, so the "dynamic" query is a static fold.
-// ─────────────────────────────────────────────────────────────────────────────
-template <typename R>
-inline constexpr memory_accessibility resource_accessibility_v =
-  accessibility_from_static_properties<is_host_accessible_v<R>,
-                                       is_device_accessible_v<R>>();
 
 GCXX_NAMESPACE_MEMORY_END()
 

@@ -14,6 +14,8 @@
 
 #include <gcxx/runtime/memory/buffers/buffer.hpp>
 #include <gcxx/runtime/memory/memory_resource/any_resource.hpp>
+#include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
+#include <gcxx/runtime/memory/memory_resource/resources.hpp>
 
 
 #include <gcxx/runtime/memory/copy.hpp>

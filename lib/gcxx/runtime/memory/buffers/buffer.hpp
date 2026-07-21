@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -18,8 +19,6 @@
 #include <gcxx/runtime/memory/buffers/properties.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
-#include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/resources.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
@@ -29,157 +28,195 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::buffer<VT, Resource>
+// gcxx::memory::buffer<VT, Properties...>
 //
-// A typed raw-storage owner allocated from a memory resource in stream order.
-// Interface modelled on cuda::buffer (CCCL/libcudacxx): the resource is a
-// compile-time template argument (zero overhead; one per backend), while the
-// stream and resource value are passed at construction. Elements are NOT
-// constructed or destroyed — VT must be trivially destructible.
+// A typed raw-storage owner allocated from a memory resource in stream order,
+// modelled on cuda::buffer (CCCL/libcudacxx). Properties... are the buffer's
+// accessibility contract (device_accessible / host_accessible); the resource —
+// which decides the allocation strategy — is passed at construction and
+// type-erased into a buffer_storage<VT>. device_buffer<T> == buffer<T,
+// device_accessible> is ONE type regardless of which allocator backed it.
 //
-// Responsibilities are split across two layers:
-//   * buffer_storage<Resource>  — owns the raw byte block (allocation,
-//                                 deallocation, byte size); RAII with the
-//                                 memory resource.
-//   * buffer<VT, Resource>      — composes buffer_storage and provides typed
-//                                 data()/iterator access, deriving the element
-//                                 count from the stored byte size.
+// The resource must advertise (via `using properties`) every one of this
+// buffer's Properties; the ctor static_asserts that (resource_has_all_v), so
+// passing a host-only resource to a device_accessible buffer is a compile
+// error. Elements are NOT constructed or destroyed — VT must be trivially
+// copyable.
 //
-// Because raw ownership (including size) lives in the buffer_storage
-// subobject, any future initialization performed by buffer's constructor is
-// exception-safe: if that initialization throws after storage is allocated,
-// the storage subobject's destructor runs and returns the memory to the
-// resource — no leak.
+// Responsibilities:
+//   * buffer_storage<VT> — owns the raw byte block + the type-erased
+//                          any_resource (allocation/deallocation); RAII.
+//   * buffer<VT, Properties...> — typed data()/iterator access, ctor
+//                          validation, accessor gating on Properties,
+//                          copy/cross-ctors.
 //
-// Resource concept (duck-typed):
-//   void* allocate(std::size_t num_bytes, gcxx::StreamView)
-//   void  deallocate(void* ptr, gcxx::StreamView)
+// Cross-instantiations are friends so the cross-properties ctor/move can reach
+// into another buffer's storage.
 // ─────────────────────────────────────────────────────────────────────────────
-template <typename VT, typename Resource>
+template <typename VT, typename... Properties>
 class buffer {
   static_assert(std::is_trivially_copyable_v<VT>,
-                "buffer<VT, Resource> requires trivially copyable VT");
+                "buffer requires trivially copyable VT");
+  static_assert(contains_execution_space_property<Properties...>,
+                "buffer requires device_accessible or host_accessible");
 
-  // Resource must advertise at least one execution-space property
-  // (host_accessible or device_accessible) via its `using properties` member.
-  // Catches misuse early instead of silently disabling all element accessors.
-  static_assert(contains_execution_space_property_v<Resource>,
-                "buffer<VT, Resource> requires Resource to advertise "
-                "device_accessible or host_accessible");
+  template <typename, typename...>
+  friend class buffer;
 
  public:
-  using buffer_t               = buffer_storage<VT, Resource>;
-  using value_type             = typename buffer_t::value_type;
+  /// The buffer's accessibility contract (uniform with resources).
+  using properties             = TypeSet<Properties...>;
+  using buffer_t               = buffer_storage<VT>;
+  using value_type             = VT;
   using reference              = value_type&;
   using const_reference        = const value_type&;
-  using size_type              = typename buffer_t::size_type;
-  using pointer                = typename buffer_t::pointer;
-  using const_pointer          = typename buffer_t::const_pointer;
-  using iterator               = typename buffer_t::iterator;
-  using const_iterator         = typename buffer_t::const_iterator;
-  using reverse_iterator       = typename buffer_t::reverse_iterator;
-  using const_reverse_iterator = typename buffer_t::const_reverse_iterator;
+  using size_type              = std::size_t;
+  using pointer                = value_type*;
+  using const_pointer          = const value_type*;
+  using iterator               = pointer;  // Phase 5: heterogeneous_iterator
+  using const_iterator         = const_pointer;
+  using reverse_iterator       = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-  /// Empty buffer (no allocation). Resource and stream are default/unset.
-  buffer() noexcept(noexcept(Resource{})) : m_storage{} {}
+  // ─────────────────────── resource-taking ctors ─────────────────────────────
+  // Each accepts any resource whose advertised properties ⊇ this buffer's
+  // Properties, validates that at compile time (validate_resource), and
+  // type-erases it.
 
-  /// Empty buffer, explicit lazy-intent tag.
-  explicit buffer(no_init_t) noexcept(noexcept(Resource{})) : m_storage{} {}
+  /// Empty buffer bound to a stream + resource (no allocation).
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource))) {
+    validate_resource<Resource>();
+  }
 
-  /// Empty buffer bound to an explicit stream + resource (no allocation).
-  buffer(gcxx::StreamView stream, Resource resource) noexcept(
-    std::is_nothrow_move_constructible<Resource>::value)
-      : m_storage(stream, std::move(resource)) {}
+  /// Allocate n elements (uninitialized).
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource, size_type n)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
+    validate_resource<Resource>();
+  }
 
-  /// Allocate n elements from resource on stream (CCCL ctor order:
-  /// stream, resource, size). Storage is uninitialized.
-  buffer(gcxx::StreamView stream, Resource resource, size_type n)
-      : m_storage(stream, std::move(resource), n) {}
+  /// Allocate n elements; storage left uninitialized (explicit no-init tag).
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource, size_type n, no_init_t)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
+    validate_resource<Resource>();
+  }
 
-  /// Allocate n elements from resource on stream; storage is left
-  /// uninitialized (explicit no-init tag).
-  buffer(gcxx::StreamView stream, Resource resource, size_type n, no_init_t)
-      : m_storage(stream, std::move(resource), n) {}
-
-  /// Allocate n elements from resource on stream and initialize every element
-  /// to value. Dispatches to memset when value is zero, otherwise to a fill
-  /// kernel. Exception-safe: if initialization throws after the storage
-  /// subobject has allocated, m_storage's destructor reclaims the memory.
-  buffer(gcxx::StreamView stream, Resource resource, size_type n,
+  /// Allocate n elements and initialize every element to value.
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource, size_type n,
          const value_type& value)
-      : m_storage(stream, std::move(resource), n) {
-    pointer p = data();
-    Fill(stream, p, value, n);
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
+    validate_resource<Resource>();
+    if (n != 0) {
+      pointer p = data();  // Fill takes Ptr& (lvalue) — bind to a local.
+      Fill(stream, p, value, n);
+    }
   }
 
   /// Allocate il.size() elements and copy from the initializer list.
-  /// Uses the existing gcxx::memory::Copy (async device-side copy).
-  // ponytail: const_cast because gcxx::memory::Copy's static_assert requires
-  // same-type pointers (int* vs const int* fail). The destination is freshly
-  // allocated uninitialized storage owned by this buffer; writing through it
-  // is safe. Loosen Copy's assert (remove_cv on both sides) if more const
-  // source use cases appear.
-  buffer(gcxx::StreamView stream, Resource resource,
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource,
          std::initializer_list<value_type> il)
-      : m_storage(stream, std::move(resource), il.size()) {
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)),
+                  il.size()) {
+    validate_resource<Resource>();
     if (il.size() != 0) {
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): Copy requires
+      // same-cv pointers; il.begin() is const. Destination is freshly
+      // allocated.
       Copy(stream, data(), const_cast<value_type*>(il.begin()), il.size());
     }
   }
-  /// Allocate rng.size() elements and copy from a sized range.
-  /// SFINAE on non-integral Range to avoid shadowing the (stream, resource, n)
-  /// ctor.
-  GCXX_TEMPLATE(typename Range)
-  GCXX_REQUIRES(!std::is_integral_v<std::decay_t<Range>>)
-  buffer(gcxx::StreamView stream, Resource resource, Range&& rng)
-      : m_storage(stream, std::move(resource),
+
+  /// Allocate rng.size() elements and copy from a sized range. SFINAE on
+  /// non-integral Range so it does not shadow the size ctor.
+  GCXX_TEMPLATE(typename Resource, typename Range)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>
+                  GCXX_AND !std::is_integral_v<std::decay_t<Range>>)
+  buffer(gcxx::StreamView stream, Resource&& resource, Range&& rng)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)),
                   static_cast<size_type>(rng.size())) {
+    validate_resource<Resource>();
     if (rng.size() != 0) {
-      // ponytail: same const_cast story as the initializer_list ctor above.
-      // std::data(rng) returns a raw pointer (int* for mutable vector,
-      // const int* for const vector / initializer_list); std::begin(rng)
-      // would return a wrapped iterator that const_cast can't handle.
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
       Copy(stream, data(), const_cast<value_type*>(std::data(rng)), rng.size());
     }
   }
 
-  /// Cross-space deep copy ctor (T3). Allocate other.size() elements from
-  /// resource on stream and copy from `other` (which may use a different
-  /// Resource with different accessibility properties). SFINAE rejects
-  /// same-type buffers (use the regular copy ctor — which is deleted, so this
-  /// prevents accidental implicit copies too).
-  /// ponytail: const_cast because gcxx::memory::Copy's static_assert requires
-  /// same-type pointers; other.data() returns const_pointer. See the
-  /// initializer_list ctor for the same workaround.
-  GCXX_TEMPLATE(typename OtherResource)
-  GCXX_REQUIRES(!std::is_same_v<OtherResource, Resource>)
-  buffer(gcxx::StreamView stream, Resource resource,
-         const buffer<value_type, OtherResource>& other)
-      : m_storage(stream, std::move(resource), other.size()) {
-    if (other.size() != 0) {
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
-      Copy(stream, data(), const_cast<value_type*>(other.data()), other.size());
+  /// Allocate distance(first,last) elements and copy from [first,last).
+  /// Requires a contiguous iterator. SFINAE on non-integral Iter.
+  GCXX_TEMPLATE(typename Resource, typename Iter)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>
+                  GCXX_AND !std::is_integral_v<std::decay_t<Iter>>)
+  buffer(gcxx::StreamView stream, Resource&& resource, Iter first, Iter last)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)),
+                  static_cast<size_type>(std::distance(first, last))) {
+    validate_resource<Resource>();
+    auto count = std::distance(first, last);
+    if (count != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
+      Copy(stream, data(), const_cast<value_type*>(std::addressof(*first)),
+           static_cast<size_type>(count));
     }
   }
 
-  /// Destructor is defaulted: raw memory is released by m_storage's RAII.
-  ~buffer() = default;
-
-  buffer(const buffer&)            = delete;
-  buffer& operator=(const buffer&) = delete;
+  // ───────────────────────── copy / move / cross ─────────────────────────────
+  /// Deep copy (same Properties). Allocates a new block and copies.
+  buffer(const buffer& other)
+      : m_storage(other.stream(), other.m_storage.borrow_resource(),
+                  other.size()) {
+    if (other.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
+      Copy(other.stream(), data(), const_cast<value_type*>(other.data()),
+           other.size());
+    }
+  }
 
   buffer(buffer&&) noexcept = default;
 
-  buffer& operator=(buffer&& other) noexcept {
+  buffer& operator=(const buffer& other) {
     if (this != &other) {
-      m_storage = std::move(other.m_storage);
+      buffer tmp(other);
+      *this = std::move(tmp);
     }
     return *this;
   }
+  buffer& operator=(buffer&&) noexcept = default;
 
-  // ───────────────────────────── element access ─────────────────────────────
+  /// Cross-properties copy ctor (CCCL __properties_match: other's Properties ⊇
+  /// this buffer's). Borrows the source's resource + stream and deep-copies.
+  /// A narrowing copy (e.g. managed host+device → host-only), NOT host↔device.
+  GCXX_TEMPLATE(typename... OtherProperties)
+  GCXX_REQUIRES((TypeSet<OtherProperties...>::template contains<Properties> &&
+                 ...))
+  explicit buffer(const buffer<VT, OtherProperties...>& other)
+      : m_storage(other.stream(), other.m_storage.borrow_resource(),
+                  other.size()) {
+    if (other.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
+      Copy(other.stream(), data(), const_cast<value_type*>(other.data()),
+           other.size());
+    }
+  }
+
+  /// Cross-properties move ctor: steal the source's storage.
+  GCXX_TEMPLATE(typename... OtherProperties)
+  GCXX_REQUIRES((TypeSet<OtherProperties...>::template contains<Properties> &&
+                 ...))
+  buffer(buffer<VT, OtherProperties...>&& other) noexcept
+      : m_storage(std::move(other.m_storage)) {}
+
+  ~buffer() = default;
+
+  // ───────────────────────────── element access ──────────────────────────────
   GCXX_FHDC auto data() noexcept -> pointer {
     return static_cast<pointer>(m_storage.get());
   }
@@ -204,33 +241,32 @@ class buffer {
     return const_reverse_iterator(begin());
   }
 
-  // ─────────────────────────── element access (T3) ──────────────────────────
-  // Gated on host_accessible: dereferencing device-only memory from the host
-  // is UB, so the accessors are SFINAE-removed unless Resource advertises
-  // host_accessible via its `using properties` member. Mirrors CCCL
-  // buffer.h:484-565. first/last/subspan below remain un-gated — they return
-  // spans (views), which is safe to construct without touching memory.
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  // ─────────────────────────── element access (gated) ────────────────────────
+  // Gated on host_accessible: dereferencing device-only memory from the host is
+  // UB, so the accessors are SFINAE-removed unless the buffer's Properties
+  // include host_accessible. first/last/subspan below stay un-gated — they
+  // return spans (views), safe to construct without touching memory.
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto operator[](size_type i) noexcept -> reference {
     GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
     return data()[i];
   }
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto operator[](size_type i) const noexcept -> const_reference {
     GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
     return data()[i];
   }
 
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FH auto at(size_type i) -> reference {
     if (i >= size())
       throw std::out_of_range{"buffer::at"};
     return data()[i];
   }
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FH auto at(size_type i) const -> const_reference {
     if (i >= size())
@@ -238,34 +274,33 @@ class buffer {
     return data()[i];
   }
 
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto front() noexcept -> reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
     return data()[0];
   }
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto front() const noexcept -> const_reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
     return data()[0];
   }
 
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto back() noexcept -> reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
     return data()[size() - 1];
   }
-  GCXX_TEMPLATE(bool H = is_host_accessible_v<Resource>)
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto back() const noexcept -> const_reference {
     GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
     return data()[size() - 1];
   }
 
-  // ─────────────────────────────── slicing (T1) ─────────────────────────────
-  // Returns gcxx::span (the project's own span — spans/span/span.hpp).
+  // ─────────────────────────────── slicing ───────────────────────────────────
   GCXX_FHDC auto first(size_type n) noexcept -> gcxx::span<value_type> {
     GCXX_RUNTIME_EXPECT(n <= size(), "buffer::first count out of range");
     return {data(), n};
@@ -275,7 +310,6 @@ class buffer {
     GCXX_RUNTIME_EXPECT(n <= size(), "buffer::first count out of range");
     return {data(), n};
   }
-
   GCXX_FHDC auto last(size_type n) noexcept -> gcxx::span<value_type> {
     GCXX_RUNTIME_EXPECT(n <= size(), "buffer::last count out of range");
     return {data() + size() - n, n};
@@ -285,7 +319,6 @@ class buffer {
     GCXX_RUNTIME_EXPECT(n <= size(), "buffer::last count out of range");
     return {data() + size() - n, n};
   }
-
   GCXX_FHDC auto subspan(size_type offset,
                          size_type count = gcxx::dynamic_extent) noexcept
     -> gcxx::span<value_type> {
@@ -305,82 +338,95 @@ class buffer {
              : gcxx::span<const value_type>{data() + offset, count};
   }
 
-  // ─────────────────────────────── observers ────────────────────────────────
-  /// Number of elements (derived from the stored byte size).
+  // ─────────────────────────────── observers ─────────────────────────────────
   GCXX_FHDC auto size() const noexcept -> size_type {
     return m_storage.size_bytes() / sizeof(VT);
   }
-
-  /// Size of the allocated block in bytes.
   GCXX_FHDC auto size_bytes() const noexcept -> size_type {
     return m_storage.size_bytes();
   }
-
   GCXX_FHDC auto empty() const noexcept -> bool { return m_storage.empty(); }
 
-  /// The memory resource the storage was allocated from.
-  GCXX_FH auto memory_resource() const noexcept -> const Resource& {
+  GCXX_FH auto memory_resource() const noexcept -> const any_resource& {
     return m_storage.memory_resource();
   }
-
-  /// The stream associated with this buffer (used for deallocation).
   GCXX_FHDC auto stream() const noexcept -> gcxx::StreamView {
     return m_storage.stream();
   }
-
-  /// Rebind the buffer to a new stream (synchronizes the old stream first).
   GCXX_FH auto set_stream(gcxx::StreamView new_stream) -> void {
     m_storage.set_stream(new_stream);
   }
 
-  // ─────────────────────────────── operations ───────────────────────────────
-  /// Deallocate using the stored stream; buffer becomes empty.
+  // ─────────────────────────────── operations ────────────────────────────────
   GCXX_FH auto destroy() -> void { m_storage.destroy(); }
-
-  /// Deallocate using an explicit stream; buffer becomes empty.
   GCXX_FH auto destroy(gcxx::StreamView s) -> void { m_storage.destroy(s); }
 
-  /// Reallocate to n elements (discards contents) using the stored stream.
-  /// A failed resize does not destroy the current allocation.
+  /// Reallocate to n elements (discards contents) reusing the stored resource.
   GCXX_FH auto resize(size_type n) -> void {
-    *this = buffer(m_storage.stream(), m_storage.memory_resource(), n);
+    *this = buffer(stream(), m_storage.borrow_resource(), n, no_init);
   }
 
-  /// Access the underlying raw storage (e.g. for resource-level operations).
   GCXX_FH auto storage() noexcept -> buffer_t& { return m_storage; }
   GCXX_FH auto storage() const noexcept -> const buffer_t& { return m_storage; }
 
-  // ─────────────────────────── property advertisement ────────────────────────
-  // Lazy variant: a buffer<VT, Resource> forwards its Resource's accessibility
-  // so has_property_v<buffer<VT, Resource>, P> mirrors has_property_v<Resource,
-  // P>. Exposed as a `using properties` member (the Option-B mechanism — no ADL
-  // get_property). Phase 4 gives the buffer its own Properties pack.
-  using properties = typename Resource::properties;
+  // ──────────────────── launch integration (device-gated) ────────────────────
+  // Lets a device_accessible buffer be treated as a span when passed to a
+  // launch customization point (CCCL cuda::launch parity).
+  GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
+  GCXX_REQUIRES(D)
+  GCXX_FH friend auto transform_launch_argument(gcxx::StreamView,
+                                                buffer& self) noexcept
+    -> gcxx::span<value_type> {
+    return {self.data(), self.size()};
+  }
+  GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
+  GCXX_REQUIRES(D)
+  GCXX_FH friend auto transform_launch_argument(gcxx::StreamView,
+                                                const buffer& self) noexcept
+    -> gcxx::span<const value_type> {
+    return {self.data(), self.size()};
+  }
 
  private:
+  /// Compile-time gate for resource-taking ctors: the resource must be copy
+  /// constructible (buffer owns a copy) and advertise ⊇ this buffer's
+  /// Properties. Centralized here so every resource ctor gets the same clear
+  /// static_assert.
+  template <typename Resource>
+  static constexpr auto validate_resource() -> void {
+    static_assert(
+      std::is_copy_constructible_v<std::decay_t<Resource>>,
+      "buffer owns a copy of the resource; it must be copy constructible");
+    static_assert(resource_has_all_v<std::decay_t<Resource>, Properties...>,
+                  "resource properties do not satisfy this buffer's Properties "
+                  "(e.g. a host_accessible resource cannot back a "
+                  "device_accessible buffer)");
+  }
+
   buffer_t m_storage{};
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// make_buffer: CTAD-friendly factory. Single variadic template — perfect
-// forwarding picks the right ctor overload. ponytail: not 10 overloads like
-// CCCL; add overloads only if a call site needs them.
+// make_buffer: CTAD-friendly factory. Explicit Properties template args
+// (the buffer's accessibility is the user's claim, not inferable from the
+// resource): make_buffer<int, device_accessible>(stream, resource, …).
 // ─────────────────────────────────────────────────────────────────────────────
-template <typename VT, typename Resource, typename... Args>
-GCXX_FH auto make_buffer(gcxx::StreamView stream, Resource resource,
-                         Args&&... args) -> buffer<VT, Resource> {
-  return buffer<VT, Resource>{stream, std::move(resource),
-                              std::forward<Args>(args)...};
+template <typename VT, typename... Properties, typename Resource,
+          typename... Args>
+GCXX_FH auto make_buffer(gcxx::StreamView stream, Resource&& resource,
+                         Args&&... args) -> buffer<VT, Properties...> {
+  return buffer<VT, Properties...>{stream, std::forward<Resource>(resource),
+                                   std::forward<Args>(args)...};
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Convenience aliases.
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename VT>
-using device_buffer = buffer<VT, sync_device_resource>;
+using device_buffer = buffer<VT, device_accessible>;
 
 template <typename VT>
-using host_buffer = buffer<VT, sync_host_resource>;
+using host_buffer = buffer<VT, host_accessible>;
 
 GCXX_NAMESPACE_MEMORY_END()
 

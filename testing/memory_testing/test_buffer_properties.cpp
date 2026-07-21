@@ -1,22 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 //
-// Tier 3 coverage: property system.
+// Phase 4 coverage: buffer<VT, Properties...> property system.
 //
-//   * has_property_v / is_host_accessible_v / is_device_accessible_v /
-//     contains_execution_space_property_v behave correctly for resources
-//     with and without property advertisements.
-//   * synchronous_resource<...> exposes Properties via `using properties`
-//     (read by has_property_v).
-//   * buffer's static_assert rejects resources with no execution-space
-//     property (compile-fail — verified via a negative-test alias that
-//     deliberately omits properties; here we only assert the POSITIVE cases
-//     because gtest can't express compile-fail at runtime).
-//   * buffer's element accessors (operator[], at, front, back) are visible
-//     iff the Resource advertises host_accessible.
-//   * Cross-space deep-copy ctor: buffer<int, R1> can be constructed from
-//     buffer<int, R2> via the new ctor (zero-size path is exercised to
-//     avoid needing a GPU).
+//   * has_property_v / is_*_v / contains_execution_space_property_v behave
+//     correctly for resources and buffers advertising properties.
+//   * synchronous_resource<...> exposes Properties via `using properties`.
+//   * buffer<VT, Properties...> carries its OWN Properties (not derived from a
+//     resource): has_property_v<buffer<VT, P...>, Q> reads the buffer's pack.
+//   * device_buffer<T> / host_buffer<T> are property-based aliases; the SAME
+//     type regardless of which allocator backed construction (decoupling win).
+//   * The ctor rejects a resource missing a claimed Property (verified via the
+//     resource_has_all_v trait — gtest can't assert a static_assert at
+//     runtime).
+//   * Cross-properties copy ctor (CCCL __properties_match: narrowing copy from
+//     a more-accessible buffer); same-type copy ctor (deep copy).
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -49,8 +47,8 @@ namespace {
     void deallocate(void* p, gcxx::StreamView) { std::free(p); }
   };
 
-  template <typename VT, typename R>
-  using buf = gcxx::memory::buffer<VT, R>;
+  template <typename VT, typename... Ps>
+  using buf = gcxx::memory::buffer<VT, Ps...>;
 
 }  // namespace
 
@@ -134,123 +132,103 @@ TEST(PropertyTest, ResourcesAdvertiseProperties) {
 }
 
 // =============================================================================
-// Buffer forwards its Resource's accessibility (T3 parity: CCCL buffer.h:789
-// advertises the buffer's own Properties). has_property_v<buffer<VT, R>, P>
-// must mirror has_property_v<R, P> exactly — no more, no less.
+// buffer<VT, Properties...> carries its OWN Properties (exposed via `using
+// properties`), independent of which resource backed construction.
 // =============================================================================
-TEST(PropertyTest, BufferForwardsResourceProperties) {
+TEST(PropertyTest, BufferHasItsOwnProperties) {
   using gcxx::memory::device_accessible;
   using gcxx::memory::host_accessible;
 
-  // host-only resource -> host-only buffer
-  static_assert(gcxx::memory::has_property_v<buf<int, host_mock_resource>,
-                                             host_accessible>);
-  static_assert(!gcxx::memory::has_property_v<buf<int, host_mock_resource>,
+  static_assert(
+    gcxx::memory::has_property_v<buf<int, host_accessible>, host_accessible>);
+  static_assert(!gcxx::memory::has_property_v<buf<int, host_accessible>,
                                               device_accessible>);
 
-  // device-only resource -> device-only buffer
-  static_assert(gcxx::memory::has_property_v<buf<int, device_mock_resource>,
+  static_assert(gcxx::memory::has_property_v<buf<int, device_accessible>,
                                              device_accessible>);
-  static_assert(!gcxx::memory::has_property_v<buf<int, device_mock_resource>,
+  static_assert(!gcxx::memory::has_property_v<buf<int, device_accessible>,
                                               host_accessible>);
 
-  // both-accessible resource -> both-accessible buffer (managed memory)
+  // both (managed-style)
   static_assert(
-    gcxx::memory::has_property_v<buf<int, host_device_mock_resource>,
+    gcxx::memory::has_property_v<buf<int, host_accessible, device_accessible>,
                                  host_accessible>);
   static_assert(
-    gcxx::memory::has_property_v<buf<int, host_device_mock_resource>,
+    gcxx::memory::has_property_v<buf<int, host_accessible, device_accessible>,
                                  device_accessible>);
 }
 
-TEST(PropertyTest, BufferForwardsRealResourceProperties) {
+// =============================================================================
+// Decoupling win: device_buffer<T> / host_buffer<T> are ONE type regardless of
+// the allocator. A buffer built from sync_device_resource and one from
+// pooled_device_resource are the SAME type (buffer<int, device_accessible>).
+// =============================================================================
+TEST(PropertyTest, AliasesArePropertyBased) {
   using gcxx::memory::device_accessible;
   using gcxx::memory::device_buffer;
   using gcxx::memory::host_accessible;
   using gcxx::memory::host_buffer;
-  using gcxx::memory::managed_device_resource;
 
-  // The public aliases forward too — so generic code can query a buffer's
-  // accessibility without naming its Resource.
-  static_assert(
-    gcxx::memory::has_property_v<device_buffer<int>, device_accessible>);
-  static_assert(
-    !gcxx::memory::has_property_v<device_buffer<int>, host_accessible>);
-  static_assert(
-    gcxx::memory::has_property_v<host_buffer<int>, host_accessible>);
-  static_assert(
-    !gcxx::memory::has_property_v<host_buffer<int>, device_accessible>);
+  static_assert(std::is_same_v<device_buffer<int>,
+                               gcxx::memory::buffer<int, device_accessible>>);
+  static_assert(std::is_same_v<host_buffer<int>,
+                               gcxx::memory::buffer<int, host_accessible>>);
 
-  // managed memory is both host- and device-accessible.
-  using managed_buf = gcxx::memory::buffer<int, managed_device_resource>;
-  static_assert(gcxx::memory::has_property_v<managed_buf, device_accessible>);
-  static_assert(gcxx::memory::has_property_v<managed_buf, host_accessible>);
+  // Same type across allocators (zero-size so no pool/driver call):
+  using d_from_sync = decltype(gcxx::memory::buffer<int, device_accessible>(
+    gcxx::StreamView::Null(), gcxx::memory::sync_device_resource{},
+    std::size_t{0}, gcxx::memory::no_init));
+  using d_from_pool = decltype(gcxx::memory::buffer<int, device_accessible>(
+    gcxx::StreamView::Null(), gcxx::memory::pooled_device_resource{},
+    std::size_t{0}, gcxx::memory::no_init));
+  static_assert(std::is_same_v<d_from_sync, d_from_pool>);
 }
 
 // =============================================================================
-// Accessor visibility: operator[] exists iff Resource is host_accessible.
-// Uses static_assert + decltype — gtest can't directly assert "method does
-// not exist", but well-formedness via decltype is the C++17 way.
+// Ctor contract: a resource must advertise ⊇ the buffer's Properties. A
+// host-only resource cannot back a device_accessible buffer — the buffer ctor
+// static_asserts resource_has_all_v. Here we confirm the trait is false for the
+// mismatch (so the ctor would be rejected).
 // =============================================================================
-TEST(PropertyAccessorGatingTest, HostAccessibleResourceHasSubscript) {
-  using B = buf<int, host_mock_resource>;
-  static_assert(
-    std::is_same_v<decltype(std::declval<B&>()[std::size_t{0}]), int&>);
-  static_assert(
-    std::is_same_v<decltype(std::declval<const B&>()[std::size_t{0}]),
-                   const int&>);
-}
+TEST(PropertyTest, RejectsMismatchedResourceTrait) {
+  using gcxx::memory::device_accessible;
+  using gcxx::memory::resource_has_all_v;
+  using gcxx::memory::sync_host_resource;
 
-TEST(PropertyAccessorGatingTest, HostAccessibleResourceHasFrontBack) {
-  using B = buf<int, host_mock_resource>;
-  static_assert(std::is_same_v<decltype(std::declval<B&>().front()), int&>);
-  static_assert(std::is_same_v<decltype(std::declval<B&>().back()), int&>);
-}
-
-TEST(PropertyAccessorGatingTest, HostAccessibleResourceHasAt) {
-  using B = buf<int, host_mock_resource>;
-  // at() throws — return type is reference.
+  static_assert(!resource_has_all_v<sync_host_resource, device_accessible>);
   static_assert(
-    std::is_same_v<decltype(std::declval<B&>().at(std::size_t{0})), int&>);
+    resource_has_all_v<sync_host_resource, gcxx::memory::host_accessible>);
 }
 
 // =============================================================================
-// Cross-space deep-copy ctor (T3).
-//
-// Exercise the zero-size path so no GPU is needed; the ctor body checks
-// `other.size() != 0` before issuing Copy, so size 0 skips the driver call.
-// SFINAE callability for non-zero paths is verified via decltype.
+// Cross-properties copy ctor (CCCL __properties_match — narrowing copy from a
+// more-accessible buffer). Zero-size path so no GPU is needed. Host↔device is
+// NOT supported (neither is a superset); only managed→host / managed→device.
 // =============================================================================
-TEST(BufferCrossSpaceCtorTest, HostFromDeviceZeroSizeCompilesAndRuns) {
-  buf<int, device_mock_resource> src(gcxx::StreamView::Null(),
-                                     device_mock_resource{}, std::size_t{0},
-                                     gcxx::memory::no_init);
-  buf<int, host_mock_resource> dst(gcxx::StreamView::Null(),
-                                   host_mock_resource{}, src);
+TEST(BufferCrossPropertiesCtorTest, NarrowsManagedToHostZeroSize) {
+  buf<int, gcxx::memory::host_accessible, gcxx::memory::device_accessible> src(
+    gcxx::StreamView::Null(), host_device_mock_resource{}, std::size_t{0},
+    gcxx::memory::no_init);
+  buf<int, gcxx::memory::host_accessible> dst(src);  // narrowing copy
   EXPECT_EQ(dst.size(), 0);
 }
 
-TEST(BufferCrossSpaceCtorTest, DeviceFromHostZeroSizeCompilesAndRuns) {
-  buf<int, host_mock_resource> src(gcxx::StreamView::Null(),
-                                   host_mock_resource{}, std::size_t{0},
-                                   gcxx::memory::no_init);
-  buf<int, device_mock_resource> dst(gcxx::StreamView::Null(),
-                                     device_mock_resource{}, src);
+TEST(BufferCrossPropertiesCtorTest, NarrowsManagedToDeviceZeroSize) {
+  buf<int, gcxx::memory::host_accessible, gcxx::memory::device_accessible> src(
+    gcxx::StreamView::Null(), host_device_mock_resource{}, std::size_t{0},
+    gcxx::memory::no_init);
+  buf<int, gcxx::memory::device_accessible> dst(
+    std::move(src));  // narrowing move
   EXPECT_EQ(dst.size(), 0);
 }
 
-TEST(BufferCrossSpaceCtorTest, SameTypeResourceRejected) {
-  // The cross-space ctor has SFINAE `!is_same_v<OtherResource, Resource>` to
-  // prevent it from shadowing the (deleted) regular copy ctor. If the user
-  // tries to copy from a same-type buffer, the call should not resolve to
-  // the cross-space ctor. We verify this indirectly: the call must not
-  // compile when OtherResource == Resource. We can't write a negative
-  // runtime test, but the deleted copy ctor `buffer(const buffer&) = delete`
-  // catches the same case.
-  // Sanity: ensure the SFINAE check exists by asserting the cross-space
-  // ctor is callable for DIFFERENT resources.
-  using src_t = buf<int, host_mock_resource>;
-  using dst_t = buf<int, device_mock_resource>;
-  static_assert(std::is_constructible_v<dst_t, gcxx::StreamView,
-                                        device_mock_resource, const src_t&>);
+// =============================================================================
+// Same-type copy ctor (deep copy). buffer is copyable.
+// =============================================================================
+TEST(BufferCopyCtorTest, SameTypeDeepCopyZeroSize) {
+  buf<int, gcxx::memory::host_accessible> src(
+    gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{0},
+    gcxx::memory::no_init);
+  buf<int, gcxx::memory::host_accessible> dst(src);  // copy ctor
+  EXPECT_EQ(dst.size(), 0);
 }

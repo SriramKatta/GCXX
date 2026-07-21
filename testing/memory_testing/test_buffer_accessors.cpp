@@ -27,7 +27,7 @@ namespace {
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, host_mock_resource>;
+  using mock_buffer = gcxx::memory::buffer<VT, gcxx::memory::host_accessible>;
 
 }  // namespace
 
