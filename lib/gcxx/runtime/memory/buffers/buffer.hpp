@@ -18,6 +18,7 @@
 #include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
 #include <gcxx/runtime/memory/buffers/properties.hpp>
+#include <gcxx/runtime/memory/memory_resource/resource_concepts.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
@@ -407,6 +408,10 @@ class buffer {
                   "resource properties do not satisfy this buffer's Properties "
                   "(e.g. a host_accessible resource cannot back a "
                   "device_accessible buffer)");
+    static_assert(resource_api<std::decay_t<Resource>>,
+                  "resource does not model the gcxx resource concept: it must "
+                  "expose allocate(std::size_t, gcxx::StreamView) -> void* and "
+                  "deallocate(void*, gcxx::StreamView) -> void");
   }
 
   buffer_t m_storage{};
