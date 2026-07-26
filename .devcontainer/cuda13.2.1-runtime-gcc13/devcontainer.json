@@ -1,21 +1,19 @@
 {
-  "name": "GCXX CUDA 13.2.1 Devel (GCC 13)",
+  "name": "cuda13.2.1-runtime-gcc13",
   "build": {
     "dockerfile": "../Dockerfile",
     "context": ".",
     "args": {
       "BASE_IMAGE": "nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04",
       "GCC_VERSION": "13",
-      "CONTAINER_NAME": "gcxx-cuda13.2.1-devel-gcc13"
+      "CONTAINER_NAME": "cuda13.2.1-runtime-gcc13"
     }
   },
   "mounts": [
     "source=${localEnv:HOME},target=/host-home,type=bind"
   ],
   "runArgs": [
-    "--init",
-    "--name",
-    "cuda13.2.1-devel-gcc13"
+    "--init"
   ],
   "hostRequirements": {
     "gpu": "optional"
@@ -24,7 +22,7 @@
     "CMAKE_GENERATOR": "Ninja"
   },
   "remoteUser": "vscode",
-  "workspaceFolder": "/workspaces/GCXX",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "customizations": {
     "vscode": {
       "extensions": [
