@@ -40,9 +40,23 @@ Checks:
   # Always explicitly default-initialise members; redundant init check fights that habit
   - '-readability-redundant-member-init'
 
+  # ---- View/handle wrapper types (GraphView, EventView, span_base, MemPoolView,
+  # ---- ChildGraphNodeView, …) are DESIGNED to implicitly construct from raw
+  # ---- handles/containers. Adding `explicit` breaks pervasive list-init/return
+  # ---- conversions, so the check is disabled repo-wide for this design.
+  - '-google-explicit-constructor'
+  # ---- make-member-function-const misfires on methods that mutate members
+  # ---- indirectly (e.g. via std::string::reserve); disabled to avoid breakage.
+  - '-readability-make-member-function-const'
+
   # ---- C arrays: GCXX uses raw arrays in GPU interfaces ----
   - '-modernize-avoid-c-arrays'
   - '-cppcoreguidelines-avoid-c-arrays'
+
+  # ---- Flag enums: the details_::flag_t (unsigned int) base type matches the
+  # ---- CUDA driver's enum ABI and is static_cast to/from driver types; the
+  # ---- "use uint8_t" suggestion would narrow/fragment that contract.
+  - '-performance-enum-size'
 
   # ---- Macro-to-enum: GCXX macros are intentional ----
   - '-modernize-macro-to-enum'
@@ -70,6 +84,8 @@ Checks:
   - '-cppcoreguidelines-noexcept-swap'              # covered by performance-noexcept-swap
   - '-cppcoreguidelines-use-default-member-init'    # covered by modernize-use-default-member-init
   - '-cppcoreguidelines-pro-type-reinterpret-cast'  # necessary for GPU pointer manipulation
+  - '-cppcoreguidelines-pro-bounds-pointer-arithmetic'  # idiomatic raw-pointer indexing in GPU code
+  - '-cppcoreguidelines-pro-type-union-access'  # CUDA C-interop tagged unions (e.g. graph node params)
   - '-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access'  # too aggressive for GPU code
 
   # ---- google-* noise ----
