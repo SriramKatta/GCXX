@@ -61,7 +61,7 @@ GCXX_CONCEPT has_size_and_data_v = GCXX_REQUIRES_EXPR((VT), VT& v)(
   gcxx::details_::size(v), gcxx::details_::data(v));
 
 template <typename T>
-using remove_pointer_t = typename std::remove_pointer<T>::type;
+using remove_pointer_t = std::remove_pointer_t<T>;
 
 
 template <typename T>
