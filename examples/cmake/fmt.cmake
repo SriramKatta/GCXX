@@ -5,12 +5,10 @@ CPMAddPackage(
 )
 
 if(fmt_ADDED)
+  # Treat fmt's headers as system headers (so they don't warn in our code)
+  # and silence warnings from compiling fmt's own sources.
   get_target_property(FMT_INCLUDES fmt INTERFACE_INCLUDE_DIRECTORIES)
-  get_target_property(FMT_SYS_INCLUDES fmt INTERFACE_SYSTEM_INCLUDE_DIRECTORIES)
-
-  # keep include dirs, but also tell CMake they are "system"
-  set_target_properties(
-    fmt PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                   "${FMT_INCLUDES};${FMT_SYS_INCLUDES}"
-  )
+  set_target_properties(fmt PROPERTIES
+    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${FMT_INCLUDES}")
+  target_compile_options(fmt PRIVATE -w)
 endif()
