@@ -61,7 +61,7 @@ struct tag;
 
 // A constexpr true that depends on _Tp, for use inside decltype.
 template <class>
-GCXX_HD constexpr bool is_true() {
+GCXX_FHDC bool is_true() {
   return true;
 }
 
@@ -77,13 +77,18 @@ inline constexpr int requires_ = 0;
 // Never defined; only used in unevaluated decltype to manufacture a dependent
 // type. extern keeps the variable template from being defined.
 template <class _Tp, class... _Args>
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 extern _Tp make_dependent;
 
 template <class _Impl, class... _Args>
 using requires_expr_impl = decltype(make_dependent<_Impl, _Args...>);
 
+
+// Deliberate sink consumes a forwarding-ref to suppress unused-value warnings;
+// intentionally never forwarded.
 template <typename _Tp>
-GCXX_HD constexpr void unused(_Tp&&) noexcept {}
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
+GCXX_FHDC void unused(_Tp&&) noexcept {}
 
 #if !GCXX_HAS_CONCEPTS()
 // In the pre-C++20 emulation path the _Same_as(TYPE) EXPR requirement form
