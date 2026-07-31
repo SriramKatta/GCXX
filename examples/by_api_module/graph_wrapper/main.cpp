@@ -163,14 +163,13 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   gcxx::GraphView::deviceGraphNode_t memcpyNode = nullptr, memsetNode = nullptr;
   double result_h = 0.0;
 
-  auto memcpy3d1 =
-    gcxx::Memcpy3DParamsBuilder()
-      .setSrcPtr(gcxx::memory::makePitchedPtr<float>(inputVec_h, inputSize,
-                                                     inputSize, 1))
-      .setDstPtr(gcxx::memory::makePitchedPtr<float>(inputVec_d, inputSize,
-                                                     inputSize, 1))
-      .setExtent(gcxx::memory::makeExtent<float>(inputSize, 1, 1))
-      .build();
+  auto memcpy3d1 = gcxx::Memcpy3DParamsBuilder()
+                     .setSrcPtr(gcxx::makePitchedPtr<float>(
+                       inputVec_h, inputSize, inputSize, 1))
+                     .setDstPtr(gcxx::makePitchedPtr<float>(
+                       inputVec_d, inputSize, inputSize, 1))
+                     .setExtent(gcxx::makeExtent<float>(inputSize, 1, 1))
+                     .build();
 
 
   memcpyNode = graph.AddMemcpyNode(memcpy3d1);
@@ -220,9 +219,9 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
 
   auto memcpy3d2 =
     gcxx::Memcpy3DParamsBuilder()
-      .setSrcPtr(gcxx::memory::makePitchedPtr<double>(result_d, 1, 1, 1))
-      .setDstPtr(gcxx::memory::makePitchedPtr<double>(&result_h, 1, 1, 1))
-      .setExtent(gcxx::memory::makeExtent<double>(1, 1, 1))
+      .setSrcPtr(gcxx::makePitchedPtr<double>(result_d, 1, 1, 1))
+      .setDstPtr(gcxx::makePitchedPtr<double>(&result_h, 1, 1, 1))
+      .setExtent(gcxx::makeExtent<double>(1, 1, 1))
       .build();
 
   memcpyNode = graph.AddMemcpyNode(memcpy3d2, nodeDependencies);
@@ -278,12 +277,12 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::Copy(stream1, inputVec_d, inputVec_h, inputSize);
+  gcxx::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
-  gcxx::memory::Memset(stream2, outputVec_d, 0, numOfBlocks);
+  gcxx::Memset(stream2, outputVec_d, 0, numOfBlocks);
   memsetEvent1.RecordInStream(stream2);
 
-  gcxx::memory::Memset(stream3, result_d, 0, 1);
+  gcxx::Memset(stream3, result_d, 0, 1);
   memsetEvent2.RecordInStream(stream3);
 
   stream1.WaitOnEvent(memsetEvent1);
@@ -296,7 +295,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::Copy(stream1, &result_h, result_d, 1);
+  gcxx::Copy(stream1, &result_h, result_d, 1);
 
 
   callBackData_t hostFnData = {nullptr};
@@ -346,12 +345,12 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   forkStreamEvent.RecordInStream(stream1);
   stream2.WaitOnEvent(forkStreamEvent);
   stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::Copy(stream1, inputVec_d, inputVec_h, inputSize);
+  gcxx::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
-  gcxx::memory::Memset(stream2, outputVec_d, 0, numOfBlocks);
+  gcxx::Memset(stream2, outputVec_d, 0, numOfBlocks);
   memsetEvent1.RecordInStream(stream2);
 
-  gcxx::memory::Memset(stream3, result_d, 0, 1);
+  gcxx::Memset(stream3, result_d, 0, 1);
   memsetEvent2.RecordInStream(stream3);
 
   stream1.WaitOnEvent(memsetEvent1);
@@ -364,7 +363,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::Copy(stream1, &result_h, result_d, 1);
+  gcxx::Copy(stream1, &result_h, result_d, 1);
 
 
   callBackData_t hostFnData = {nullptr};
@@ -411,10 +410,10 @@ int main(int argc, char** argv) {
   printf("threads per block  = %d\n", THREADS_PER_BLOCK);
   printf("Graph Launch iterations = %d\n", GRAPH_LAUNCH_ITERATIONS);
 
-  auto inVec_h_raii  = gcxx::memory::make_host_pinned_unique_ptr<float>(size);
-  auto inVec_d_raii  = gcxx::memory::make_device_unique_ptr<float>(size);
-  auto outVec_d_raii = gcxx::memory::make_device_unique_ptr<double>(maxBlocks);
-  auto result_d_raii = gcxx::memory::make_device_unique_ptr<double>(1);
+  auto inVec_h_raii  = gcxx::make_host_pinned_unique_ptr<float>(size);
+  auto inVec_d_raii  = gcxx::make_device_unique_ptr<float>(size);
+  auto outVec_d_raii = gcxx::make_device_unique_ptr<double>(maxBlocks);
+  auto result_d_raii = gcxx::make_device_unique_ptr<double>(1);
 
 
   float* inputVec_h   = inVec_h_raii.get();

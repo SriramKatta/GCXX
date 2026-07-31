@@ -21,7 +21,7 @@ namespace {
   template <typename T, std::size_t N>
   void expect_device_contents_equal(T* device_ptr, const int byte_value) {
     std::array<T, N> host_values{};
-    gcxx::memory::Copy(host_values.data(), device_ptr, N);
+    gcxx::Copy(host_values.data(), device_ptr, N);
 
     const T expected = memset_expected_value<T>(byte_value);
     for (const auto& actual : host_values) {
@@ -29,8 +29,8 @@ namespace {
     }
   }
 
-  using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
-  using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
+  using device_ptr = gcxx::device_ptr<std::uint32_t>;
+  using device_buf = gcxx::device_buffer<std::uint32_t>;
 
   // Satisfies neither is_pointer_or_has_get_v nor is_span_like_v — the
   // universal negative case for every overload's SFINAE constraint.
@@ -45,12 +45,12 @@ namespace {
 
   // Memset(handle, value, count) — sync, pointer/smart-pointer.
   GCXX_DEFINE_IS_CALLABLE(is_memset_ptr_callable,
-                          gcxx::memory::Memset(std::declval<Args>()..., 0,
-                                               std::size_t{4}));
+                          gcxx::Memset(std::declval<Args>()..., 0,
+                                       std::size_t{4}));
 
   // Memset(spanLike, value) — sync, span-like.
   GCXX_DEFINE_IS_CALLABLE(is_memset_span_callable,
-                          gcxx::memory::Memset(std::declval<Args>()..., 0));
+                          gcxx::Memset(std::declval<Args>()..., 0));
 
 }  // namespace
 

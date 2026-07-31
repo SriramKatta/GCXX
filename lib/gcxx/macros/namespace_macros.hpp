@@ -40,14 +40,6 @@
 #define GCXX_NAMESPACE_FLAGS_END() } /* namespace flags  */
 #endif
 
-#ifndef GCXX_NAMESPACE_MEMORY_BEGIN
-#define GCXX_NAMESPACE_MEMORY_BEGIN() namespace memory {
-#endif
-
-#ifndef GCXX_NAMESPACE_MEMORY_END
-#define GCXX_NAMESPACE_MEMORY_END() } /* namespace memory  */
-#endif
-
 
 #ifndef GCXX_NAMESPACE_MAIN_DETAILS_BEGIN
 #define GCXX_NAMESPACE_MAIN_DETAILS_BEGIN() \

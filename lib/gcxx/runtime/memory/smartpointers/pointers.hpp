@@ -13,7 +13,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 template <typename VT, typename DT>
 using gcxx_unique_ptr = std::unique_ptr<VT, DT>;
@@ -57,7 +56,6 @@ auto make_device_managed_unique_ptr(std::size_t numElem)
   return device_managed_ptr<VT>{
     static_cast<VT*>(device_managed_malloc(numElem * sizeof(VT))), device_free};
 }
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

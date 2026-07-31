@@ -100,13 +100,11 @@ int main(int argc, char* argv[]) {
     }
   }
   {
-    int chunk_size = rowsinrank(rank, nranks, N);
-    auto a_raii =
-      gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
-    auto a_new_raii =
-      gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
-    gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
-    gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
+    int chunk_size  = rowsinrank(rank, nranks, N);
+    auto a_raii     = gcxx::make_device_unique_ptr<real>(N * (chunk_size + 2));
+    auto a_new_raii = gcxx::make_device_unique_ptr<real>(N * (chunk_size + 2));
+    gcxx::Memset(a_raii, 0, N * (chunk_size + 2));
+    gcxx::Memset(a_new_raii, 0, N * (chunk_size + 2));
     real* a     = a_raii.get();
     real* a_new = a_new_raii.get();
 
@@ -187,8 +185,8 @@ int main(int argc, char* argv[]) {
     nvtxRangePop();
 
     // Initialize boundaries
-    gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
-    gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
+    gcxx::Memset(a_raii, 0, N * (chunk_size + 2));
+    gcxx::Memset(a_new_raii, 0, N * (chunk_size + 2));
     launch_initialize_boundaries(a, a_new, M_PI, iy_start_global - 1, N,
                                  chunk_size + 2);
     locdev.Synchronize();

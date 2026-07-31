@@ -27,10 +27,10 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  auto h_a = gcxx::memory::host_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_host_resource{}, arg.N);
-  auto d_a = gcxx::memory::device_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_device_resource{}, arg.N);
+  auto h_a = gcxx::host_buffer<datatype>(gcxx::StreamView::Null(),
+                                         gcxx::sync_host_resource{}, arg.N);
+  auto d_a = gcxx::device_buffer<datatype>(gcxx::StreamView::Null(),
+                                           gcxx::sync_device_resource{}, arg.N);
 
   gcxx::span h_a_span(h_a);
   gcxx::span d_a_span(d_a);
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
   gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
   auto H2Dstart = str.RecordEvent();
-  gcxx::memory::Copy(str, d_a, h_a);
+  gcxx::Copy(str, d_a, h_a);
   auto H2Dend = str.RecordEvent();
 
   auto res = launch_reduction_kernel<datatype>(arg, str, d_a_span);

@@ -23,7 +23,7 @@
 //
 // Example:
 //   GCXX_DEFINE_IS_CALLABLE(is_memset_callable,
-//       gcxx::memory::Memset(std::declval<Args>()..., 0, std::size_t{0}));
+//       gcxx::Memset(std::declval<Args>()..., 0, std::size_t{0}));
 //   static_assert( is_memset_callable_v<int*>);
 //   static_assert(!is_memset_callable_v<NotAHandle>);
 #define GCXX_DEFINE_IS_CALLABLE(Name, ...)                               \

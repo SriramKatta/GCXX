@@ -25,23 +25,23 @@ class Memcpy3DParamsView {
     return m_params;
   }
 
-  GCXX_FHC auto getSrcPos() const -> const gcxx::memory::devicePos {
+  GCXX_FHC auto getSrcPos() const -> const gcxx::devicePos {
     return m_params.srcPos;
   }
 
-  GCXX_FHC auto getDstPos() const -> const gcxx::memory::devicePos {
+  GCXX_FHC auto getDstPos() const -> const gcxx::devicePos {
     return m_params.dstPos;
   }
 
-  GCXX_FHC auto getSrcPtr() const -> const gcxx::memory::devicePitchedPtr {
+  GCXX_FHC auto getSrcPtr() const -> const gcxx::devicePitchedPtr {
     return m_params.srcPtr;
   }
 
-  GCXX_FHC auto getDstPtr() const -> const gcxx::memory::devicePitchedPtr {
+  GCXX_FHC auto getDstPtr() const -> const gcxx::devicePitchedPtr {
     return m_params.dstPtr;
   }
 
-  GCXX_FHC auto getExtent() const -> const gcxx::memory::deviceExtent {
+  GCXX_FHC auto getExtent() const -> const gcxx::deviceExtent {
     return m_params.extent;
   }
 
@@ -57,11 +57,9 @@ class Memcpy3DParams : public Memcpy3DParamsView {
   GCXX_FHC Memcpy3DParams() = default;
 
   GCXX_FHC
-  Memcpy3DParams(const gcxx::memory::devicePitchedPtr& srcPtr,
-                 gcxx::memory::devicePos srcPos,
-                 const gcxx::memory::devicePitchedPtr& dstPtr,
-                 gcxx::memory::devicePos dstPos,
-                 gcxx::memory::deviceExtent extent) {
+  Memcpy3DParams(const gcxx::devicePitchedPtr& srcPtr, gcxx::devicePos srcPos,
+                 const gcxx::devicePitchedPtr& dstPtr, gcxx::devicePos dstPos,
+                 gcxx::deviceExtent extent) {
     m_params.srcPtr = srcPtr;
     m_params.srcPos = srcPos;
     m_params.dstPtr = dstPtr;
@@ -86,33 +84,31 @@ class Memcpy3DParamsBuilder {
   GCXX_FH static auto create() -> Memcpy3DParamsBuilder { return {}; }
 
   GCXX_FHC
-  auto setSrcPtr(const gcxx::memory::devicePitchedPtr& ptr)
-    -> Memcpy3DParamsBuilder& {
+  auto setSrcPtr(const gcxx::devicePitchedPtr& ptr) -> Memcpy3DParamsBuilder& {
     m_srcPtr = ptr;
     return *this;
   }
 
   GCXX_FHC
-  auto setSrcPos(gcxx::memory::devicePos pos) -> Memcpy3DParamsBuilder& {
+  auto setSrcPos(gcxx::devicePos pos) -> Memcpy3DParamsBuilder& {
     m_srcPos = pos;
     return *this;
   }
 
   GCXX_FHC
-  auto setDstPtr(const gcxx::memory::devicePitchedPtr& ptr)
-    -> Memcpy3DParamsBuilder& {
+  auto setDstPtr(const gcxx::devicePitchedPtr& ptr) -> Memcpy3DParamsBuilder& {
     m_dstPtr = ptr;
     return *this;
   }
 
   GCXX_FHC
-  auto setDstPos(gcxx::memory::devicePos pos) -> Memcpy3DParamsBuilder& {
+  auto setDstPos(gcxx::devicePos pos) -> Memcpy3DParamsBuilder& {
     m_dstPos = pos;
     return *this;
   }
 
   GCXX_FHC
-  auto setExtent(gcxx::memory::deviceExtent ext) -> Memcpy3DParamsBuilder& {
+  auto setExtent(gcxx::deviceExtent ext) -> Memcpy3DParamsBuilder& {
     m_extent = ext;
     return *this;
   }
@@ -122,11 +118,11 @@ class Memcpy3DParamsBuilder {
   }
 
  private:
-  gcxx::memory::devicePitchedPtr m_srcPtr{};
-  gcxx::memory::devicePos m_srcPos{0, 0, 0};
-  gcxx::memory::devicePitchedPtr m_dstPtr{};
-  gcxx::memory::devicePos m_dstPos{0, 0, 0};
-  gcxx::memory::deviceExtent m_extent{};
+  gcxx::devicePitchedPtr m_srcPtr{};
+  gcxx::devicePos m_srcPos{0, 0, 0};
+  gcxx::devicePitchedPtr m_dstPtr{};
+  gcxx::devicePos m_dstPos{0, 0, 0};
+  gcxx::deviceExtent m_extent{};
 };
 
 GCXX_NAMESPACE_DETAILS_END()

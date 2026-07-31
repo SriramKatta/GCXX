@@ -18,7 +18,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
 // fill_kernel: writes value into every element of ptr[0..n). Only invoked for
@@ -94,7 +93,6 @@ GCXX_FH auto Fill(const StreamView& stream, DSTTY&& destination,
   fill_dispatch(stream, details_::to_address(details_::data(destination)),
                 static_cast<element_t>(value), details_::size(destination));
 }
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 
