@@ -15,10 +15,10 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 // restrict-qualified loads/stores without changing the access/offset logic.
 template <class Accessor>
 struct restrict_accessor : public Accessor {
-  GCXX_STATIC_EXPECT(std::is_object_v<typename Accessor::element_type>,
-                     "Accessor::element_type must be an object type");
-  GCXX_STATIC_EXPECT(std::is_pointer_v<typename Accessor::data_handle_type>,
-                     "Accessor::data_handle_type must be a raw pointer");
+  static_assert(std::is_object_v<typename Accessor::element_type>,
+                "Accessor::element_type must be an object type");
+  static_assert(std::is_pointer_v<typename Accessor::data_handle_type>,
+                "Accessor::data_handle_type must be a raw pointer");
 
  public:
   using offset_policy    = restrict_accessor<typename Accessor::offset_policy>;

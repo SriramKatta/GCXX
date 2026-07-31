@@ -147,14 +147,14 @@ class span_base {
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
   // █                     Static Asserts                     █
   // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-  GCXX_STATIC_EXPECT(std::is_object_v<VT>,
-                     "A reference is not supported,"
-                     " need a fully declared type");
-  GCXX_STATIC_EXPECT(!std::is_abstract_v<VT>,
-                     "An abstract class type is not supported");
-  GCXX_STATIC_EXPECT(details_::is_complete_v<VT>,
-                     "A forward declaration is not supported,"
-                     " need a fully declared type");
+  static_assert(std::is_object_v<VT>,
+                "A reference is not supported,"
+                " need a fully declared type");
+  static_assert(!std::is_abstract_v<VT>,
+                "An abstract class type is not supported");
+  static_assert(details_::is_complete_v<VT>,
+                "A forward declaration is not supported,"
+                " need a fully declared type");
 
   using Self         = span_base<VT, Extent, span_storage_base, span_view_base>;
   using storage_type = span_storage_base<VT, Extent>;
@@ -402,8 +402,8 @@ class span_base {
 
   template <std::size_t Count>
   GCXX_FHDC auto first() const -> span_view_base<element_type, Count> {
-    GCXX_STATIC_EXPECT(Extent == gcxx::dynamic_extent || Count <= Extent,
-                       "Span.first count greater than size");
+    static_assert(Extent == gcxx::dynamic_extent || Count <= Extent,
+                  "Span.first count greater than size");
     GCXX_RUNTIME_EXPECT(Count <= size(), "Span.first count greater than size");
     return span_view_base<element_type, Count>{data(), Count};
   }
@@ -415,8 +415,8 @@ class span_base {
 
   template <std::size_t Count>
   GCXX_FHDC auto last() const -> span_view_base<element_type, Count> {
-    GCXX_STATIC_EXPECT(Extent == gcxx::dynamic_extent || Count <= Extent,
-                       "Span.last count greater than size");
+    static_assert(Extent == gcxx::dynamic_extent || Count <= Extent,
+                  "Span.last count greater than size");
     GCXX_RUNTIME_EXPECT(Count <= size(), "Span.last count greater than size");
     return span_view_base<element_type, Count>(data() + (size() - Count),
                                                Count);
@@ -436,10 +436,10 @@ class span_base {
 
   template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   GCXX_FHDC auto subspan() const -> subspan_ret_t<Offset, Count> {
-    GCXX_STATIC_EXPECT(Extent == gcxx::dynamic_extent ||
-                         (Offset <= Extent && (Count == gcxx::dynamic_extent ||
-                                               Offset + Count <= Extent)),
-                       "Span.subspan contract violated");
+    static_assert(Extent == gcxx::dynamic_extent ||
+                    (Offset <= Extent && (Count == gcxx::dynamic_extent ||
+                                          Offset + Count <= Extent)),
+                  "Span.subspan contract violated");
     GCXX_RUNTIME_EXPECT(Offset <= size() && (Count == gcxx::dynamic_extent ||
                                              Offset + Count <= size()),
                         "Span.subspan contract violated");

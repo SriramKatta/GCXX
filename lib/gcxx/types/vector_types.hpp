@@ -13,8 +13,8 @@ GCXX_NAMESPACE_DETAILS_BEGIN()
 
 template <typename VT, int N, int ALIGN = 0>
 struct vec {
-  GCXX_STATIC_EXPECT(is_always_false_v<VT>,
-                     "vec: unsupported type and/or dimension and/or alignment");
+  static_assert(is_always_false_v<VT>,
+                "vec: unsupported type and/or dimension and/or alignment");
 };
 
 template <typename VT>
@@ -259,8 +259,11 @@ GCXX_FHD auto cast_as_vec4_ptr(const VT* data) -> const vec4_no_cv_t<VT>* {
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                  Cleanup local macros                  █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+#undef DEFINE_VEC_TRAITS
 #undef DEFINE_VEC
 #undef DEFINE_VEC_ALIGNED
+#undef DEFINE_VEC_VEC_TRAITS
+#undef DEFINE_VEC_ALIGNED_VEC_TRAITS
 #undef MAP_1_3
 #undef MAP_1_4
 
