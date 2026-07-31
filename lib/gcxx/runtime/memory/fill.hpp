@@ -62,8 +62,8 @@ GCXX_FH auto fill_dispatch(const StreamView& stream, VT* ptr, const VT& value,
 // ╚════════════════════════════════════════════════════════╝
 GCXX_TEMPLATE(typename Ptr, typename Val)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-GCXX_FH auto Fill(Ptr& handle, const Val& value,
-                  const std::size_t numElements) -> void {
+GCXX_FH auto Fill(Ptr& handle, const Val& value, const std::size_t numElements)
+  -> void {
   Fill(StreamView::Null(), handle, value, numElements);
 }
 

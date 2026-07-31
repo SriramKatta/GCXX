@@ -34,8 +34,8 @@ GCXX_FH auto launchKernel(func_t* func, dim3 gridDim, dim3 blockDim,
 
 template <typename... ExpTypes, typename... ActTypes>
 GCXX_FH auto launchKernelEx(const deviceLaunchConfig_t* config,
-                            void (*kernel)(ExpTypes...),
-                            ActTypes&&... args) -> void {
+                            void (*kernel)(ExpTypes...), ActTypes&&... args)
+  -> void {
   GCXX_SAFE_RUNTIME_CALL(LaunchKernelEx,
                          "Failed to launch Cooprative GPU kernel", config,
                          kernel, std::forward<ActTypes>(args)...);

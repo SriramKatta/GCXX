@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Sriram Katta
 //
 // Typed device-attribute / device-limit descriptors. This ports the pool_attr
-// idea (see runtime/memory/memory_pool/memory_pool_attributes.hpp) to the
+// idea (see runtime/memory/mempool/memory_pool_attributes.hpp) to the
 // device surface: instead of Device::getAttribute(enum) returning a raw int for
 // everything, each attribute is a constexpr descriptor whose ::type is the
 // right C++ type — bool for the boolean attributes, int for the numeric ones —

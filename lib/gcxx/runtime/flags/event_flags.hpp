@@ -43,8 +43,8 @@ enum class eventCreate : details_::flag_t {
  * @param rhs Right-hand side eventCreate flag.
  * @return Combined eventCreate flags.
  */
-inline auto operator|(const eventCreate& lhs,
-                      const eventCreate& rhs) -> eventCreate {
+inline auto operator|(const eventCreate& lhs, const eventCreate& rhs)
+  -> eventCreate {
   return static_cast<eventCreate>(static_cast<details_::flag_t>(lhs) |
                                   static_cast<details_::flag_t>(rhs));
 }

@@ -23,7 +23,7 @@ template <class _Tp>
 using type_identity_t = typename type_identity<_Tp>::type;
 
 // for use in false static asserts to always require and specilization
-template <class ...VT>
+template <class... VT>
 inline constexpr bool is_always_false_v = false;
 
 // Primary template: not a void function pointer

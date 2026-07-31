@@ -36,8 +36,8 @@ GCXX_FH GraphExec::~GraphExec() GCXX_NOEXCEPT {
 GCXX_FH GraphExec::GraphExec(GraphExec&& other) GCXX_NOEXCEPT
     : GraphExecView(std::exchange(other.m_exec, driver::INVALID_GRAPH_EXEC)) {}
 
-GCXX_FH auto GraphExec::operator=(GraphExec&& other)
-  GCXX_NOEXCEPT -> GraphExec& {
+GCXX_FH auto GraphExec::operator=(GraphExec&& other) GCXX_NOEXCEPT
+  -> GraphExec& {
   if (this != &other) {
     destroy();
     m_exec = std::exchange(other.m_exec, driver::INVALID_GRAPH_EXEC);

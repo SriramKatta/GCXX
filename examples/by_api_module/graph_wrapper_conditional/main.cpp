@@ -78,7 +78,7 @@ void simpleIfGraph() {
                        .setKernel(ifGraphKernelA)
                        .setArgs(dPtr, condHandle)
                        .build<2>();
-  auto kernelNode = graph.AddKernelNode(kernelparam);
+  auto kernelNode  = graph.AddKernelNode(kernelparam);
 
   auto [conditionalNode, bodyGraph] = graph.AddIfNode(condHandle);
 
@@ -305,7 +305,7 @@ void simpleIfElseGraph() {
                      .setKernel(ifGraphKernelA)
                      .setArgs(dPtr, handle)
                      .build<2>();
-  auto kernnode = graph.AddKernelNode(kernparam);
+  auto kernnode  = graph.AddKernelNode(kernparam);
 
   auto [ifelsenode, IfGraphBody, Elsegraphbody] =
     graph.AddIfElseNode(handle, &kernnode, 1);
@@ -387,10 +387,10 @@ void simpleSwitchGraph() {
     0, gcxx::flags::graphConditionalHandle::Default);
 
   // Use a kernel upstream of the conditional to set the handle value
-  auto kern1 = gcxx::KernelParamsBuilder()
-                 .setKernel(switchGraphKernelA)
-                 .setArgs(dPtr, handle)
-                 .build<2>();
+  auto kern1      = gcxx::KernelParamsBuilder()
+                      .setKernel(switchGraphKernelA)
+                      .setArgs(dPtr, handle)
+                      .build<2>();
   auto kernelNode = graph.AddKernelNode(kern1);
 
   auto [condNode, casevector] = graph.AddSwitchNode(handle, 4);
