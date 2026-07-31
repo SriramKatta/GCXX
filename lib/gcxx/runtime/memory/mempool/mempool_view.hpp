@@ -54,7 +54,8 @@ class MemPoolView {
   // Allocate at least `bytes` from the pool, ordered on `stream`, with the
   // requested alignment (validated; must be a power of two <= the default).
   GCXX_FH auto allocate(gcxx::StreamView stream, std::size_t bytes,
-                        [[maybe_unused]] std::size_t alignment) -> void* {
+                        [[maybe_unused]] std::size_t alignment =
+                          default_cuda_malloc_alignment) -> void* {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::allocate.");
     return driver::deviceMallocFromPoolAsync(bytes, m_pool_,
@@ -63,8 +64,9 @@ class MemPoolView {
 
   // Return `ptr` to the pool, ordered on `stream`.
   GCXX_FH void deallocate(gcxx::StreamView stream, void* ptr,
-                          [[maybe_unused]] std::size_t bytes,
-                          [[maybe_unused]] std::size_t alignment) noexcept {
+                          [[maybe_unused]] std::size_t bytes = 0,
+                          [[maybe_unused]] std::size_t alignment =
+                            default_cuda_malloc_alignment) noexcept {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::deallocate.");
     driver::deviceFreeAsync(ptr, stream.getRawStream());
@@ -85,7 +87,7 @@ class MemPoolView {
   }
 
   GCXX_FH void deallocate_sync(
-    void* ptr, std::size_t bytes,
+    void* ptr, std::size_t bytes = 0,
     std::size_t alignment = default_cuda_malloc_alignment) noexcept {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::deallocate_sync.");

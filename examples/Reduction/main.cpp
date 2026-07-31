@@ -27,10 +27,12 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  auto h_a = gcxx::host_buffer<datatype>(gcxx::StreamView::Null(),
-                                         gcxx::sync_host_resource{}, arg.N);
-  auto d_a = gcxx::device_buffer<datatype>(gcxx::StreamView::Null(),
-                                           gcxx::sync_device_resource{}, arg.N);
+  auto devhand = gcxx::Device::get();
+
+  auto h_a = gcxx::host_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::pinned_default_memory_pool(), arg.N);
+  auto d_a = gcxx::device_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::device_default_memory_pool(devhand), arg.N);
 
   gcxx::span h_a_span(h_a);
   gcxx::span d_a_span(d_a);

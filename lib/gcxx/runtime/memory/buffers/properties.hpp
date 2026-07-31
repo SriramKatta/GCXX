@@ -32,22 +32,6 @@ struct has_property<R, P, std::void_t<typename R::properties>>
 
 GCXX_NAMESPACE_DETAILS_END()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TypeSet<Ts...>: a set of unique types with a `contains<T>` membership query.
-// Replaces std::tuple as the property carrier: uniqueness is enforced at the
-// point of definition (catches `TypeSet<device_accessible,
-// device_accessible>`), mirroring CCCL's __make_type_set dedup. `TypeSet<>` is
-// valid (empty set); `contains<T>` on the empty set is false.
-// ─────────────────────────────────────────────────────────────────────────────
-
-// all_unique<Ts...>: true iff no two types in Ts... are equal. Recursive
-// (head-vs-tail) so each check compares the head against the FULL remaining
-// tail. A fold of the form `count_occurrences_v<Ts, Ts...>` is WRONG here:
-// both packs share the name `Ts`, so the fold expands them together and each
-// per-element check sees only one element. The head/tail split keeps the
-// searched pack distinct from the head.
 template <typename... Ts>
 struct all_unique : std::true_type {};  // empty pack is trivially unique
 
@@ -59,6 +43,7 @@ struct all_unique<T, Rest...>
 template <typename... Ts>
 inline constexpr bool all_unique_v = all_unique<Ts...>::value;
 
+// set of unique types
 template <typename... Ts>
 struct TypeSet {
   static_assert(all_unique_v<Ts...>, "TypeSet requires unique types");
@@ -68,16 +53,6 @@ struct TypeSet {
 
   static constexpr std::size_t size = sizeof...(Ts);
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Property tags + detection traits (CCCL cuda::mr parity, adapted to GCXX).
-//
-// Property mechanism: every property-aware type exposes
-//   `using properties = TypeSet<...>;`
-// and has_property_v<R, P> reads `R::properties::contains<P>`. No ADL
-// get_property. Resources carry Properties as a template parameter; the buffer
-// validates (static_assert) that the resource's properties ⊇ the buffer's.
-// ─────────────────────────────────────────────────────────────────────────────
 
 /// Tag signalling that the allocated memory is reachable from the device.
 struct device_accessible {};
@@ -187,7 +162,6 @@ template <typename... Ps>
 inline constexpr bool contains_execution_space_property =
   is_host_accessible<Ps...> || is_device_accessible<Ps...>;
 
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

@@ -16,7 +16,7 @@ enum class MemAllocation : details_::flag_t {
   Max     = GCXX_RUNTIME_BACKEND(MemAllocationTypeMax),
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   // CUDA 13.0+ runtime: managed-allocation memory pools. Used by
-  // managed_memory_pool. Requires a 13.0+ toolchain to compile.
+  // ManagedMemPool. Requires a 13.0+ toolchain to compile.
   Managed = GCXX_RUNTIME_BACKEND(MemAllocationTypeManaged),
 #endif
 };
@@ -39,7 +39,7 @@ enum class MemLocation : details_::flag_t {
   HostNumaCurrent = GCXX_RUNTIME_BACKEND(MemLocationTypeHostNumaCurrent),
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   // CUDA 13.0+ runtime: location-less allocation (managed memory pools, which
-  // have no fixed device placement). Used by managed_memory_pool. Requires a
+  // have no fixed device placement). Used by ManagedMemPool. Requires a
   // 13.0+ toolchain to compile.
   None = GCXX_RUNTIME_BACKEND(MemLocationTypeNone),
 #endif

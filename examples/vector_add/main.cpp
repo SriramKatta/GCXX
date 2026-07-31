@@ -41,22 +41,30 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  auto h_a = gcxx::memory::host_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_host_resource{}, arg.N);
-  auto d_a = gcxx::memory::device_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_device_resource{}, arg.N);
+
+  auto devhand = gcxx::Device::get();
+
+  // Non-blocking stream shared by every pool allocation, copy, and kernel.
+  auto str = gcxx::Stream(gcxx::flags::streamType::NoSyncWithNull);
+
+  auto device_pool = gcxx::device_default_memory_pool(devhand);
+  auto pinned_pool = gcxx::pinned_default_memory_pool();
+
+  auto d_a = gcxx::device_buffer<datatype>(str, device_pool, arg.N);
+  auto h_a = gcxx::host_buffer<datatype>(str, pinned_pool, arg.N);
 
 
   gcxx::span h_a_span(h_a);
   gcxx::span d_a_span(d_a);
 
 
+  // h_a is host (pinned) memory — zero it with a host memset. gcxx::Memset is
+  // cudaMemsetAsync and only accepts device pointers, so it would fail here
+  // with cudaErrorInvalidValue.
   std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
 
-  gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
-
   auto H2Dstart = str.RecordEvent();
-  gcxx::memory::Copy(str, d_a_span, h_a_span);
+  gcxx::Copy(str, d_a_span, h_a_span);
   auto H2Dend = str.RecordEvent();
 
   auto scalar_kern_time =
@@ -68,7 +76,7 @@ int main(int argc, char** argv) {
 
 
   auto D2Hstart = str.RecordEvent();
-  gcxx::memory::Copy(str, h_a_span, d_a_span);
+  gcxx::Copy(str, h_a_span, d_a_span);
   auto D2Hend = str.RecordEvent();
 
   D2Hend.Synchronize();

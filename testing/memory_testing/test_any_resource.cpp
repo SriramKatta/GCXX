@@ -20,17 +20,17 @@ namespace {
   // Copyable mock: counts allocate/deallocate via shared pointers (a clone
   // keeps counting into the same counters).
   struct counting_mock_resource {
-    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
+    using properties = gcxx::TypeSet<gcxx::host_accessible>;
     int* alloc_count_;
     int* free_count_;
     explicit counting_mock_resource(int* a = nullptr, int* f = nullptr)
         : alloc_count_(a), free_count_(f) {}
-    void* allocate(std::size_t n, gcxx::StreamView) {
+    void* allocate(gcxx::StreamView, std::size_t n) {
       if (alloc_count_)
         ++*alloc_count_;
       return std::malloc(n);
     }
-    void deallocate(void* p, gcxx::StreamView) {
+    void deallocate(gcxx::StreamView, void* p) {
       if (free_count_)
         ++*free_count_;
       std::free(p);
@@ -45,14 +45,14 @@ namespace {
 TEST(AnyResourceTest, DispatchesToHeldResource) {
   int allocs = 0;
   int frees  = 0;
-  gcxx::memory::any_resource ar(counting_mock_resource{&allocs, &frees});
+  gcxx::any_resource ar(counting_mock_resource{&allocs, &frees});
 
   EXPECT_TRUE(static_cast<bool>(ar));
-  void* p = ar.allocate(std::size_t{32}, gcxx::StreamView::Null());
+  void* p = ar.allocate(gcxx::StreamView::Null(), std::size_t{32});
   EXPECT_NE(p, nullptr);
   EXPECT_EQ(allocs, 1);
 
-  ar.deallocate(p, gcxx::StreamView::Null());
+  ar.deallocate(gcxx::StreamView::Null(), p);
   EXPECT_EQ(frees, 1);
 }
 
@@ -63,21 +63,21 @@ TEST(AnyResourceTest, DispatchesToHeldResource) {
 TEST(AnyResourceTest, CopyIsIndependent) {
   int allocs = 0;
   int frees  = 0;
-  gcxx::memory::any_resource ar(counting_mock_resource{&allocs, &frees});
+  gcxx::any_resource ar(counting_mock_resource{&allocs, &frees});
 
   auto ar2 = ar;  // copy
   EXPECT_TRUE(static_cast<bool>(ar));
   EXPECT_TRUE(static_cast<bool>(ar2));
 
-  void* p2 = ar2.allocate(std::size_t{16}, gcxx::StreamView::Null());
+  void* p2 = ar2.allocate(gcxx::StreamView::Null(), std::size_t{16});
   EXPECT_EQ(allocs, 1);  // ar2 dispatched to its own copy of the resource
-  ar2.deallocate(p2, gcxx::StreamView::Null());
+  ar2.deallocate(gcxx::StreamView::Null(), p2);
   EXPECT_EQ(frees, 1);
 
   // Original is unaffected and still usable.
-  void* p1 = ar.allocate(std::size_t{16}, gcxx::StreamView::Null());
+  void* p1 = ar.allocate(gcxx::StreamView::Null(), std::size_t{16});
   EXPECT_EQ(allocs, 2);
-  ar.deallocate(p1, gcxx::StreamView::Null());
+  ar.deallocate(gcxx::StreamView::Null(), p1);
   EXPECT_EQ(frees, 2);
 }
 
@@ -86,19 +86,19 @@ TEST(AnyResourceTest, CopyIsIndependent) {
 // =============================================================================
 TEST(AnyResourceTest, MoveEmptiesSource) {
   int allocs = 0;
-  gcxx::memory::any_resource ar(counting_mock_resource{&allocs, nullptr});
+  gcxx::any_resource ar(counting_mock_resource{&allocs, nullptr});
   auto ar2 = std::move(ar);
   EXPECT_FALSE(static_cast<bool>(ar));  // moved-from
   EXPECT_TRUE(static_cast<bool>(ar2));
-  void* p = ar2.allocate(std::size_t{8}, gcxx::StreamView::Null());
+  void* p = ar2.allocate(gcxx::StreamView::Null(), std::size_t{8});
   EXPECT_EQ(allocs, 1);
-  ar2.deallocate(p, gcxx::StreamView::Null());
+  ar2.deallocate(gcxx::StreamView::Null(), p);
 }
 
 // =============================================================================
 // Empty default-constructed any_resource.
 // =============================================================================
 TEST(AnyResourceTest, DefaultIsEmpty) {
-  gcxx::memory::any_resource ar;
+  gcxx::any_resource ar;
   EXPECT_FALSE(static_cast<bool>(ar));
 }

@@ -15,30 +15,14 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::any_resource
+// gcxx::any_resource
 //
 // A non-templated, type-erased, owning, copyable holder for ANY resource
 // matching the concept:
-//   void* allocate(std::size_t num_bytes, gcxx::StreamView)
-//   void  deallocate(void* ptr, gcxx::StreamView)
-//
-// Under the Option-B property mechanism, accessibility (Properties) lives on
-// the BUFFER type (buffer<VT, Properties...>), validated at construction via
-// resource_has_all_v. The type-erased allocator does not carry Properties — it
-// is just an opaque allocate/deallocate handle. This keeps buffer_storage<VT>
-// (and thus the cross-properties copy ctor) independent of the property pack:
-// a buffer<int, host_accessible> and buffer<int, device_accessible> share the
-// same any_resource / buffer_storage<int> erasure, differing only in their
-// Properties.
-//
-// The concrete resource is held behind a virtual interface (model<R>), copied
-// via clone(). ponytail (deferred): SBO — the current implementation
-// heap-allocates one model<R> per resource (and one per clone, e.g. on resize /
-// cross-copy). Negligible next to the driver allocate/free it wraps; a
-// small-buffer optimization for stateless resources is a future refinement.
+//   void* allocate(gcxx::StreamView, std::size_t num_bytes)
+//   void  deallocate(gcxx::StreamView, void* ptr)
 // ─────────────────────────────────────────────────────────────────────────────
 class any_resource {
  public:
@@ -49,8 +33,8 @@ class any_resource {
   /// (any_resource owns a copy, cloned on copy/resize). Property validation is
   /// the caller's responsibility (the buffer ctor enforces it via
   /// resource_has_all_v before erasure).
-  template <typename Resource, typename = std::enable_if_t<!std::is_same_v<
-                                 std::decay_t<Resource>, any_resource>>>
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, any_resource>)
   any_resource(Resource&& r) {
     static_assert(std::is_copy_constructible_v<std::decay_t<Resource>>,
                   "any_resource owns a copy of the resource; it must be copy "
@@ -71,17 +55,17 @@ class any_resource {
 
   ~any_resource() = default;
 
-  GCXX_FH auto allocate(std::size_t num_bytes,
-                        gcxx::StreamView sv) const -> void* {
+  GCXX_FH auto allocate(gcxx::StreamView sv, std::size_t num_bytes) const
+    -> void* {
     GCXX_RUNTIME_EXPECT(impl_ != nullptr,
                         "any_resource::allocate on empty resource");
-    return impl_->allocate(num_bytes, sv);
+    return impl_->allocate(sv, num_bytes);
   }
 
-  GCXX_FH auto deallocate(void* ptr, gcxx::StreamView sv) const -> void {
+  GCXX_FH auto deallocate(gcxx::StreamView sv, void* ptr) const -> void {
     GCXX_RUNTIME_EXPECT(impl_ != nullptr,
                         "any_resource::deallocate on empty resource");
-    impl_->deallocate(ptr, sv);
+    impl_->deallocate(sv, ptr);
   }
 
   explicit operator bool() const noexcept { return impl_ != nullptr; }
@@ -89,8 +73,8 @@ class any_resource {
  private:
   struct interface {
     virtual ~interface()                                          = default;
-    virtual auto allocate(std::size_t, gcxx::StreamView) -> void* = 0;
-    virtual auto deallocate(void*, gcxx::StreamView) -> void      = 0;
+    virtual auto allocate(gcxx::StreamView, std::size_t) -> void* = 0;
+    virtual auto deallocate(gcxx::StreamView, void*) -> void      = 0;
     virtual auto clone() const -> interface*                      = 0;
   };
 
@@ -98,11 +82,11 @@ class any_resource {
   struct model final : interface {
     R resource;
     explicit model(R r) : resource(std::move(r)) {}
-    auto allocate(std::size_t b, gcxx::StreamView sv) -> void* override {
-      return resource.allocate(b, sv);
+    auto allocate(gcxx::StreamView sv, std::size_t b) -> void* override {
+      return resource.allocate(sv, b);
     }
-    auto deallocate(void* p, gcxx::StreamView sv) -> void override {
-      resource.deallocate(p, sv);
+    auto deallocate(gcxx::StreamView sv, void* p) -> void override {
+      resource.deallocate(sv, p);
     }
     auto clone() const -> interface* override { return new model(resource); }
   };
@@ -110,7 +94,6 @@ class any_resource {
   std::unique_ptr<interface> impl_;
 };
 
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

@@ -17,17 +17,17 @@ namespace {
   // `using properties` so the buffer's SFINAE-gated element accessors
   // (operator[], at, front, back) are visible.
   struct host_mock_resource {
-    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
+    using properties = gcxx::TypeSet<gcxx::host_accessible>;
 
-    void* allocate(std::size_t num_bytes, gcxx::StreamView) {
+    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
       return std::malloc(num_bytes);
     }
 
-    void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
+    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, gcxx::memory::host_accessible>;
+  using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 
 }  // namespace
 
@@ -49,7 +49,7 @@ namespace {
 // =============================================================================
 TEST(BufferAccessorsTest, SubscriptReturnsNthElement) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 100);
 
   EXPECT_EQ(buf[0], 100);
@@ -59,7 +59,7 @@ TEST(BufferAccessorsTest, SubscriptReturnsNthElement) {
 
 TEST(BufferAccessorsTest, SubscriptConstReturnsNthElement) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 100);
   const mock_buffer<int>& cbuf = buf;
 
@@ -69,7 +69,7 @@ TEST(BufferAccessorsTest, SubscriptConstReturnsNthElement) {
 
 TEST(BufferAccessorsTest, SubscriptIsMutable) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{4}, gcxx::memory::no_init);
+                       std::size_t{4}, gcxx::no_init);
   fill_buffer(buf, 0);
 
   buf[2] = 999;
@@ -81,7 +81,7 @@ TEST(BufferAccessorsTest, SubscriptIsMutable) {
 // =============================================================================
 TEST(BufferAccessorsTest, AtReturnsNthElement) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 0);
 
   EXPECT_EQ(buf.at(0), 0);
@@ -90,7 +90,7 @@ TEST(BufferAccessorsTest, AtReturnsNthElement) {
 
 TEST(BufferAccessorsTest, AtThrowsOutOfRange) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{4}, gcxx::memory::no_init);
+                       std::size_t{4}, gcxx::no_init);
 
   EXPECT_THROW({ (void)buf.at(4); }, std::out_of_range);
   EXPECT_THROW({ (void)buf.at(100); }, std::out_of_range);
@@ -98,7 +98,7 @@ TEST(BufferAccessorsTest, AtThrowsOutOfRange) {
 
 TEST(BufferAccessorsTest, AtConstThrowsOutOfRange) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{4}, gcxx::memory::no_init);
+                       std::size_t{4}, gcxx::no_init);
   const mock_buffer<int>& cbuf = buf;
 
   EXPECT_THROW({ (void)cbuf.at(4); }, std::out_of_range);
@@ -109,7 +109,7 @@ TEST(BufferAccessorsTest, AtConstThrowsOutOfRange) {
 // =============================================================================
 TEST(BufferAccessorsTest, FrontBackOnSingleElement) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{1}, gcxx::memory::no_init);
+                       std::size_t{1}, gcxx::no_init);
   buf.data()[0] = 42;
 
   EXPECT_EQ(buf.front(), 42);
@@ -118,7 +118,7 @@ TEST(BufferAccessorsTest, FrontBackOnSingleElement) {
 
 TEST(BufferAccessorsTest, FrontBackOnMultipleElements) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{4}, gcxx::memory::no_init);
+                       std::size_t{4}, gcxx::no_init);
   fill_buffer(buf, 10);
 
   EXPECT_EQ(buf.front(), 10);
@@ -127,7 +127,7 @@ TEST(BufferAccessorsTest, FrontBackOnMultipleElements) {
 
 TEST(BufferAccessorsTest, FrontBackConst) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{4}, gcxx::memory::no_init);
+                       std::size_t{4}, gcxx::no_init);
   fill_buffer(buf, 10);
   const mock_buffer<int>& cbuf = buf;
 
@@ -140,7 +140,7 @@ TEST(BufferAccessorsTest, FrontBackConst) {
 // =============================================================================
 TEST(BufferAccessorsTest, FirstReturnsPrefixSpan) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 0);
 
   gcxx::span<int> s = buf.first(3);
@@ -152,7 +152,7 @@ TEST(BufferAccessorsTest, FirstReturnsPrefixSpan) {
 
 TEST(BufferAccessorsTest, FirstFullSizeIsWholeBuffer) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   gcxx::span<int> s = buf.first(8);
   EXPECT_EQ(s.size(), buf.size());
   EXPECT_EQ(s.data(), buf.data());
@@ -160,7 +160,7 @@ TEST(BufferAccessorsTest, FirstFullSizeIsWholeBuffer) {
 
 TEST(BufferAccessorsTest, FirstConstReturnsConstSpan) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 0);
   const mock_buffer<int>& cbuf = buf;
 
@@ -171,7 +171,7 @@ TEST(BufferAccessorsTest, FirstConstReturnsConstSpan) {
 
 TEST(BufferAccessorsTest, LastReturnsSuffixSpan) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 0);
 
   gcxx::span<int> s = buf.last(3);
@@ -183,7 +183,7 @@ TEST(BufferAccessorsTest, LastReturnsSuffixSpan) {
 
 TEST(BufferAccessorsTest, LastFullSizeIsWholeBuffer) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   gcxx::span<int> s = buf.last(8);
   EXPECT_EQ(s.size(), buf.size());
   EXPECT_EQ(s.data(), buf.data());
@@ -194,7 +194,7 @@ TEST(BufferAccessorsTest, LastFullSizeIsWholeBuffer) {
 // =============================================================================
 TEST(BufferAccessorsTest, SubspanWithCount) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 0);
 
   gcxx::span<int> s = buf.subspan(2, 3);
@@ -206,7 +206,7 @@ TEST(BufferAccessorsTest, SubspanWithCount) {
 
 TEST(BufferAccessorsTest, SubspanDefaultCountIsRestOfBuffer) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 0);
 
   gcxx::span<int> s = buf.subspan(3);
@@ -218,7 +218,7 @@ TEST(BufferAccessorsTest, SubspanDefaultCountIsRestOfBuffer) {
 
 TEST(BufferAccessorsTest, SubspanAtZeroReturnsWholeBuffer) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
 
   gcxx::span<int> s = buf.subspan(0);
   EXPECT_EQ(s.size(), buf.size());
@@ -227,7 +227,7 @@ TEST(BufferAccessorsTest, SubspanAtZeroReturnsWholeBuffer) {
 
 TEST(BufferAccessorsTest, SubspanAtSizeIsEmpty) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
 
   gcxx::span<int> s = buf.subspan(8);
   EXPECT_EQ(s.size(), 0);
@@ -235,7 +235,7 @@ TEST(BufferAccessorsTest, SubspanAtSizeIsEmpty) {
 
 TEST(BufferAccessorsTest, SubspanConstReturnsConstSpan) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                       std::size_t{8}, gcxx::memory::no_init);
+                       std::size_t{8}, gcxx::no_init);
   fill_buffer(buf, 0);
   const mock_buffer<int>& cbuf = buf;
 

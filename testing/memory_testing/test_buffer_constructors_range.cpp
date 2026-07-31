@@ -17,17 +17,17 @@
 namespace {
 
   struct host_mock_resource {
-    void* allocate(std::size_t num_bytes, gcxx::StreamView) {
+    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
       return std::malloc(num_bytes);
     }
-    void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
+    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
 
     // Advertise host_accessible to satisfy buffer's static_assert.
-    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
+    using properties = gcxx::TypeSet<gcxx::host_accessible>;
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, gcxx::memory::host_accessible>;
+  using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 
   // Detects whether `buffer(stream, resource, T{})` resolves to the range
   // ctor. Used to assert the SFINAE boundary: integral types must hit the
@@ -81,14 +81,14 @@ TEST(BufferRangeCtorSfinaeTest, AcceptsSizedRanges) {
 // make_buffer factory: forwards to the matching ctor.
 // =============================================================================
 TEST(MakeBufferTest, MakeBufferWithSize) {
-  auto buf = gcxx::memory::make_buffer<int, gcxx::memory::host_accessible>(
+  auto buf = gcxx::make_buffer<int, gcxx::host_accessible>(
     gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{8},
-    gcxx::memory::no_init);
+    gcxx::no_init);
   EXPECT_EQ(buf.size(), 8);
 }
 
 TEST(MakeBufferTest, MakeBufferWithInitializerList) {
-  auto buf = gcxx::memory::make_buffer<int, gcxx::memory::host_accessible>(
+  auto buf = gcxx::make_buffer<int, gcxx::host_accessible>(
     gcxx::StreamView::Null(), host_mock_resource{},
     std::initializer_list<int>{});
   EXPECT_EQ(buf.size(), 0);

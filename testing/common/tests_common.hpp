@@ -26,17 +26,17 @@
 //       gcxx::Memset(std::declval<Args>()..., 0, std::size_t{0}));
 //   static_assert( is_memset_callable_v<int*>);
 //   static_assert(!is_memset_callable_v<NotAHandle>);
-#define GCXX_DEFINE_IS_CALLABLE(Name, ...)                               \
-  template <typename... Args>                                            \
-  using Name##_detail = decltype(__VA_ARGS__);                           \
-  template <template <typename...> class Op, typename, typename... Args> \
-  struct Name##_detector : std::false_type {};                           \
-  template <template <typename...> class Op, typename... Args>           \
-  struct Name##_detector<Op, std::void_t<Op<Args...>>, Args...>          \
-      : std::true_type {};                                               \
-  template <typename... VT>                                              \
-  struct Name : Name##_detector<Name##_detail, void, VT...> {};          \
-  template <typename... VT>                                              \
+#define GCXX_DEFINE_IS_CALLABLE(Name, ...)                                \
+  template <typename... Args>                                             \
+  using Name##_detail = decltype(__VA_ARGS__);                            \
+  template <template <typename...> class Op, typename, typename... Args>  \
+  struct Name##_detector : std::false_type {};                            \
+  template <template <typename...> class Op, typename... Args>            \
+  struct Name##                                                           \
+    _detector<Op, std::void_t<Op<Args...>>, Args...> : std::true_type {}; \
+  template <typename... VT>                                               \
+  struct Name : Name##_detector<Name##_detail, void, VT...> {};           \
+  template <typename... VT>                                               \
   static constexpr bool Name##_v = Name<VT...>::value;
 
 namespace gcxx::testing {

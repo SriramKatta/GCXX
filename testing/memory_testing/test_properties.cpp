@@ -16,11 +16,11 @@ namespace {
 
   // Mock resource advertising host_accessible only.
   struct host_only_resource {
-    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
+    using properties = gcxx::TypeSet<gcxx::host_accessible>;
   };
   struct host_device_resource {
-    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible,
-                                             gcxx::memory::device_accessible>;
+    using properties =
+      gcxx::TypeSet<gcxx::host_accessible, gcxx::device_accessible>;
   };
 
   // Dummy template used to exercise properties_list::rebind.
@@ -33,7 +33,7 @@ namespace {
 // TypeSet: uniqueness, contains, size, empty set.
 // =============================================================================
 TEST(TypeSetTest, ContainsAndSize) {
-  using gcxx::memory::TypeSet;
+  using gcxx::TypeSet;
   using S = TypeSet<int, float, double>;
   static_assert(S::contains<int>);
   static_assert(S::contains<float>);
@@ -42,14 +42,14 @@ TEST(TypeSetTest, ContainsAndSize) {
 }
 
 TEST(TypeSetTest, EmptySetIsValid) {
-  using gcxx::memory::TypeSet;
+  using gcxx::TypeSet;
   using E = TypeSet<>;
   static_assert(E::size == 0);
   static_assert(!E::contains<int>);
 }
 
 TEST(TypeSetTest, AllUniqueTrait) {
-  using gcxx::memory::all_unique_v;
+  using gcxx::all_unique_v;
   static_assert(all_unique_v<>);
   static_assert(all_unique_v<int>);
   static_assert(all_unique_v<int, float, double>);
@@ -62,9 +62,9 @@ TEST(TypeSetTest, AllUniqueTrait) {
 // query.
 // =============================================================================
 TEST(PropertiesListTest, RebindAppendsPropertiesAfterExtraArgs) {
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::host_accessible;
-  using gcxx::memory::properties_list;
+  using gcxx::device_accessible;
+  using gcxx::host_accessible;
+  using gcxx::properties_list;
   using L = properties_list<device_accessible, host_accessible>;
   using R = L::rebind<rebind_target, int>;
   static_assert(
@@ -72,9 +72,9 @@ TEST(PropertiesListTest, RebindAppendsPropertiesAfterExtraArgs) {
 }
 
 TEST(PropertiesListTest, HasPropertyQuery) {
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::host_accessible;
-  using gcxx::memory::properties_list;
+  using gcxx::device_accessible;
+  using gcxx::host_accessible;
+  using gcxx::properties_list;
   using L = properties_list<device_accessible>;
   static_assert(L::has_property(device_accessible{}));
   static_assert(!L::has_property(host_accessible{}));
@@ -84,8 +84,8 @@ TEST(PropertiesListTest, HasPropertyQuery) {
 // memory_accessibility + accessibility_from_static_properties.
 // =============================================================================
 TEST(MemoryAccessibilityTest, ReducesStaticFlags) {
-  using gcxx::memory::accessibility_from_static_properties;
-  using gcxx::memory::memory_accessibility;
+  using gcxx::accessibility_from_static_properties;
+  using gcxx::memory_accessibility;
   static_assert(accessibility_from_static_properties<true, true>() ==
                 memory_accessibility::host_device);
   static_assert(accessibility_from_static_properties<false, true>() ==
@@ -97,18 +97,17 @@ TEST(MemoryAccessibilityTest, ReducesStaticFlags) {
 }
 
 TEST(MemoryAccessibilityTest, DynamicPropertyValueType) {
-  static_assert(
-    std::is_same_v<gcxx::memory::dynamic_accessibility_property::value_type,
-                   gcxx::memory::memory_accessibility>);
+  static_assert(std::is_same_v<gcxx::dynamic_accessibility_property::value_type,
+                               gcxx::memory_accessibility>);
 }
 
 // =============================================================================
 // Pack-keyed traits (over a property pack).
 // =============================================================================
 TEST(PackTraitsTest, IsHostAccessible) {
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::host_accessible;
-  using gcxx::memory::is_host_accessible;
+  using gcxx::device_accessible;
+  using gcxx::host_accessible;
+  using gcxx::is_host_accessible;
   static_assert(is_host_accessible<host_accessible>);
   static_assert(is_host_accessible<host_accessible, device_accessible>);
   static_assert(!is_host_accessible<device_accessible>);
@@ -116,9 +115,9 @@ TEST(PackTraitsTest, IsHostAccessible) {
 }
 
 TEST(PackTraitsTest, IsDeviceAccessible) {
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::host_accessible;
-  using gcxx::memory::is_device_accessible;
+  using gcxx::device_accessible;
+  using gcxx::host_accessible;
+  using gcxx::is_device_accessible;
   static_assert(is_device_accessible<device_accessible>);
   static_assert(is_device_accessible<host_accessible, device_accessible>);
   static_assert(!is_device_accessible<host_accessible>);
@@ -126,9 +125,9 @@ TEST(PackTraitsTest, IsDeviceAccessible) {
 }
 
 TEST(PackTraitsTest, ContainsExecutionSpaceProperty) {
-  using gcxx::memory::contains_execution_space_property;
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::host_accessible;
+  using gcxx::contains_execution_space_property;
+  using gcxx::device_accessible;
+  using gcxx::host_accessible;
   static_assert(contains_execution_space_property<device_accessible>);
   static_assert(contains_execution_space_property<host_accessible>);
   static_assert(
@@ -141,9 +140,9 @@ TEST(PackTraitsTest, ContainsExecutionSpaceProperty) {
 // Reads R's `using properties` member (TypeSet).
 // =============================================================================
 TEST(ResourceHasKeyAllTest, MatchesAdvertisedProperties) {
-  using gcxx::memory::device_accessible;
-  using gcxx::memory::host_accessible;
-  using gcxx::memory::resource_has_all_v;
+  using gcxx::device_accessible;
+  using gcxx::host_accessible;
+  using gcxx::resource_has_all_v;
 
   static_assert(resource_has_all_v<host_only_resource, host_accessible>);
   static_assert(!resource_has_all_v<host_only_resource, device_accessible>);
