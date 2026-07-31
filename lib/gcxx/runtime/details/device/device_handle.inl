@@ -19,7 +19,7 @@ GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
 
 GCXX_FH DeviceHandle::~DeviceHandle() {
   if (m_resetOnDestruct) {
-    [[maybe_unused]]  details_::EnsureCurrentDevice hand(m_deviceId);
+    [[maybe_unused]] details_::EnsureCurrentDevice hand(m_deviceId);
     driver::deviceReset();
   }
 }
@@ -57,7 +57,7 @@ GCXX_FH auto DeviceHandle::set_limit(Lim /*lim*/,
 }
 
 GCXX_FH auto DeviceHandle::getDeviceProp() const -> driver::deviceProp_t {
-  [[maybe_unused]]  details_::EnsureCurrentDevice dev(m_deviceId);
+  [[maybe_unused]] details_::EnsureCurrentDevice dev(m_deviceId);
   return gcxx::Device::getDeviceProp();
 }
 
