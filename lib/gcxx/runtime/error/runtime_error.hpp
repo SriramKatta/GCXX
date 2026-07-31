@@ -33,7 +33,7 @@ GCXX_FH auto nonFatalErrorQuery(deviceError_t err) -> bool {
     case driver::deviceErrNotReady:
       return false;
     default:
-      details_::throwGPUError(err, "Failed to query GPU Stream");
+      details_::throwGPUError(err, /*msg=*/"Failed to query GPU Stream");
   }
   return false;
 }

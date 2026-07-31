@@ -89,15 +89,15 @@ auto KernelNodeView::SetGridDim(details_::deviceGraphDeviceNode_t deviceNode,
 
 GCXX_FD
 auto KernelNodeView::SetParam(details_::deviceGraphDeviceNode_t deviceNode,
-                              size_t offset, const void* value,
-                              size_t size) -> void {
+                              size_t offset, const void* value, size_t size)
+  -> void {
   driver::graphKernelNodeSetParam(deviceNode, offset, value, size);
 }
 
 GCXX_FD
 auto KernelNodeView::ApplyUpdates(
-  const details_::deviceGraphKernelNodeUpdate* updates,
-  size_t updateCount) -> void {
+  const details_::deviceGraphKernelNodeUpdate* updates, size_t updateCount)
+  -> void {
   driver::graphKernelNodeUpdatesApply(updates, updateCount);
 }
 #endif

@@ -22,7 +22,8 @@ struct type_identity {
 template <class _Tp>
 using type_identity_t = typename type_identity<_Tp>::type;
 
-template <class VT>
+// for use in false static asserts to always require and specilization
+template <class... VT>
 inline constexpr bool is_always_false_v = false;
 
 // Primary template: not a void function pointer
@@ -61,7 +62,7 @@ GCXX_CONCEPT has_size_and_data_v = GCXX_REQUIRES_EXPR((VT), VT& v)(
   gcxx::details_::size(v), gcxx::details_::data(v));
 
 template <typename T>
-using remove_pointer_t = typename std::remove_pointer<T>::type;
+using remove_pointer_t = std::remove_pointer_t<T>;
 
 
 template <typename T>

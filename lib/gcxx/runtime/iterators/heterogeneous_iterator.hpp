@@ -24,20 +24,20 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 // So an iterator over device-only storage cannot be dereferenced from host
 // code (compile error), and vice versa. Mirrors CCCL's heterogeneous_iterator.
 //
-// Lives at the top-level gcxx namespace (not gcxx::memory) — an iterator is a
-// general concept; it is merely *parameterized* on memory accessibility. The
-// space-dependent deref tagging lives in detail::iter_access (specialized per
-// gcxx::memory::memory_accessibility); this class adds the random-access
-// mechanics and the pointer storage.
+// Operations that never touch memory (construction, ++/--/+=/-=, +/-, and all
+// relational operators) are tagged GCXX_FHDC — usable on both host and device
+// regardless of accessibility. Only dereference is space-restricted.
+//
+// Requires at least one execution-space property
 // ─────────────────────────────────────────────────────────────────────────────
 namespace detail {
 
   template <bool IsConst, typename T>
   using maybe_const = std::conditional_t<IsConst, const T, T>;
 
-  // Primary (default): both host and device may deref. Used for host_device
-  // (managed) and as a permissive fallback for unknown accessibility.
-  template <typename Tp, bool IsConst, memory::memory_accessibility Space>
+  // Primary (default): both host and device may deref. Reached only for
+  // host_device (managed) memory
+  template <typename Tp, bool IsConst, memory_accessibility Space>
   class iter_access {
    public:
     using iterator_category = std::random_access_iterator_tag;
@@ -47,7 +47,7 @@ namespace detail {
     using reference         = maybe_const<IsConst, Tp>&;
 
     iter_access() noexcept = default;
-    explicit constexpr iter_access(pointer p) noexcept : ptr_(p) {}
+    explicit GCXX_FHDC iter_access(pointer p) noexcept : ptr_(p) {}
 
     GCXX_FHDC auto operator*() const noexcept -> reference { return *ptr_; }
     GCXX_FHDC auto operator->() const noexcept -> pointer { return ptr_; }
@@ -59,9 +59,12 @@ namespace detail {
     pointer ptr_{nullptr};
   };
 
-  // Host-only deref.
+
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                    Host-only deref                     ║
+  // ╚════════════════════════════════════════════════════════╝
   template <typename Tp, bool IsConst>
-  class iter_access<Tp, IsConst, memory::memory_accessibility::host> {
+  class iter_access<Tp, IsConst, memory_accessibility::host> {
    public:
     using iterator_category = std::random_access_iterator_tag;
     using value_type        = Tp;
@@ -70,7 +73,7 @@ namespace detail {
     using reference         = maybe_const<IsConst, Tp>&;
 
     iter_access() noexcept = default;
-    explicit constexpr iter_access(pointer p) noexcept : ptr_(p) {}
+    explicit GCXX_FHDC iter_access(pointer p) noexcept : ptr_(p) {}
 
     GCXX_FHC auto operator*() const noexcept -> reference { return *ptr_; }
     GCXX_FHC auto operator->() const noexcept -> pointer { return ptr_; }
@@ -82,9 +85,11 @@ namespace detail {
     pointer ptr_{nullptr};
   };
 
-  // Device-only deref.
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                   Device-only deref                    ║
+  // ╚════════════════════════════════════════════════════════╝
   template <typename Tp, bool IsConst>
-  class iter_access<Tp, IsConst, memory::memory_accessibility::device> {
+  class iter_access<Tp, IsConst, memory_accessibility::device> {
    public:
     using iterator_category = std::random_access_iterator_tag;
     using value_type        = Tp;
@@ -93,7 +98,7 @@ namespace detail {
     using reference         = maybe_const<IsConst, Tp>&;
 
     iter_access() noexcept = default;
-    explicit constexpr iter_access(pointer p) noexcept : ptr_(p) {}
+    explicit GCXX_FHDC iter_access(pointer p) noexcept : ptr_(p) {}
 
     GCXX_FDC auto operator*() const noexcept -> reference { return *ptr_; }
     GCXX_FDC auto operator->() const noexcept -> pointer { return ptr_; }
@@ -109,16 +114,20 @@ namespace detail {
 
 template <typename CvTp, typename... Properties>
 class heterogeneous_iterator
-    : public detail::iter_access<
-        std::remove_const_t<CvTp>, std::is_const_v<CvTp>,
-        memory::accessibility_from_static_properties<
-          memory::is_host_accessible<Properties...>,
-          memory::is_device_accessible<Properties...>>()> {
+    : public detail::iter_access<std::remove_const_t<CvTp>,
+                                 std::is_const_v<CvTp>,
+                                 accessibility_from_static_properties<
+                                   is_host_accessible<Properties...>,
+                                   is_device_accessible<Properties...>>()> {
   using base =
     detail::iter_access<std::remove_const_t<CvTp>, std::is_const_v<CvTp>,
-                        memory::accessibility_from_static_properties<
-                          memory::is_host_accessible<Properties...>,
-                          memory::is_device_accessible<Properties...>>()>;
+                        accessibility_from_static_properties<
+                          is_host_accessible<Properties...>,
+                          is_device_accessible<Properties...>>()>;
+
+  static_assert(contains_execution_space_property<Properties...>,
+                "heterogeneous_iterator requires host_accessible and/or "
+                "device_accessible in its Properties");
 
  public:
   using iterator_category = typename base::iterator_category;
@@ -128,9 +137,12 @@ class heterogeneous_iterator
   using reference         = typename base::reference;
 
   heterogeneous_iterator() noexcept = default;
-  explicit constexpr heterogeneous_iterator(pointer p) noexcept : base(p) {}
+  explicit GCXX_FHDC heterogeneous_iterator(pointer p) noexcept : base(p) {}
 
-  // ─────────────────────────── random-access mechanics ───────────────────────
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                random-access mechanics                 ║
+  // ╚════════════════════════════════════════════════════════╝
+
   GCXX_FHDC auto operator++() noexcept -> heterogeneous_iterator& {
     ++this->ptr_;
     return *this;

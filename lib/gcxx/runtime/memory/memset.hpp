@@ -15,7 +15,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ╔════════════════════════════════════════════════════════╗
 // ║   smart / raw pointer version based on element type    ║
@@ -58,7 +57,6 @@ GCXX_FH auto Memset(const StreamView& stream, DSTTY&& destination,
     details_::to_address(details_::data(destination)), value,
     details_::size(destination) * sizeof(span_element_t<DSTTY>), stream);
 }
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

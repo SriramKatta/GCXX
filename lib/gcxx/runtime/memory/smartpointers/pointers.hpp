@@ -13,7 +13,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 template <typename VT, typename DT>
 using gcxx_unique_ptr = std::unique_ptr<VT, DT>;
@@ -30,19 +29,15 @@ using device_managed_ptr = gcxx_unique_ptr<VT, decltype(device_free)>;
 template <typename VT>
 auto make_device_unique_ptr(std::size_t numElem) -> device_ptr<VT> {
   return device_ptr<VT>{static_cast<VT*>(device_malloc(numElem * sizeof(VT))),
-                        [](VT* p) {
-                          device_free(static_cast<void*>(p));
-                        }};
+                        [](VT* p) { device_free(static_cast<void*>(p)); }};
 }
 
 template <typename VT>
-auto make_device_unique_ptr(const StreamView& sv,
-                            std::size_t numElem) -> device_ptr<VT> {
+auto make_device_unique_ptr(const StreamView& sv, std::size_t numElem)
+  -> device_ptr<VT> {
   return device_ptr<VT>{
     static_cast<VT*>(device_malloc_async(numElem * sizeof(VT), sv)),
-    [sv](VT* p) {
-      device_free_async(static_cast<void*>(p), sv);
-    }};
+    [sv](VT* p) { device_free_async(static_cast<void*>(p), sv); }};
 }
 
 template <typename VT>
@@ -57,7 +52,6 @@ auto make_device_managed_unique_ptr(std::size_t numElem)
   return device_managed_ptr<VT>{
     static_cast<VT*>(device_managed_malloc(numElem * sizeof(VT))), device_free};
 }
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

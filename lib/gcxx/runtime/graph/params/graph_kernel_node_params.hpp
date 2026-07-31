@@ -15,6 +15,10 @@
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
+
+// TODO : use type safe builder patter to make this robust
+// https://github.com/CppCon/CppCon2025/blob/main/Lightning%20Talks/The_Type_Safe_Builder_Design_Pattern.pdf
+
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 // KernelNodeParamsView is a non-owning view. It assumes that
@@ -54,7 +58,7 @@ class KernelNodeParams : public KernelNodeParamsView {
   template <typename... Args>
   GCXX_FHC KernelNodeParams(void* func, dim3 grid, dim3 block,
                             unsigned int shmem, Args&... args) {
-    GCXX_STATIC_EXPECT(sizeof...(args) == NumParams, "Arg count mismatch!");
+    static_assert(sizeof...(args) == NumParams, "Arg count mismatch!");
 
     std::size_t i = 0;
     ((m_kernelargs[i++] = static_cast<void*>(&args)), ...);
@@ -98,8 +102,8 @@ GCXX_NAMESPACE_DETAILS_BEGIN()
 
 template <typename... Args>
 class KernelArgPack {
-  GCXX_STATIC_EXPECT((std::is_trivially_copyable_v<Args> && ...),
-                     "All kernel arguments must be trivially copyable");
+  static_assert((std::is_trivially_copyable_v<Args> && ...),
+                "All kernel arguments must be trivially copyable");
 
  public:
   std::tuple<Args&...> args;
@@ -118,10 +122,9 @@ class KernelParamsBuilder {
 
   template <typename Kernel>
   GCXX_FHC auto setKernel(Kernel k) -> KernelParamsBuilder& {
-    GCXX_STATIC_EXPECT(
-      details_::is_void_function_pointer<Kernel>::value,
-      "Passed value must be a function pointer and function should "
-      "return void");
+    static_assert(details_::is_void_function_pointer<Kernel>::value,
+                  "Passed value must be a function pointer and function should "
+                  "return void");
     m_kernel = reinterpret_cast<void*>(k);  // NOLINT
     return *this;
   }
@@ -132,8 +135,8 @@ class KernelParamsBuilder {
   }
 
   GCXX_FHC
-  auto setGridDim(unsigned int x = 1, unsigned int y = 1,
-                  unsigned int z = 1) -> KernelParamsBuilder& {
+  auto setGridDim(unsigned int x = 1, unsigned int y = 1, unsigned int z = 1)
+    -> KernelParamsBuilder& {
 
     return setGridDim({x, y, z});
   }
@@ -144,8 +147,8 @@ class KernelParamsBuilder {
   }
 
   GCXX_FHC
-  auto setBlockDim(unsigned int x = 1, unsigned int y = 1,
-                   unsigned int z = 1) -> KernelParamsBuilder& {
+  auto setBlockDim(unsigned int x = 1, unsigned int y = 1, unsigned int z = 1)
+    -> KernelParamsBuilder& {
     return setBlockDim({x, y, z});
   }
 
@@ -171,8 +174,8 @@ class KernelParamsBuilder {
 
   template <typename... Args>
   GCXX_FHC auto setArgs(Args&... args) -> KernelParamsBuilder& {
-    GCXX_STATIC_EXPECT((std::is_trivially_copyable_v<Args> && ...),
-                       "All kernel args must be trivially copyable");
+    static_assert((std::is_trivially_copyable_v<Args> && ...),
+                  "All kernel args must be trivially copyable");
 
     m_arg_ptrs.clear();
     m_arg_ptrs.reserve(sizeof...(Args));

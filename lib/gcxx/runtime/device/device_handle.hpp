@@ -12,8 +12,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-class MemPoolView;
-
 class DeviceHandle {
 
 
@@ -30,19 +28,19 @@ class DeviceHandle {
 
   GCXX_FH auto getDeviceProp() const -> driver::deviceProp_t;
 
-  GCXX_FH auto getAttribute(const flags::deviceAttribute&) const -> int;
+  /// Read a typed device attribute scoped to this handle's device.
+  template <typename Attr>
+  GCXX_FH auto attribute(Attr attr) const -> typename Attr::type;
 
-  GCXX_FH auto getLimit(const flags::deviceLimit&) const -> std::size_t;
+  /// Read a typed device limit (makes this handle's device current first).
+  template <typename Lim>
+  GCXX_FH auto limit(Lim lim) const -> typename Lim::type;
 
-  GCXX_FH auto setLimit(const flags::deviceLimit&, std::size_t) const -> void;
+  /// Write a typed device limit (makes this handle's device current first).
+  template <typename Lim>
+  GCXX_FH auto set_limit(Lim lim, typename Lim::type value) const -> void;
 
   GCXX_FHC auto id() const -> device_t;
-
-  GCXX_FH auto GetDefaultMemPool() const -> MemPoolView;
-
-  GCXX_FH auto SetMemPool(const MemPoolView&) -> void;
-
-  GCXX_FH auto GetMemPool() -> MemPoolView;
 
  private:
   const device_t m_deviceId;

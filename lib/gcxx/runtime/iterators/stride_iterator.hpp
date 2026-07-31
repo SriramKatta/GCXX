@@ -12,20 +12,8 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::stride_iterator<T>
-//
-// A random-access iterator that advances by a fixed STRIDE per step, visiting
-// elements [base, base+stride, base+2*stride, …]. Useful for walking strided
-// storage (e.g. every Nth element of a buffer: the columns of a row-major
-// matrix, interleaved channels, decimated sequences).
-//
-// Wraps a raw pointer (T* / const T*). All operators are host+device callable
-// (GCXX_FHDC); the caller is responsible for only dereferencing from a space
-// that can reach the pointed-to memory (deref of a pointer has no compile-time
-// space restriction — the safety is the pointer's reachability, same as a raw
-// pointer). operator-(a,b) reports distance in STRIDE STEPS, not raw elements.
-// ─────────────────────────────────────────────────────────────────────────────
+// TODO : have the size also to be a compile time option useful when doing grid
+// stride loop easily even for fixed grid size.
 template <typename T>
 class stride_iterator {
  public:
@@ -39,14 +27,18 @@ class stride_iterator {
   GCXX_FHDC stride_iterator(pointer p, difference_type stride) noexcept
       : ptr_(p), stride_(stride) {}
 
-  // ──────────────────────────── dereference ──────────────────────────────────
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                      dereference                       ║
+  // ╚════════════════════════════════════════════════════════╝
   GCXX_FHDC auto operator*() const noexcept -> reference { return *ptr_; }
   GCXX_FHDC auto operator->() const noexcept -> pointer { return ptr_; }
   GCXX_FHDC auto operator[](difference_type n) const noexcept -> reference {
     return *(ptr_ + n * stride_);
   }
 
-  // ────────────────────────── stride-step movement ───────────────────────────
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                  stride-step movement                  ║
+  // ╚════════════════════════════════════════════════════════╝
   GCXX_FHDC auto operator++() noexcept -> stride_iterator& {
     ptr_ += stride_;
     return *this;
@@ -74,8 +66,9 @@ class stride_iterator {
     return *this;
   }
 
-  // ────────────────────────────── observers ──────────────────────────────────
-  /// The underlying pointer (the element this iterator currently addresses).
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                       observers                        ║
+  // ╚════════════════════════════════════════════════════════╝
   GCXX_FHDC auto base() const noexcept -> pointer { return ptr_; }
   /// The stride (in elements) between successive positions.
   GCXX_FHDC auto stride() const noexcept -> difference_type { return stride_; }
@@ -90,9 +83,10 @@ class stride_iterator {
 // (end - begin) is the logical length of the strided range.
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename T>
-GCXX_FHDC auto operator+(stride_iterator<T> it,
-                         typename stride_iterator<T>::difference_type
-                           n) noexcept -> stride_iterator<T> {
+GCXX_FHDC auto operator+(
+  stride_iterator<T> it,
+  typename stride_iterator<T>::difference_type n) noexcept
+  -> stride_iterator<T> {
   return it += n;
 }
 
@@ -103,9 +97,10 @@ GCXX_FHDC auto operator+(typename stride_iterator<T>::difference_type n,
 }
 
 template <typename T>
-GCXX_FHDC auto operator-(stride_iterator<T> it,
-                         typename stride_iterator<T>::difference_type
-                           n) noexcept -> stride_iterator<T> {
+GCXX_FHDC auto operator-(
+  stride_iterator<T> it,
+  typename stride_iterator<T>::difference_type n) noexcept
+  -> stride_iterator<T> {
   return it -= n;
 }
 

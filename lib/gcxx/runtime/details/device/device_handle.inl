@@ -9,7 +9,6 @@
 
 #include <gcxx/runtime/device/ensure_current_device.hpp>
 #include <gcxx/runtime/flags/device_flags.hpp>
-#include <gcxx/runtime/memory/mempool/mempool_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
@@ -20,7 +19,7 @@ GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
 
 GCXX_FH DeviceHandle::~DeviceHandle() {
   if (m_resetOnDestruct) {
-    details_::EnsureCurrentDevice hand(m_deviceId);
+    [[maybe_unused]] details_::EnsureCurrentDevice hand(m_deviceId);
     driver::deviceReset();
   }
 }
@@ -30,53 +29,36 @@ GCXX_FH auto DeviceHandle::makeCurrent() const -> void {
 }
 
 GCXX_FH auto DeviceHandle::Synchronize() const -> void {
-  details_::EnsureCurrentDevice hand(m_deviceId);
+  [[maybe_unused]] details_::EnsureCurrentDevice hand(m_deviceId);
   gcxx::Device::Synchronize();
 }
 
-GCXX_FH
-auto DeviceHandle::getAttribute(const flags::deviceAttribute& attr) const
-  -> int {
-  details_::EnsureCurrentDevice dev(m_deviceId);
-  return gcxx::Device::getAttribute(attr);
+template <typename Attr>
+GCXX_FH auto DeviceHandle::attribute(Attr attr) const -> typename Attr::type {
+  return attr(m_deviceId);
 }
 
 GCXX_FHC auto DeviceHandle::id() const -> device_t {
   return m_deviceId;
 }
 
-GCXX_FH
-auto DeviceHandle::getLimit(const flags::deviceLimit& limattr) const
-  -> std::size_t {
-  details_::EnsureCurrentDevice dev(m_deviceId);
-  return gcxx::Device::getLimit(limattr);
+template <typename Lim>
+GCXX_FH auto DeviceHandle::limit(Lim lim) const -> typename Lim::type {
+  // Limits operate on the current device, so make this handle's device current.
+  [[maybe_unused]] details_::EnsureCurrentDevice dev(m_deviceId);
+  return lim();
 }
 
-GCXX_FH
-auto DeviceHandle::setLimit(const flags::deviceLimit& limattr,
-                            std::size_t limval) const -> void {
-  details_::EnsureCurrentDevice dev(m_deviceId);
-  gcxx::Device::setLimit(limattr, limval);
+template <typename Lim>
+GCXX_FH auto DeviceHandle::set_limit(Lim /*lim*/,
+                                     typename Lim::type value) const -> void {
+  [[maybe_unused]] details_::EnsureCurrentDevice dev(m_deviceId);
+  Lim::set(value);
 }
 
 GCXX_FH auto DeviceHandle::getDeviceProp() const -> driver::deviceProp_t {
-  details_::EnsureCurrentDevice dev(m_deviceId);
+  [[maybe_unused]] details_::EnsureCurrentDevice dev(m_deviceId);
   return gcxx::Device::getDeviceProp();
-}
-
-GCXX_FH auto DeviceHandle::GetDefaultMemPool() const -> MemPoolView {
-  details_::EnsureCurrentDevice dev(m_deviceId);
-  return gcxx::Device::GetDefaultMemPool();
-}
-
-GCXX_FH auto DeviceHandle::SetMemPool(const MemPoolView& pool) -> void {
-  details_::EnsureCurrentDevice dev(m_deviceId);
-  return gcxx::Device::SetMemPool(pool);
-}
-
-GCXX_FH auto DeviceHandle::GetMemPool() -> MemPoolView {
-  details_::EnsureCurrentDevice dev(m_deviceId);
-  return gcxx::Device::GetMemPool();
 }
 
 GCXX_NAMESPACE_MAIN_END()

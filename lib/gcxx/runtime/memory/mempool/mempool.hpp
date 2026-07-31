@@ -4,39 +4,76 @@
 #ifndef GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_HPP_
 #define GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_HPP_
 
+#include <utility>
+
 #include <gcxx/internal/prologue.hpp>
 
-#include <gcxx/runtime/memory/mempool/mempool_props.hpp>
+#include <gcxx/runtime/flags/memory_flags.hpp>
+#include <gcxx/runtime/memory/mempool/memory_pool_properties.hpp>
 #include <gcxx/runtime/memory/mempool/mempool_view.hpp>
-
+#include <gcxx/runtime_backend/backend_device.hpp>
+#include <gcxx/runtime_backend/backend_stream_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
+
 class MemPool : public MemPoolView {
  public:
-  GCXX_FH explicit MemPool(const MemPoolProps&);
+  /// Create and own a pool at `locationType`/`locationId` of `allocType`,
+  /// honouring `props`. Defaults to a device pool on the current device.
+  GCXX_FH explicit MemPool(
+    flags::MemLocation locationType = flags::MemLocation::Device,
+    int locationId = driver::deviceGet(),
+    flags::MemAllocation allocType = flags::MemAllocation::Pinned,
+    memory_pool_properties props = {})
+      : MemPoolView(create_memory_pool(locationType, locationId,
+                                               allocType, props)) {}
 
-  GCXX_FH ~MemPool();
+  GCXX_FH ~MemPool() noexcept {
+    if (m_pool_ != nullptr) {
+      driver::deviceMemPoolDestroy(m_pool_);
+    }
+  }
+
+  MemPool(int)            = delete;
+  MemPool(std::nullptr_t) = delete;
 
   MemPool(const MemPool&)            = delete;
   MemPool& operator=(const MemPool&) = delete;
 
-  MemPool(std::nullptr_t) = delete;
-  MemPool(int)            = delete;
+  GCXX_FH MemPool(MemPool&& other) noexcept
+      : MemPoolView(std::exchange(other.m_pool_, nullptr)) {}
 
-  GCXX_FH MemPool(MemPool&& other) GCXX_NOEXCEPT;
-  GCXX_FH auto operator=(MemPool&& other) GCXX_NOEXCEPT->MemPool&;
+  GCXX_FH auto operator=(MemPool&& other) noexcept -> MemPool& {
+    if (this != &other) {
+      if (m_pool_ != nullptr) {
+        driver::deviceMemPoolDestroy(m_pool_);
+      }
+      m_pool_ = std::exchange(other.m_pool_, nullptr);
+    }
+    return *this;
+  }
 
-  GCXX_FH auto destroy() -> void;
+  /// Adopt an existing cudaMemPool_t without creating a new one.
+  GCXX_FH static auto from_native_handle(driver::deviceMemPool_t pool) noexcept
+    -> MemPool {
+    return MemPool(pool);
+  }
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT -> MemPoolView;
+  /// Relinquish ownership of the handle and return a non-owning view; the pool
+  /// is left empty and the caller now owns the handle.
+  GCXX_FH auto Release() noexcept -> MemPoolView {
+    auto pool = m_pool_;
+    m_pool_ = nullptr;
+    return MemPoolView{pool};
+  }
 
-  GCXX_FH constexpr auto get() GCXX_CONST_NOEXCEPT -> MemPoolView;
+ private:
+  /// Wrap an existing handle without creating a pool (for from_native_handle).
+  GCXX_FH explicit MemPool(driver::deviceMemPool_t pool) noexcept
+      : MemPoolView(pool) {}
 };
 
 GCXX_NAMESPACE_MAIN_END()
-
-
-#include <gcxx/runtime/details/memory/mempool/mempool.inl>
 
 #endif

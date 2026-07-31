@@ -1,102 +1,178 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
+//
+// Derived from NVIDIA CCCL libcudacxx:
+//   https://github.com/NVIDIA/cccl/blob/main/libcudacxx/include/cuda/__memory_resource/__memory_pool/memory_pool_base.h
+// Copyright (c) NVIDIA Corporation and affiliates.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
 #pragma once
 #ifndef GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_VIEW_HPP_
 #define GCXX_RUNTIME_MEMORY_MEMPOOL_MEMPOOL_VIEW_HPP_
 
+#include <cstddef>
+#include <vector>
+
 #include <gcxx/internal/prologue.hpp>
 
-#include <cstddef>
-#include <cstdint>
-
-#include <gcxx/runtime/device/device_handle.hpp>
 #include <gcxx/runtime/flags/memory_flags.hpp>
+#include <gcxx/runtime/memory/mempool/memory_pool_attributes.hpp>
 #include <gcxx/runtime/memory/mempool/mempool_props.hpp>
-#include <gcxx/runtime/stream.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
+#include <gcxx/runtime_backend/backend_device.hpp>
+#include <gcxx/runtime_backend/backend_stream.hpp>
+#include <gcxx/runtime_backend/backend_stream_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
+// The alignment guarantee CUDA makes for pool allocations
+inline constexpr std::size_t default_cuda_malloc_alignment = 256;
+
 class MemPoolView {
- public:
+ protected:
   using deviceMemPool_t = driver::deviceMemPool_t;
 
-  MemPoolView() = default;
+  // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
+  deviceMemPool_t m_pool_{nullptr};
 
-  MemPoolView(deviceMemPool_t pool) : m_pool(pool) {}
+  GCXX_FH static constexpr auto is_valid_alignment(
+    std::size_t alignment) noexcept -> bool {
+    return alignment != 0 && alignment <= default_cuda_malloc_alignment &&
+           (default_cuda_malloc_alignment % alignment == 0);
+  }
 
-  GCXX_FH auto getRawMemPool() const -> deviceMemPool_t;
+ public:
+  MemPoolView(std::nullptr_t) = delete;
+  MemPoolView(int)            = delete;
 
-  GCXX_FH static auto GetDefaultMempool(const DeviceHandle&) -> MemPoolView;
+  GCXX_FH explicit MemPoolView(deviceMemPool_t pool) noexcept : m_pool_(pool) {}
 
-  GCXX_FH auto MallocFromPoolAsync(const StreamView& stream,
-                                   std::size_t numBytes) const -> void*;
+  // ╔════════════════════════════════════════════════════════╗
+  // ║               Stream-ordered (de)allocation            ║
+  // ╚════════════════════════════════════════════════════════╝
 
-  GCXX_FH auto TrimTo(std::size_t minBytesToKeep) const -> void;
+  // Allocate at least `bytes` from the pool, ordered on `stream`, with the
+  // requested alignment (validated; must be a power of two <= the default).
+  GCXX_FH auto allocate(gcxx::StreamView stream, std::size_t bytes,
+                        [[maybe_unused]] std::size_t alignment =
+                          default_cuda_malloc_alignment) -> void* {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to MemPoolView::allocate.");
+    return driver::deviceMallocFromPoolAsync(bytes, m_pool_,
+                                             stream.getRawStream());
+  }
 
-  GCXX_FH auto SetAccess(const MemAccessDesc* descList,
-                         std::size_t count) -> void;
-  GCXX_FH auto SetAccess(const MemAccessDesc& desc) -> void;
-  GCXX_FH auto GetAccess(const MemAccessDesc& location) const
-    -> flags::MemAccessFlags;
+  // Return `ptr` to the pool, ordered on `stream`.
+  GCXX_FH void deallocate(gcxx::StreamView stream, void* ptr,
+                          [[maybe_unused]] std::size_t bytes = 0,
+                          [[maybe_unused]] std::size_t alignment =
+                            default_cuda_malloc_alignment) noexcept {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to MemPoolView::deallocate.");
+    driver::deviceFreeAsync(ptr, stream.getRawStream());
+  }
 
-  // ── IPC / inter-process sharing ─────────────────────────────────────────
-  // ExportPointer/ImportPointer share a single allocation across pool
-  // instances within the same process. ExportToShareableHandle /
-  // ImportFromShareableHandle share an entire pool across processes via an
-  // OS handle (POSIX fd on Linux, Win32 HANDLE on Windows). The shareable
-  // handle pointer is typed as void* to match the driver ABI.
-  using deviceMemPoolPtrExportData_t = driver::deviceMemPoolPtrExportData_t;
 
-  GCXX_FH static auto ExportPointer(void* ptr) -> deviceMemPoolPtrExportData_t;
+  // ╔════════════════════════════════════════════════════════╗
+  // ║        Synchronous (de)allocation (default stream)     ║
+  // ╚════════════════════════════════════════════════════════╝
+  GCXX_FH auto allocate_sync(
+    std::size_t bytes, std::size_t alignment = default_cuda_malloc_alignment)
+    -> void* {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to MemPoolView::allocate_sync.");
+    void* ptr = allocate(StreamView::Null(), bytes, alignment);
+    StreamView::Null().Synchronize();
+    return ptr;
+  }
 
-  GCXX_FH auto ImportPointer(deviceMemPoolPtrExportData_t* exportData) const
-    -> void*;
+  GCXX_FH void deallocate_sync(
+    void* ptr, std::size_t bytes = 0,
+    std::size_t alignment = default_cuda_malloc_alignment) noexcept {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to MemPoolView::deallocate_sync.");
+    deallocate(StreamView::Null(), ptr, bytes, alignment);
+    StreamView::Null().Synchronize();
+  }
 
-  GCXX_FH auto ExportToShareableHandle(void* shareableHandle,
-                                       flags::MemAllocationHandle handleType,
-                                       unsigned int handleFlags) const -> void;
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                    Pool management                     ║
+  // ╚════════════════════════════════════════════════════════╝
 
-  GCXX_FH static auto ImportFromShareableHandle(
-    void* shareableHandle, flags::MemAllocationHandle handleType,
-    unsigned int handleFlags) -> MemPoolView;
+  // Release pool memory down to at least `min_bytes_to_keep` reserved bytes.
+  GCXX_FH auto trim_to(std::size_t min_bytes_to_keep) -> void {
+    driver::deviceMemPoolTrimTo(m_pool_, min_bytes_to_keep);
+  }
 
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-  // ── CUDA 13+ location-keyed pool API ────────────────────────────────────
-  GCXX_FH static auto GetDefaultMemPoolByLocation(
-    const MemAccessDesc& location, flags::MemAllocation type) -> MemPoolView;
-  GCXX_FH static auto GetMemPoolByLocation(
-    const MemAccessDesc& location, flags::MemAllocation type) -> MemPoolView;
-  GCXX_FH static auto SetMemPoolByLocation(const MemAccessDesc& location,
-                                           flags::MemAllocation type,
-                                           MemPoolView pool) -> void;
-#endif
+  // Read a typed attribute (see memory_pool_attributes).
+  template <typename Attr>
+  GCXX_FH auto attribute(Attr attr) const -> typename Attr::type {
+    return attr(m_pool_);
+  }
 
-  GCXX_FH auto SetFollowEventDependencies(bool state) -> void;
-  GCXX_FH auto SetAllowOpportunistic(bool state) -> void;
-  GCXX_FH auto SetAllowInternalDependencies(bool state) -> void;
-  GCXX_FH auto SetReleaseThreshold(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetReservedMemCurrent(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetReservedMemHigh(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetUsedMemCurrent(std::uint64_t threshold) -> void;
-  GCXX_FH auto SetUsedMemHigh(std::uint64_t threshold) -> void;
+  template <typename Attr>
+  GCXX_FH auto set_attribute(Attr /*attr*/, typename Attr::type value) -> void {
+    // Read-only attributes are a no-op.
+    Attr::set(m_pool_, value);
+  }
+  GCXX_FH constexpr auto get() const noexcept -> deviceMemPool_t {
+    return m_pool_;
+  }
 
-  GCXX_FH auto GetFollowEventDependencies() -> bool;
-  GCXX_FH auto GetAllowOpportunistic() -> bool;
-  GCXX_FH auto GetAllowInternalDependencies() -> bool;
-  GCXX_FH auto GetReleaseThreshold() -> std::uint64_t;
-  GCXX_FH auto GetReservedMemCurrent() -> std::uint64_t;
-  GCXX_FH auto GetReservedMemHigh() -> std::uint64_t;
-  GCXX_FH auto GetUsedMemCurrent() -> std::uint64_t;
-  GCXX_FH auto GetUsedMemHigh() -> std::uint64_t;
+  // ╔════════════════════════════════════════════════════════╗
+  // ║               TODO : Peer / cross-device access        ║
+  // ╚════════════════════════════════════════════════════════╝
+  // GCXX_FH auto enable_access_from(int device_id) -> void {
+  //   const MemAccessDesc desc{flags::MemLocation::Device, device_id,
+  //                            flags::MemAccessFlags::ReadWrite};
+  //   auto raw = desc.getRawMemAccessDesc();
+  //   driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
+  // }
 
- protected:
-  deviceMemPool_t m_pool{
-    nullptr};  // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
+  // // Disable access to this pool's allocations from `device_id`.
+  // GCXX_FH auto disable_access_from(int device_id) -> void {
+  //   const MemAccessDesc desc{flags::MemLocation::Device, device_id,
+  //                            flags::MemAccessFlags::None};
+  //   auto raw = desc.getRawMemAccessDesc();
+  //   driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
+  // }
+
+  // // Enable read/write access from every device in the system.
+  // GCXX_FH auto enable_access_from_all() -> void {
+  //   const int count = driver::deviceGetCount();
+  //   std::vector<driver::deviceMemAccessDesc_t> descs;
+  //   descs.reserve(static_cast<std::size_t>(count));
+  //   for (int dev = 0; dev < count; ++dev) {
+  //     const MemAccessDesc desc{flags::MemLocation::Device, dev,
+  //                              flags::MemAccessFlags::ReadWrite};
+  //     descs.push_back(desc.getRawMemAccessDesc());
+  //   }
+  //   if (!descs.empty()) {
+  //     driver::deviceMemPoolSetAccess(m_pool_, descs.data(), descs.size());
+  //   }
+  // }
+
+  // // true iff `device_id` has read/write access to this pool's allocations.
+  // GCXX_FH auto is_accessible_from(int device_id) -> bool {
+  //   const MemAccessDesc location{flags::MemLocation::Device, device_id,
+  //                                flags::MemAccessFlags::None};
+  //   auto rawLoc = location.getRawMemLocation();
+  //   auto flags  = driver::deviceMemPoolGetAccess(m_pool_, &rawLoc);
+  //   return flags == static_cast<driver::deviceMemAccessFlags_t>(
+  //                     flags::MemAccessFlags::ReadWrite);
+  // }
+
+  // ╔════════════════════════════════════════════════════════╗
+  // ║                       Comparison                       ║
+  // ╚════════════════════════════════════════════════════════╝
+  GCXX_FH auto operator==(const MemPoolView& rhs) const noexcept -> bool {
+    return m_pool_ == rhs.m_pool_;
+  }
+  GCXX_FH auto operator!=(const MemPoolView& rhs) const noexcept -> bool {
+    return m_pool_ != rhs.m_pool_;
+  }
 };
 
 GCXX_NAMESPACE_MAIN_END()
-
-
-#include <gcxx/runtime/details/memory/mempool/mempool_view.inl>
 
 #endif

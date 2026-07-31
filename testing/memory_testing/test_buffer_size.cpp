@@ -13,17 +13,17 @@ namespace {
   // without a GPU or the CUDA runtime. T3: must advertise host_accessible
   // to satisfy buffer's static_assert on execution-space properties.
   struct host_mock_resource {
-    void* allocate(std::size_t num_bytes, gcxx::StreamView) {
+    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
       return std::malloc(num_bytes);
     }
 
-    void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
+    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
 
-    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
+    using properties = gcxx::TypeSet<gcxx::host_accessible>;
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, gcxx::memory::host_accessible>;
+  using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 
 }  // namespace
 

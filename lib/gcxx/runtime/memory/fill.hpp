@@ -18,7 +18,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
 // fill_kernel: writes value into every element of ptr[0..n). Only invoked for
@@ -63,8 +62,8 @@ GCXX_FH auto fill_dispatch(const StreamView& stream, VT* ptr, const VT& value,
 // ╚════════════════════════════════════════════════════════╝
 GCXX_TEMPLATE(typename Ptr, typename Val)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-GCXX_FH auto Fill(Ptr& handle, const Val& value,
-                  const std::size_t numElements) -> void {
+GCXX_FH auto Fill(Ptr& handle, const Val& value, const std::size_t numElements)
+  -> void {
   Fill(StreamView::Null(), handle, value, numElements);
 }
 
@@ -94,7 +93,6 @@ GCXX_FH auto Fill(const StreamView& stream, DSTTY&& destination,
   fill_dispatch(stream, details_::to_address(details_::data(destination)),
                 static_cast<element_t>(value), details_::size(destination));
 }
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

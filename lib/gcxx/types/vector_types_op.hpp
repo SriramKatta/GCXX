@@ -103,8 +103,8 @@ namespace impl {
     constexpr bool lhs_is_vec = is_vectype_v<LHS>;
     constexpr bool rhs_is_vec = is_vectype_v<RHS>;
 
-    GCXX_STATIC_EXPECT(lhs_is_vec || rhs_is_vec,
-                       "vector operators requires at least one vector operand");
+    static_assert(lhs_is_vec || rhs_is_vec,
+                  "vector operators requires at least one vector operand");
 
     using traits =
       std::conditional_t<lhs_is_vec, vec_traits<LHS>, vec_traits<RHS>>;
@@ -134,8 +134,8 @@ namespace impl {
     constexpr bool lhs_is_vec = is_vectype_v<LHS>;
     constexpr bool rhs_is_vec = is_vectype_v<RHS>;
 
-    GCXX_STATIC_EXPECT(lhs_is_vec,
-                       "inplace vector operators requires lhs to be vector");
+    static_assert(lhs_is_vec,
+                  "inplace vector operators requires lhs to be vector");
 
     using traits = vec_traits<LHS>;
 

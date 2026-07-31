@@ -20,29 +20,16 @@
 #include <gcxx/runtime/memory/buffers/properties.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
+#include <gcxx/runtime/memory/memory_resource/resource_concepts.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::buffer<VT, Properties...>
-//
-// A typed raw-storage owner allocated from a memory resource in stream order,
-// modelled on cuda::buffer (CCCL/libcudacxx). Properties... are the buffer's
-// accessibility contract (device_accessible / host_accessible); the resource —
-// which decides the allocation strategy — is passed at construction and
-// type-erased into a buffer_storage<VT>. device_buffer<T> == buffer<T,
-// device_accessible> is ONE type regardless of which allocator backed it.
-//
-// The resource must advertise (via `using properties`) every one of this
-// buffer's Properties; the ctor static_asserts that (resource_has_all_v), so
-// passing a host-only resource to a device_accessible buffer is a compile
-// error. Elements are NOT constructed or destroyed — VT must be trivially
-// copyable.
+// gcxx::buffer<VT, Properties...>
 //
 // Responsibilities:
 //   * buffer_storage<VT> — owns the raw byte block + the type-erased
@@ -50,9 +37,6 @@ GCXX_NAMESPACE_MEMORY_BEGIN()
 //   * buffer<VT, Properties...> — typed data()/iterator access, ctor
 //                          validation, accessor gating on Properties,
 //                          copy/cross-ctors.
-//
-// Cross-instantiations are friends so the cross-properties ctor/move can reach
-// into another buffer's storage.
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename VT, typename... Properties>
 class buffer {
@@ -381,8 +365,9 @@ class buffer {
   // launch customization point (CCCL cuda::launch parity).
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
   GCXX_REQUIRES(D)
-  GCXX_FH friend auto transform_launch_argument(
-    gcxx::StreamView, buffer& self) noexcept -> gcxx::span<value_type> {
+  GCXX_FH friend auto transform_launch_argument(gcxx::StreamView,
+                                                buffer& self) noexcept
+    -> gcxx::span<value_type> {
     return {self.data(), self.size()};
   }
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
@@ -407,6 +392,10 @@ class buffer {
                   "resource properties do not satisfy this buffer's Properties "
                   "(e.g. a host_accessible resource cannot back a "
                   "device_accessible buffer)");
+    static_assert(resource_api<std::decay_t<Resource>>,
+                  "resource does not model the gcxx resource concept: it must "
+                  "expose allocate(gcxx::StreamView, std::size_t) -> void* and "
+                  "deallocate(gcxx::StreamView, void*) -> void");
   }
 
   buffer_t m_storage{};
@@ -434,7 +423,6 @@ using device_buffer = buffer<VT, device_accessible>;
 template <typename VT>
 using host_buffer = buffer<VT, host_accessible>;
 
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

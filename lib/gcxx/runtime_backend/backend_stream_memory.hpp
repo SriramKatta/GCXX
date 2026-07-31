@@ -9,8 +9,8 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
-GCXX_FH auto deviceMallocAsync(std::size_t numBytes,
-                               deviceStream_t stream) -> void* {
+GCXX_FH auto deviceMallocAsync(std::size_t numBytes, deviceStream_t stream)
+  -> void* {
   void* ptr = nullptr;
   GCXX_SAFE_RUNTIME_CALL(MallocAsync,
                          "Failed to allocate device memory asynchronously",
@@ -74,8 +74,8 @@ GCXX_FH auto deviceMemPoolGetAccess(deviceMemPool_t pool,
 }
 
 GCXX_FH auto deviceMemPoolGetAttribute(deviceMemPool_t pool,
-                                       deviceMemPoolAttr_t attr,
-                                       void* value) -> void {
+                                       deviceMemPoolAttr_t attr, void* value)
+  -> void {
   GCXX_SAFE_RUNTIME_CALL(MemPoolGetAttribute,
                          "Failed to get memory pool attribute", pool, attr,
                          value);
@@ -109,8 +109,8 @@ GCXX_FH auto deviceMemPoolSetAccess(deviceMemPool_t pool,
 }
 
 GCXX_FH auto deviceMemPoolSetAttribute(deviceMemPool_t pool,
-                                       deviceMemPoolAttr_t attr,
-                                       void* value) -> void {
+                                       deviceMemPoolAttr_t attr, void* value)
+  -> void {
   GCXX_SAFE_RUNTIME_CALL(MemPoolSetAttribute,
                          "Failed to set memory pool attribute", pool, attr,
                          value);

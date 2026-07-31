@@ -40,7 +40,4 @@
 
 #define GCXX_RUNTIME_EXPECT(COND, MSG) assert((COND) && (MSG))
 
-#define GCXX_STATIC_EXPECT(COND, MSG) static_assert(COND, MSG)
-
-
 #endif

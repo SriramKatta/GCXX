@@ -15,26 +15,17 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::buffer_storage<VT>
-//
-// RAII owner of a raw, untyped byte block obtained from a TYPE-ERASED memory
-// resource (any_resource) in stream order. The resource's concrete type is
-// erased at construction (by buffer<VT, Properties...>); this layer holds only
-// the any_resource and the raw block. Storage carries NO Properties — those
-// live on the buffer type — so buffer<int, host_accessible> and
-// buffer<int, device_accessible> share the same buffer_storage<int> erasure,
-// which makes the cross-properties copy ctor straightforward.
+// gcxx::buffer_storage<VT>
 //
 // Splitting raw ownership from typed initialization guarantees that if a
 // composing object's constructor throws after storage is allocated, the
 // storage destructor runs and returns the memory — no leak.
 //
 // Resource concept (the any_resource interface):
-//   void* allocate(std::size_t num_bytes, gcxx::StreamView)
-//   void  deallocate(void* ptr, gcxx::StreamView)
+//   void* allocate(gcxx::StreamView, std::size_t num_bytes)
+//   void  deallocate(gcxx::StreamView, void* ptr)
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename VT>
 class buffer_storage {
@@ -63,7 +54,7 @@ class buffer_storage {
       : m_resource(std::move(res)),
         m_stream(stream),
         m_ptr(num_elems != 0
-                ? m_resource.allocate(sizeof(VT) * num_elems, m_stream)
+                ? m_resource.allocate(m_stream, sizeof(VT) * num_elems)
                 : nullptr),
         m_num_elems(num_elems) {}
 
@@ -135,7 +126,7 @@ class buffer_storage {
   /// Deallocate using an explicit stream; storage becomes empty.
   GCXX_FH auto destroy(gcxx::StreamView s) -> void {
     if (m_ptr != nullptr) {
-      m_resource.deallocate(m_ptr, s);
+      m_resource.deallocate(s, m_ptr);
       m_ptr       = nullptr;
       m_stream    = gcxx::StreamView::Null();
       m_num_elems = 0;
@@ -150,7 +141,7 @@ class buffer_storage {
 
   auto release() noexcept -> void {
     if (m_ptr != nullptr) {
-      m_resource.deallocate(m_ptr, m_stream);
+      m_resource.deallocate(m_stream, m_ptr);
       m_ptr       = nullptr;
       m_stream    = gcxx::StreamView::Null();
       m_num_elems = 0;
@@ -158,7 +149,6 @@ class buffer_storage {
   }
 };
 
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

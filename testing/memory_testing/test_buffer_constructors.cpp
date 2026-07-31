@@ -14,20 +14,20 @@ namespace {
   // without a GPU or the CUDA runtime. T3: must advertise host_accessible
   // to satisfy buffer's static_assert on execution-space properties.
   struct host_mock_resource {
-    void* allocate(std::size_t num_bytes, gcxx::StreamView) {
+    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
       return std::malloc(num_bytes);
     }
 
-    void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
+    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
 
-    using properties = gcxx::memory::TypeSet<gcxx::memory::host_accessible>;
+    using properties = gcxx::TypeSet<gcxx::host_accessible>;
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, gcxx::memory::host_accessible>;
+  using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 
-  using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
-  using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
+  using device_ptr = gcxx::device_ptr<std::uint32_t>;
+  using device_buf = gcxx::device_buffer<std::uint32_t>;
 
   // Satisfies neither is_pointer_or_has_get_v nor is_span_like_v — the
   // universal negative case for every overload's SFINAE constraint.
@@ -49,12 +49,12 @@ namespace {
                                std::size_t{4}, std::declval<Args>()...));
 
   GCXX_DEFINE_IS_CALLABLE(is_fill_ptr_callable,
-                          gcxx::memory::Fill(std::declval<Args>()...,
-                                             std::uint32_t{0}, std::size_t{4}));
+                          gcxx::Fill(std::declval<Args>()..., std::uint32_t{0},
+                                     std::size_t{4}));
 
   GCXX_DEFINE_IS_CALLABLE(is_fill_span_callable,
-                          gcxx::memory::Fill(std::declval<Args>()...,
-                                             std::uint32_t{0}));
+                          gcxx::Fill(std::declval<Args>()...,
+                                     std::uint32_t{0}));
 
 }  // namespace
 
@@ -112,7 +112,7 @@ TEST(BufferCtorTest, StreamResourceCtorKeepsResourceAndStream) {
 TEST(BufferCtorTest, NoInitCtorAllocatesRequestedSize) {
   constexpr std::size_t N = 1024;
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, N,
-                       gcxx::memory::no_init);
+                       gcxx::no_init);
 
   EXPECT_FALSE(buf.empty());
   EXPECT_EQ(buf.size(), N);
@@ -124,7 +124,7 @@ TEST(BufferCtorTest, NoInitCtorZeroSizeHasZeroSize) {
   // of zero — empty() is ptr-based and implementation-defined for malloc(0),
   // so assert on the element/byte counts instead.
   mock_buffer<float> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                         std::size_t{0}, gcxx::memory::no_init);
+                         std::size_t{0}, gcxx::no_init);
 
   EXPECT_EQ(buf.size(), 0);
   EXPECT_EQ(buf.size_bytes(), 0);

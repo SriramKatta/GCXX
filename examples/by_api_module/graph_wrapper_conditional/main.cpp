@@ -65,7 +65,7 @@ __global__ void ifGraphKernelC() {
 void simpleIfGraph() {
 
   // Allocate a byte of device memory to use as input
-  auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  auto dPtr_raii = gcxx::make_device_unique_ptr<char>(1);
   char* dPtr     = dPtr_raii.get();
 
   printf("simpleIfGraph: Building graph...\n");
@@ -78,7 +78,7 @@ void simpleIfGraph() {
                        .setKernel(ifGraphKernelA)
                        .setArgs(dPtr, condHandle)
                        .build<2>();
-  auto kernelNode = graph.AddKernelNode(kernelparam);
+  auto kernelNode  = graph.AddKernelNode(kernelparam);
 
   auto [conditionalNode, bodyGraph] = graph.AddIfNode(condHandle);
 
@@ -91,13 +91,13 @@ void simpleIfGraph() {
   auto graphExec = graph.Instantiate();
 
   // Initialize device memory and launch the graph
-  gcxx::memory::Memset(dPtr, 0, 1);
+  gcxx::Memset(dPtr, 0, 1);
   printf("Host: Launching graph with device memory set to 0\n");
   graphExec.Launch();
   gcxx::Device::Synchronize();
 
   // Initialize device memory and launch the graph
-  gcxx::memory::Memset(dPtr, 1, 1);
+  gcxx::Memset(dPtr, 1, 1);
   printf("Host: Launching graph with device memory set to 1\n");
   graphExec.Launch();
   gcxx::Device::Synchronize();
@@ -133,7 +133,7 @@ __global__ void doWhileLoopKernel(
 }
 
 void simpleDoWhileGraph() {
-  auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  auto dPtr_raii = gcxx::make_device_unique_ptr<char>(1);
   char* dPtr     = dPtr_raii.get();
 
   printf("simpleDoWhileGraph: Building graph...\n");
@@ -157,7 +157,7 @@ void simpleDoWhileGraph() {
   auto graphExec = graph.Instantiate();
 
   // Initialize device memory and launch the graph
-  gcxx::memory::Memset(dPtr, 10, 1);
+  gcxx::Memset(dPtr, 10, 1);
   printf("Host: Launching graph with loop counter set to 10\n");
   graphExec.Launch();
   gcxx::Device::Synchronize();
@@ -201,7 +201,7 @@ __global__ void capturedWhileEmptyKernel() {
 void capturedWhileGraph() {
   gcxx::GraphView::deviceGraphConditionalHandle_t handle = 0;
 
-  auto dPtr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  auto dPtr_raii = gcxx::make_device_unique_ptr<char>(1);
   char* dPtr     = dPtr_raii.get();
 
   printf("capturedWhileGraph: Building graph...\n");
@@ -254,13 +254,13 @@ void capturedWhileGraph() {
 
   auto graphExec = graph.Instantiate();
 
-  gcxx::memory::Memset(dPtr, 0, 1);
+  gcxx::Memset(dPtr, 0, 1);
   printf("Host: Launching graph with loop counter set to 0\n");
   graphExec.Launch();
   gcxx::Device::Synchronize();
 
   int n = 6;
-  gcxx::memory::Memset(dPtr, n, 1);
+  gcxx::Memset(dPtr, n, 1);
   printf("Host: Launching graph with loop counter set to %d\n", n);
   graphExec.Launch();
   gcxx::Device::Synchronize();
@@ -292,7 +292,7 @@ __global__ void ifGraphKernelD() {
 void simpleIfElseGraph() {
   gcxx::Graph graph;
 
-  auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  auto dptr_raii = gcxx::make_device_unique_ptr<char>(1);
   char* dPtr     = dptr_raii.get();
 
   printf("simpleIfElseGraph: Building graph...\n");
@@ -305,7 +305,7 @@ void simpleIfElseGraph() {
                      .setKernel(ifGraphKernelA)
                      .setArgs(dPtr, handle)
                      .build<2>();
-  auto kernnode = graph.AddKernelNode(kernparam);
+  auto kernnode  = graph.AddKernelNode(kernparam);
 
   auto [ifelsenode, IfGraphBody, Elsegraphbody] =
     graph.AddIfElseNode(handle, &kernnode, 1);
@@ -321,13 +321,13 @@ void simpleIfElseGraph() {
   auto graphExec = graph.Instantiate();
 
   // // Initialize device memory and launch the graph
-  gcxx::memory::Memset(dPtr, 0, 1);
+  gcxx::Memset(dPtr, 0, 1);
   printf("Host: Launching graph with loop counter set to 0\n");
   graphExec.Launch();
   gcxx::Device::Synchronize();
 
   int n = 1;
-  gcxx::memory::Memset(dPtr, n, 1);
+  gcxx::Memset(dPtr, n, 1);
   printf("Host: Launching graph with loop counter set to %d\n", n);
   graphExec.Launch();
   gcxx::Device::Synchronize();
@@ -378,7 +378,7 @@ __global__ void switchGraphKernelF() {
 void simpleSwitchGraph() {
   gcxx::Graph graph;
 
-  auto dptr_raii = gcxx::memory::make_device_unique_ptr<char>(1);
+  auto dptr_raii = gcxx::make_device_unique_ptr<char>(1);
   char* dPtr     = dptr_raii.get();
 
   printf("simpleSwitchGraph: Building graph...\n");
@@ -387,10 +387,10 @@ void simpleSwitchGraph() {
     0, gcxx::flags::graphConditionalHandle::Default);
 
   // Use a kernel upstream of the conditional to set the handle value
-  auto kern1 = gcxx::KernelParamsBuilder()
-                 .setKernel(switchGraphKernelA)
-                 .setArgs(dPtr, handle)
-                 .build<2>();
+  auto kern1      = gcxx::KernelParamsBuilder()
+                      .setKernel(switchGraphKernelA)
+                      .setArgs(dPtr, handle)
+                      .build<2>();
   auto kernelNode = graph.AddKernelNode(kern1);
 
   auto [condNode, casevector] = graph.AddSwitchNode(handle, 4);
@@ -415,7 +415,7 @@ void simpleSwitchGraph() {
   auto graphExec = graph.Instantiate();
 
   for (char i = 0; i < 5; i++) {
-    gcxx::memory::Memset(dPtr, i, 1);
+    gcxx::Memset(dPtr, i, 1);
     printf("Host: Launching graph with device memory set to %d\n", i);
     graphExec.Launch();
     gcxx::Device::Synchronize();

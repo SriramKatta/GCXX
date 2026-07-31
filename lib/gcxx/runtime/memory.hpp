@@ -6,16 +6,19 @@
 
 #include <gcxx/runtime/memory/spans/spans.hpp>
 
-// TODO: complete this at a later point
+
 #include <gcxx/runtime/memory/mempool/mempool.hpp>
-#include <gcxx/runtime/memory/mempool/mempool_view.hpp>
+
+#include <gcxx/runtime/memory/mempool/default_memory_pools.hpp>
+#include <gcxx/runtime/memory/mempool/device_memory_pool.hpp>
+#include <gcxx/runtime/memory/mempool/managed_memory_pool.hpp>
+#include <gcxx/runtime/memory/mempool/pinned_memory_pool.hpp>
 
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 
 #include <gcxx/runtime/memory/buffers/buffer.hpp>
 #include <gcxx/runtime/memory/memory_resource/any_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/resources.hpp>
+#include <gcxx/runtime/memory/memory_resource/resource_concepts.hpp>
 
 
 #include <gcxx/runtime/memory/copy.hpp>

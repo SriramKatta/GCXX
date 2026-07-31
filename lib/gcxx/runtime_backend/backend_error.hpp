@@ -28,8 +28,8 @@ GCXX_FHD auto PeekAtLastError() -> deviceError_t {
   return ::GCXX_RUNTIME_BACKEND(PeekAtLastError)();
 }
 
-GCXX_FH auto make_message(deviceError_t err,
-                          std::string_view context) -> std::string {
+GCXX_FH auto make_message(deviceError_t err, std::string_view context)
+  -> std::string {
   std::string msg;
   constexpr size_t addtional_message_size = 128;
   msg.reserve(context.size() + addtional_message_size);
