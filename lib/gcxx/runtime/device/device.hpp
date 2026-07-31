@@ -7,12 +7,12 @@
 #include <gcxx/internal/prologue.hpp>
 
 
+#include <gcxx/runtime/device/device_attributes.hpp>
 #include <gcxx/runtime_backend/backend_device.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 class DeviceHandle;
-class MemPoolView;
 
 namespace Device {
   GCXX_FH auto set(device_t devId,
@@ -26,17 +26,17 @@ namespace Device {
 
   GCXX_FH auto getDeviceProp() -> driver::deviceProp_t;
 
-  GCXX_FH auto getAttribute(const flags::deviceAttribute&) -> int;
+  /// Read a typed device attribute (see dev_attr).
+  template <typename Attr>
+  GCXX_FH auto attribute(Attr attr) -> typename Attr::type;
 
-  GCXX_FH auto getLimit(const flags::deviceLimit&) -> std::size_t;
+  /// Read a typed device limit for the current device (see device_limits).
+  template <typename Lim>
+  GCXX_FH auto limit(Lim lim) -> typename Lim::type;
 
-  GCXX_FH auto setLimit(const flags::deviceLimit&, std::size_t) -> void;
-
-  GCXX_FH auto GetDefaultMemPool() -> MemPoolView;
-
-  GCXX_FH auto SetMemPool(const MemPoolView&) -> void;
-
-  GCXX_FH auto GetMemPool() -> MemPoolView;
+  /// Write a typed device limit for the current device (see device_limits).
+  template <typename Lim>
+  GCXX_FH auto set_limit(Lim lim, typename Lim::type value) -> void;
 
 };  // namespace Device
 
