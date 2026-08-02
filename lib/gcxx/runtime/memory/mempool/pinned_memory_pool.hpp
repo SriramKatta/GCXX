@@ -28,6 +28,7 @@
 #include <gcxx/runtime/memory/memory_resource/resource_concepts.hpp>
 #include <gcxx/runtime/memory/mempool/memory_pool_properties.hpp>
 #include <gcxx/runtime/memory/mempool/mempool_view.hpp>
+#include <gcxx/runtime_backend/backend_memory.hpp>
 #include <gcxx/runtime_backend/backend_stream_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
@@ -53,6 +54,60 @@ class PinnedMemPoolView : public MemPoolView {
   // 0).
   PinnedMemPoolView(int)            = delete;
   PinnedMemPoolView(std::nullptr_t) = delete;
+
+#if GCXX_HIP_MODE()
+  // ─────────────────────────────────────────────────────────────────────────
+  // HIP pinned-pool shim
+  //
+  // ROCm cannot back a pinned pool with a real hipMemPool_t: hipMemPoolCreate
+  // rejects hipMemLocationTypeHost ("invalid argument"), and there is no
+  // runtime API for a default host pool. The shim instead routes (de)allocation
+  // through hipMallocHost / hipFreeHost (the synchronous ROCm equivalent of a
+  // stream-ordered pinned pool) and carries no pool handle. Pool-management ops
+  // (trim_to / attribute) are unsupported — there is no pool to manage on HIP.
+  // The stream argument is accepted for API parity but ignored: hipMallocHost is
+  // synchronous because no stream-ordered host pool exists on ROCm.
+  // ─────────────────────────────────────────────────────────────────────────
+  /// Tag type selecting the no-handle shim constructor (HIP only).
+  struct hip_shim_handle_t {};
+
+  /// Build a pinned view with no underlying pool (allocations use hipMallocHost).
+  GCXX_FH explicit PinnedMemPoolView(hip_shim_handle_t) noexcept
+      : MemPoolView(driver::deviceMemPool_t{}) {}
+
+  GCXX_FH auto allocate(gcxx::StreamView /*stream*/, std::size_t bytes,
+                        std::size_t alignment = default_cuda_malloc_alignment)
+    -> void* {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to PinnedMemPoolView::allocate.");
+    (void)alignment;
+    return driver::deviceMallocHost(bytes);
+  }
+
+  GCXX_FH void deallocate(gcxx::StreamView /*stream*/, void* ptr,
+                          std::size_t /*bytes*/ = 0,
+                          std::size_t alignment = default_cuda_malloc_alignment) noexcept {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to PinnedMemPoolView::deallocate.");
+    driver::deviceFreeHost(ptr);
+  }
+
+  GCXX_FH auto allocate_sync(
+    std::size_t bytes, std::size_t alignment = default_cuda_malloc_alignment)
+    -> void* {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to PinnedMemPoolView::allocate_sync.");
+    (void)alignment;
+    return driver::deviceMallocHost(bytes);
+  }
+
+  GCXX_FH void deallocate_sync(void* ptr, std::size_t /*bytes*/ = 0,
+                               std::size_t alignment = default_cuda_malloc_alignment) noexcept {
+    assert(is_valid_alignment(alignment) &&
+           "Invalid alignment passed to PinnedMemPoolView::deallocate_sync.");
+    driver::deviceFreeHost(ptr);
+  }
+#endif  // GCXX_HIP_MODE()
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -71,13 +126,24 @@ struct PinnedMemPool : PinnedMemPoolView {
   GCXX_FH explicit PinnedMemPool(no_init_t) noexcept
       : PinnedMemPoolView(driver::deviceMemPool_t{}) {}
 
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_HIP_MODE()
+  /// HIP has no host memory pool: build the hipMallocHost-backed shim view.
+  /// `props` (size/threshold/handle) have no pool to apply to and are ignored.
+  GCXX_FH PinnedMemPool(memory_pool_properties /*props*/ = {})
+      : PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{}) {}
+
+  /// HIP: NUMA binding is handled by the OS first-touch policy, not a pool; the
+  /// shim ignores `numa_id` and `props` (see PinnedMemPoolView shim docs).
+  GCXX_FH PinnedMemPool(int /*numa_id*/, memory_pool_properties /*props*/ = {})
+      : PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{}) {}
+#else
+  #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   /// Create a pinned pool on the default host location (CUDA 13.0+).
   GCXX_FH PinnedMemPool(memory_pool_properties props = {})
       : PinnedMemPoolView(create_memory_pool(
           flags::MemLocation::Host, 0, flags::MemAllocation::Pinned, props)) {
   }
-#endif
+  #endif
 
   /// Create a pinned pool bound to a specific host NUMA node.
   GCXX_FH PinnedMemPool(int numa_id, memory_pool_properties props = {})
@@ -85,6 +151,7 @@ struct PinnedMemPool : PinnedMemPoolView {
           create_memory_pool(flags::MemLocation::HostNuma, numa_id,
                              flags::MemAllocation::Pinned, props)) {
   }
+#endif
 
   GCXX_FH ~PinnedMemPool() noexcept {
     if (m_pool_ != nullptr) {

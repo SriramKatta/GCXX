@@ -85,6 +85,16 @@ inline auto get_default_mem_pool(flags::MemLocation locationType,
 /// NUMA-node-specific pinned pool remains available by constructing one
 /// explicitly with a queried node id.
 GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
+#if GCXX_HIP_MODE()
+  // ROCm has no host-location memory pool, so the default pinned pool is the
+  // hipMallocHost-backed shim (see PinnedMemPoolView). Built once per process
+  // (magic-static init is thread-safe); trivially destructible, releases
+  // nothing at exit — there is no pool handle to destroy.
+  static PinnedMemPoolView pool = [] {
+    return PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{});
+  }();
+  return pool;
+#else
   // Lazily build the access-enabled view ONCE (magic-static init is
   // thread-safe). Caching the prepared view — not just the handle — means the
   // O(num-devices) enable_access_from_all() runs once, not on every call
@@ -99,6 +109,7 @@ GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
     return ref;
   }();
   return pool;
+#endif
 }
 
 
