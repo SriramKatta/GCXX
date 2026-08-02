@@ -7,8 +7,8 @@
 #include <iostream>
 
 #include <gcxx/internal/prologue.hpp>
-#include <gcxx/runtime_backend/backend_handles.hpp>
 #include <gcxx/runtime_backend/backend_error.hpp>
+#include <gcxx/runtime_backend/backend_handles.hpp>
 
 #if defined(GCXX_WITH_EXCEPTIONS)
 #include <gcxx/runtime/error/runtime_exception.hpp>

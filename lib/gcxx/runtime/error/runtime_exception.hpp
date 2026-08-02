@@ -8,16 +8,15 @@
 #include <string_view>
 
 #include <gcxx/internal/prologue.hpp>
-#include <gcxx/runtime_backend/backend_handles.hpp>
 #include <gcxx/runtime_backend/backend_error.hpp>
+#include <gcxx/runtime_backend/backend_handles.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 class Exception : public std::runtime_error {
  public:
   Exception(driver::deviceError_t err, std::string_view context)
-      : std::runtime_error(driver::make_message(err, context)),
-        m_error(err) {}
+      : std::runtime_error(driver::make_message(err, context)), m_error(err) {}
 
   driver::deviceError_t error() const noexcept { return m_error; }
 
