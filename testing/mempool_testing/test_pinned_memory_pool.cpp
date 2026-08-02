@@ -102,8 +102,7 @@ TEST_F(PinnedMemoryPoolTest, ReleaseAndFromNativeHandle) {
   EXPECT_EQ(handle, nullptr);
 #else
   EXPECT_NE(handle, nullptr);
-  gcxx::PinnedMemPool adopted =
-    gcxx::PinnedMemPool::from_native_handle(handle);
+  gcxx::PinnedMemPool adopted = gcxx::PinnedMemPool::from_native_handle(handle);
   EXPECT_EQ(adopted.get(), handle);  // adopted owns it (dtor will destroy)
 #endif
 }

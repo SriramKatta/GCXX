@@ -36,8 +36,8 @@ GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
 }
 
 GCXX_CXPR
-auto EventView::operator=(const EventView& eventRef) GCXX_NOEXCEPT
-  -> EventView& {
+auto EventView::operator=(const EventView& eventRef)
+  GCXX_NOEXCEPT -> EventView& {
   m_event = eventRef.getRawEvent();
   return *this;
 }
@@ -63,9 +63,8 @@ GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
   RecordInStream(StreamView::Null(), recordFlag);
 }
 
-GCXX_FH auto EventView::RecordInStream(const StreamView& stream,
-                                       const flags::eventRecord recordFlag)
-  -> void {
+GCXX_FH auto EventView::RecordInStream(
+  const StreamView& stream, const flags::eventRecord recordFlag) -> void {
   driver::eventRecordWithFlags(m_event, stream.getRawStream(),
                                static_cast<details_::flag_t>(recordFlag));
 }
@@ -84,9 +83,8 @@ GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
 }
 
 template <typename DurationT>
-GCXX_FH auto EventView::ElapsedTimeBetween(const EventView& startEvent,
-                                           const EventView& endEvent)
-  -> DurationT {
+GCXX_FH auto EventView::ElapsedTimeBetween(
+  const EventView& startEvent, const EventView& endEvent) -> DurationT {
   return endEvent.ElapsedTimeSince<DurationT>(startEvent);
 }
 

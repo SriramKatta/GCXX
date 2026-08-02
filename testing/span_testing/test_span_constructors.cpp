@@ -56,11 +56,11 @@ TEST(SpanConstructors, IteratorAndSentinelConstructDynamicAndStaticExtents) {
 TEST(SpanConstructors, CArrayConstructorPreservesDataAndChecksExtent) {
   int values[]{1, 2, 3, 4, 5};
 
-  static_assert(std::is_constructible_v<gcxx::span<int>, int (&)[5]>);
-  static_assert(std::is_constructible_v<gcxx::span<int, 5>, int (&)[5]>);
-  static_assert(!std::is_constructible_v<gcxx::span<int, 4>, int (&)[5]>);
-  static_assert(std::is_constructible_v<gcxx::span<const int>, int (&)[5]>);
-  static_assert(!std::is_constructible_v<gcxx::span<int>, const int (&)[5]>);
+  static_assert(std::is_constructible_v<gcxx::span<int>, int(&)[5]>);
+  static_assert(std::is_constructible_v<gcxx::span<int, 5>, int(&)[5]>);
+  static_assert(!std::is_constructible_v<gcxx::span<int, 4>, int(&)[5]>);
+  static_assert(std::is_constructible_v<gcxx::span<const int>, int(&)[5]>);
+  static_assert(!std::is_constructible_v<gcxx::span<int>, const int(&)[5]>);
 
   gcxx::span<int> dynamic{values};
   gcxx::span<int, 5> fixed{values};

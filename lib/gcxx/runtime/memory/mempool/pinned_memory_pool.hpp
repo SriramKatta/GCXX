@@ -65,13 +65,14 @@ class PinnedMemPoolView : public MemPoolView {
   // through hipMallocHost / hipFreeHost (the synchronous ROCm equivalent of a
   // stream-ordered pinned pool) and carries no pool handle. Pool-management ops
   // (trim_to / attribute) are unsupported — there is no pool to manage on HIP.
-  // The stream argument is accepted for API parity but ignored: hipMallocHost is
-  // synchronous because no stream-ordered host pool exists on ROCm.
+  // The stream argument is accepted for API parity but ignored: hipMallocHost
+  // is synchronous because no stream-ordered host pool exists on ROCm.
   // ─────────────────────────────────────────────────────────────────────────
   /// Tag type selecting the no-handle shim constructor (HIP only).
   struct hip_shim_handle_t {};
 
-  /// Build a pinned view with no underlying pool (allocations use hipMallocHost).
+  /// Build a pinned view with no underlying pool (allocations use
+  /// hipMallocHost).
   GCXX_FH explicit PinnedMemPoolView(hip_shim_handle_t) noexcept
       : MemPoolView(driver::deviceMemPool_t{}) {}
 
@@ -84,25 +85,26 @@ class PinnedMemPoolView : public MemPoolView {
     return driver::deviceMallocHost(bytes);
   }
 
-  GCXX_FH void deallocate(gcxx::StreamView /*stream*/, void* ptr,
-                          std::size_t /*bytes*/ = 0,
-                          std::size_t alignment = default_cuda_malloc_alignment) noexcept {
+  GCXX_FH void deallocate(
+    gcxx::StreamView /*stream*/, void* ptr, std::size_t /*bytes*/ = 0,
+    std::size_t alignment = default_cuda_malloc_alignment) noexcept {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to PinnedMemPoolView::deallocate.");
     driver::deviceFreeHost(ptr);
   }
 
   GCXX_FH auto allocate_sync(
-    std::size_t bytes, std::size_t alignment = default_cuda_malloc_alignment)
-    -> void* {
+    std::size_t bytes,
+    std::size_t alignment = default_cuda_malloc_alignment) -> void* {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to PinnedMemPoolView::allocate_sync.");
     (void)alignment;
     return driver::deviceMallocHost(bytes);
   }
 
-  GCXX_FH void deallocate_sync(void* ptr, std::size_t /*bytes*/ = 0,
-                               std::size_t alignment = default_cuda_malloc_alignment) noexcept {
+  GCXX_FH void deallocate_sync(
+    void* ptr, std::size_t /*bytes*/ = 0,
+    std::size_t alignment = default_cuda_malloc_alignment) noexcept {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to PinnedMemPoolView::deallocate_sync.");
     driver::deviceFreeHost(ptr);
@@ -137,20 +139,18 @@ struct PinnedMemPool : PinnedMemPoolView {
   GCXX_FH PinnedMemPool(int /*numa_id*/, memory_pool_properties /*props*/ = {})
       : PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{}) {}
 #else
-  #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   /// Create a pinned pool on the default host location (CUDA 13.0+).
   GCXX_FH PinnedMemPool(memory_pool_properties props = {})
       : PinnedMemPoolView(create_memory_pool(
-          flags::MemLocation::Host, 0, flags::MemAllocation::Pinned, props)) {
-  }
-  #endif
+          flags::MemLocation::Host, 0, flags::MemAllocation::Pinned, props)) {}
+#endif
 
   /// Create a pinned pool bound to a specific host NUMA node.
   GCXX_FH PinnedMemPool(int numa_id, memory_pool_properties props = {})
       : PinnedMemPoolView(
           create_memory_pool(flags::MemLocation::HostNuma, numa_id,
-                             flags::MemAllocation::Pinned, props)) {
-  }
+                             flags::MemAllocation::Pinned, props)) {}
 #endif
 
   GCXX_FH ~PinnedMemPool() noexcept {

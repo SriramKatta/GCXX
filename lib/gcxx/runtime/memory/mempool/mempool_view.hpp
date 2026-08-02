@@ -77,8 +77,8 @@ class MemPoolView {
   // ║        Synchronous (de)allocation (default stream)     ║
   // ╚════════════════════════════════════════════════════════╝
   GCXX_FH auto allocate_sync(
-    std::size_t bytes, std::size_t alignment = default_cuda_malloc_alignment)
-    -> void* {
+    std::size_t bytes,
+    std::size_t alignment = default_cuda_malloc_alignment) -> void* {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::allocate_sync.");
     void* ptr = allocate(StreamView::Null(), bytes, alignment);

@@ -61,8 +61,8 @@ GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source) -> void {
 
 GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
 GCXX_REQUIRES(is_span_like_v<DSTTY> GCXX_AND is_span_like_v<SRCTY>)
-GCXX_FH auto Copy(const StreamView& stream, DSTTY&& destination, SRCTY&& source)
-  -> void {
+GCXX_FH auto Copy(const StreamView& stream, DSTTY&& destination,
+                  SRCTY&& source) -> void {
   static_assert(std::is_same_v<span_element_t<DSTTY>, span_element_t<SRCTY>>,
                 "copy needs spans like data struct to point to same type");
   driver::deviceCopyAsync(

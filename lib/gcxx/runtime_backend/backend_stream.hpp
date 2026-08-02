@@ -50,8 +50,8 @@ GCXX_FH auto streamBeginCaptureToGraph(
     stream, graph, dependencies, dependencyData, numDependencies, mode);
 }
 #if GCXX_CUDA_MODE()
-GCXX_FH auto streamCopyAttributes(deviceStream_t dst, deviceStream_t src)
-  -> void {
+GCXX_FH auto streamCopyAttributes(deviceStream_t dst,
+                                  deviceStream_t src) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamCopyAttributes,
                          "Failed to copy Stream attributes", dst, src);
 }
@@ -66,8 +66,8 @@ GCXX_FH auto streamCopyAttributes(deviceStream_t dst, deviceStream_t src)
 // }
 
 
-GCXX_FH auto streamCreateWithPriority(unsigned int flags, int priority)
-  -> deviceStream_t {
+GCXX_FH auto streamCreateWithPriority(unsigned int flags,
+                                      int priority) -> deviceStream_t {
   deviceStream_t stream{NULL_STREAM};
   GCXX_SAFE_RUNTIME_CALL(StreamCreateWithPriority, "Failed to Create Stream",
                          &stream, flags, priority);
@@ -98,8 +98,8 @@ GCXX_FH auto streamGetCaptureInfo(
   deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatus_out,
   unsigned long long* id_out, deviceGraph_t* graph_out,
   const deviceGraphNode_t** dependencies_out,
-  const deviceGraphEdgeData_t** edgeData_out, size_t* numDependencies_out)
-  -> void {
+  const deviceGraphEdgeData_t** edgeData_out,
+  size_t* numDependencies_out) -> void {
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     StreamGetCaptureInfo_v3,
@@ -144,9 +144,8 @@ GCXX_FH auto streamGetPriority(deviceStream_t stream) -> int {
   return priority;
 }
 
-GCXX_FH auto streamIsCapturing(deviceStream_t stream,
-                               deviceStreamCaptureStatus_t* captureStatus)
-  -> void {
+GCXX_FH auto streamIsCapturing(
+  deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatus) -> void {
   GCXX_SAFE_RUNTIME_CALL(StreamIsCapturing,
                          "Failed to query if Stream is capturing", stream,
                          captureStatus);

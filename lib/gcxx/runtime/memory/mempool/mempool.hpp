@@ -23,11 +23,11 @@ class MemPool : public MemPoolView {
   /// honouring `props`. Defaults to a device pool on the current device.
   GCXX_FH explicit MemPool(
     flags::MemLocation locationType = flags::MemLocation::Device,
-    int locationId = driver::deviceGet(),
-    flags::MemAllocation allocType = flags::MemAllocation::Pinned,
-    memory_pool_properties props = {})
-      : MemPoolView(create_memory_pool(locationType, locationId,
-                                               allocType, props)) {}
+    int locationId                  = driver::deviceGet(),
+    flags::MemAllocation allocType  = flags::MemAllocation::Pinned,
+    memory_pool_properties props    = {})
+      : MemPoolView(
+          create_memory_pool(locationType, locationId, allocType, props)) {}
 
   GCXX_FH ~MemPool() noexcept {
     if (m_pool_ != nullptr) {
@@ -64,7 +64,7 @@ class MemPool : public MemPoolView {
   /// is left empty and the caller now owns the handle.
   GCXX_FH auto Release() noexcept -> MemPoolView {
     auto pool = m_pool_;
-    m_pool_ = nullptr;
+    m_pool_   = nullptr;
     return MemPoolView{pool};
   }
 

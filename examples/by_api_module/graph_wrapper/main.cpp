@@ -211,7 +211,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                      .setBlockDim(THREADS_PER_BLOCK)
                      .setArgs(outputVec_d, result_d, numOfBlocks)
                      .build<3>();
-  auto k2        = k2builder.getRawParams();
+  auto k2 = k2builder.getRawParams();
 
   kernelNode = graph.AddKernelNode(k2builder, nodeDependencies);
   nodeDependencies.clear();

@@ -13,7 +13,8 @@ class MemPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
     if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available; skipping MemPool ownership tests";
+      GTEST_SKIP()
+        << "No CUDA device available; skipping MemPool ownership tests";
     }
   }
 };

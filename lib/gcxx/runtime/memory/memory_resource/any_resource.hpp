@@ -55,8 +55,8 @@ class any_resource {
 
   ~any_resource() = default;
 
-  GCXX_FH auto allocate(gcxx::StreamView sv, std::size_t num_bytes) const
-    -> void* {
+  GCXX_FH auto allocate(gcxx::StreamView sv,
+                        std::size_t num_bytes) const -> void* {
     GCXX_RUNTIME_EXPECT(impl_ != nullptr,
                         "any_resource::allocate on empty resource");
     return impl_->allocate(sv, num_bytes);

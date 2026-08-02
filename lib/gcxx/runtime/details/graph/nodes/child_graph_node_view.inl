@@ -21,8 +21,8 @@ GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
   return {driver::graphChildGraphNodeGetGraph(m_node)};
 }
 
-GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec, GraphView graph)
-  -> void {
+GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec,
+                                           GraphView graph) -> void {
   driver::graphExecChildGraphNodeSetParams(exec.getRawExec(), m_node,
                                            graph.getRawGraph());
 }

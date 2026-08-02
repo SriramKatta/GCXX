@@ -20,9 +20,9 @@
 #include <gcxx/runtime/flags/memory_flags.hpp>
 #include <gcxx/runtime/memory/mempool/device_memory_pool.hpp>
 #include <gcxx/runtime/memory/mempool/managed_memory_pool.hpp>
-#include <gcxx/runtime/memory/mempool/pinned_memory_pool.hpp>
 #include <gcxx/runtime/memory/mempool/memory_pool_properties.hpp>
 #include <gcxx/runtime/memory/mempool/mempool_props.hpp>
+#include <gcxx/runtime/memory/mempool/pinned_memory_pool.hpp>
 #include <gcxx/runtime_backend/backend_device.hpp>
 #include <gcxx/runtime_backend/backend_stream_memory.hpp>
 
@@ -33,8 +33,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 /// device pool exists on all CUDA versions that support memory pools.
 GCXX_FH auto device_default_memory_pool(const gcxx::DeviceHandle& device)
   -> DeviceMemPoolView {
-  return DeviceMemPoolView(
-    driver::deviceGetDefaultMemoryPool(device.id()));
+  return DeviceMemPoolView(driver::deviceGetDefaultMemoryPool(device.id()));
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
@@ -51,15 +50,14 @@ GCXX_FH auto managed_default_memory_pool() -> ManagedMemPoolView {
 #endif  // GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
 /// Get a memory pool for a (location, type): on CUDA 13.0+ the runtime default
-/// pool (cudaMemPoolGetDefaultMemPool — the gcxx analogue); pre-13.0 (where that
-/// API doesn't exist) a freshly created pool of that location/type. Pre-13.0
-/// callers wanting process-lifetime "default pool" semantics should cache the
-/// result in a static local (magic-static thread-safe) — see
+/// pool (cudaMemPoolGetDefaultMemPool — the gcxx analogue); pre-13.0 (where
+/// that API doesn't exist) a freshly created pool of that location/type.
+/// Pre-13.0 callers wanting process-lifetime "default pool" semantics should
+/// cache the result in a static local (magic-static thread-safe) — see
 /// pinned_default_memory_pool, which owns one static per default pool so
 /// different (location, type) requests never collide.
 inline auto get_default_mem_pool(flags::MemLocation locationType,
-                                 int locationId,
-                                 flags::MemAllocation type)
+                                 int locationId, flags::MemAllocation type)
   -> driver::deviceMemPool_t {
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
   MemAccessDesc loc{locationType, locationId, flags::MemAccessFlags::None};
@@ -103,8 +101,7 @@ GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
   // so the static releases nothing at exit.
   // TODO : absolutely an stupid thing since on alex we dont know what is the
   static PinnedMemPoolView pool = [] {
-    PinnedMemPoolView ref(get_default_mem_pool(flags::MemLocation::Host,
-                                               0,
+    PinnedMemPoolView ref(get_default_mem_pool(flags::MemLocation::Host, 0,
                                                flags::MemAllocation::Pinned));
     return ref;
   }();

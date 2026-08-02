@@ -3,8 +3,8 @@
 //
 // Tests for ManagedMemPool. Managed memory pools are CUDA 13.0+, so the entire
 // body is gated; on older toolkits (and on HIP, where GCXX_CUDA_VERSION is 0)
-// this compiles to an empty TU. The managed pool is a real cudaMemPool_t on CUDA
-// (not a shim), so it exposes the full MemPoolView API; coverage mirrors
+// this compiles to an empty TU. The managed pool is a real cudaMemPool_t on
+// CUDA (not a shim), so it exposes the full MemPoolView API; coverage mirrors
 // test_device_memory_pool.
 #include "tests_common.hpp"
 

@@ -22,8 +22,8 @@ GCXX_FH auto eventDestroy(deviceEvent_t event) -> void {
   GCXX_SAFE_RUNTIME_CALL(EventDestroy, "Failed to destroy GPU Event", event);
 }
 
-GCXX_FH auto eventElapsedTime(deviceEvent_t startEvent, deviceEvent_t endEvent)
-  -> float {
+GCXX_FH auto eventElapsedTime(deviceEvent_t startEvent,
+                              deviceEvent_t endEvent) -> float {
   float ms{};
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)

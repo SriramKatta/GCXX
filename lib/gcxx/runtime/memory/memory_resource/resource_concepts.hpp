@@ -33,7 +33,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 // duck-typed signature check, isolated so buffer can report a missing API
 // distinctly from a missing property.
 //
-// allocate must yield void* (the gcxx resource contract). 
+// allocate must yield void* (the gcxx resource contract).
 // deallocate is only required to be callable.
 template <typename Resource>
 GCXX_CONCEPT resource_api = GCXX_REQUIRES_EXPR(

@@ -83,10 +83,9 @@ class stride_iterator {
 // (end - begin) is the logical length of the strided range.
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename T>
-GCXX_FHDC auto operator+(
-  stride_iterator<T> it,
-  typename stride_iterator<T>::difference_type n) noexcept
-  -> stride_iterator<T> {
+GCXX_FHDC auto operator+(stride_iterator<T> it,
+                         typename stride_iterator<T>::difference_type
+                           n) noexcept -> stride_iterator<T> {
   return it += n;
 }
 
@@ -97,10 +96,9 @@ GCXX_FHDC auto operator+(typename stride_iterator<T>::difference_type n,
 }
 
 template <typename T>
-GCXX_FHDC auto operator-(
-  stride_iterator<T> it,
-  typename stride_iterator<T>::difference_type n) noexcept
-  -> stride_iterator<T> {
+GCXX_FHDC auto operator-(stride_iterator<T> it,
+                         typename stride_iterator<T>::difference_type
+                           n) noexcept -> stride_iterator<T> {
   return it -= n;
 }
 

@@ -145,9 +145,8 @@ class EventView {
    * @return Elapsed time between startEvent and endEvent
    */
   template <typename DurationT = milliSec>
-  GCXX_FH static auto ElapsedTimeBetween(const EventView& startEvent,
-                                         const EventView& endEvent)
-    -> DurationT;
+  GCXX_FH static auto ElapsedTimeBetween(
+    const EventView& startEvent, const EventView& endEvent) -> DurationT;
 
  protected:
   deviceEvent_t m_event{driver::INVALID_EVENT};  // NOLINT

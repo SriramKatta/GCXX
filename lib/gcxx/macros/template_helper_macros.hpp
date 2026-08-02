@@ -270,7 +270,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_requires(...) \
   requires(__VA_ARGS__) GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_
 #define GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_(...) \
-  {GCXX_PP_FOR_EACH(GCXX_CONCEPT_REQUIREMENT_, __VA_ARGS__)}
+  { GCXX_PP_FOR_EACH(GCXX_CONCEPT_REQUIREMENT_, __VA_ARGS__) }
 
 // Converts "EXPR" to "GCXX_CONCEPT_REQUIREMENT_0(EXPR)", and "(EXPR)" to
 // "GCXX_CONCEPT_REQUIREMENT_1((EXPR))".
@@ -287,11 +287,13 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_REQUIREMENT_CASE_GCXX_SWITCH_TYPENAME(_REQ) \
   GCXX_CONCEPT_TRY_ADD_TYPENAME_(GCXX_CONCEPT_EAT_TYPENAME_(_REQ))
 #define GCXX_CONCEPT_REQUIREMENT_CASE_GCXX_SWITCH_SAME_AS(_REQ) \
-  {GCXX_CONCEPT_EAT_SAME_AS_(_REQ)}                             \
-    ->GCXX_CONCEPT_VSTD::same_as<GCXX_CONCEPT_GET_TYPE_FROM_SAME_AS_(_REQ)>
+  {                                                             \
+    GCXX_CONCEPT_EAT_SAME_AS_(_REQ)                             \
+  } -> GCXX_CONCEPT_VSTD::same_as<GCXX_CONCEPT_GET_TYPE_FROM_SAME_AS_(_REQ)>
 #define GCXX_CONCEPT_REQUIREMENT_CASE_GCXX_SWITCH_SATISFIES(_REQ) \
-  {GCXX_CONCEPT_EAT_SATISFIES_(_REQ)}                             \
-    ->GCXX_CONCEPT_GET_CONCEPT_FROM_SATISFIES_(_REQ)
+  {                                                               \
+    GCXX_CONCEPT_EAT_SATISFIES_(_REQ)                             \
+  } -> GCXX_CONCEPT_GET_CONCEPT_FROM_SATISFIES_(_REQ)
 
 #define GCXX_FRAGMENT(_NAME, ...) _NAME<__VA_ARGS__>
 
@@ -301,14 +303,15 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 // function template plus two overloads of a sizeof-discriminated selector, so
 // that GCXX_CONCEPT NAME = GCXX_FRAGMENT(NAME, Args...) yields true iff every
 // requirement is well-formed for Args.
-#define GCXX_CONCEPT_FRAGMENT(_NAME, ...)                                   \
-  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_impl_                   \
-    GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_##__VA_ARGS__> {}                    \
-  template <class... _As>                                                   \
-  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(                       \
-    ::gcxx::details_::tag<_As...>*,                                         \
-    decltype(&_NAME##_GCXX_CONCEPT_FRAGMENT_impl_<_As...>)) -> char (&)[1]; \
-  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(...) -> char (&)[2]
+#define GCXX_CONCEPT_FRAGMENT(_NAME, ...)                   \
+  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_impl_   \
+      GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_##__VA_ARGS__ > {} \
+  template <class... _As>                                   \
+  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(       \
+    ::gcxx::details_::tag<_As...>*,                         \
+    decltype(&_NAME##_GCXX_CONCEPT_FRAGMENT_impl_<_As...>)) \
+    ->char(&)[1];                                           \
+  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(...)->char(&)[2]
 #define GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_requires(...) \
   (__VA_ARGS__)->::gcxx::details_::enable_if_t <         \
     GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_IMPL_
@@ -379,7 +382,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_REQUIRES_EXPR(_TY, ...) \
   requires(__VA_ARGS__) GCXX_REQUIRES_EXPR_IMPL_
 #define GCXX_REQUIRES_EXPR_IMPL_(...) \
-  {GCXX_PP_FOR_EACH(GCXX_CONCEPT_REQUIREMENT_, __VA_ARGS__)}
+  { GCXX_PP_FOR_EACH(GCXX_CONCEPT_REQUIREMENT_, __VA_ARGS__) }
 
 #else  // ^^^ GCXX_HAS_CONCEPTS() ^^^ / vvv !GCXX_HAS_CONCEPTS() vvv
 

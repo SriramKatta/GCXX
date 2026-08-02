@@ -135,8 +135,8 @@ class KernelParamsBuilder {
   }
 
   GCXX_FHC
-  auto setGridDim(unsigned int x = 1, unsigned int y = 1, unsigned int z = 1)
-    -> KernelParamsBuilder& {
+  auto setGridDim(unsigned int x = 1, unsigned int y = 1,
+                  unsigned int z = 1) -> KernelParamsBuilder& {
 
     return setGridDim({x, y, z});
   }
@@ -147,8 +147,8 @@ class KernelParamsBuilder {
   }
 
   GCXX_FHC
-  auto setBlockDim(unsigned int x = 1, unsigned int y = 1, unsigned int z = 1)
-    -> KernelParamsBuilder& {
+  auto setBlockDim(unsigned int x = 1, unsigned int y = 1,
+                   unsigned int z = 1) -> KernelParamsBuilder& {
     return setBlockDim({x, y, z});
   }
 

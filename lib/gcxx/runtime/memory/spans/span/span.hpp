@@ -492,8 +492,9 @@ template <class T, std::size_t N>
 span(const std::array<T, N>&) -> span<const T, N>;
 
 template <class R>
-span(R&&) -> span<
-  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+span(R&&)
+  -> span<
+    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                     Restrcit Span                      █
@@ -513,8 +514,9 @@ class restrict_span
 // █             Restrcit Span Deduction guides             █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class It, class EndOrSize>
-restrict_span(It, EndOrSize) -> restrict_span<
-  std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
+restrict_span(It, EndOrSize)
+  -> restrict_span<
+    std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
 
 template <class T, std::size_t N>
 restrict_span(T (&)[N]) -> restrict_span<T, N>;
@@ -526,8 +528,9 @@ template <class T, std::size_t N>
 restrict_span(const std::array<T, N>&) -> restrict_span<const T, N>;
 
 template <class R>
-restrict_span(R&&) -> restrict_span<
-  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+restrict_span(R&&)
+  -> restrict_span<
+    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // ╔════════════════════════════════════════════════════════╗
 // ║           Public span-like concept and helpers         ║

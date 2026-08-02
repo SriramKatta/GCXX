@@ -73,8 +73,7 @@ TEST_F(DeviceMemoryPoolTest, ReleaseAndFromNativeHandle) {
   auto handle = pool.release();
   EXPECT_EQ(pool.get(), nullptr);  // ownership relinquished
   EXPECT_NE(handle, nullptr);
-  gcxx::DeviceMemPool adopted =
-    gcxx::DeviceMemPool::from_native_handle(handle);
+  gcxx::DeviceMemPool adopted = gcxx::DeviceMemPool::from_native_handle(handle);
   EXPECT_EQ(adopted.get(), handle);  // adopted owns it now (dtor will destroy)
 }
 
