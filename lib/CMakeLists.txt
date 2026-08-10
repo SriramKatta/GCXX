@@ -44,6 +44,18 @@ elseif(GCXX_HIP_MODE)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE hip::host)
 endif()
 
+# BLAS backend (cuBLAS/hipBLAS).Consumers that use BlasHandle opt in by linking gcxx::blas.
+# And including the appropriate header file
+add_library(gcxx_blas INTERFACE)
+add_library(gcxx::blas ALIAS gcxx_blas)
+target_link_libraries(gcxx_blas INTERFACE gcxx::gcxx)
+if(GCXX_CUDA_MODE)
+  target_link_libraries(gcxx_blas INTERFACE CUDA::cublas)
+elseif(GCXX_HIP_MODE)
+  find_package(hipblas REQUIRED)
+  target_link_libraries(gcxx_blas INTERFACE hip::hipblas)
+endif()
+
 # Register all library headers as clang-tidy targets.
 # gcxx_tidy_add_target is a no-op when GCXX_ENABLE_CLANG_TIDY=OFF.
 file(

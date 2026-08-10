@@ -58,6 +58,22 @@ function(_gcxx_tidy_write_db)
 endfunction()
 
 # ---------------------------------------------------------------------------
+# Internal helper — append a target's INTERFACE_INCLUDE_DIRECTORIES to _flags.
+# ---------------------------------------------------------------------------
+function(_gcxx_tidy_add_includes target flag_prefix)
+  if(NOT TARGET "${target}")
+    return()
+  endif()
+  get_target_property(_incs "${target}" INTERFACE_INCLUDE_DIRECTORIES)
+  if(_incs)
+    foreach(_inc IN LISTS _incs)
+      list(APPEND _flags "${flag_prefix}${_inc}")
+    endforeach()
+    set(_flags "${_flags}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+# ---------------------------------------------------------------------------
 # Internal helper — collects compiler flags from cmake targets.
 # Must be called after gpu_cxx and its dependencies are defined.
 # ---------------------------------------------------------------------------
@@ -68,12 +84,7 @@ function(_gcxx_tidy_collect_flags out_var)
 
   # Direct include directories on gpu_cxx (e.g. lib/)
   if(TARGET gpu_cxx)
-    get_target_property(_incs gpu_cxx INTERFACE_INCLUDE_DIRECTORIES)
-    if(_incs)
-      foreach(_inc IN LISTS _incs)
-        list(APPEND _flags "-I${_inc}")
-      endforeach()
-    endif()
+    _gcxx_tidy_add_includes(gpu_cxx "-I")
 
     # Compile definitions (GCXX_CUDA_MODE, MDSPAN_IMPL_*, …)
     get_target_property(_defs gpu_cxx INTERFACE_COMPILE_DEFINITIONS)
@@ -85,33 +96,18 @@ function(_gcxx_tidy_collect_flags out_var)
   endif()
 
   # mdspan — system include so its own warnings are suppressed
-  if(TARGET mdspan_headers)
-    get_target_property(_incs mdspan_headers INTERFACE_INCLUDE_DIRECTORIES)
-    if(_incs)
-      foreach(_inc IN LISTS _incs)
-        list(APPEND _flags "-isystem${_inc}")
-      endforeach()
-    endif()
+  _gcxx_tidy_add_includes(mdspan_headers "-isystem")
+
+  # CUDA runtime + BLAS backend headers — system includes
+  if(GCXX_CUDA_MODE)
+    _gcxx_tidy_add_includes(CUDA::cudart "-isystem")
+    _gcxx_tidy_add_includes(CUDA::cublas "-isystem")
   endif()
 
-  # CUDA runtime headers — system include
-  if(GCXX_CUDA_MODE AND TARGET CUDA::cudart)
-    get_target_property(_incs CUDA::cudart INTERFACE_INCLUDE_DIRECTORIES)
-    if(_incs)
-      foreach(_inc IN LISTS _incs)
-        list(APPEND _flags "-isystem${_inc}")
-      endforeach()
-    endif()
-  endif()
-
-  # HIP runtime headers — system include
-  if(GCXX_HIP_MODE AND TARGET hip::host)
-    get_target_property(_incs hip::host INTERFACE_INCLUDE_DIRECTORIES)
-    if(_incs)
-      foreach(_inc IN LISTS _incs)
-        list(APPEND _flags "-isystem${_inc}")
-      endforeach()
-    endif()
+  # HIP runtime + BLAS backend headers — system includes
+  if(GCXX_HIP_MODE)
+    _gcxx_tidy_add_includes(hip::host "-isystem")
+    _gcxx_tidy_add_includes(hip::hipblas "-isystem")
   endif()
 
   # Stub out CUDA qualifiers so clang parses GPU headers without a CUDA

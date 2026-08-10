@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
+#pragma once
+#ifndef GCXX_BACKEND_BACKEND_BLAS_HPP_
+#define GCXX_BACKEND_BACKEND_BLAS_HPP_
+
+#include <gcxx/backend/backend.hpp>
+
+#if GCXX_CUDA_MODE()
+#include <gcxx/backend/cuda_blas_backend.hpp>
+#elif GCXX_HIP_MODE()
+#include <gcxx/backend/hip_blas_backend.hpp>
+#endif
+
+#define GCXX_BLAS_BACKEND(name) APPEND_NAME(BLAS_BACKEND, name)
+
+#if GCXX_CUDA_MODE()
+#define GCXX_BLAS_STATUS(name) CUBLAS_STATUS_##name
+#elif GCXX_HIP_MODE()
+#define GCXX_BLAS_STATUS(name) HIPBLAS_STATUS_##name
+#endif
+
+#endif
