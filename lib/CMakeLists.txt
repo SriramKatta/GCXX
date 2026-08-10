@@ -53,7 +53,19 @@ if(GCXX_CUDA_MODE)
   target_link_libraries(gcxx_blas INTERFACE CUDA::cublas)
 elseif(GCXX_HIP_MODE)
   find_package(hipblas REQUIRED)
-  target_link_libraries(gcxx_blas INTERFACE hip::hipblas)
+  target_link_libraries(gcxx_blas INTERFACE roc::hipblas)
+endif()
+
+# SPARSE backend (cuSPARSE/hipSPARSE, Generic API only). Consumers that use
+# SparseHandle or the Sp*/Dn* descriptors opt in by linking gcxx::sparse.
+add_library(gcxx_sparse INTERFACE)
+add_library(gcxx::sparse ALIAS gcxx_sparse)
+target_link_libraries(gcxx_sparse INTERFACE gcxx::gcxx)
+if(GCXX_CUDA_MODE)
+  target_link_libraries(gcxx_sparse INTERFACE CUDA::cusparse)
+elseif(GCXX_HIP_MODE)
+  find_package(hipsparse REQUIRED)
+  target_link_libraries(gcxx_sparse INTERFACE roc::hipsparse)
 endif()
 
 # Register all library headers as clang-tidy targets.

@@ -34,10 +34,17 @@ GCXX_FH auto blasGetStream(deviceBlasHandle_t handle) -> deviceStream_t {
 }
 
 GCXX_FH auto blasGetVersion(deviceBlasHandle_t handle) -> int {
+#if GCXX_CUDA_MODE()
   int version{};
   GCXX_SAFE_BLAS_CALL(GetVersion, "Failed to get BLAS version", handle,
                       &version);
   return version;
+#elif GCXX_HIP_MODE()
+  // hipBLAS exposes the version only at compile time
+  (void)handle;
+  return hipblasVersionMajor * 10000 + hipblasVersionMinor * 100 +
+         hipblasVersionPatch;
+#endif
 }
 
 GCXX_NAMESPACE_MAIN_DRIVER_END()
