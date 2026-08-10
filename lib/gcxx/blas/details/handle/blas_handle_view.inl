@@ -27,18 +27,17 @@ GCXX_FH auto BlasHandleView::getVersion() const -> int {
   return driver::blasGetVersion(m_handle);
 }
 
-GCXX_FHC auto BlasHandleView::getHandle() const noexcept
-    -> deviceBlasHandle_t {
+GCXX_FHC auto BlasHandleView::getHandle() const noexcept -> deviceBlasHandle_t {
   return m_handle;
 }
 
-GCXX_FHC auto BlasHandleView::operator==(const BlasHandleView& rhs) const
-    noexcept -> bool {
+GCXX_FHC auto BlasHandleView::operator==(
+  const BlasHandleView& rhs) const noexcept -> bool {
   return m_handle == rhs.m_handle;
 }
 
-GCXX_FHC auto BlasHandleView::operator!=(const BlasHandleView& rhs) const
-    noexcept -> bool {
+GCXX_FHC auto BlasHandleView::operator!=(
+  const BlasHandleView& rhs) const noexcept -> bool {
   return m_handle != rhs.m_handle;
 }
 

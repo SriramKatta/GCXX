@@ -25,8 +25,7 @@ GCXX_FH BlasHandle::~BlasHandle() noexcept {
 GCXX_FH BlasHandle::BlasHandle(BlasHandle&& other) noexcept
     : BlasHandleView(std::exchange(other.m_handle, nullptr)) {}
 
-GCXX_FH auto BlasHandle::operator=(BlasHandle&& other) noexcept
-    -> BlasHandle& {
+GCXX_FH auto BlasHandle::operator=(BlasHandle&& other) noexcept -> BlasHandle& {
   if (this != &other) {
     if (m_handle != nullptr) {
       driver::blasDestroy(m_handle);

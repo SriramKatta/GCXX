@@ -8,7 +8,7 @@
 #include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/internal/prologue.hpp>
 
-// GCXX_SAFE_BLAS_CALL — the BLAS analogue of GCXX_SAFE_RUNTIME_CALL 
+// GCXX_SAFE_BLAS_CALL — the BLAS analogue of GCXX_SAFE_RUNTIME_CALL
 #ifndef GCXX_DISABLE_RUNTIME_CHECKS
 // =======================
 // Checks ENABLED (default)

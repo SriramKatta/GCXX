@@ -15,7 +15,6 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class BlasHandle : public BlasHandleView {
  public:
- 
   BlasHandle();
 
   GCXX_FH ~BlasHandle() noexcept;

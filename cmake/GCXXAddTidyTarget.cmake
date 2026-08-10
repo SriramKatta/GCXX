@@ -69,7 +69,10 @@ function(_gcxx_tidy_add_includes target flag_prefix)
     foreach(_inc IN LISTS _incs)
       list(APPEND _flags "${flag_prefix}${_inc}")
     endforeach()
-    set(_flags "${_flags}" PARENT_SCOPE)
+    set(_flags
+        "${_flags}"
+        PARENT_SCOPE
+    )
   endif()
 endfunction()
 
