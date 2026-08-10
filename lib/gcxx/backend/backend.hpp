@@ -32,7 +32,6 @@ constexpr auto GCXX_RUNTIME_BACKEND_STR = TOSTRING(RUNTIME_BACKEND);
 #define GCXX_ATTRIBUTE_BACKEND(name) APPEND_NAME(ATTRIBUTE_BACKEND, name)
 
 // Macro to handle Backend handles with different names between CUDA and HIP
-// still starting with cuda/hip
 #if GCXX_CUDA_MODE()
 #define GCXX_DIRECT_BACKEND_ALT(cuda_name, hip_name) cuda_name
 #elif GCXX_HIP_MODE()
