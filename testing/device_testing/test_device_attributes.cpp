@@ -40,9 +40,12 @@ static_assert(std::is_same_v<gcxx::dev_attr::unified_addressing_t::type, bool>,
 static_assert(
   std::is_same_v<gcxx::device_limits::stack_size_t::type, std::size_t>,
   "device limits must be size_t-typed");
+
+#if GCXX_CUDA_MODE()
 static_assert(
   std::is_same_v<gcxx::device_limits::printf_fifo_size_t::type, std::size_t>,
   "device limits must be size_t-typed");
+#endif
 
 class DeviceAttributeTest : public ::testing::Test {
  protected:
@@ -81,6 +84,15 @@ TEST_F(DeviceAttributeTest, NumericAttributesAreSane) {
             0);
 }
 
+// DeviceHandle::attribute scopes the query to the handle's device directly
+// (more correct than the old getAttribute, which ignored the handle's device).
+TEST_F(DeviceAttributeTest, HandleScopedAttribute) {
+  gcxx::DeviceHandle handle{0};
+  int warp = handle.attribute(gcxx::dev_attr::warp_size);
+  EXPECT_GT(warp, 0);
+}
+
+#if GCXX_CUDA_MODE()
 // Limit get/set round-trip via the free Device:: API (current device).
 TEST_F(DeviceAttributeTest, LimitRoundTripViaDevice) {
   const std::size_t original =
@@ -95,14 +107,6 @@ TEST_F(DeviceAttributeTest, LimitRoundTripViaDevice) {
             original);
 }
 
-// DeviceHandle::attribute scopes the query to the handle's device directly
-// (more correct than the old getAttribute, which ignored the handle's device).
-TEST_F(DeviceAttributeTest, HandleScopedAttribute) {
-  gcxx::DeviceHandle handle{0};
-  int warp = handle.attribute(gcxx::dev_attr::warp_size);
-  EXPECT_GT(warp, 0);
-}
-
 // DeviceHandle limit get/set (makes the handle's device current first).
 TEST_F(DeviceAttributeTest, HandleLimitRoundTrip) {
   gcxx::DeviceHandle handle{0};
@@ -113,3 +117,4 @@ TEST_F(DeviceAttributeTest, HandleLimitRoundTrip) {
             std::size_t{1 << 20});
   handle.set_limit(gcxx::device_limits::printf_fifo_size, original);
 }
+#endif

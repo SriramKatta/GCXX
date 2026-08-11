@@ -366,11 +366,12 @@ namespace device_limits {
 
   GCXX_DEVICE_LIMIT_DEFINE(StackSize, stack_size);
 
+  
+  GCXX_DEVICE_LIMIT_DEFINE(MallocHeapSize, malloc_heap_size);
+  
+#if GCXX_CUDA_MODE()
   GCXX_DEVICE_LIMIT_DEFINE(PrintfFifoSize, printf_fifo_size);
 
-  GCXX_DEVICE_LIMIT_DEFINE(MallocHeapSize, malloc_heap_size);
-
-#if GCXX_CUDA_MODE()
   GCXX_DEVICE_LIMIT_DEFINE(DevRuntimeSyncDepth, dev_runtime_sync_depth);
 
   GCXX_DEVICE_LIMIT_DEFINE(DevRuntimePendingLaunchCount,
