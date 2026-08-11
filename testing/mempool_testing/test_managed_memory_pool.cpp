@@ -28,6 +28,10 @@ static_assert(!gcxx::resource_with<not_a_resource, gcxx::device_accessible,
                                    gcxx::host_accessible>,
               "a type without allocate/deallocate must not be a resource");
 
+// raw_handle_type contract (see tests_common.hpp).
+GCXX_ASSERT_RAW_HANDLE(ManagedMemPoolView, gcxx::driver::deviceMemPool_t);
+GCXX_ASSERT_RAW_HANDLE(ManagedMemPool, gcxx::driver::deviceMemPool_t);
+
 class ManagedMemoryPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -39,7 +43,7 @@ class ManagedMemoryPoolTest : public ::testing::Test {
 
 TEST_F(ManagedMemoryPoolTest, ConstructAndAllocate) {
   gcxx::ManagedMemPool pool{};
-  EXPECT_NE(pool.get(), nullptr);
+  EXPECT_NE(pool.getRawHandle(), nullptr);
   void* ptr = pool.allocate(gcxx::StreamView::Null(), std::size_t{256});
   EXPECT_NE(ptr, nullptr);
   pool.deallocate(gcxx::StreamView::Null(), ptr);
@@ -47,7 +51,7 @@ TEST_F(ManagedMemoryPoolTest, ConstructAndAllocate) {
 
 TEST_F(ManagedMemoryPoolTest, NoInitIsEmpty) {
   gcxx::ManagedMemPool pool(gcxx::no_init);
-  EXPECT_EQ(pool.get(), nullptr);
+  EXPECT_EQ(pool.getRawHandle(), nullptr);
 }
 
 TEST_F(ManagedMemoryPoolTest, StreamOrderedAllocateDeallocate) {
@@ -83,11 +87,12 @@ TEST_F(ManagedMemoryPoolTest, TrimTo) {
 TEST_F(ManagedMemoryPoolTest, ReleaseAndFromNativeHandle) {
   gcxx::ManagedMemPool pool{};
   auto handle = pool.release();
-  EXPECT_EQ(pool.get(), nullptr);  // ownership relinquished
+  EXPECT_EQ(pool.getRawHandle(), nullptr);  // ownership relinquished
   EXPECT_NE(handle, nullptr);
   gcxx::ManagedMemPool adopted =
     gcxx::ManagedMemPool::from_native_handle(handle);
-  EXPECT_EQ(adopted.get(), handle);  // adopted owns it (dtor will destroy)
+  EXPECT_EQ(adopted.getRawHandle(),
+            handle);  // adopted owns it (dtor will destroy)
 }
 
 TEST_F(ManagedMemoryPoolTest, AsRefEquality) {
@@ -107,7 +112,7 @@ TEST_F(ManagedMemoryPoolTest, BacksABufferViaAsRef) {
 
 TEST_F(ManagedMemoryPoolTest, DefaultManagedPoolRef) {
   auto ref = gcxx::managed_default_memory_pool();
-  EXPECT_NE(ref.get(), nullptr);
+  EXPECT_NE(ref.getRawHandle(), nullptr);
   void* ptr = ref.allocate(gcxx::StreamView::Null(), std::size_t{128});
   EXPECT_NE(ptr, nullptr);
   ref.deallocate(gcxx::StreamView::Null(), ptr);

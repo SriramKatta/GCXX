@@ -17,7 +17,7 @@ GCXX_FH auto GraphExec::Create(const GraphView& graph) -> GraphExec {
 }
 
 GCXX_FH GraphExec::GraphExec(const GraphView& graph)
-    : GraphExecView(driver::graphInstantiate(graph.getRawGraph())) {}
+    : GraphExecView(driver::graphInstantiate(graph.getRawHandle())) {}
 
 GCXX_FH auto GraphExec::CreateFromRaw(deviceGraphExec_t exec) -> GraphExec {
   return GraphExec{exec};
@@ -52,7 +52,7 @@ GCXX_FH auto GraphExec::Release() GCXX_NOEXCEPT -> GraphExecView {
 }
 
 GCXX_FH auto GraphExec::Update(const GraphView& graph) -> void {
-  driver::graphExecUpdate(m_exec, graph.getRawGraph());
+  driver::graphExecUpdate(m_exec, graph.getRawHandle());
 }
 
 GCXX_NAMESPACE_MAIN_END()

@@ -21,7 +21,7 @@ struct device_malloc_t {
 struct device_malloc_async_t {
   auto operator()(std::size_t numbytes,
                   const StreamView& sv = StreamView::Null()) const {
-    return driver::deviceMallocAsync(numbytes, sv.getRawStream());
+    return driver::deviceMallocAsync(numbytes, sv.getRawHandle());
   }
 };
 
@@ -43,7 +43,7 @@ struct device_free_t {
 
 struct device_free_async_t {
   auto operator()(void* ptr, const StreamView& sv = StreamView::Null()) const {
-    driver::deviceFreeAsync(ptr, sv.getRawStream());
+    driver::deviceFreeAsync(ptr, sv.getRawHandle());
   }
 };
 

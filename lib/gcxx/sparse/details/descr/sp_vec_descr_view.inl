@@ -21,7 +21,7 @@ GCXX_FH auto SpVecDescrView::setValues(void* values) -> void {
   driver::sparseSpVecSetValues(m_descr, values);
 }
 
-GCXX_FHC auto SpVecDescrView::getDescriptor() const noexcept
+GCXX_FHC auto SpVecDescrView::getRawHandle() const noexcept
   -> deviceSpVecDescr_t {
   return m_descr;
 }

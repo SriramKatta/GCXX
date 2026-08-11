@@ -34,10 +34,11 @@ class GraphView {
 #if GCXX_CUDA_MODE()
   using deviceGraphConditionalHandle_t = driver::deviceGraphConditionalHandle_t;
 #endif
+  using raw_handle_type = driver::deviceGraph_t;
 
   GCXX_FHC GraphView() = default;
   GCXX_FHC GraphView(deviceGraph_t rawgraph);
-  GCXX_FHC auto getRawGraph() const -> deviceGraph_t;
+  GCXX_FHC auto getRawHandle() const -> deviceGraph_t;
   GCXX_FH auto SaveDotfile(std::string_view,
                            flags::graphDebugDot) const -> void;
   GCXX_FH auto GetNumNodes() const -> size_t;

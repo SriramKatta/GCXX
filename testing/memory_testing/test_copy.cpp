@@ -9,6 +9,11 @@
 
 #include <gcxx/api.hpp>
 
+// raw_handle_type contract (see tests_common.hpp). No dedicated stream test
+// exists; this stream-ordered copy test already constructs gcxx::Stream.
+GCXX_ASSERT_RAW_HANDLE(StreamView, gcxx::driver::deviceStream_t);
+GCXX_ASSERT_RAW_HANDLE(Stream, gcxx::driver::deviceStream_t);
+
 namespace {
 
   using u32        = std::uint32_t;

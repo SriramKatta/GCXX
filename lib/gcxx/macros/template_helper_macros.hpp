@@ -196,14 +196,14 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 //     on non-trivial requirement lists. gcc/clang/hipcc never warn, so these
 //     expand to nothing there.
 #if defined(__CUDACC__)
-#  define GCXX_DIAG_SUPPRESS_177_ _Pragma("nv_diag_suppress 177")
-#  define GCXX_DIAG_RESTORE_177_  _Pragma("nv_diag_default 177")
+#define GCXX_DIAG_SUPPRESS_177_ _Pragma("nv_diag_suppress 177")
+#define GCXX_DIAG_RESTORE_177_ _Pragma("nv_diag_default 177")
 #elif defined(__NVCOMPILER)
-#  define GCXX_DIAG_SUPPRESS_177_ _Pragma("diag_suppress 177")
-#  define GCXX_DIAG_RESTORE_177_  _Pragma("diag_default 177")
+#define GCXX_DIAG_SUPPRESS_177_ _Pragma("diag_suppress 177")
+#define GCXX_DIAG_RESTORE_177_ _Pragma("diag_default 177")
 #else
-#  define GCXX_DIAG_SUPPRESS_177_
-#  define GCXX_DIAG_RESTORE_177_
+#define GCXX_DIAG_SUPPRESS_177_
+#define GCXX_DIAG_RESTORE_177_
 #endif
 
 // The "0" or "1" suffixes indicate whether _REQ is parenthesized or not.
@@ -326,14 +326,14 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 // function template plus two overloads of a sizeof-discriminated selector, so
 // that GCXX_CONCEPT NAME = GCXX_FRAGMENT(NAME, Args...) yields true iff every
 // requirement is well-formed for Args.
-#define GCXX_CONCEPT_FRAGMENT(_NAME, ...)                   \
-  [[maybe_unused]] GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_impl_   \
-      GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_##__VA_ARGS__ > {} \
-  template <class... _As>                                   \
-  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(       \
-    ::gcxx::details_::tag<_As...>*,                         \
-    decltype(&_NAME##_GCXX_CONCEPT_FRAGMENT_impl_<_As...>)) \
-    ->char(&)[1];                                           \
+#define GCXX_CONCEPT_FRAGMENT(_NAME, ...)                                  \
+  [[maybe_unused]] GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_impl_ \
+      GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_##__VA_ARGS__ > {}                \
+  template <class... _As>                                                  \
+  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(                      \
+    ::gcxx::details_::tag<_As...>*,                                        \
+    decltype(&_NAME##_GCXX_CONCEPT_FRAGMENT_impl_<_As...>))                \
+    ->char(&)[1];                                                          \
   GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(...)->char(&)[2]
 #define GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_requires(...) \
   (__VA_ARGS__)->::gcxx::details_::enable_if_t <         \

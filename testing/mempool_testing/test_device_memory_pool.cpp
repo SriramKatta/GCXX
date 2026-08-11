@@ -21,6 +21,10 @@ static_assert(
 static_assert(!gcxx::resource_with<not_a_resource, gcxx::device_accessible>,
               "a type without allocate/deallocate must not be a resource");
 
+// raw_handle_type contract (see tests_common.hpp).
+GCXX_ASSERT_RAW_HANDLE(DeviceMemPoolView, gcxx::driver::deviceMemPool_t);
+GCXX_ASSERT_RAW_HANDLE(DeviceMemPool, gcxx::driver::deviceMemPool_t);
+
 class DeviceMemoryPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -32,12 +36,12 @@ class DeviceMemoryPoolTest : public ::testing::Test {
 
 TEST_F(DeviceMemoryPoolTest, ConstructOwnsHandle) {
   gcxx::DeviceMemPool pool(gcxx::DeviceHandle{0});
-  EXPECT_NE(pool.get(), nullptr);
+  EXPECT_NE(pool.getRawHandle(), nullptr);
 }
 
 TEST_F(DeviceMemoryPoolTest, NoInitIsEmpty) {
   gcxx::DeviceMemPool pool(gcxx::no_init);
-  EXPECT_EQ(pool.get(), nullptr);
+  EXPECT_EQ(pool.getRawHandle(), nullptr);
 }
 
 TEST_F(DeviceMemoryPoolTest, StreamOrderedAllocateDeallocate) {
@@ -71,10 +75,11 @@ TEST_F(DeviceMemoryPoolTest, TrimTo) {
 TEST_F(DeviceMemoryPoolTest, ReleaseAndFromNativeHandle) {
   gcxx::DeviceMemPool pool(gcxx::DeviceHandle{0});
   auto handle = pool.release();
-  EXPECT_EQ(pool.get(), nullptr);  // ownership relinquished
+  EXPECT_EQ(pool.getRawHandle(), nullptr);  // ownership relinquished
   EXPECT_NE(handle, nullptr);
   gcxx::DeviceMemPool adopted = gcxx::DeviceMemPool::from_native_handle(handle);
-  EXPECT_EQ(adopted.get(), handle);  // adopted owns it now (dtor will destroy)
+  EXPECT_EQ(adopted.getRawHandle(),
+            handle);  // adopted owns it now (dtor will destroy)
 }
 
 TEST_F(DeviceMemoryPoolTest, AsRefEquality) {
@@ -93,5 +98,5 @@ TEST_F(DeviceMemoryPoolTest, BacksABufferViaAsRef) {
 
 TEST_F(DeviceMemoryPoolTest, DefaultDevicePoolRef) {
   auto ref = gcxx::device_default_memory_pool(gcxx::DeviceHandle{0});
-  EXPECT_NE(ref.get(), nullptr);
+  EXPECT_NE(ref.getRawHandle(), nullptr);
 }

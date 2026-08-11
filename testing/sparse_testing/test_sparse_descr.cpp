@@ -7,6 +7,16 @@
 
 #include <gcxx/sparse_api.hpp>
 
+// raw_handle_type contract (see tests_common.hpp).
+GCXX_ASSERT_RAW_HANDLE(DnVecDescrView, gcxx::driver::deviceDnVecDescr_t);
+GCXX_ASSERT_RAW_HANDLE(DnVecDescr, gcxx::driver::deviceDnVecDescr_t);
+GCXX_ASSERT_RAW_HANDLE(SpVecDescrView, gcxx::driver::deviceSpVecDescr_t);
+GCXX_ASSERT_RAW_HANDLE(SpVecDescr, gcxx::driver::deviceSpVecDescr_t);
+GCXX_ASSERT_RAW_HANDLE(DnMatDescrView, gcxx::driver::deviceDnMatDescr_t);
+GCXX_ASSERT_RAW_HANDLE(DnMatDescr, gcxx::driver::deviceDnMatDescr_t);
+GCXX_ASSERT_RAW_HANDLE(SpMatDescrView, gcxx::driver::deviceSpMatDescr_t);
+GCXX_ASSERT_RAW_HANDLE(SpMatDescr, gcxx::driver::deviceSpMatDescr_t);
+
 namespace {
   // Minimal backend-agnostic device-buffer guard for descriptor wiring tests.
   // cuSPARSE/hipSPARSE only *store* these pointers at creation; they are not
@@ -53,7 +63,7 @@ TEST(SpMatDescr, CreateCsrAndIntrospect) {
     3, 3, 3, rowOffsets.get(), colInd.get(), values.get(),
     gcxx::driver::deviceSparseIndex32I, gcxx::driver::deviceSparseIndex32I,
     gcxx::driver::deviceSparseIndexBaseZero, gcxx::driver::deviceValueTypeF32);
-  EXPECT_NE(mat.getDescriptor(), nullptr);
+  EXPECT_NE(mat.getRawHandle(), nullptr);
   EXPECT_EQ(mat.getFormat(), gcxx::driver::deviceSparseFormatCsr);
   EXPECT_EQ(mat.getIndexBase(), gcxx::driver::deviceSparseIndexBaseZero);
 }
@@ -69,13 +79,13 @@ TEST(SpMatDescr, CreateCooAndMove) {
     3, 3, 3, rowInd.get(), colInd.get(), values.get(),
     gcxx::driver::deviceSparseIndex32I, gcxx::driver::deviceSparseIndexBaseZero,
     gcxx::driver::deviceValueTypeF32);
-  ASSERT_NE(mat.getDescriptor(), nullptr);
+  ASSERT_NE(mat.getRawHandle(), nullptr);
   EXPECT_EQ(mat.getFormat(), gcxx::driver::deviceSparseFormatCoo);
 
-  auto raw = mat.getDescriptor();
+  auto raw = mat.getRawHandle();
   gcxx::SpMatDescr moved{std::move(mat)};
-  EXPECT_EQ(moved.getDescriptor(), raw);
-  EXPECT_EQ(mat.getDescriptor(), nullptr);  // NOLINT(bugprone-use-after-move)
+  EXPECT_EQ(moved.getRawHandle(), raw);
+  EXPECT_EQ(mat.getRawHandle(), nullptr);  // NOLINT(bugprone-use-after-move)
 }
 
 TEST(SpMatDescr, ReleaseYieldsView) {
@@ -89,10 +99,10 @@ TEST(SpMatDescr, ReleaseYieldsView) {
     3, 3, 3, rowOffsets.get(), colInd.get(), values.get(),
     gcxx::driver::deviceSparseIndex32I, gcxx::driver::deviceSparseIndex32I,
     gcxx::driver::deviceSparseIndexBaseZero, gcxx::driver::deviceValueTypeF32);
-  auto raw  = mat.getDescriptor();
+  auto raw  = mat.getRawHandle();
   auto view = mat.release();
-  EXPECT_EQ(view.getDescriptor(), raw);
-  EXPECT_EQ(mat.getDescriptor(), nullptr);
+  EXPECT_EQ(view.getRawHandle(), raw);
+  EXPECT_EQ(mat.getRawHandle(), nullptr);
   [[maybe_unused]] auto adopted = gcxx::SpMatDescr::from_native_descriptor(raw);
 }
 
@@ -108,7 +118,7 @@ TEST(DnMatDescr, CreateAndDestroy) {
   auto mat = gcxx::DnMatDescr::from_dense(2, 3, 2, values.get(),
                                           gcxx::driver::deviceValueTypeF32,
                                           gcxx::driver::deviceSparseOrderCol);
-  EXPECT_NE(mat.getDescriptor(), nullptr);
+  EXPECT_NE(mat.getRawHandle(), nullptr);
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -124,12 +134,12 @@ TEST(SpVecDescr, CreateAndMove) {
   auto vec = gcxx::SpVecDescr::from_sparse(
     8, 3, indices.get(), values.get(), gcxx::driver::deviceSparseIndex32I,
     gcxx::driver::deviceSparseIndexBaseZero, gcxx::driver::deviceValueTypeF32);
-  ASSERT_NE(vec.getDescriptor(), nullptr);
+  ASSERT_NE(vec.getRawHandle(), nullptr);
 
-  auto raw = vec.getDescriptor();
+  auto raw = vec.getRawHandle();
   gcxx::SpVecDescr moved{std::move(vec)};
-  EXPECT_EQ(moved.getDescriptor(), raw);
-  EXPECT_EQ(vec.getDescriptor(), nullptr);  // NOLINT(bugprone-use-after-move)
+  EXPECT_EQ(moved.getRawHandle(), raw);
+  EXPECT_EQ(vec.getRawHandle(), nullptr);  // NOLINT(bugprone-use-after-move)
 }
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -143,5 +153,5 @@ TEST(DnVecDescr, CreateAndDestroy) {
   DeviceBuf values(4 * sizeof(float));
   auto vec = gcxx::DnVecDescr::from_dense(4, values.get(),
                                           gcxx::driver::deviceValueTypeF32);
-  EXPECT_NE(vec.getDescriptor(), nullptr);
+  EXPECT_NE(vec.getRawHandle(), nullptr);
 }

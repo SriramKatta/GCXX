@@ -42,7 +42,7 @@ GCXX_FH auto Copy(const StreamView& stream, Ptr1&& destination, Ptr2&& source,
                 "copy needs pointers to point to same type");
   driver::deviceCopyAsync(details_::get_raw_pointer(destination),
                           details_::get_raw_pointer(source),
-                          numElements * sizeof(VT1), stream);
+                          numElements * sizeof(VT1), stream.getRawHandle());
 }
 
 // ╔════════════════════════════════════════════════════════╗
@@ -68,7 +68,8 @@ GCXX_FH auto Copy(const StreamView& stream, DSTTY&& destination,
   driver::deviceCopyAsync(
     details_::to_address(details_::data(destination)),
     details_::to_address(details_::data(source)),
-    details_::size(destination) * sizeof(span_element_t<DSTTY>), stream);
+    details_::size(destination) * sizeof(span_element_t<DSTTY>),
+    stream.getRawHandle());
 }
 
 GCXX_NAMESPACE_MAIN_END()

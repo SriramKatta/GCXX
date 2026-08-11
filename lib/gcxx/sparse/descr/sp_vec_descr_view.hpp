@@ -18,6 +18,8 @@ class SpVecDescrView {
   deviceSpVecDescr_t m_descr{nullptr};
 
  public:
+  using raw_handle_type = driver::deviceSpVecDescr_t;
+
   SpVecDescrView()               = delete;
   SpVecDescrView(int)            = delete;
   SpVecDescrView(std::nullptr_t) = delete;
@@ -32,7 +34,7 @@ class SpVecDescrView {
 
   GCXX_FH auto setValues(void* values) -> void;
 
-  GCXX_FHC auto getDescriptor() const noexcept -> deviceSpVecDescr_t;
+  GCXX_FHC auto getRawHandle() const noexcept -> deviceSpVecDescr_t;
 
   // ╔════════════════════════════════════════════════════════╗
   // ║                      Comparison                        ║

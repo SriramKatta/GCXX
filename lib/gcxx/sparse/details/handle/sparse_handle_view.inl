@@ -16,7 +16,7 @@ GCXX_FHC SparseHandleView::SparseHandleView(
     : m_handle(handle) {}
 
 GCXX_FH auto SparseHandleView::setStream(gcxx::StreamView stream) -> void {
-  driver::sparseSetStream(m_handle, stream.getRawStream());
+  driver::sparseSetStream(m_handle, stream.getRawHandle());
 }
 
 GCXX_FH auto SparseHandleView::getStream() const -> gcxx::StreamView {
@@ -27,7 +27,7 @@ GCXX_FH auto SparseHandleView::getVersion() const -> int {
   return driver::sparseGetVersion(m_handle);
 }
 
-GCXX_FHC auto SparseHandleView::getHandle() const noexcept
+GCXX_FHC auto SparseHandleView::getRawHandle() const noexcept
   -> deviceSparseHandle_t {
   return m_handle;
 }

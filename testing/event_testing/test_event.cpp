@@ -7,6 +7,9 @@
 #include <gcxx/runtime/event/event.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
+// raw_handle_type contract (see tests_common.hpp).
+GCXX_ASSERT_RAW_HANDLE(Event, gcxx::driver::deviceEvent_t);
+
 using namespace gcxx;
 
 class EventTest : public ::testing::Test {
@@ -24,18 +27,18 @@ class EventTest : public ::testing::Test {
 TEST_F(EventTest, ConstructAndDestroy) {
   {
     Event e;
-    EXPECT_NE(e.getRawEvent(), nullptr);
+    EXPECT_NE(e.getRawHandle(), nullptr);
   }  // auto destroyed here
 }
 
 TEST_F(EventTest, CreateFactory) {
   auto e = Event();
-  EXPECT_NE(e.getRawEvent(), nullptr);
+  EXPECT_NE(e.getRawHandle(), nullptr);
 }
 
 TEST_F(EventTest, CreateWithFlagsProducesUsableEvent) {
   auto e = Event(flags::eventCreate::blockingSync);
-  EXPECT_NE(e.getRawEvent(), driver::INVALID_EVENT);
+  EXPECT_NE(e.getRawHandle(), driver::INVALID_EVENT);
 
   e.RecordInStream();
   e.Synchronize();
@@ -45,30 +48,30 @@ TEST_F(EventTest, CreateWithFlagsProducesUsableEvent) {
 
 TEST_F(EventTest, MoveConstructorTransfersOwnership) {
   Event e1;
-  auto raw1 = e1.getRawEvent();
+  auto raw1 = e1.getRawHandle();
 
   Event e2(std::move(e1));
-  EXPECT_EQ(e1.getRawEvent(), driver::INVALID_EVENT);
-  EXPECT_EQ(e2.getRawEvent(), raw1);
+  EXPECT_EQ(e1.getRawHandle(), driver::INVALID_EVENT);
+  EXPECT_EQ(e2.getRawHandle(), raw1);
 }
 
 TEST_F(EventTest, MoveAssignmentTransfersOwnership) {
   Event e1;
   Event e2;
-  auto raw1 = e1.getRawEvent();
+  auto raw1 = e1.getRawHandle();
 
   e2 = std::move(e1);
-  EXPECT_EQ(e1.getRawEvent(), gcxx::driver::INVALID_EVENT);
-  EXPECT_EQ(e2.getRawEvent(), raw1);
+  EXPECT_EQ(e1.getRawHandle(), gcxx::driver::INVALID_EVENT);
+  EXPECT_EQ(e2.getRawHandle(), raw1);
 }
 
 TEST_F(EventTest, ReleaseTransfersHandle) {
   Event e;
-  auto raw = e.getRawEvent();
+  auto raw = e.getRawHandle();
 
   EventView ref = e.Release();
-  EXPECT_EQ(e.getRawEvent(), gcxx::driver::INVALID_EVENT);
-  EXPECT_EQ(ref.getRawEvent(), raw);
+  EXPECT_EQ(e.getRawHandle(), gcxx::driver::INVALID_EVENT);
+  EXPECT_EQ(ref.getRawHandle(), raw);
 
   // Destroy manually since ownership transferred
   driver::eventDestroy(raw);
@@ -76,7 +79,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
 
 TEST_F(EventTest, ReleasedHandleRemainsUsableThroughView) {
   Event e;
-  auto raw      = e.getRawEvent();
+  auto raw      = e.getRawHandle();
   EventView ref = e.Release();
 
   ref.RecordInStream();
@@ -112,9 +115,9 @@ TEST_F(EventTest, StreamViewRecordEventReturnsRecordedEvent) {
 
 TEST_F(EventTest, MoveAssignmentSelfMoveKeepsOwnership) {
   Event e;
-  const auto raw = e.getRawEvent();
+  const auto raw = e.getRawHandle();
 
   e = std::move(e);
 
-  EXPECT_EQ(e.getRawEvent(), raw);
+  EXPECT_EQ(e.getRawHandle(), raw);
 }

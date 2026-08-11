@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include <gcxx/api.hpp>
+#include <gcxx/macros/template_helper_macros.hpp>
 
 // Stamps out a SFINAE detection trait: std::true_type iff __VA_ARGS__ is
 // well-formed for the given Args... Write the expression using Args...
@@ -38,6 +39,19 @@
   struct Name : Name##_detector<Name##_detail, void, VT...> {};          \
   template <typename... VT>                                              \
   static constexpr bool Name##_v = Name<VT...>::value;
+
+// True iff T exposes a public nested `raw_handle_type` typedef.
+template <class T>
+GCXX_CONCEPT has_raw_handle_type_v =
+  GCXX_REQUIRES_EXPR((T))(sizeof(typename T::raw_handle_type));
+
+// Asserts that `gcxx::WRAPPER` both exposes `raw_handle_type` AND that it
+// names EXPECTED
+#define GCXX_ASSERT_RAW_HANDLE(WRAPPER, EXPECTED)                         \
+  static_assert(has_raw_handle_type_v<gcxx::WRAPPER>,                     \
+                #WRAPPER " must expose ::raw_handle_type");               \
+  static_assert(std::is_same_v<gcxx::WRAPPER::raw_handle_type, EXPECTED>, \
+                #WRAPPER "::raw_handle_type must be " #EXPECTED)
 
 namespace gcxx::testing {
 

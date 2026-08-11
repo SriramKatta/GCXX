@@ -8,6 +8,9 @@
 #include <gcxx/runtime/event/event_view.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
+// raw_handle_type contract (see tests_common.hpp).
+GCXX_ASSERT_RAW_HANDLE(EventView, gcxx::driver::deviceEvent_t);
+
 using namespace gcxx;
 
 class EventViewTest : public ::testing::Test {
@@ -30,21 +33,21 @@ class EventViewTest : public ::testing::Test {
 
 TEST_F(EventViewTest, DefaultConstructor) {
   EventView view;
-  EXPECT_EQ(view.getRawEvent(), driver::INVALID_EVENT);
+  EXPECT_EQ(view.getRawHandle(), driver::INVALID_EVENT);
   EXPECT_FALSE(static_cast<bool>(view));
 }
 
 TEST_F(EventViewTest, ConstructFromRawEvent) {
   EventView view(m_event);
-  EXPECT_EQ(view.getRawEvent(), m_event);
+  EXPECT_EQ(view.getRawHandle(), m_event);
   EXPECT_TRUE(static_cast<bool>(view));
 }
 
 TEST_F(EventViewTest, CopyConstructor) {
   EventView view1(m_event);
   EventView view2(view1);
-  EXPECT_EQ(view1.getRawEvent(), view2.getRawEvent());
-  EXPECT_EQ(view2.getRawEvent(), m_event);
+  EXPECT_EQ(view1.getRawHandle(), view2.getRawHandle());
+  EXPECT_EQ(view2.getRawHandle(), m_event);
 }
 
 TEST_F(EventViewTest, CopyAssignmentRebindsToSameEvent) {
@@ -56,21 +59,15 @@ TEST_F(EventViewTest, CopyAssignmentRebindsToSameEvent) {
   EventView target(event2);
   target = source;
 
-  EXPECT_EQ(target.getRawEvent(), m_event);
+  EXPECT_EQ(target.getRawHandle(), m_event);
   EXPECT_TRUE(target == source);
 
   driver::eventDestroy(event2);
 }
 
-TEST_F(EventViewTest, ImplicitConversionToRaw) {
+TEST_F(EventViewTest, getRawHandleMethod) {
   EventView view(m_event);
-  driver::deviceEvent_t raw = view;
-  EXPECT_EQ(raw, m_event);
-}
-
-TEST_F(EventViewTest, getRawEventMethod) {
-  EventView view(m_event);
-  EXPECT_EQ(view.getRawEvent(), m_event);
+  EXPECT_EQ(view.getRawHandle(), m_event);
 }
 
 TEST_F(EventViewTest, BoolConversionValidEvent) {
@@ -254,8 +251,8 @@ TEST_F(EventViewTest, ElapsedTimeWithDifferentDurationTypes) {
 
 TEST_F(EventViewTest, EventViewFromEvent) {
   Event e;
-  EventView view = e.getRawEvent();
-  EXPECT_EQ(view.getRawEvent(), e.getRawEvent());
+  EventView view = e.getRawHandle();
+  EXPECT_EQ(view.getRawHandle(), e.getRawHandle());
 }
 
 TEST_F(EventViewTest, MultipleViewsSameEvent) {
@@ -263,8 +260,8 @@ TEST_F(EventViewTest, MultipleViewsSameEvent) {
   EventView view2(m_event);
   EventView view3(view1);
 
-  EXPECT_EQ(view1.getRawEvent(), view2.getRawEvent());
-  EXPECT_EQ(view2.getRawEvent(), view3.getRawEvent());
+  EXPECT_EQ(view1.getRawHandle(), view2.getRawHandle());
+  EXPECT_EQ(view2.getRawHandle(), view3.getRawHandle());
   EXPECT_TRUE(view1 == view2);
   EXPECT_TRUE(view2 == view3);
 }

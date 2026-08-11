@@ -14,11 +14,11 @@ class StreamView;
 class GraphExecView {
  public:
   using deviceGraphExec_t = driver::deviceGraphExec_t;
+  using raw_handle_type   = driver::deviceGraphExec_t;
 
   GCXX_FHC GraphExecView() = default;
   GCXX_FHC GraphExecView(deviceGraphExec_t rawExec);
-  GCXX_FHC auto getRawExec() const -> deviceGraphExec_t;
-  GCXX_FHC operator deviceGraphExec_t() const GCXX_NOEXCEPT;
+  GCXX_FHC auto getRawHandle() const -> deviceGraphExec_t;
 
   GCXX_FH auto Launch(const StreamView& stream) const -> void;
   GCXX_FH auto Upload(const StreamView& stream) const -> void;

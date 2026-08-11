@@ -16,6 +16,9 @@
 
 #include <cstddef>
 
+GCXX_ASSERT_RAW_HANDLE(PinnedMemPoolView, gcxx::driver::deviceMemPool_t);
+GCXX_ASSERT_RAW_HANDLE(PinnedMemPool, gcxx::driver::deviceMemPool_t);
+
 namespace {
   struct not_a_resource {};  // for negative concept checks
 }  // namespace
@@ -46,9 +49,9 @@ class PinnedMemoryPoolTest : public ::testing::Test {
 TEST_F(PinnedMemoryPoolTest, ConstructAndAllocate) {
   gcxx::PinnedMemPool pool{0};  // NUMA node 0 (ignored by the HIP shim)
 #if GCXX_HIP_MODE()
-  EXPECT_EQ(pool.get(), nullptr);  // shim: no underlying pool handle
+  EXPECT_EQ(pool.getRawHandle(), nullptr);  // shim: no underlying pool handle
 #else
-  EXPECT_NE(pool.get(), nullptr);
+  EXPECT_NE(pool.getRawHandle(), nullptr);
 #endif
   void* ptr = pool.allocate(gcxx::StreamView::Null(), std::size_t{256});
   EXPECT_NE(ptr, nullptr);
@@ -57,7 +60,7 @@ TEST_F(PinnedMemoryPoolTest, ConstructAndAllocate) {
 
 TEST_F(PinnedMemoryPoolTest, NoInitIsEmpty) {
   gcxx::PinnedMemPool pool(gcxx::no_init);
-  EXPECT_EQ(pool.get(), nullptr);
+  EXPECT_EQ(pool.getRawHandle(), nullptr);
 }
 
 TEST_F(PinnedMemoryPoolTest, StreamOrderedAllocateDeallocate) {
@@ -96,23 +99,24 @@ TEST_F(PinnedMemoryPoolTest, BacksABufferViaAsRef) {
 TEST_F(PinnedMemoryPoolTest, ReleaseAndFromNativeHandle) {
   gcxx::PinnedMemPool pool{0};
   auto handle = pool.release();
-  EXPECT_EQ(pool.get(), nullptr);  // ownership relinquished
+  EXPECT_EQ(pool.getRawHandle(), nullptr);  // ownership relinquished
 #if GCXX_HIP_MODE()
   // The shim has no handle to release; there is nothing to re-adopt or destroy.
   EXPECT_EQ(handle, nullptr);
 #else
   EXPECT_NE(handle, nullptr);
   gcxx::PinnedMemPool adopted = gcxx::PinnedMemPool::from_native_handle(handle);
-  EXPECT_EQ(adopted.get(), handle);  // adopted owns it (dtor will destroy)
+  EXPECT_EQ(adopted.getRawHandle(),
+            handle);  // adopted owns it (dtor will destroy)
 #endif
 }
 
 TEST_F(PinnedMemoryPoolTest, DefaultPinnedPoolRef) {
   auto ref = gcxx::pinned_default_memory_pool();
 #if GCXX_HIP_MODE()
-  EXPECT_EQ(ref.get(), nullptr);  // shim: no handle
+  EXPECT_EQ(ref.getRawHandle(), nullptr);  // shim: no handle
 #else
-  EXPECT_NE(ref.get(), nullptr);
+  EXPECT_NE(ref.getRawHandle(), nullptr);
 #endif
   // The default ref must be usable for allocation on every backend.
   void* ptr = ref.allocate(gcxx::StreamView::Null(), std::size_t{128});

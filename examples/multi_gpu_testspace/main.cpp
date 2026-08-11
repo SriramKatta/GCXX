@@ -276,10 +276,10 @@ void Halo_exchange(real* a_new, real* a, int N, const int top, int iy_end,
                    gcxx::StreamView edge_stream) {
   NCCL_CALL(ncclGroupStart());
   // clang-format off
-  NCCL_CALL(ncclRecv(a_new                   , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawStream()));
-  NCCL_CALL(ncclSend(a_new + (iy_end - 1) * N, N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawStream()));
-  NCCL_CALL(ncclRecv(a_new + (iy_end * N)    , N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawStream()));
-  NCCL_CALL(ncclSend(a_new + (iy_start * N)  , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawStream()));
+  NCCL_CALL(ncclRecv(a_new                   , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawHandle()));
+  NCCL_CALL(ncclSend(a_new + (iy_end - 1) * N, N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawHandle()));
+  NCCL_CALL(ncclRecv(a_new + (iy_end * N)    , N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawHandle()));
+  NCCL_CALL(ncclSend(a_new + (iy_start * N)  , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawHandle()));
   // clang-format on
   NCCL_CALL(ncclGroupEnd());
   // CUDA_CALL(cudaStreamSynchronize(edge_stream));

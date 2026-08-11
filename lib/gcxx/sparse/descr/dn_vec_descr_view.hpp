@@ -18,6 +18,8 @@ class DnVecDescrView {
   deviceDnVecDescr_t m_descr{nullptr};
 
  public:
+  using raw_handle_type = driver::deviceDnVecDescr_t;
+
   DnVecDescrView()               = delete;
   DnVecDescrView(int)            = delete;
   DnVecDescrView(std::nullptr_t) = delete;
@@ -32,7 +34,7 @@ class DnVecDescrView {
 
   GCXX_FH auto setValues(void* values) -> void;
 
-  GCXX_FHC auto getDescriptor() const noexcept -> deviceDnVecDescr_t;
+  GCXX_FHC auto getRawHandle() const noexcept -> deviceDnVecDescr_t;
 
   // ╔════════════════════════════════════════════════════════╗
   // ║                      Comparison                        ║

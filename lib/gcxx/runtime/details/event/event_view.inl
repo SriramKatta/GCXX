@@ -20,15 +20,11 @@ EventView::EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT : m_event(rawEvent) {
 
 GCXX_CXPR
 EventView::EventView(const EventView& eventRef) GCXX_NOEXCEPT
-    : m_event(eventRef.getRawEvent()) {}
+    : m_event(eventRef.getRawHandle()) {}
 
 GCXX_FHC
-auto EventView::getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
+auto EventView::getRawHandle() GCXX_CONST_NOEXCEPT -> deviceEvent_t {
   return m_event;
-}
-
-GCXX_CXPR EventView::operator deviceEvent_t() GCXX_CONST_NOEXCEPT {
-  return getRawEvent();
 }
 
 GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
@@ -38,7 +34,7 @@ GCXX_CXPR EventView::operator bool() GCXX_CONST_NOEXCEPT {
 GCXX_CXPR
 auto EventView::operator=(const EventView& eventRef)
   GCXX_NOEXCEPT -> EventView& {
-  m_event = eventRef.getRawEvent();
+  m_event = eventRef.getRawHandle();
   return *this;
 }
 
@@ -65,7 +61,7 @@ GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
 
 GCXX_FH auto EventView::RecordInStream(
   const StreamView& stream, const flags::eventRecord recordFlag) -> void {
-  driver::eventRecordWithFlags(m_event, stream.getRawStream(),
+  driver::eventRecordWithFlags(m_event, stream.getRawHandle(),
                                static_cast<details_::flag_t>(recordFlag));
 }
 
@@ -78,7 +74,7 @@ GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
   -> DurationT {
   this->Synchronize();
   const auto ms =
-    driver::eventElapsedTime(startEvent.getRawEvent(), getRawEvent());
+    driver::eventElapsedTime(startEvent.getRawHandle(), getRawHandle());
   return ConvertDuration<DurationT>(ms);
 }
 

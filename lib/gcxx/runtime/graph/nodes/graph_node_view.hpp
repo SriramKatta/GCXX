@@ -22,10 +22,11 @@ class GraphExecView;
 class GraphNodeView {
  public:
   using deviceGraphNode_t = driver::deviceGraphNode_t;
+  using raw_handle_type   = driver::deviceGraphNode_t;
 
   GCXX_FHC GraphNodeView(deviceGraphNode_t node) : m_node(node) {}
 
-  GCXX_FHC auto getRawNode() -> deviceGraphNode_t { return m_node; }
+  GCXX_FHC auto getRawHandle() -> deviceGraphNode_t { return m_node; }
 
   GCXX_FH auto getContainingGraph() -> GraphView;
 

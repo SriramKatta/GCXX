@@ -13,6 +13,14 @@
 
 #include <gcxx/api.hpp>
 
+// raw_handle_type contract for the graph wrappers (see tests_common.hpp). No
+// dedicated graph test exists yet; relocate when a graph_testing/ dir is added.
+GCXX_ASSERT_RAW_HANDLE(GraphView, gcxx::driver::deviceGraph_t);
+GCXX_ASSERT_RAW_HANDLE(Graph, gcxx::driver::deviceGraph_t);
+GCXX_ASSERT_RAW_HANDLE(GraphExecView, gcxx::driver::deviceGraphExec_t);
+GCXX_ASSERT_RAW_HANDLE(GraphExec, gcxx::driver::deviceGraphExec_t);
+GCXX_ASSERT_RAW_HANDLE(GraphNodeView, gcxx::driver::deviceGraphNode_t);
+
 // ── Compile-time type checks (run on every build) ───────────────────────────
 // Numeric attributes expose int; boolean attributes expose bool; limits are
 // always size_t. If a specialization is mis-wired these fail at compile time.

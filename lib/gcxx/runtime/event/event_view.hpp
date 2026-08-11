@@ -47,7 +47,8 @@ class StreamView;
 class EventView {
 
  public:
-  using deviceEvent_t = driver::deviceEvent_t;
+  using deviceEvent_t   = driver::deviceEvent_t;
+  using raw_handle_type = driver::deviceEvent_t;
 
   /** @brief Default constructor - creates an EventView with an invalid/null
    * event */
@@ -66,10 +67,7 @@ class EventView {
   auto operator=(const EventView& eventRef) GCXX_NOEXCEPT->EventView&;
 
   /** @brief Returns the underlying raw GPU event handle */
-  GCXX_FHC auto getRawEvent() GCXX_CONST_NOEXCEPT -> deviceEvent_t;
-
-  /** @brief Implicit conversion operator to raw device event type */
-  GCXX_CXPR operator deviceEvent_t() GCXX_CONST_NOEXCEPT;
+  GCXX_FHC auto getRawHandle() GCXX_CONST_NOEXCEPT -> deviceEvent_t;
 
   /** @brief Boolean conversion - returns true if the event is valid (not
    * null/invalid) */

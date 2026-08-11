@@ -21,7 +21,7 @@ GCXX_FH auto DnMatDescrView::setValues(void* values) -> void {
   driver::sparseDnMatSetValues(m_descr, values);
 }
 
-GCXX_FHC auto DnMatDescrView::getDescriptor() const noexcept
+GCXX_FHC auto DnMatDescrView::getRawHandle() const noexcept
   -> deviceDnMatDescr_t {
   return m_descr;
 }

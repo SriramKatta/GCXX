@@ -34,7 +34,8 @@ GCXX_FH auto Memset(const StreamView& stream, Ptr&& handle, const int value,
                     const std::size_t numElements) -> void {
   auto raw_ptr = details_::get_raw_pointer(handle);
   using VT     = typename details_::pointed_to_type_t<Ptr>;
-  driver::deviceMemsetAsync(raw_ptr, value, numElements * sizeof(VT), stream);
+  driver::deviceMemsetAsync(raw_ptr, value, numElements * sizeof(VT),
+                            stream.getRawHandle());
 }
 
 
@@ -55,7 +56,8 @@ GCXX_FH auto Memset(const StreamView& stream, DSTTY&& destination,
                     const int value) -> void {
   driver::deviceMemsetAsync(
     details_::to_address(details_::data(destination)), value,
-    details_::size(destination) * sizeof(span_element_t<DSTTY>), stream);
+    details_::size(destination) * sizeof(span_element_t<DSTTY>),
+    stream.getRawHandle());
 }
 
 GCXX_NAMESPACE_MAIN_END()

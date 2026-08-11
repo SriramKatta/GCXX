@@ -18,6 +18,8 @@ class SpMatDescrView {
   deviceSpMatDescr_t m_descr{nullptr};
 
  public:
+  using raw_handle_type = driver::deviceSpMatDescr_t;
+
   SpMatDescrView()               = delete;
   SpMatDescrView(int)            = delete;
   SpMatDescrView(std::nullptr_t) = delete;
@@ -36,7 +38,7 @@ class SpMatDescrView {
 
   GCXX_FH auto setValues(void* values) -> void;
 
-  GCXX_FHC auto getDescriptor() const noexcept -> deviceSpMatDescr_t;
+  GCXX_FHC auto getRawHandle() const noexcept -> deviceSpMatDescr_t;
 
   // ╔════════════════════════════════════════════════════════╗
   // ║                      Comparison                        ║

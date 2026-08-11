@@ -42,6 +42,8 @@ class MemPoolView {
   }
 
  public:
+  using raw_handle_type = driver::deviceMemPool_t;
+
   MemPoolView(std::nullptr_t) = delete;
   MemPoolView(int)            = delete;
 
@@ -59,7 +61,7 @@ class MemPoolView {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::allocate.");
     return driver::deviceMallocFromPoolAsync(bytes, m_pool_,
-                                             stream.getRawStream());
+                                             stream.getRawHandle());
   }
 
   // Return `ptr` to the pool, ordered on `stream`.
@@ -69,7 +71,7 @@ class MemPoolView {
                             default_cuda_malloc_alignment) noexcept {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::deallocate.");
-    driver::deviceFreeAsync(ptr, stream.getRawStream());
+    driver::deviceFreeAsync(ptr, stream.getRawHandle());
   }
 
 
@@ -115,7 +117,7 @@ class MemPoolView {
     // Read-only attributes are a no-op.
     Attr::set(m_pool_, value);
   }
-  GCXX_FH constexpr auto get() const noexcept -> deviceMemPool_t {
+  GCXX_FH constexpr auto getRawHandle() const noexcept -> deviceMemPool_t {
     return m_pool_;
   }
 

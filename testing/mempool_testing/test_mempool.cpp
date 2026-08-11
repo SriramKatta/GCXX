@@ -9,6 +9,10 @@
 
 #include <gcxx/api.hpp>
 
+// raw_handle_type contract (see tests_common.hpp).
+GCXX_ASSERT_RAW_HANDLE(MemPoolView, gcxx::driver::deviceMemPool_t);
+GCXX_ASSERT_RAW_HANDLE(MemPool, gcxx::driver::deviceMemPool_t);
+
 class MemPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -22,18 +26,18 @@ class MemPoolTest : public ::testing::Test {
 TEST_F(MemPoolTest, ConstructAndDestroy) {
   {
     gcxx::MemPool pool;
-    EXPECT_NE(pool.get(), nullptr);
+    EXPECT_NE(pool.getRawHandle(), nullptr);
   }  // destroyed here; must not throw
 }
 
 TEST_F(MemPoolTest, MoveConstructorTransfersOwnership) {
   gcxx::MemPool pool1;
-  const auto raw = pool1.get();
+  const auto raw = pool1.getRawHandle();
 
   gcxx::MemPool pool2(std::move(pool1));
 
-  EXPECT_EQ(pool1.get(), nullptr);
-  EXPECT_EQ(pool2.get(), raw);
+  EXPECT_EQ(pool1.getRawHandle(), nullptr);
+  EXPECT_EQ(pool2.getRawHandle(), raw);
 }
 
 TEST_F(MemPoolTest, MoveAssignmentTransfersOwnership) {
@@ -41,22 +45,23 @@ TEST_F(MemPoolTest, MoveAssignmentTransfersOwnership) {
   // is deleted), so it stays non-const despite the const-correctness nudge.
   gcxx::MemPool pool1;  // NOLINT(misc-const-correctness)
   gcxx::MemPool pool2;
-  const auto raw1 = pool1.get();
+  const auto raw1 = pool1.getRawHandle();
 
   pool2 = std::move(pool1);
 
-  EXPECT_EQ(pool1.get(), nullptr);
-  EXPECT_EQ(pool2.get(), raw1);  // pool2's original handle was destroyed
+  EXPECT_EQ(pool1.getRawHandle(), nullptr);
+  EXPECT_EQ(pool2.getRawHandle(),
+            raw1);  // pool2's original handle was destroyed
 }
 
 TEST_F(MemPoolTest, ReleaseTransfersHandle) {
   gcxx::MemPool pool;
-  const auto raw = pool.get();
+  const auto raw = pool.getRawHandle();
 
   const gcxx::MemPoolView view = pool.Release();
 
-  EXPECT_EQ(pool.get(), nullptr);
-  EXPECT_EQ(view.get(), raw);
+  EXPECT_EQ(pool.getRawHandle(), nullptr);
+  EXPECT_EQ(view.getRawHandle(), raw);
 
   // Ownership left the pool (view is non-owning); destroy the handle manually.
   gcxx::driver::deviceMemPoolDestroy(raw);
@@ -64,9 +69,10 @@ TEST_F(MemPoolTest, ReleaseTransfersHandle) {
 
 TEST_F(MemPoolTest, FromNativeHandleAdoptsAndDestroys) {
   gcxx::MemPool pool;
-  const auto raw = pool.get();  // the handle, while pool still owns it
-  pool.Release();               // relinquish ownership (view discarded)
+  const auto raw = pool.getRawHandle();  // the handle, while pool still owns it
+  pool.Release();  // relinquish ownership (view discarded)
 
   gcxx::MemPool adopted = gcxx::MemPool::from_native_handle(raw);
-  EXPECT_EQ(adopted.get(), raw);  // adopted owns raw; its dtor will destroy it
+  EXPECT_EQ(adopted.getRawHandle(),
+            raw);  // adopted owns raw; its dtor will destroy it
 }

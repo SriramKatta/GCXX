@@ -19,6 +19,8 @@ class DnMatDescrView {
   deviceDnMatDescr_t m_descr{nullptr};
 
  public:
+  using raw_handle_type = driver::deviceDnMatDescr_t;
+
   DnMatDescrView()               = delete;
   DnMatDescrView(int)            = delete;
   DnMatDescrView(std::nullptr_t) = delete;
@@ -33,7 +35,7 @@ class DnMatDescrView {
 
   GCXX_FH auto setValues(void* values) -> void;
 
-  GCXX_FHC auto getDescriptor() const noexcept -> deviceDnMatDescr_t;
+  GCXX_FHC auto getRawHandle() const noexcept -> deviceDnMatDescr_t;
 
   // ╔════════════════════════════════════════════════════════╗
   // ║                      Comparison                        ║

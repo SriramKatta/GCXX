@@ -22,6 +22,7 @@ class StreamView {
  public:
   using deviceGraphNode_t = driver::deviceGraphNode_t;
   using deviceStream_t    = driver::deviceStream_t;
+  using raw_handle_type   = driver::deviceStream_t;
 
   explicit GCXX_FHC StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT;
 
@@ -34,9 +35,7 @@ class StreamView {
     return s;
   }
 
-  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
-
-  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;  // NOLINT
+  GCXX_FH constexpr auto getRawHandle() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
   GCXX_FH auto HasPendingWork() -> bool;
 

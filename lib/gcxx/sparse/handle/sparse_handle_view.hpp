@@ -19,6 +19,8 @@ class SparseHandleView {
   deviceSparseHandle_t m_handle{nullptr};
 
  public:
+  using raw_handle_type = driver::deviceSparseHandle_t;
+
   SparseHandleView()               = delete;
   SparseHandleView(int)            = delete;
   SparseHandleView(std::nullptr_t) = delete;
@@ -39,7 +41,7 @@ class SparseHandleView {
 
   GCXX_FH auto getVersion() const -> int;
 
-  GCXX_FHC auto getHandle() const noexcept -> deviceSparseHandle_t;
+  GCXX_FHC auto getRawHandle() const noexcept -> deviceSparseHandle_t;
 
   // ╔════════════════════════════════════════════════════════╗
   // ║                      Comparison                        ║

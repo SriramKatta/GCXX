@@ -21,7 +21,7 @@ GCXX_FH auto DnVecDescrView::setValues(void* values) -> void {
   driver::sparseDnVecSetValues(m_descr, values);
 }
 
-GCXX_FHC auto DnVecDescrView::getDescriptor() const noexcept
+GCXX_FHC auto DnVecDescrView::getRawHandle() const noexcept
   -> deviceDnVecDescr_t {
   return m_descr;
 }

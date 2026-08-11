@@ -17,7 +17,7 @@ class LaunchConfig {
   LaunchConfig(dim3 griddim = {1, 1, 1}, dim3 blockdim = {1, 1, 1},
                std::size_t smemBytes = 0,
                const StreamView& sv  = StreamView::Null())
-      : config_({griddim, blockdim, smemBytes, sv.getRawStream(), nullptr, 0}) {
+      : config_({griddim, blockdim, smemBytes, sv.getRawHandle(), nullptr, 0}) {
   }
 
   void print() {}

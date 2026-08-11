@@ -38,7 +38,7 @@ struct SwitchNodeResult {
 
 GCXX_FHC GraphView::GraphView(deviceGraph_t rawgraph) : m_graph(rawgraph) {}
 
-GCXX_FHC auto GraphView::getRawGraph() const -> deviceGraph_t {
+GCXX_FHC auto GraphView::getRawHandle() const -> deviceGraph_t {
   return m_graph;
 }
 
@@ -168,7 +168,7 @@ GCXX_FH auto GraphView::AddSwitchNode(
 GCXX_FH auto GraphView::AddChildGraphNode(
   const GraphView& childGraph, const deviceGraphNode_t* pDependencies,
   std::size_t numDependencies) -> ChildGraphNodeView {
-  return driver::graphAddChildGraphNode(m_graph, childGraph.getRawGraph(),
+  return driver::graphAddChildGraphNode(m_graph, childGraph.getRawHandle(),
                                         pDependencies, numDependencies);
 }
 
@@ -187,14 +187,14 @@ GCXX_FH auto GraphView::AddEmptyNode(const deviceGraphNode_t* pDependencies,
 GCXX_FH auto GraphView::AddEventRecordNode(
   const EventView event, const deviceGraphNode_t* pDependencies,
   std::size_t numDependencies) -> deviceGraphNode_t {
-  return driver::graphAddEventRecordNode(m_graph, event.getRawEvent(),
+  return driver::graphAddEventRecordNode(m_graph, event.getRawHandle(),
                                          pDependencies, numDependencies);
 }
 
 GCXX_FH auto GraphView::AddEventWaitNode(
   const EventView event, const deviceGraphNode_t* pDependencies,
   std::size_t numDependencies) -> deviceGraphNode_t {
-  return driver::graphAddEventWaitNode(m_graph, event.getRawEvent(),
+  return driver::graphAddEventWaitNode(m_graph, event.getRawHandle(),
                                        pDependencies, numDependencies);
 }
 

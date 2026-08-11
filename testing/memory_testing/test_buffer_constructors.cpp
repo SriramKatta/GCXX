@@ -102,8 +102,8 @@ TEST(BufferCtorTest, StreamResourceCtorKeepsResourceAndStream) {
 
   EXPECT_EQ(buf.size_bytes(), 0);
   // Stream round-trips through the storage.
-  EXPECT_EQ(buf.stream().getRawStream(),
-            gcxx::StreamView::Null().getRawStream());
+  EXPECT_EQ(buf.stream().getRawHandle(),
+            gcxx::StreamView::Null().getRawHandle());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

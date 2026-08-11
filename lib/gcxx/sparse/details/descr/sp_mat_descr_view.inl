@@ -30,7 +30,7 @@ GCXX_FH auto SpMatDescrView::setValues(void* values) -> void {
   driver::sparseSpMatSetValues(m_descr, values);
 }
 
-GCXX_FHC auto SpMatDescrView::getDescriptor() const noexcept
+GCXX_FHC auto SpMatDescrView::getRawHandle() const noexcept
   -> deviceSpMatDescr_t {
   return m_descr;
 }

@@ -20,6 +20,8 @@ class BlasHandleView {
   deviceBlasHandle_t m_handle{nullptr};
 
  public:
+  using raw_handle_type = driver::deviceBlasHandle_t;
+
   BlasHandleView()               = delete;
   BlasHandleView(int)            = delete;
   BlasHandleView(std::nullptr_t) = delete;
@@ -40,7 +42,7 @@ class BlasHandleView {
 
   GCXX_FH auto getVersion() const -> int;
 
-  GCXX_FHC auto getHandle() const noexcept -> deviceBlasHandle_t;
+  GCXX_FHC auto getRawHandle() const noexcept -> deviceBlasHandle_t;
 
   // ╔════════════════════════════════════════════════════════╗
   // ║                      Comparison                        ║
