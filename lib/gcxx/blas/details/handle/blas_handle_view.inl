@@ -10,7 +10,7 @@
 #include <gcxx/runtime_backend/backend_blas.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN()
+GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 GCXX_FHC BlasHandleView::BlasHandleView(deviceBlasHandle_t handle) noexcept
     : m_handle(handle) {}
@@ -42,6 +42,6 @@ GCXX_FHC auto BlasHandleView::operator!=(
   return m_handle != rhs.m_handle;
 }
 
-GCXX_NAMESPACE_MAIN_END()
+GCXX_NAMESPACE_MAIN_BLAS_END()
 
 #endif

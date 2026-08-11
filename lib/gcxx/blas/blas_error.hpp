@@ -17,7 +17,7 @@
   do {                                                                       \
     const auto blas_status = ::GCXX_BLAS_BACKEND(BASEFUNCNAME)(__VA_ARGS__); \
     if (blas_status != driver::deviceBlasStatusSuccess) {                    \
-      gcxx::details_::throwBlasError(blas_status, MSG);                      \
+      gcxx::blas::details_::throwBlasError(blas_status, MSG);                \
     }                                                                        \
   } while (0)
 #else

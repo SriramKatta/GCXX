@@ -11,7 +11,7 @@
 #include <gcxx/blas/handle/blas_handle_view.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN()
+GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 
 BlasHandle::BlasHandle() : BlasHandleView(driver::blasCreate()) {}
@@ -50,6 +50,6 @@ GCXX_FH auto BlasHandle::release() noexcept -> BlasHandleView {
 GCXX_FH BlasHandle::BlasHandle(driver::deviceBlasHandle_t handle) noexcept
     : BlasHandleView(handle) {}
 
-GCXX_NAMESPACE_MAIN_END()
+GCXX_NAMESPACE_MAIN_BLAS_END()
 
 #endif

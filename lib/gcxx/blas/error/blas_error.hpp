@@ -10,18 +10,18 @@
 #include <gcxx/blas/error/blas_exceptions.hpp>
 #include <gcxx/internal/prologue.hpp>
 
-GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
+GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 
 inline auto throwBlasError(driver::deviceBlasStatus_t status,
                            const char* msg) -> void {
 #if defined(GCXX_WITH_EXCEPTIONS)
-  throw gcxx::BlasException(status, msg);
+  throw gcxx::blas::BlasException(status, msg);
 #else
-  std::cerr << gcxx::BlasException(status, msg).what() << "\n";
+  std::cerr << gcxx::blas::BlasException(status, msg).what() << "\n";
   std::abort();
 #endif
 }
 
-GCXX_NAMESPACE_MAIN_DETAILS_END()
+GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
 
 #endif

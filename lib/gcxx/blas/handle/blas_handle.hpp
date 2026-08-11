@@ -10,7 +10,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN()
+GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 
 class BlasHandle : public BlasHandleView {
@@ -38,7 +38,7 @@ class BlasHandle : public BlasHandleView {
   GCXX_FH explicit BlasHandle(driver::deviceBlasHandle_t handle) noexcept;
 };
 
-GCXX_NAMESPACE_MAIN_END()
+GCXX_NAMESPACE_MAIN_BLAS_END()
 
 
 #include <gcxx/blas/details/handle/blas_handle.inl>

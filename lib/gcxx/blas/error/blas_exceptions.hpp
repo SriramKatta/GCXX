@@ -11,7 +11,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN()
+GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 GCXX_FH auto getBlasStatusName(driver::deviceBlasStatus_t status) -> const
   char* {
@@ -65,6 +65,6 @@ class BlasException : public std::runtime_error {
   driver::deviceBlasStatus_t m_status;
 };
 
-GCXX_NAMESPACE_MAIN_END()
+GCXX_NAMESPACE_MAIN_BLAS_END()
 
 #endif

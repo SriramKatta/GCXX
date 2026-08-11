@@ -10,7 +10,7 @@
 #include <gcxx/runtime_backend/backend_blas.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
 
-GCXX_NAMESPACE_MAIN_BEGIN()
+GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 class BlasHandleView {
  protected:
@@ -51,7 +51,7 @@ class BlasHandleView {
   GCXX_FHC auto operator!=(const BlasHandleView& rhs) const noexcept -> bool;
 };
 
-GCXX_NAMESPACE_MAIN_END()
+GCXX_NAMESPACE_MAIN_BLAS_END()
 
 
 #include <gcxx/blas/details/handle/blas_handle_view.inl>

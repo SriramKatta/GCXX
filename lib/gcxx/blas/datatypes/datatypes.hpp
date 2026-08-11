@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
+#pragma once
+#ifndef GCXX_BLAS_DATATYPES_DATATYPES_HPP_
+#define GCXX_BLAS_DATATYPES_DATATYPES_HPP_
+
+#include <complex>
+#include <cstdint>
+
+#include <gcxx/internal/prologue.hpp>
+
+GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
+
+// Map cpp scalar type to its backend data-type enum
+template <typename VT>
+struct cuda_datatype {
+  static_assert(gcxx::details_::is_always_false_v<VT>,
+                "unsupported blas datatype");
+};
+
+#define DEFINE_DATATYPE(CPP_TYPE, CUDA_ENUM, HIP_ENUM) \
+  template <>                                          \
+  struct cuda_datatype<CPP_TYPE> {                     \
+    static constexpr auto datatype =                   \
+      GCXX_DIRECT_BACKEND_ALT(CUDA_ENUM, HIP_ENUM);    \
+  }
+
+// ╔════════════════════════════════════════════════════════╗
+// ║                  real floating point                   ║
+// ╚════════════════════════════════════════════════════════╝
+DEFINE_DATATYPE(float, CUDA_R_32F, HIP_R_32F);
+DEFINE_DATATYPE(double, CUDA_R_64F, HIP_R_64F);
+
+// ╔════════════════════════════════════════════════════════╗
+// ║                 complex floating point                 ║
+// ╚════════════════════════════════════════════════════════╝
+DEFINE_DATATYPE(std::complex<float>, CUDA_C_32F, HIP_C_32F);
+DEFINE_DATATYPE(std::complex<double>, CUDA_C_64F, HIP_C_64F);
+
+// ╔════════════════════════════════════════════════════════╗
+// ║                        integer                         ║
+// ╚════════════════════════════════════════════════════════╝
+DEFINE_DATATYPE(std::int8_t, CUDA_R_8I, HIP_R_8I);
+DEFINE_DATATYPE(std::uint8_t, CUDA_R_8U, HIP_R_8U);
+DEFINE_DATATYPE(std::int32_t, CUDA_R_32I, HIP_R_32I);
+
+#undef DEFINE_DATATYPE
+
+template <typename VT>
+inline constexpr auto cuda_datatype_v = cuda_datatype<VT>::datatype;
+
+GCXX_NAMESPACE_MAIN_BLAS_END()
+
+
+#endif
