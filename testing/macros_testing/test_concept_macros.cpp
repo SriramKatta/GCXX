@@ -19,11 +19,6 @@
 #include <gcxx/macros/template_helper_macros.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 
-// TODO : need to check this even for hipcc
-// #ifdef __CUDACC__
-// #  pragma nv_diag_suppress 177
-// #endif
-
 namespace {
 
   struct Comparable  // has == / !=, both noexcept

@@ -183,6 +183,29 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_IGNORE_RESULT_(...) __VA_ARGS__
 #endif
 
+// TL;D(W)R to prevent warning in test and consumer codes
+// The pre-C++20 SFINAE-emulation path generates probe functions referenced
+// only in unevaluated decltype; the NVIDIA compilers flag them #177-D
+// ("declared but never referenced"). They are silenced two ways, each used
+// where nvcc honors it:
+//   * CONCEPT_FRAGMENT's probe is a free function -> [[maybe_unused]] works.
+//   * REQUIRES_EXPR's probe (well_formed) is a static member template, for
+//     which nvcc ignores [[maybe_unused]] / __attribute__((unused)); it is
+//     wrapped with the _Pragma pair below. _Pragma is deliberately NOT used
+//     around CONCEPT_FRAGMENT -- that triggers an nvcc internal compiler error
+//     on non-trivial requirement lists. gcc/clang/hipcc never warn, so these
+//     expand to nothing there.
+#if defined(__CUDACC__)
+#  define GCXX_DIAG_SUPPRESS_177_ _Pragma("nv_diag_suppress 177")
+#  define GCXX_DIAG_RESTORE_177_  _Pragma("nv_diag_default 177")
+#elif defined(__NVCOMPILER)
+#  define GCXX_DIAG_SUPPRESS_177_ _Pragma("diag_suppress 177")
+#  define GCXX_DIAG_RESTORE_177_  _Pragma("diag_default 177")
+#else
+#  define GCXX_DIAG_SUPPRESS_177_
+#  define GCXX_DIAG_RESTORE_177_
+#endif
+
 // The "0" or "1" suffixes indicate whether _REQ is parenthesized or not.
 #define GCXX_CONCEPT_REQUIREMENT_0(_REQ) \
   GCXX_PP_SWITCH(GCXX_CONCEPT_REQUIREMENT, _REQ)
@@ -304,7 +327,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 // that GCXX_CONCEPT NAME = GCXX_FRAGMENT(NAME, Args...) yields true iff every
 // requirement is well-formed for Args.
 #define GCXX_CONCEPT_FRAGMENT(_NAME, ...)                   \
-  GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_impl_   \
+  [[maybe_unused]] GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_impl_   \
       GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_##__VA_ARGS__ > {} \
   template <class... _As>                                   \
   GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_(       \
@@ -396,6 +419,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
         ::gcxx::details_::tag<void GCXX_REQUIRES_EXPR_TPARAM_REFS _TY>*>(  \
         nullptr),                                                          \
       0);                                                                  \
+  GCXX_DIAG_SUPPRESS_177_                                                  \
   struct GCXX_PP_CAT(gcxx_requires_expr_detail_, _ID) {                    \
     using self_t = GCXX_PP_CAT(gcxx_requires_expr_detail_, _ID);           \
     template <class GCXX_REQUIRES_EXPR_TPARAM_DEFNS _TY>                   \
@@ -474,7 +498,8 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
   GCXX_HD static constexpr bool is_satisfied(void*, long) {                    \
     return false;                                                              \
   }                                                                            \
-  }
+  }                                                                            \
+  GCXX_DIAG_RESTORE_177_
 #endif  // ^^^ !GCXX_HAS_CONCEPTS() ^^^
 
 #endif

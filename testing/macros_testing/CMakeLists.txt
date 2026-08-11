@@ -24,17 +24,7 @@ function(add_gcxx_concept_macro_test TARGET_NAME CUDA_STD)
       ${TARGET_NAME} PROPERTIES CUDA_STANDARD ${CUDA_STD} CUDA_STANDARD_REQUIRED
                                                           ON
     )
-    # The pre-C++20 concept-emulation branch generates SFINAE probe functions
-    # (well_formed / *_GCXX_CONCEPT_FRAGMENT_impl_) that are inspected via
-    # decltype but never called, so nvcc flags them #177-D ("declared but never
-    # referenced"). They are intentional; silence that one diagnostic.
-    # nvcc's --diag_suppress is a cudafe option: route it via -Xcudafe (the bare
-    # "--diag_suppress=177" is forwarded to gcc by -forward-unknown-to-host-
-    # compiler; the space form is misread as an input file).
-    # target_compile_options(
-    #   ${TARGET_NAME}
-    #   PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>
-    # )
+
     target_link_libraries(${TARGET_NAME} PRIVATE gcxx::gcxx GTest::gtest_main)
     gtest_discover_tests(${TARGET_NAME})
   endif()
