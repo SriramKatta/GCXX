@@ -1,4 +1,4 @@
-set(SRC_BASE_NAMES test_blas_handle)
+set(SRC_BASE_NAMES test_blas_handle test_blas_transpose test_blas_gemm)
 
 foreach(SRC_BASE_NAME IN LISTS SRC_BASE_NAMES)
   add_gcxx_test(${SRC_BASE_NAME})

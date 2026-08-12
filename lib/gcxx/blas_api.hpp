@@ -13,6 +13,7 @@
 
 // section for BLAS API
 #include <gcxx/blas/handle/blas_handle.hpp>
+#include <gcxx/blas/operations/operations.hpp>
 
 // clang-format on
 #endif

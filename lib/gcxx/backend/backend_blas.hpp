@@ -20,4 +20,10 @@
 #define GCXX_BLAS_STATUS(name) HIPBLAS_STATUS_##name
 #endif
 
+#define GCXX_BLAS_OP(name) \
+  GCXX_DIRECT_BACKEND_ALT(CUBLAS_OP_##name, HIPBLAS_OP_##name)
+#define GCXX_BLAS_POINTER_MODE(name)                  \
+  GCXX_DIRECT_BACKEND_ALT(CUBLAS_POINTER_MODE_##name, \
+                          HIPBLAS_POINTER_MODE_##name)
+
 #endif
