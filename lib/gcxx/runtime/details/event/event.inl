@@ -6,6 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 #include <utility>
 

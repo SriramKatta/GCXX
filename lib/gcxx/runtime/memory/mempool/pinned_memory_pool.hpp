@@ -145,9 +145,9 @@ struct PinnedMemPool : PinnedMemPoolView {
   /// since CUDA 11.2, so this single ctor is universal across the 12.8+ minimum
   /// (and mirrors the HIP shim's default ctor).
   GCXX_FH PinnedMemPool(memory_pool_properties props = {})
-      : PinnedMemPoolView(create_memory_pool(
-          flags::MemLocation::Host, /*location_id=*/0,
-          flags::MemAllocation::Pinned, props)) {}
+      : PinnedMemPoolView(
+          create_memory_pool(flags::MemLocation::Host, /*location_id=*/0,
+                             flags::MemAllocation::Pinned, props)) {}
 #endif
 
   GCXX_FH ~PinnedMemPool() noexcept {
