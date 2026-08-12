@@ -7,6 +7,7 @@
 #include <complex>
 #include <cstdint>
 
+#include <gcxx/backend/backend_blas.hpp>
 #include <gcxx/internal/prologue.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
@@ -48,6 +49,31 @@ DEFINE_DATATYPE(std::int32_t, CUDA_R_32I, HIP_R_32I);
 
 template <typename VT>
 inline constexpr auto cuda_datatype_v = cuda_datatype<VT>::datatype;
+
+// Map a cpp scalar type to its backend compute-type enum
+template <typename VT>
+struct blas_compute_type {
+  static_assert(gcxx::details_::is_always_false_v<VT>,
+                "unsupported blas compute type");
+};
+
+#define DEFINE_COMPUTE_TYPE(CPP_TYPE, CUDA_ENUM, HIP_ENUM) \
+  template <>                                              \
+  struct blas_compute_type<CPP_TYPE> {                     \
+    static constexpr auto compute_type =                   \
+      GCXX_DIRECT_BACKEND_ALT(CUDA_ENUM, HIP_ENUM);        \
+  }
+
+// ╔════════════════════════════════════════════════════════╗
+// ║                  real floating point                   ║
+// ╚════════════════════════════════════════════════════════╝
+DEFINE_COMPUTE_TYPE(float, CUBLAS_COMPUTE_32F, HIPBLAS_COMPUTE_32F);
+DEFINE_COMPUTE_TYPE(double, CUBLAS_COMPUTE_64F, HIPBLAS_COMPUTE_64F);
+
+#undef DEFINE_COMPUTE_TYPE
+
+template <typename VT>
+inline constexpr auto blas_compute_type_v = blas_compute_type<VT>::compute_type;
 
 GCXX_NAMESPACE_MAIN_BLAS_END()
 

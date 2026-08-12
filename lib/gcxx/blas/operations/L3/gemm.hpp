@@ -6,10 +6,10 @@
 
 #include <type_traits>
 
+#include <gcxx/blas/datatypes/datatypes.hpp>
 #include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/blas/handle/blas_handle_view.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
-#include <gcxx/blas/type_map.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
 
@@ -33,20 +33,22 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   using A_t = std::decay_t<A>;
   using B_t = std::decay_t<B>;
   using C_t = std::decay_t<C>;
-  using T   = typename C_t::element_type;
+  using AVt = typename A_t::element_type;
+  using BVt = typename B_t::element_type;
+  using CVt = typename C_t::element_type;
 
   // static asserts to verify no funny business
   static_assert(A_t::rank() == 2 && B_t::rank() == 2 && C_t::rank() == 2,
                 "gemm operands must be rank-2 mdspans");
 
-  static_assert(
-    std::is_same_v<typename A_t::element_type, T> &&
-      std::is_same_v<typename B_t::element_type, T>,
-    "gemm (v1) requires A, B, and C to share the same element type");
+  // static_assert(
+  //   std::is_same_v<typename A_t::element_type, T> &&
+  //     std::is_same_v<typename B_t::element_type, T>,
+  //   "gemm (v1) requires A, B, and C to share the same element type");
 
-  static_assert(std::is_same_v<T, native_scalar_t<T>>,
-                "gemm (v1) only supports real element types for now; complex "
-                "support is not yet wired up");
+  // static_assert(std::is_same_v<T, native_scalar_t<T>>,
+  //               "gemm (v1) only supports real element types for now; complex
+  //               " "support is not yet wired up");
 
 
   // TODO : LOCAL COPIES CAN BE DELETE AT THE END OF BLOCK BECUASE WE ARE
@@ -65,9 +67,11 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   (void)k_b;
   (void)op_c;
 
-  const auto status = gemm_ptr_v<T>(
-    h.getRawHandle(), op_a, op_b, m, n, k, &alpha_v, a.data_handle(), ld_a,
-    b.data_handle(), ld_b, &beta_v, c.data_handle(), ld_c);
+  const auto status = GCXX_BLAS_BACKEND(GemmEx)(
+    h.getRawHandle(), op_a, op_b, m, n, k, &alpha_v, a.data_handle(),
+    cuda_datatype_v<AVt>, ld_a, b.data_handle(), cuda_datatype_v<BVt>, ld_b,
+    &beta_v, c.data_handle(), cuda_datatype_v<CVt>, ld_c,
+    blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "gemm failed");
