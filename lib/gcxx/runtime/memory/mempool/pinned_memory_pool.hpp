@@ -8,8 +8,8 @@
 //
 // PinnedMemPool / PinnedMemPoolView: a pinned (page-locked) host memory pool.
 // Pinned memory enables faster host<->device transfers and is reachable from
-// all devices. The owning pool creates a cudaMemPool_t at a host (or host-NUMA)
-// location and, like CCCL, immediately grants access from every device. Both
+// all devices. The owning pool creates a cudaMemPool_t at a host location and,
+// like CCCL, immediately grants access from every device. Both
 // the view and the owning pool expose the full CCCL pool API
 // (allocate/allocate_sync/trim_to/attributes) inherited from MemPoolView AND
 // the gcxx resource concept (allocate(StreamView, size_t) /
@@ -114,9 +114,9 @@ class PinnedMemPoolView : public MemPoolView {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PinnedMemPool: an owning pinned host memory pool. Creates a cudaMemPool_t at
-// a host (or host-NUMA) location and destroys it on destruction, then grants
-// read/write access from every device (matching CCCL) so its allocations can be
-// used in peer transfers without further setup. Non-copyable, non-movable;
+// a host location and destroys it on destruction, then grants read/write access
+// from every device (matching CCCL) so its allocations can be used in peer
+// transfers without further setup. Non-copyable, non-movable;
 // transfer the handle via release() / from_native_handle(). Satisfies
 // resource_with but cannot back a buffer directly (not copyable) — use
 // as_ref().
@@ -133,24 +133,21 @@ struct PinnedMemPool : PinnedMemPoolView {
   /// `props` (size/threshold/handle) have no pool to apply to and are ignored.
   GCXX_FH PinnedMemPool(memory_pool_properties /*props*/ = {})
       : PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{}) {}
-
-  /// HIP: NUMA binding is handled by the OS first-touch policy, not a pool; the
-  /// shim ignores `numa_id` and `props` (see PinnedMemPoolView shim docs).
-  GCXX_FH PinnedMemPool(int /*numa_id*/, memory_pool_properties /*props*/ = {})
-      : PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{}) {}
 #else
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-  /// Create a pinned pool on the default host location (CUDA 13.0+).
+  /// Create a pinned pool on the generic host location.
+  ///
+  /// Always uses cudaMemLocationTypeHost, never a specific HostNuma node:
+  /// HostNuma only allocates on the GPU's own local NUMA node and returns a
+  /// misleading "out of memory" for every other node, so binding to a
+  /// caller-chosen id is a portable foot-gun. The generic Host location works
+  /// on every node — CUDA lets the OS first-touch policy place the pages
+  /// (steerable via numactl). cudaMemPoolCreate at a Host location has existed
+  /// since CUDA 11.2, so this single ctor is universal across the 12.8+ minimum
+  /// (and mirrors the HIP shim's default ctor).
   GCXX_FH PinnedMemPool(memory_pool_properties props = {})
       : PinnedMemPoolView(create_memory_pool(
-          flags::MemLocation::Host, 0, flags::MemAllocation::Pinned, props)) {}
-#endif
-
-  /// Create a pinned pool bound to a specific host NUMA node.
-  GCXX_FH PinnedMemPool(int numa_id, memory_pool_properties props = {})
-      : PinnedMemPoolView(
-          create_memory_pool(flags::MemLocation::HostNuma, numa_id,
-                             flags::MemAllocation::Pinned, props)) {}
+          flags::MemLocation::Host, /*location_id=*/0,
+          flags::MemAllocation::Pinned, props)) {}
 #endif
 
   GCXX_FH ~PinnedMemPool() noexcept {

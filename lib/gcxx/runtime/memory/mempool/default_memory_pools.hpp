@@ -79,9 +79,8 @@ inline auto get_default_mem_pool(flags::MemLocation locationType,
 /// binding a shared default pool to a fixed node makes cudaMallocFromPoolAsync
 /// fail with a misleading "out of memory" on multi-NUMA systems (e.g. the GPU
 /// may sit on node 7 while id 0 is a far/different node). The OS first-touch
-/// policy places the pages instead, which the caller can steer via numactl. A
-/// NUMA-node-specific pinned pool remains available by constructing one
-/// explicitly with a queried node id.
+/// policy places the pages instead, which the caller can steer via numactl.
+/// PinnedMemPool therefore always uses this generic Host location.
 GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
 #if GCXX_HIP_MODE()
   // ROCm has no host-location memory pool, so the default pinned pool is the

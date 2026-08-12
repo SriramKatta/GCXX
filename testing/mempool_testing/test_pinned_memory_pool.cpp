@@ -9,9 +9,9 @@
 // (trim_to / attribute) are unsupported on the shim (there is no pool to
 // manage), so those cases are compiled in only for the CUDA backend.
 //
-// The construction ctor used is the NUMA-node one so the same ctor is exercised
-// on every toolkit (the pinned-pool API is available from CUDA 12.8; on HIP the
-// NUMA ctor ignores the node id and builds the shim).
+// The default ctor is used so the same ctor is exercised on every toolkit (on
+// CUDA it builds a real Host-location pool, available from the 12.8 minimum; on
+// HIP it builds the shim). Pinned pools always use the generic Host location.
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -44,10 +44,11 @@ class PinnedMemoryPoolTest : public ::testing::Test {
   }
 };
 
-// On HIP the shim deliberately holds no handle; on CUDA the NUMA ctor creates a
-// real pool. Either way the pool must be constructible and usable.
+// On HIP the shim deliberately holds no handle; on CUDA the default ctor
+// creates a real host pool. Either way the pool must be constructible and
+// usable.
 TEST_F(PinnedMemoryPoolTest, ConstructAndAllocate) {
-  gcxx::PinnedMemPool pool{0};  // NUMA node 0 (ignored by the HIP shim)
+  gcxx::PinnedMemPool pool{};  // default ctor on every backend
 #if GCXX_HIP_MODE()
   EXPECT_EQ(pool.getRawHandle(), nullptr);  // shim: no underlying pool handle
 #else
@@ -64,7 +65,7 @@ TEST_F(PinnedMemoryPoolTest, NoInitIsEmpty) {
 }
 
 TEST_F(PinnedMemoryPoolTest, StreamOrderedAllocateDeallocate) {
-  gcxx::PinnedMemPool pool{0};
+  gcxx::PinnedMemPool pool{};
   void* a = pool.allocate(gcxx::StreamView::Null(), 128);
   void* b = pool.allocate(gcxx::StreamView::Null(), 128);
   EXPECT_NE(a, nullptr);
@@ -75,20 +76,20 @@ TEST_F(PinnedMemoryPoolTest, StreamOrderedAllocateDeallocate) {
 }
 
 TEST_F(PinnedMemoryPoolTest, SyncAllocateDeallocate) {
-  gcxx::PinnedMemPool pool{0};
+  gcxx::PinnedMemPool pool{};
   void* ptr = pool.allocate_sync(256);
   EXPECT_NE(ptr, nullptr);
   pool.deallocate_sync(ptr);
 }
 
 TEST_F(PinnedMemoryPoolTest, AsRefEquality) {
-  gcxx::PinnedMemPool pool{0};
+  gcxx::PinnedMemPool pool{};
   gcxx::PinnedMemPoolView ref = pool.as_ref();
   EXPECT_TRUE(pool == ref);  // same underlying handle (null on the shim)
 }
 
 TEST_F(PinnedMemoryPoolTest, BacksABufferViaAsRef) {
-  gcxx::PinnedMemPool pool{0};
+  gcxx::PinnedMemPool pool{};
   gcxx::PinnedMemPoolView ref = pool.as_ref();
   // Pinned memory is device-accessible, so it can back a device buffer.
   gcxx::buffer<int, gcxx::device_accessible> buf(gcxx::StreamView::Null(), ref,
@@ -97,7 +98,7 @@ TEST_F(PinnedMemoryPoolTest, BacksABufferViaAsRef) {
 }
 
 TEST_F(PinnedMemoryPoolTest, ReleaseAndFromNativeHandle) {
-  gcxx::PinnedMemPool pool{0};
+  gcxx::PinnedMemPool pool{};
   auto handle = pool.release();
   EXPECT_EQ(pool.getRawHandle(), nullptr);  // ownership relinquished
 #if GCXX_HIP_MODE()
@@ -129,13 +130,13 @@ TEST_F(PinnedMemoryPoolTest, DefaultPinnedPoolRef) {
 #if GCXX_CUDA_MODE()
 TEST_F(PinnedMemoryPoolTest, TypedAttributeRoundTrip) {
   using gcxx::memory_pool_attributes::release_threshold;
-  gcxx::PinnedMemPool pool{0};
+  gcxx::PinnedMemPool pool{};
   pool.set_attribute(release_threshold, std::size_t{4096});
   EXPECT_EQ(pool.attribute(release_threshold), std::size_t{4096});
 }
 
 TEST_F(PinnedMemoryPoolTest, TrimTo) {
-  gcxx::PinnedMemPool pool{0};
+  gcxx::PinnedMemPool pool{};
   EXPECT_NO_THROW(pool.trim_to(0));
 }
 #endif  // GCXX_CUDA_MODE()
