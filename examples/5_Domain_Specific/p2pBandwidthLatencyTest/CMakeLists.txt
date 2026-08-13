@@ -1,0 +1,1 @@
+gcxx_add_example(NAME p2pBandwidthLatencyTest)

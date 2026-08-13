@@ -1,0 +1,1 @@
+gcxx_add_example(NAME EGLStream_CUDA_CrossGPU)

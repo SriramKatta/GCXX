@@ -5,12 +5,15 @@
 #define GCXX_BLAS_OPERATIONS_L2_L2_HPP_
 
 #include <gcxx/blas/operations/L2/gemv.hpp>
+<<<<<<< HEAD
 #include <gcxx/blas/operations/L2/ger.hpp>
 #include <gcxx/blas/operations/L2/symv.hpp>
 #include <gcxx/blas/operations/L2/syr.hpp>
 #include <gcxx/blas/operations/L2/syr2.hpp>
 #include <gcxx/blas/operations/L2/trmv.hpp>
 #include <gcxx/blas/operations/L2/trsv.hpp>
+=======
+>>>>>>> f6989c9 (Amending to new examples)
 #include <gcxx/internal/prologue.hpp>
 
 #endif

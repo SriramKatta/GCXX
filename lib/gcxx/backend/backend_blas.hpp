@@ -32,6 +32,7 @@
 #define GCXX_BLAS_DIAG(name) \
   GCXX_DIRECT_BACKEND_ALT(CUBLAS_DIAG_##name, HIPBLAS_DIAG_##name)
 
+<<<<<<< HEAD
 #define GCXX_BLAS_GEMM(name) \
   GCXX_DIRECT_BACKEND_ALT(CUBLAS_GEMM_##name, HIPBLAS_GEMM_##name)
 
@@ -39,4 +40,6 @@
   GCXX_DIRECT_BACKEND_ALT(CUBLAS_POINTER_MODE_##name, \
                           HIPBLAS_POINTER_MODE_##name)
 
+=======
+>>>>>>> f6989c9 (Amending to new examples)
 #endif

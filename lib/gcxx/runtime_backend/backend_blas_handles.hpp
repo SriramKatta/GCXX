@@ -26,6 +26,7 @@ inline constexpr deviceBlasStatus_t deviceBlasStatusSuccess =
 inline constexpr deviceBlasOp_t deviceBlasOpN = GCXX_BLAS_OP(N);
 inline constexpr deviceBlasOp_t deviceBlasOpT = GCXX_BLAS_OP(T);
 
+<<<<<<< HEAD
 // Side mode: which side of the matrix the vector operand applies to (dgmm).
 inline constexpr deviceBlasSideMode_t deviceBlasSideLeft = GCXX_BLAS_SIDE(LEFT);
 inline constexpr deviceBlasSideMode_t deviceBlasSideRight =
@@ -43,6 +44,10 @@ inline constexpr deviceBlasDiagType_t deviceBlasDiagNonUnit =
 inline constexpr deviceBlasDiagType_t deviceBlasDiagUnit = GCXX_BLAS_DIAG(UNIT);
 
 // Pointer mode: whether alpha/beta scalars are host- or device-resident.
+=======
+// Pointer-mode constants: whether scalar arguments (alpha/beta) are read from
+// host or device memory by the BLAS compute routines.
+>>>>>>> f6989c9 (Amending to new examples)
 inline constexpr deviceBlasPointerMode_t deviceBlasPointerModeHost =
   GCXX_BLAS_POINTER_MODE(HOST);
 inline constexpr deviceBlasPointerMode_t deviceBlasPointerModeDevice =

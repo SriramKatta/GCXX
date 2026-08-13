@@ -15,8 +15,12 @@
 #include <gcxx/blas/operations/side.hpp>
 #include <gcxx/blas/operations/symmetric.hpp>
 
+<<<<<<< HEAD
 // Per-level barrels.
 #include <gcxx/blas/operations/L1/L1.hpp>
+=======
+// Per-level barrels. Future: L1.hpp (vector-vector).
+>>>>>>> f6989c9 (Amending to new examples)
 #include <gcxx/blas/operations/L2/L2.hpp>
 #include <gcxx/blas/operations/L3/L3.hpp>
 

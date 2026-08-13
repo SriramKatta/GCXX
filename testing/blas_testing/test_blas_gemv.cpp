@@ -1,7 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
+<<<<<<< HEAD
 // End-to-end matrix_vector_product (P1673 gemv) tests via cuBLAS with
 // scaled() views and layout gates; GPU-gated, must still compile everywhere.
+=======
+//
+// End-to-end GEMV tests: y = alpha * op(A) * x + beta * y via cuBLAS,
+// compared against a host reference. GPU-gated — skipped when no device is
+// present, but the template must still compile (it instantiates gemv and its
+// cublasSgemv_v2 / Dgemv dispatch, plus the *_v2_64 64-bit-integer dispatch for
+// the int64_t index_type variant).
+>>>>>>> f6989c9 (Amending to new examples)
 
 #include "tests_common.hpp"
 
@@ -26,6 +35,7 @@ namespace {
   using mat_left = gcxx::mdspan<T, dextents2d<IndexT>, gcxx::layout_left,
                                 gcxx::default_accessor<T>>;
   template <class T, class IndexT>
+<<<<<<< HEAD
   using mat_right = gcxx::mdspan<T, dextents2d<IndexT>, gcxx::layout_right,
                                  gcxx::default_accessor<T>>;
 
@@ -45,6 +55,19 @@ namespace {
                  std::vector<T>& out, S alpha, S beta) {
     const int m = static_cast<int>(a.extent(0));
     const int k = static_cast<int>(a.extent(1));
+=======
+  using vec = gcxx::mdspan<T, dextents1d<IndexT>, gcxx::layout_left,
+                           gcxx::default_accessor<T>>;
+
+  // Column-major host reference: out = alpha * a * x + beta * yref, where a is
+  // (m x k), x is length k and out/yref are length m.
+  template <class T, class S>
+  void host_gemv(const mat_left<T, int>& a, const vec<T, int>& x,
+                 const vec<T, int>& yref, std::vector<T>& out, S alpha,
+                 S beta) {
+    const int m = a.extent(0);
+    const int k = a.extent(1);
+>>>>>>> f6989c9 (Amending to new examples)
     for (int i = 0; i < m; ++i) {
       S acc{};
       for (int p = 0; p < k; ++p) {
@@ -54,7 +77,14 @@ namespace {
     }
   }
 
+<<<<<<< HEAD
   // index_type picks the cu/hipblas entry: Sgemv_v2/Dgemv_v2 vs *_v2_64.
+=======
+  // Runs y = A * x for column-major double operands whose device mdspan
+  // index_type is IndexT — this is what selects the cu/hipblas integer
+  // interface (Sgemv_v2/Dgemv_v2 for int, the *_v2_64 entry for a 64-bit
+  // index_type).
+>>>>>>> f6989c9 (Amending to new examples)
   template <class IndexT>
   void run_colmajor_double_ax() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -77,7 +107,11 @@ namespace {
     vec<double, int> hostYref(hY.data(), M);
 
     std::vector<double> href(M);
+<<<<<<< HEAD
     host_gemv(hostA, hostX, hostYref, href, 1.0, 0.0);
+=======
+    host_gemv<double, double>(hostA, hostX, hostYref, href, 1.0, 0.0);
+>>>>>>> f6989c9 (Amending to new examples)
 
     gcxx::Stream str;
     auto dA =
@@ -87,6 +121,7 @@ namespace {
     gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
     gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(K));
 
+<<<<<<< HEAD
     dmat_left<double, IndexT> A(dA.get(), M, K);
     auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), K));
     auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), M));
@@ -94,6 +129,15 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::matrix_vector_product(handle, A, X, Y);
+=======
+    mat_left<double, IndexT> A(dA.get(), M, K);
+    auto X = gcxx::make_vector<IndexT>(gcxx::span(dX.get(), K));
+    auto Y = gcxx::make_vector<IndexT>(gcxx::span(dY.get(), M));
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::gemv(handle, 1.0, A, X, 0.0, Y);
+>>>>>>> f6989c9 (Amending to new examples)
     str.Synchronize();
 
     std::vector<double> hY_result(M);
@@ -105,6 +149,7 @@ namespace {
     }
   }
 
+<<<<<<< HEAD
   // Layout gate: row-major buffer must give same A*x and scaled accumulate.
   template <class IndexT>
   void run_rowmajor_and_scaled() {
@@ -236,6 +281,12 @@ namespace {
   }
 
   // device_scalar selects device pointer mode; both factors device-resident.
+=======
+  // Device-pointer-mode variant: alpha/beta live in device memory and are
+  // passed via gcxx::blas::device_scalar, selecting device pointer mode. Uses
+  // non-trivial alpha/beta and a non-zero y so both scalars are actually read.
+  // (Also serves as the compile check for the device_scalar dispatch branch.)
+>>>>>>> f6989c9 (Amending to new examples)
   template <class IndexT>
   void run_colmajor_double_ax_device_scalar() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -263,7 +314,11 @@ namespace {
     vec<double, int> hostYref(hY.data(), M);
 
     std::vector<double> href(M);
+<<<<<<< HEAD
     host_gemv(hostA, hostX, hostYref, href, alpha, beta);
+=======
+    host_gemv<double, double>(hostA, hostX, hostYref, href, alpha, beta);
+>>>>>>> f6989c9 (Amending to new examples)
 
     gcxx::Stream str;
     auto dA =
@@ -278,6 +333,7 @@ namespace {
     gcxx::Copy(str, dAlpha, &alpha, std::size_t{1});
     gcxx::Copy(str, dBeta, &beta, std::size_t{1});
 
+<<<<<<< HEAD
     dmat_left<double, IndexT> A(dA.get(), M, K);
     auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), K));
     auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), M));
@@ -287,6 +343,16 @@ namespace {
     gcxx::blas::matrix_vector_product(
       handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()}, A),
       X, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, Y), Y);
+=======
+    mat_left<double, IndexT> A(dA.get(), M, K);
+    auto X = gcxx::make_vector<IndexT>(gcxx::span(dX.get(), K));
+    auto Y = gcxx::make_vector<IndexT>(gcxx::span(dY.get(), M));
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::gemv(handle, gcxx::blas::device_scalar<double>{dAlpha.get()}, A,
+                     X, gcxx::blas::device_scalar<double>{dBeta.get()}, Y);
+>>>>>>> f6989c9 (Amending to new examples)
     str.Synchronize();
 
     std::vector<double> hY_result(M);
@@ -308,6 +374,7 @@ TEST(BlasGemv, ColMajorDouble_Ax_64bitIndex) {
   run_colmajor_double_ax<std::int64_t>();
 }
 
+<<<<<<< HEAD
 TEST(BlasGemv, RowMajorDouble_ScaledAccumulate) {
   run_rowmajor_and_scaled<int>();
 }
@@ -320,6 +387,8 @@ TEST(BlasGemv, TransposedOperand) {
   run_transposed_operand<int>();
 }
 
+=======
+>>>>>>> f6989c9 (Amending to new examples)
 TEST(BlasGemv, ColMajorDouble_Ax_DeviceScalar) {
   run_colmajor_double_ax_device_scalar<int>();
 }

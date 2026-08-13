@@ -1,0 +1,1 @@
+gcxx_add_example(NAME simpleCUFFT_2d_MGPU)
