@@ -14,7 +14,8 @@
 // Shared (non-level-specific) view helpers.
 #include <gcxx/blas/operations/transpose.hpp>
 
-// Per-level barrels. Future: L1.hpp (vector-vector), L2.hpp (matrix-vector).
+// Per-level barrels. Future: L1.hpp (vector-vector).
+#include <gcxx/blas/operations/L2/L2.hpp>
 #include <gcxx/blas/operations/L3/L3.hpp>
 
 #endif

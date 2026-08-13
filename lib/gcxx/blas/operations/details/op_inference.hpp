@@ -19,6 +19,13 @@ struct blas_matrix_view {
   driver::deviceBlasOp_t op;
 };
 
+GCXX_TEMPLATE(typename IdxT)
+GCXX_REQUIRES(std::is_integral_v<IdxT>)
+struct blas_vector_view {
+  IdxT length;  // number of elements
+  IdxT stride;  // increment between elements (incx / incy)
+};
+
 template <class MD>
 constexpr auto infer_blas_matrix_view(const MD& v)
   -> blas_matrix_view<typename MD::index_type> {
@@ -40,6 +47,14 @@ constexpr auto infer_blas_matrix_view(const MD& v)
   throw gcxx::blas::BlasException(
     GCXX_BLAS_STATUS(INVALID_VALUE),
     "BLAS matrix operand must have a unit stride on one axis");
+}
+
+// Infer the BLAS view (length + increment) of a rank-1 mdspan operand.
+template <class VD>
+constexpr auto infer_blas_vector_view(const VD& v)
+  -> blas_vector_view<typename VD::index_type> {
+  static_assert(VD::rank() == 1, "BLAS vector operand must be rank-1");
+  return {v.extent(0), v.stride(0)};
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
