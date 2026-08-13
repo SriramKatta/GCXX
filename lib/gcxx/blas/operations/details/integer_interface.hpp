@@ -31,3 +31,5 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
       OUT = ::GCXX_BLAS_BACKEND(FN)(__VA_ARGS__);                           \
     }                                                                       \
   } while (0)
+
+#endif

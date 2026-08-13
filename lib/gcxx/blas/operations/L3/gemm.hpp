@@ -38,8 +38,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // interface.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
-auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
-          C&& c) -> void {
+auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta, C&& c)
+  -> void {
 
   // local alias for easier refrence
   using A_t = std::decay_t<A>;
@@ -48,20 +48,20 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   using AVt = typename A_t::element_type;
   using BVt = typename B_t::element_type;
   using CVt = typename C_t::element_type;
+  using AIt = typename A_t::index_type;
+  using BIt = typename B_t::index_type;
+  using CIt = typename C_t::index_type;
 
   // static asserts to verify no funny business
   static_assert(A_t::rank() == 2 && B_t::rank() == 2 && C_t::rank() == 2,
                 "gemm operands must be rank-2 mdspans");
 
-  static_assert(gcxx::details_::all_same_v<typename A_t::index_type,
-                                           typename B_t::index_type,
-                                           typename C_t::index_type>,
+  static_assert(gcxx::details_::all_same_v<AIt, BIt, CIt>,
                 "gemm operands A, B, C must share the same mdspan index_type");
 
-  static_assert(
-    gcxx::blas::details_::is_supported_blas_index_v<typename A_t::index_type>,
-    "BLAS operands must use int32_t or int64_t as their "
-    "mdspan index_type");
+  static_assert(gcxx::blas::details_::is_supported_blas_index_v<AIt>,
+                "BLAS operands must use int32_t or int64_t as their "
+                "mdspan index_type");
 
 
   // TODO : LOCAL COPIES CAN BE DELETE AT THE END OF BLOCK BECUASE WE ARE
@@ -82,7 +82,7 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
 
   driver::deviceBlasStatus_t status;
   GCXX_BLAS_DISPATCH_INT64(
-    status, idx_t, GemmEx, h.getRawHandle(), op_a, op_b, m, n, k, &alpha_v,
+    status, AIt, GemmEx, h.getRawHandle(), op_a, op_b, m, n, k, &alpha_v,
     a.data_handle(), cuda_datatype_v<AVt>, ld_a, b.data_handle(),
     cuda_datatype_v<BVt>, ld_b, &beta_v, c.data_handle(), cuda_datatype_v<CVt>,
     ld_c, blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
