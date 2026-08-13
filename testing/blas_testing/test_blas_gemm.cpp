@@ -4,11 +4,13 @@
 // End-to-end GEMM tests: C = alpha * op(A) * op(B) + beta * C via cuBLAS,
 // compared against a host reference. GPU-gated — skipped when no device is
 // present, but the template must still compile (it instantiates gemm and its
-// typed cublas?gemm/hipblas?gemm dispatch).
+// cu/hipblasGemmEx dispatch, plus the GemmEx_64 64-bit-integer dispatch for the
+// int64_t index_type variant).
 
 #include "tests_common.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 #include <gcxx/blas_api.hpp>
@@ -18,17 +20,17 @@
 
 namespace {
 
-  using dextents2d = gcxx::dextents<int, 2>;
-  using def_acc_d  = gcxx::default_accessor<double>;
+  template <class IndexT>
+  using dextents2d = gcxx::dextents<IndexT, 2>;
 
-  template <class T>
-  using mat_left =
-    gcxx::mdspan<T, dextents2d, gcxx::layout_left, gcxx::default_accessor<T>>;
+  template <class T, class IndexT>
+  using mat_left = gcxx::mdspan<T, dextents2d<IndexT>, gcxx::layout_left,
+                                gcxx::default_accessor<T>>;
 
-  // Column-major host reference: cref = alpha * a * b + beta * cref.
+  // Column-major host reference: out = alpha * a * b + beta * cref.
   template <class T, class S>
-  void host_gemm(const mat_left<T>& a, const mat_left<T>& b,
-                 const mat_left<T>& cref, std::vector<T>& out, S alpha,
+  void host_gemm(const mat_left<T, int>& a, const mat_left<T, int>& b,
+                 const mat_left<T, int>& cref, std::vector<T>& out, S alpha,
                  S beta) {
     const int m = a.extent(0);
     const int k = a.extent(1);
@@ -44,57 +46,70 @@ namespace {
     }
   }
 
+  // Runs C = A * B for column-major double operands whose device mdspan
+  // index_type is IndexT — this is what selects the cu/hipblas integer
+  // interface (GemmEx for int, GemmEx_64 for a 64-bit index_type).
+  template <class IndexT>
+  void run_colmajor_double_ab() {
+    if (!gcxx::testing::haveCudaDevice()) {
+      GTEST_SKIP() << "No CUDA device available";
+    }
+
+    constexpr int M = 3;
+    constexpr int K = 4;
+    constexpr int N = 5;
+
+    std::vector<double> hA(M * K), hB(K * N), hC(M * N, 0.0);
+    for (int i = 0; i < M * K; ++i) {
+      hA[i] = static_cast<double>(i + 1);
+    }
+    for (int i = 0; i < K * N; ++i) {
+      hB[i] = static_cast<double>((i % 3) - 1);
+    }
+
+    mat_left<double, int> hostA(hA.data(), M, K);
+    mat_left<double, int> hostB(hB.data(), K, N);
+    mat_left<double, int> hostCref(hC.data(), M, N);
+
+    std::vector<double> href(M * N);
+    host_gemm<double, double>(hostA, hostB, hostCref, href, 1.0, 0.0);
+
+    gcxx::Stream str;
+    auto dA =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
+    auto dB =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K * N));
+    auto dC =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * N));
+    gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dB.get(), hB.data(), static_cast<std::size_t>(K * N));
+
+    mat_left<double, IndexT> A(dA.get(), M, K);
+    mat_left<double, IndexT> B(dB.get(), K, N);
+    mat_left<double, IndexT> C(dC.get(), M, N);
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::gemm(handle, 1.0, A, B, 0.0, C);
+    str.Synchronize();
+
+    std::vector<double> hC_result(M * N);
+    gcxx::Copy(str, hC_result.data(), dC.get(),
+               static_cast<std::size_t>(M * N));
+    str.Synchronize();
+
+    for (int i = 0; i < M * N; ++i) {
+      EXPECT_NEAR(hC_result[i], href[i], 1e-9)
+        << "mismatch at linear index " << i;
+    }
+  }
+
 }  // namespace
 
 TEST(BlasGemm, ColMajorDouble_AB) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  run_colmajor_double_ab<int>();
+}
 
-  constexpr int M = 3;
-  constexpr int K = 4;
-  constexpr int N = 5;
-
-  std::vector<double> hA(M * K), hB(K * N), hC(M * N, 0.0);
-  for (int i = 0; i < M * K; ++i) {
-    hA[i] = static_cast<double>(i + 1);
-  }
-  for (int i = 0; i < K * N; ++i) {
-    hB[i] = static_cast<double>((i % 3) - 1);
-  }
-
-  mat_left<double> hostA(hA.data(), M, K);
-  mat_left<double> hostB(hB.data(), K, N);
-  mat_left<double> hostCref(hC.data(), M, N);
-
-  std::vector<double> href(M * N);
-  host_gemm<double, double>(hostA, hostB, hostCref, href, 1.0, 0.0);
-
-  gcxx::Stream str;
-  auto dA =
-    gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
-  auto dB =
-    gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K * N));
-  auto dC =
-    gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * N));
-  gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
-  gcxx::Copy(str, dB.get(), hB.data(), static_cast<std::size_t>(K * N));
-
-  mat_left<double> A(dA.get(), M, K);
-  mat_left<double> B(dB.get(), K, N);
-  mat_left<double> C(dC.get(), M, N);
-
-  gcxx::blas::BlasHandle handle;
-  handle.setStream(str);
-  gcxx::blas::gemm(handle, 1.0, A, B, 0.0, C);
-  str.Synchronize();
-
-  std::vector<double> hC_result(M * N);
-  gcxx::Copy(str, hC_result.data(), dC.get(), static_cast<std::size_t>(M * N));
-  str.Synchronize();
-
-  for (int i = 0; i < M * N; ++i) {
-    EXPECT_NEAR(hC_result[i], href[i], 1e-9)
-      << "mismatch at linear index " << i;
-  }
+TEST(BlasGemm, ColMajorDouble_AB_64bitIndex) {
+  run_colmajor_double_ab<std::int64_t>();
 }
