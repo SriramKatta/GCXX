@@ -51,6 +51,16 @@ enum class MemAccessFlags : details_::flag_t {
   ReadWrite = GCXX_RUNTIME_BACKEND(MemAccessFlagsProtReadWrite),
 };
 
+enum class memAttach : details_::flag_t {
+  /// Memory is accessible from any stream on any device (cudaMemAttachGlobal).
+  Global = GCXX_RUNTIME_BACKEND(MemAttachGlobal),
+  /// Memory is attached to the host and inaccessible from the device until it
+  /// is attached back to a stream (cudaMemAttachHost).
+  Host = GCXX_RUNTIME_BACKEND(MemAttachHost),
+  /// Memory is accessible only from the stream it was attached to
+  /// (cudaMemAttachSingle). This is the default attachment behavior.
+  Single = GCXX_RUNTIME_BACKEND(MemAttachSingle),
+};
 
 enum class MemPoolAttr : details_::flag_t {
   FollowEventDependencies =

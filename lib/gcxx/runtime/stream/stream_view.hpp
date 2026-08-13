@@ -5,8 +5,11 @@
 #define GCXX_RUNTIME_STREAM_STREAM_VIEW_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/macros/template_helper_macros.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
+#include <gcxx/runtime/flags/memory_flags.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
+#include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime_backend/backend_handles.hpp>
 #include <gcxx/runtime_backend/backend_stream.hpp>
 
@@ -48,6 +51,18 @@ class StreamView {
   GCXX_FH auto RecordEvent(
     flags::eventCreate createflag = flags::eventCreate::None,
     flags::eventRecord recordFlag = flags::eventRecord::None) const -> Event;
+
+  // TODO : NO op in hip
+  GCXX_TEMPLATE(typename Span)
+  GCXX_REQUIRES(is_span_like_v<Span>)
+  GCXX_FH auto AttachMemAsync(
+    Span&& mem,
+    flags::memAttach flag = flags::memAttach::Single) const -> void {
+    driver::streamAttachMemAsync(
+      m_stream, static_cast<void*>(details_::to_address(details_::data(mem))),
+      details_::size(mem) * sizeof(span_element_t<Span>),
+      static_cast<details_::flag_t>(flag));
+  }
 
   GCXX_FHDC auto isNullStream() const -> bool {
     return m_stream == driver::NULL_STREAM;
