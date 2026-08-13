@@ -17,6 +17,9 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
+#define GCXX_BLAS_GEMM(name) \
+  GCXX_DIRECT_BACKEND_ALT(CUBLAS_GEMM_##name, HIPBLAS_GEMM_##name)
+
 // Matrix-matrix product C = alpha * op(A) * op(B) + beta * C.
 //
 // A, B, and C are rank-2 mdspan objects. The effective dimensions, layout, and
@@ -91,6 +94,8 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     details_::throwBlasError(status, "gemm failed");
   }
 }
+
+#undef GCXX_BLAS_GEMM
 
 GCXX_NAMESPACE_MAIN_BLAS_END()
 

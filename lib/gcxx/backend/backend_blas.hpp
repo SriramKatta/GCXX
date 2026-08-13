@@ -27,7 +27,4 @@
   GCXX_DIRECT_BACKEND_ALT(CUBLAS_POINTER_MODE_##name, \
                           HIPBLAS_POINTER_MODE_##name)
 
-#define GCXX_BLAS_GEMM(name) \
-  GCXX_DIRECT_BACKEND_ALT(CUBLAS_GEMM_##name, HIPBLAS_GEMM_##name)
-
 #endif
