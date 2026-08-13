@@ -60,6 +60,20 @@ struct is_span_like_impl<T, std::void_t<decltype(std::declval<T&>().data()),
         std::is_pointer_v<decltype(std::declval<T&>().data())> &&
         std::is_integral_v<decltype(std::declval<T&>().size())>> {};
 
+// std::remove_pointer does not strip __restrict__: a restrict-qualified
+// pointer (e.g. restrict_span's data_handle_type = VT* __restrict__) is a
+// distinct type that libstdc++'s remove_pointer leaves untouched. Without
+// this, span_element_t<restrict_span<T>> would yield the *pointer* type and
+// sizeof(span_element_t<...>) would report pointer-size, not element-size.
+template <typename T>
+struct strip_pointer : std::remove_pointer<T> {};
+template <typename T>
+struct strip_pointer<T * GCXX_RESTRICT_KEYWORD()> {
+  using type = T;
+};
+template <typename T>
+using strip_pointer_t = typename strip_pointer<T>::type;
+
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                      Span Storage                      █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
@@ -539,7 +553,7 @@ restrict_span(R&&)
 /// Element type of any span-like type: the pointee of .data().
 /// Works with references and cv-qualified types.
 template <typename T>
-using span_element_t = std::remove_pointer_t<decltype(details_::data(
+using span_element_t = details_::strip_pointer_t<decltype(details_::data(
   std::declval<details_::remove_cvref_t<T>&>()))>;
 
 /// True for any T that exposes .data() → pointer and .size() → integral.
@@ -547,6 +561,7 @@ using span_element_t = std::remove_pointer_t<decltype(details_::data(
 /// std::array, and any user type with those two members.
 template <typename T>
 GCXX_CONCEPT is_span_like_v =
+  details_::is_gcxx_span_specialization_v<T> ||
   details_::is_span_like_impl<details_::remove_cvref_t<T>>::value;
 
 /// True when T is span-like and its element type is array-convertible to ET.
