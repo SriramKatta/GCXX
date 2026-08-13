@@ -26,6 +26,13 @@ using type_identity_t = typename type_identity<_Tp>::type;
 template <class... VT>
 inline constexpr bool is_always_false_v = false;
 
+// True when every passed type is the same (empty or single-type pack is true)
+template <typename T, typename... Ts>
+struct all_same : std::bool_constant<(std::is_same_v<T, Ts> && ...)> {};
+
+template <typename T, typename... Ts>
+GCXX_CXPR inline bool all_same_v = all_same<T, Ts...>::value;
+
 // Primary template: not a void function pointer
 template <typename VT>
 struct is_void_function_pointer : std::false_type {};
