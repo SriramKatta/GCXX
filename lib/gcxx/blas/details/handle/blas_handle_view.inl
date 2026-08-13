@@ -23,6 +23,14 @@ GCXX_FH auto BlasHandleView::getStream() const -> gcxx::StreamView {
   return gcxx::StreamView{driver::blasGetStream(m_handle)};
 }
 
+GCXX_FH auto BlasHandleView::setPointerMode(pointer_mode_type mode) -> void {
+  driver::blasSetPointerMode(m_handle, mode);
+}
+
+GCXX_FH auto BlasHandleView::getPointerMode() const -> pointer_mode_type {
+  return driver::blasGetPointerMode(m_handle);
+}
+
 GCXX_FH auto BlasHandleView::getVersion() const -> int {
   return driver::blasGetVersion(m_handle);
 }

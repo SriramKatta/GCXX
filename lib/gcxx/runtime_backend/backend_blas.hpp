@@ -33,6 +33,20 @@ GCXX_FH auto blasGetStream(deviceBlasHandle_t handle) -> deviceStream_t {
   return stream;
 }
 
+GCXX_FH auto blasSetPointerMode(deviceBlasHandle_t handle,
+                                deviceBlasPointerMode_t mode) -> void {
+  GCXX_SAFE_BLAS_CALL(SetPointerMode, "Failed to set BLAS pointer mode", handle,
+                      mode);
+}
+
+GCXX_FH auto blasGetPointerMode(deviceBlasHandle_t handle)
+  -> deviceBlasPointerMode_t {
+  deviceBlasPointerMode_t mode{};
+  GCXX_SAFE_BLAS_CALL(GetPointerMode, "Failed to get BLAS pointer mode", handle,
+                      &mode);
+  return mode;
+}
+
 GCXX_FH auto blasGetVersion(deviceBlasHandle_t handle) -> int {
 #if GCXX_CUDA_MODE()
   int version{};

@@ -37,7 +37,8 @@ namespace {
   // (m x k), x is length k and out/yref are length m.
   template <class T, class S>
   void host_gemv(const mat_left<T, int>& a, const vec<T, int>& x,
-                 const vec<T, int>& yref, std::vector<T>& out, S alpha, S beta) {
+                 const vec<T, int>& yref, std::vector<T>& out, S alpha,
+                 S beta) {
     const int m = a.extent(0);
     const int k = a.extent(1);
     for (int i = 0; i < m; ++i) {
@@ -71,8 +72,8 @@ namespace {
     }
 
     mat_left<double, int> hostA(hA.data(), M, K);
-    vec<double, int>      hostX(hX.data(), K);
-    vec<double, int>      hostYref(hY.data(), M);
+    vec<double, int> hostX(hX.data(), K);
+    vec<double, int> hostYref(hY.data(), M);
 
     std::vector<double> href(M);
     host_gemv<double, double>(hostA, hostX, hostYref, href, 1.0, 0.0);
@@ -99,8 +100,72 @@ namespace {
     str.Synchronize();
 
     for (int i = 0; i < M; ++i) {
-      EXPECT_NEAR(hY_result[i], href[i], 1e-9)
-        << "mismatch at index " << i;
+      EXPECT_NEAR(hY_result[i], href[i], 1e-9) << "mismatch at index " << i;
+    }
+  }
+
+  // Device-pointer-mode variant: alpha/beta live in device memory and are
+  // passed via gcxx::blas::device_scalar, selecting device pointer mode. Uses
+  // non-trivial alpha/beta and a non-zero y so both scalars are actually read.
+  // (Also serves as the compile check for the device_scalar dispatch branch.)
+  template <class IndexT>
+  void run_colmajor_double_ax_device_scalar() {
+    if (!gcxx::testing::haveCudaDevice()) {
+      GTEST_SKIP() << "No CUDA device available";
+    }
+
+    constexpr int M = 3;
+    constexpr int K = 4;
+    double alpha    = 2.0;
+    double beta     = 1.0;
+
+    std::vector<double> hA(M * K), hX(K), hY(M);
+    for (int i = 0; i < M * K; ++i) {
+      hA[i] = static_cast<double>(i + 1);
+    }
+    for (int i = 0; i < K; ++i) {
+      hX[i] = static_cast<double>((i % 3) - 1);
+    }
+    for (int i = 0; i < M; ++i) {
+      hY[i] = static_cast<double>(i);
+    }
+
+    mat_left<double, int> hostA(hA.data(), M, K);
+    vec<double, int> hostX(hX.data(), K);
+    vec<double, int> hostYref(hY.data(), M);
+
+    std::vector<double> href(M);
+    host_gemv<double, double>(hostA, hostX, hostYref, href, alpha, beta);
+
+    gcxx::Stream str;
+    auto dA =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
+    auto dX = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K));
+    auto dY = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M));
+    auto dAlpha = gcxx::make_device_unique_ptr<double>(std::size_t{1});
+    auto dBeta  = gcxx::make_device_unique_ptr<double>(std::size_t{1});
+    gcxx::Copy(str, dA, hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dX, hX.data(), static_cast<std::size_t>(K));
+    gcxx::Copy(str, dY, hY.data(), static_cast<std::size_t>(M));
+    gcxx::Copy(str, dAlpha, &alpha, std::size_t{1});
+    gcxx::Copy(str, dBeta, &beta, std::size_t{1});
+
+    mat_left<double, IndexT> A(dA.get(), M, K);
+    auto X = gcxx::make_vector<IndexT>(gcxx::span(dX.get(), K));
+    auto Y = gcxx::make_vector<IndexT>(gcxx::span(dY.get(), M));
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::gemv(handle, gcxx::blas::device_scalar<double>{dAlpha.get()}, A,
+                     X, gcxx::blas::device_scalar<double>{dBeta.get()}, Y);
+    str.Synchronize();
+
+    std::vector<double> hY_result(M);
+    gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(M));
+    str.Synchronize();
+
+    for (int i = 0; i < M; ++i) {
+      EXPECT_NEAR(hY_result[i], href[i], 1e-9) << "mismatch at index " << i;
     }
   }
 
@@ -112,4 +177,8 @@ TEST(BlasGemv, ColMajorDouble_Ax) {
 
 TEST(BlasGemv, ColMajorDouble_Ax_64bitIndex) {
   run_colmajor_double_ax<std::int64_t>();
+}
+
+TEST(BlasGemv, ColMajorDouble_Ax_DeviceScalar) {
+  run_colmajor_double_ax_device_scalar<int>();
 }

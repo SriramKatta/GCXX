@@ -20,7 +20,8 @@ class BlasHandleView {
   deviceBlasHandle_t m_handle{nullptr};
 
  public:
-  using raw_handle_type = driver::deviceBlasHandle_t;
+  using raw_handle_type   = driver::deviceBlasHandle_t;
+  using pointer_mode_type = driver::deviceBlasPointerMode_t;
 
   BlasHandleView()               = delete;
   BlasHandleView(int)            = delete;
@@ -37,6 +38,16 @@ class BlasHandleView {
   GCXX_FH auto getStream() const -> gcxx::StreamView;
 
   // ╔════════════════════════════════════════════════════════╗
+  // ║                    Pointer mode                        ║
+  // ╚════════════════════════════════════════════════════════╝
+
+  // Controls whether scalar arguments (alpha/beta) to BLAS routines are read
+  // from host or device memory.
+  GCXX_FH auto setPointerMode(pointer_mode_type mode) -> void;
+
+  GCXX_FH auto getPointerMode() const -> pointer_mode_type;
+
+  // ╔════════════════════════════════════════════════════════╗
   // ║                     Introspection                      ║
   // ╚════════════════════════════════════════════════════════╝
 
@@ -50,6 +61,10 @@ class BlasHandleView {
   GCXX_FHC auto operator==(const BlasHandleView& rhs) const noexcept -> bool;
   GCXX_FHC auto operator!=(const BlasHandleView& rhs) const noexcept -> bool;
 };
+
+// Pointer-mode values for explicit setPointerMode/getPointerMode use.
+GCXX_CXPR inline auto host_pointer_mode   = driver::deviceBlasPointerModeHost;
+GCXX_CXPR inline auto device_pointer_mode = driver::deviceBlasPointerModeDevice;
 
 GCXX_NAMESPACE_MAIN_BLAS_END()
 

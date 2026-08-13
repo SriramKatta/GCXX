@@ -25,6 +25,13 @@ inline constexpr deviceBlasStatus_t deviceBlasStatusSuccess =
 inline constexpr deviceBlasOp_t deviceBlasOpN = GCXX_BLAS_OP(N);
 inline constexpr deviceBlasOp_t deviceBlasOpT = GCXX_BLAS_OP(T);
 
+// Pointer-mode constants: whether scalar arguments (alpha/beta) are read from
+// host or device memory by the BLAS compute routines.
+inline constexpr deviceBlasPointerMode_t deviceBlasPointerModeHost =
+  GCXX_BLAS_POINTER_MODE(HOST);
+inline constexpr deviceBlasPointerMode_t deviceBlasPointerModeDevice =
+  GCXX_BLAS_POINTER_MODE(DEVICE);
+
 GCXX_NAMESPACE_MAIN_DRIVER_END()
 
 #endif

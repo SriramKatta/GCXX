@@ -9,11 +9,13 @@
 #include <gcxx/blas/datatypes/datatypes.hpp>
 #include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/blas/handle/blas_handle_view.hpp>
+#include <gcxx/blas/handle/blas_pointer_mode_guard.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
+#include <gcxx/blas/operations/details/scalar.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
-#include <gcxx/runtime_backend/backend_blas_handles.hpp>
+#include <gcxx/runtime_backend/backend_blas.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
@@ -33,14 +35,19 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 //   gcxx::blas::gemv(h, 1.0, blas::transpose(A), x, 0.0, y); // computes y =
 //   A^T * x
 //
+// alpha/beta may be passed either as host scalars (host pointer mode) or as
+// gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer mode).
+// The mode is selected per call from the argument type; the handle's prior
+// pointer mode is restored when the call returns.
+//
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cublas*gemv_64 entry point
 // (int64_t dimensions), while all other index_types use the standard 32-bit
 // interface.
 template <class A, class X, class Y,
           class S = typename std::decay_t<Y>::element_type>
-auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta, Y&& y)
-  -> void {
+auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta,
+          Y&& y) -> void {
 
   // local alias for easier refrence
   using A_t = std::decay_t<A>;
@@ -52,6 +59,12 @@ auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta, Y&& y)
   using AIt = typename A_t::index_type;
   using XIt = typename X_t::index_type;
   using YIt = typename Y_t::index_type;
+
+  // Value type carried by alpha/beta: unwraps device_scalar<T> -> T. A
+  // device_scalar argument selects device pointer mode; a plain scalar selects
+  // host mode.
+  using Sv                   = details_::scalar_value_t<S>;
+  constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
   // static asserts to verify no funny business
   static_assert(A_t::rank() == 2 && X_t::rank() == 1 && Y_t::rank() == 1,
@@ -66,8 +79,9 @@ auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta, Y&& y)
 
   // The typed gemv backend routines require A, x, y, alpha and beta to share a
   // single element type.
-  static_assert(gcxx::details_::all_same_v<AVt, XVt, YVt>,
-                "gemv operands A, x, y must share the same element type");
+  static_assert(gcxx::details_::all_same_v<Sv, AVt, XVt, YVt>,
+                "gemv alpha/beta value type must match the operands' element "
+                "type");
 
   // TODO: support complex element types via cublasCgemv / cublasZgemv
   //       (cublas_v2.h aliases these to the *_v2 forms; hipBLAS uses them
@@ -79,10 +93,23 @@ auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta, Y&& y)
                 "gemv currently supports only float/double element types "
                 "(complex support is a TODO)");
 
-  // TODO : LOCAL COPIES CAN BE DELETED AT THE END OF BLOCK BECUASE WE ARE
-  // DEFAULTING TO CUBLAS_POINTER_MODE_HOST TO BE CHNAGED LATER
-  S alpha_v = alpha;
-  S beta_v  = beta;
+  // Select the pointer mode for this call and restore the prior mode on scope
+  // exit. Host mode reads alpha/beta from the by-value parameters; device mode
+  // reads them from the device pointers carried by device_scalar (no host copy,
+  // no host-side dereference).
+  details_::BlasPointerModeGuard guard{
+    h, device_mode ? driver::deviceBlasPointerModeDevice
+                   : driver::deviceBlasPointerModeHost};
+
+  const Sv* alpha_ptr{};
+  const Sv* beta_ptr{};
+  if constexpr (device_mode) {
+    alpha_ptr = alpha.ptr;
+    beta_ptr  = beta.ptr;
+  } else {
+    alpha_ptr = &alpha;
+    beta_ptr  = &beta;
+  }
 
   // extract problem dimensions
   const auto [m, n, ld_a, op_a] = details_::infer_blas_matrix_view(a);
@@ -94,10 +121,9 @@ auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta, Y&& y)
   (void)len_y;
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(
-    status, AIt, AVt, GEMV, h.getRawHandle(), op_a, m, n, &alpha_v,
-    a.data_handle(), ld_a, x.data_handle(), inc_x, &beta_v, y.data_handle(),
-    inc_y);
+  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, GEMV, h.getRawHandle(), op_a, m, n,
+                           alpha_ptr, a.data_handle(), ld_a, x.data_handle(),
+                           inc_x, beta_ptr, y.data_handle(), inc_y);
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "gemv failed");

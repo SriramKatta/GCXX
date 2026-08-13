@@ -3,6 +3,7 @@ set(SRC_BASE_NAMES
     test_blas_transpose
     test_blas_gemm
     test_blas_gemv
+    test_blas_pointer_mode
 )
 
 foreach(SRC_BASE_NAME IN LISTS SRC_BASE_NAMES)
