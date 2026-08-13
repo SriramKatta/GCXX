@@ -38,8 +38,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // interface.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
-auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta, C&& c)
-  -> void {
+auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
+          C&& c) -> void {
 
   // local alias for easier refrence
   using A_t = std::decay_t<A>;
