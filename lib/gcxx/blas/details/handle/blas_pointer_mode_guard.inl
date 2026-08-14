@@ -11,12 +11,23 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 GCXX_FH BlasPointerModeGuard::BlasPointerModeGuard(
   BlasHandleView h, driver::deviceBlasPointerMode_t mode)
     : m_handle(h) {
-  m_saved = m_handle.getPointerMode();
-  m_handle.setPointerMode(mode);
+  m_saved   = m_handle.getPointerMode();
+  m_changed = m_saved != mode;
+  if (m_changed) {
+    m_handle.setPointerMode(mode);
+  }
+}
+
+GCXX_FH BlasPointerModeGuard::BlasPointerModeGuard(BlasHandleView h,
+                                                   bool device_mode)
+    : BlasPointerModeGuard(h, device_mode ? driver::deviceBlasPointerModeDevice
+                                          : driver::deviceBlasPointerModeHost) {
 }
 
 GCXX_FH BlasPointerModeGuard::~BlasPointerModeGuard() {
-  m_handle.setPointerMode(m_saved);
+  if (m_changed) {
+    m_handle.setPointerMode(m_saved);
+  }
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()

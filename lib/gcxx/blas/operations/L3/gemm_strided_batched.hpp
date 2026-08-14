@@ -39,6 +39,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasGemmStridedBatchedEx_64
 // entry point, while all other index_types use the standard 32-bit interface.
+//
+// A, B, and C must be device views: rank-3 mdspans carrying
+// gcxx::device_accessor / gcxx::managed_accessor. Host views are rejected at
+// compile time; in check builds the base data handles are additionally probed
+// at run time so a mislabeled host pointer fails here, not inside the GPU
+// kernel.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
 auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
@@ -79,6 +85,11 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
     !details_::is_device_scalar_v<S>,
     "gemm_strided_batched only supports host alpha/beta scalars (device "
     "pointer mode would require device-side scalar storage)");
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(a, "A");
+  details_::validate_device_view(b, "B");
+  details_::validate_device_view(c, "C");
 
   // extract problem dimensions
   const auto [m, k, ld_a, batch_a, stride_a, op_a] =

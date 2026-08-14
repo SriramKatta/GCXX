@@ -38,6 +38,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasSgeam_64 (Dgeam_64) entry
 // point, while all other index_types use the standard 32-bit interface.
+//
+// A, B, and C must be device views: mdspans carrying gcxx::device_accessor /
+// gcxx::managed_accessor (e.g. gcxx::device_mdspan). Host views are rejected
+// at compile time; in check builds the data handles are additionally probed
+// at run time so a mislabeled host pointer fails here, not inside the GPU
+// kernel.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
 auto geam(BlasHandleView h, S alpha, const A& a, S beta, const B& b,
@@ -91,6 +97,11 @@ auto geam(BlasHandleView h, S alpha, const A& a, S beta, const B& b,
 
   const Sv* alpha_ptr = details_::blas_scalar_ptr(alpha);
   const Sv* beta_ptr  = details_::blas_scalar_ptr(beta);
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(a, "A");
+  details_::validate_device_view(b, "B");
+  details_::validate_device_view(c, "C");
 
   // extract problem dimensions: A's logical (post-op) extent defines (m, n)
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);

@@ -13,9 +13,14 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 // RAII guard for a BLAS handle's pointer mode.
 class [[maybe_unused]] BlasPointerModeGuard {
  public:
-  // Saves the handle's current pointer mode, then switches it to `mode`.
+  // Saves the handle's current pointer mode, then switches it to `mode`. When
+  // the handle already is in `mode` no backend call is made
   GCXX_FH BlasPointerModeGuard(BlasHandleView h,
                                driver::deviceBlasPointerMode_t mode);
+
+  // Convenience overload selecting host/device mode from whether the scalar
+  // argument was a device_scalar.
+  GCXX_FH BlasPointerModeGuard(BlasHandleView h, bool device_mode);
 
   // Restores the pointer mode saved at construction.
   GCXX_FH ~BlasPointerModeGuard();
@@ -28,6 +33,7 @@ class [[maybe_unused]] BlasPointerModeGuard {
  private:
   BlasHandleView m_handle;
   driver::deviceBlasPointerMode_t m_saved{};
+  bool m_changed{false};
 };
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()

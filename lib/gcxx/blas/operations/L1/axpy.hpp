@@ -37,6 +37,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasAxpyEx_64 entry point,
 // while all other index_types use the standard 32-bit interface.
+//
+// x and y must be device views: mdspans carrying gcxx::device_accessor /
+// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
+// rejected at compile time; in check builds the data handles are
+// additionally probed at run time so a mislabeled host pointer fails here,
+// not inside the GPU kernel.
 template <class X, class Y, class S = typename std::decay_t<X>::element_type>
 auto axpy(BlasHandleView h, S alpha, const X& x, Y&& y) -> void {
 
@@ -79,6 +85,10 @@ auto axpy(BlasHandleView h, S alpha, const X& x, Y&& y) -> void {
   details_::BlasPointerModeGuard guard{h, device_mode};
 
   const Sv* alpha_ptr = details_::blas_scalar_ptr(alpha);
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(x, "x");
+  details_::validate_device_view(y, "y");
 
   // extract problem dimensions
   const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);

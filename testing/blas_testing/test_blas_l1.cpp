@@ -40,8 +40,8 @@ namespace {
     gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
     gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
 
-    auto X = gcxx::make_vector<IndexT>(gcxx::span(dX.get(), N));
-    auto Y = gcxx::make_vector<IndexT>(gcxx::span(dY.get(), N));
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -78,8 +78,8 @@ namespace {
     gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
     gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
 
-    auto X = gcxx::make_vector<IndexT>(gcxx::span(dX.get(), N));
-    auto Y = gcxx::make_vector<IndexT>(gcxx::span(dY.get(), N));
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);

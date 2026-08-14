@@ -12,9 +12,11 @@
 #include <gcxx/blas/type_map.hpp>
 
 // Shared (non-level-specific) view helpers.
+#include <gcxx/blas/operations/side.hpp>
 #include <gcxx/blas/operations/transpose.hpp>
 
-// Per-level barrels. Future: L1.hpp (vector-vector).
+// Per-level barrels.
+#include <gcxx/blas/operations/L1/L1.hpp>
 #include <gcxx/blas/operations/L2/L2.hpp>
 #include <gcxx/blas/operations/L3/L3.hpp>
 

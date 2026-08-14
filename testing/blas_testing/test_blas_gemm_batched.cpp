@@ -41,6 +41,15 @@ namespace {
                                  gcxx::layout_left,
                                  gcxx::default_accessor<double>>;
 
+  // Device-memory counterparts required by the gcxx::blas operations.
+  template <class IndexT>
+  using dmat2d =
+    gcxx::device_mdspan<double, gcxx::dextents<IndexT, 2>, gcxx::layout_left>;
+
+  template <class IndexT>
+  using dmat3_left =
+    gcxx::device_mdspan<double, gcxx::dextents<IndexT, 3>, gcxx::layout_left>;
+
   // Column-major host reference: out_b = a_b * b_b, where a_b is (m x k), b_b
   // is (k x n) and out_b is (m x n), for each batch element b.
   void host_gemm3(const std::vector<double>& a, const std::vector<double>& b,
@@ -92,7 +101,7 @@ namespace {
 
     gcxx::Stream str;
     std::vector<gcxx::device_ptr<double>> dAs, dBs, dCs;
-    std::vector<mat2d<IndexT>>             aViews, bViews, cViews;
+    std::vector<dmat2d<IndexT>>            aViews, bViews, cViews;
     for (int i = 0; i < B; ++i) {
       dAs.push_back(gcxx::make_device_unique_ptr<double>(std::size_t{M * K}));
       dBs.push_back(gcxx::make_device_unique_ptr<double>(std::size_t{K * N}));
@@ -144,9 +153,9 @@ namespace {
     gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * K * B});
     gcxx::Copy(str, dB.get(), hB.data(), std::size_t{K * N * B});
 
-    mat3_left<IndexT> A(dA.get(), M, K, B);
-    mat3_left<IndexT> B3(dB.get(), K, N, B);
-    mat3_left<IndexT> C(dC.get(), M, N, B);
+    dmat3_left<IndexT> A(dA.get(), M, K, B);
+    dmat3_left<IndexT> B3(dB.get(), K, N, B);
+    dmat3_left<IndexT> C(dC.get(), M, N, B);
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);

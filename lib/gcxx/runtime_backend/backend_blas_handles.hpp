@@ -17,6 +17,7 @@ using deviceBlasHandle_t = GCXX_BLAS_BACKEND(Handle_t);
 // hipblas* on HIP).
 using deviceBlasOp_t          = GCXX_BLAS_BACKEND(Operation_t);
 using deviceBlasPointerMode_t = GCXX_BLAS_BACKEND(PointerMode_t);
+using deviceBlasSideMode_t    = GCXX_BLAS_BACKEND(SideMode_t);
 
 inline constexpr deviceBlasStatus_t deviceBlasStatusSuccess =
   GCXX_BLAS_STATUS(SUCCESS);
@@ -24,6 +25,12 @@ inline constexpr deviceBlasStatus_t deviceBlasStatusSuccess =
 // Operation constants shared by the Level-3 wrappers.
 inline constexpr deviceBlasOp_t deviceBlasOpN = GCXX_BLAS_OP(N);
 inline constexpr deviceBlasOp_t deviceBlasOpT = GCXX_BLAS_OP(T);
+
+// Side-mode constants: which side of the matrix a vector operand applies to
+// (cublasSideMode_t / hipblasSideMode_t), used by dgmm and friends.
+inline constexpr deviceBlasSideMode_t deviceBlasSideLeft = GCXX_BLAS_SIDE(LEFT);
+inline constexpr deviceBlasSideMode_t deviceBlasSideRight =
+  GCXX_BLAS_SIDE(RIGHT);
 
 // Pointer-mode constants: whether scalar arguments (alpha/beta) are read from
 // host or device memory by the BLAS compute routines.

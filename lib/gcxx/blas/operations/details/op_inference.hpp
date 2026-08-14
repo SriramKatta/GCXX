@@ -46,12 +46,46 @@ struct blas_matrix_view {
   driver::deviceBlasOp_t op;
 };
 
+// Stride pair of a rank-2 (or inner rank-2 of a higher-rank) matrix operand.
+GCXX_TEMPLATE(typename IdxT)
+GCXX_REQUIRES(std::is_integral_v<IdxT>)
+struct blas_op_view {
+  IdxT leading_dimension;
+  driver::deviceBlasOp_t op;
+};
+
 GCXX_TEMPLATE(typename IdxT)
 GCXX_REQUIRES(std::is_integral_v<IdxT>)
 struct blas_vector_view {
   IdxT length;  // number of elements
   IdxT stride;  // increment between elements (incx / incy)
 };
+
+GCXX_TEMPLATE(typename IdxT)
+GCXX_REQUIRES(std::is_integral_v<IdxT>)
+struct blas_batched_matrix_view {
+  IdxT rows;               // rows of each matrix in the batch
+  IdxT cols;               // cols of each matrix in the batch
+  IdxT leading_dimension;  // num elems between columns of one matrix
+  IdxT batch_count;        // number of matrices in the batch
+  IdxT batch_stride;       // num elems between batch element 0 of dim 2
+  driver::deviceBlasOp_t op;
+};
+
+// Resolve the BLAS view (leading dimension + op) based on unit stride on row or
+// coloum
+template <class IdxT>
+constexpr auto infer_blas_op_view(IdxT s0, IdxT s1) -> blas_op_view<IdxT> {
+  if (s0 == 1) {
+    return {s1, driver::deviceBlasOpN};
+  }
+  if (s1 == 1) {
+    return {s0, driver::deviceBlasOpT};
+  }
+  throw gcxx::blas::BlasException(
+    GCXX_BLAS_STATUS(INVALID_VALUE),
+    "BLAS matrix operand must have a unit stride on one axis");
+}
 
 template <class MD>
 constexpr auto infer_blas_matrix_view(const MD& v)
@@ -64,21 +98,8 @@ constexpr auto infer_blas_matrix_view(const MD& v)
                 "gcxx::device_mdspan / gcxx::managed_mdspan (or an mdspan "
                 "carrying gcxx::device_accessor / gcxx::managed_accessor)");
 
-  const idx_t rows = v.extent(0);
-  const idx_t cols = v.extent(1);
-  const idx_t s0   = v.stride(0);
-  const idx_t s1   = v.stride(1);
-
-  // op and leading dimension come from which axis is unit-stride
-  if (s0 == 1) {
-    return {rows, cols, s1, driver::deviceBlasOpN};
-  }
-  if (s1 == 1) {
-    return {rows, cols, s0, driver::deviceBlasOpT};
-  }
-  throw gcxx::blas::BlasException(
-    GCXX_BLAS_STATUS(INVALID_VALUE),
-    "BLAS matrix operand must have a unit stride on one axis");
+  const auto [ld, op] = infer_blas_op_view(v.stride(0), v.stride(1));
+  return {v.extent(0), v.extent(1), ld, op};
 }
 
 // Infer the BLAS view (length + increment) of a rank-1 mdspan operand.
@@ -94,6 +115,29 @@ constexpr auto infer_blas_vector_view(const VD& v)
                 "gcxx::device_accessor / gcxx::managed_accessor)");
 
   return {v.extent(0), v.stride(0)};
+}
+
+// Infer the BLAS view of a rank-3 batched-matrix mdspan operand whose batch
+// dimension is the LAST one, i.e. extents (rows, cols, batch): a layout_left
+// operand yields contiguous column-major matrices (op = N, ld = stride(1)),
+// a layout_right operand yields row-major ones (op = T, ld = stride(0)), and
+// the batch stride is stride(2) either way. This matches how a single
+// cublasXgemmStridedBatchedEx pointer + stride covers the whole batch.
+template <class MD>
+constexpr auto infer_blas_batched_matrix_view(const MD& v)
+  -> blas_batched_matrix_view<typename MD::index_type> {
+  using idx_t = typename MD::index_type;
+  static_assert(MD::rank() == 3,
+                "BLAS batched matrix operand must be rank-3 (rows, cols, "
+                "batch)");
+
+  static_assert(gcxx::is_device_view_v<typename MD::accessor_type>,
+                "BLAS batched matrix operands must view device memory: use "
+                "gcxx::device_mdspan / gcxx::managed_mdspan (or an mdspan "
+                "carrying gcxx::device_accessor / gcxx::managed_accessor)");
+
+  const auto [ld, op] = infer_blas_op_view(v.stride(0), v.stride(1));
+  return {v.extent(0), v.extent(1), ld, v.extent(2), v.stride(2), op};
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()

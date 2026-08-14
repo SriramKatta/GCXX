@@ -35,6 +35,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasSdgmm_64 (Ddgmm_64) entry
 // point, while all other index_types use the standard 32-bit interface.
+//
+// A, x, and C must be device views: mdspans carrying gcxx::device_accessor /
+// gcxx::managed_accessor (e.g. gcxx::device_mdspan, gcxx::make_device_vector).
+// Host views are rejected at compile time; in check builds the data handles
+// are additionally probed at run time so a mislabeled host pointer fails
+// here, not inside the GPU kernel.
 template <class Side, class A, class X, class C>
 auto dgmm(BlasHandleView h, Side side, const A& a, const X& x, C&& c) -> void {
 
@@ -70,6 +76,11 @@ auto dgmm(BlasHandleView h, Side side, const A& a, const X& x, C&& c) -> void {
   static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
                 "dgmm currently supports only float/double element types "
                 "(complex support is a TODO)");
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(a, "A");
+  details_::validate_device_view(x, "x");
+  details_::validate_device_view(c, "C");
 
   // extract problem dimensions
   const auto [m, n, ld_a, op_a] = details_::infer_blas_matrix_view(a);

@@ -15,7 +15,9 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 SparseHandle::SparseHandle() : SparseHandleView(driver::sparseCreate()) {}
 
-GCXX_FH SparseHandle::~SparseHandle() noexcept { destroy(); }
+GCXX_FH SparseHandle::~SparseHandle() noexcept {
+  destroy();
+}
 
 GCXX_FH SparseHandle::SparseHandle(SparseHandle&& other) noexcept
     : SparseHandleView(std::exchange(other.m_handle, nullptr)) {}

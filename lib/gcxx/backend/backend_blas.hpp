@@ -23,6 +23,12 @@
 #define GCXX_BLAS_OP(name) \
   GCXX_DIRECT_BACKEND_ALT(CUBLAS_OP_##name, HIPBLAS_OP_##name)
 
+#define GCXX_BLAS_SIDE(name) \
+  GCXX_DIRECT_BACKEND_ALT(CUBLAS_SIDE_##name, HIPBLAS_SIDE_##name)
+
+#define GCXX_BLAS_GEMM(name) \
+  GCXX_DIRECT_BACKEND_ALT(CUBLAS_GEMM_##name, HIPBLAS_GEMM_##name)
+
 #define GCXX_BLAS_POINTER_MODE(name)                  \
   GCXX_DIRECT_BACKEND_ALT(CUBLAS_POINTER_MODE_##name, \
                           HIPBLAS_POINTER_MODE_##name)

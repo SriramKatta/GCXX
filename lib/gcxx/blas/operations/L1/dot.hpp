@@ -37,6 +37,13 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasDotEx_64 entry point,
 // while all other index_types use the standard 32-bit interface.
+//
+// x and y must be device views: mdspans carrying gcxx::device_accessor /
+// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
+// rejected at compile time; in check builds the data handles are
+// additionally probed at run time so a mislabeled host pointer fails here,
+// not inside the GPU kernel. The raw result pointer is NOT covered by the
+// gate — it must match the handle's current pointer mode per the note above.
 template <class X, class Y,
           class R = typename std::decay_t<X>::element_type>
 auto dot(BlasHandleView h, const X& x, const Y& y, R* result) -> void {
@@ -67,6 +74,10 @@ auto dot(BlasHandleView h, const X& x, const Y& y, R* result) -> void {
   static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
                 "dot currently supports only float/double element types "
                 "(complex support is a TODO)");
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(x, "x");
+  details_::validate_device_view(y, "y");
 
   // extract problem dimensions
   const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);

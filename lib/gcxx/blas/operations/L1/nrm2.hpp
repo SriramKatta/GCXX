@@ -36,6 +36,13 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // The integer interface is selected from the operand's mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasNrm2Ex_64 entry point,
 // while all other index_types use the standard 32-bit interface.
+//
+// x must be a device view: an mdspan carrying gcxx::device_accessor /
+// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
+// rejected at compile time; in check builds the data handle is additionally
+// probed at run time so a mislabeled host pointer fails here, not inside the
+// GPU kernel. The raw result pointer is NOT covered by the gate — it must
+// match the handle's current pointer mode per the note above.
 template <class X, class R = typename std::decay_t<X>::element_type>
 auto nrm2(BlasHandleView h, const X& x, R* result) -> void {
 
@@ -58,6 +65,9 @@ auto nrm2(BlasHandleView h, const X& x, R* result) -> void {
   static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
                 "nrm2 currently supports only float/double element types "
                 "(complex support is a TODO)");
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(x, "x");
 
   // extract problem dimensions
   const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);

@@ -50,6 +50,19 @@ template <class S>
 GCXX_CXPR inline bool is_device_scalar_v =
   scalar_traits<std::remove_cv_t<S>>::is_device;
 
+// Resolves a scalar argument to the pointer the backend routine reads it
+// from: the device pointer carried by device_scalar<T> (device pointer mode),
+// or the address of the host scalar itself (host pointer mode). Pair with a
+// BlasPointerModeGuard constructed from is_device_scalar_v<S>.
+template <class S>
+GCXX_CXPR auto blas_scalar_ptr(const S& s) -> const scalar_value_t<S>* {
+  if constexpr (is_device_scalar_v<S>) {
+    return s.ptr;
+  } else {
+    return &s;
+  }
+}
+
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
 
 #endif

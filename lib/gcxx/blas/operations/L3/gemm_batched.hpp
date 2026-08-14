@@ -46,6 +46,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // The integer interface is selected from the elements' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasGemmBatchedEx_64 entry
 // point, while all other index_types use the standard 32-bit interface.
+//
+// Every matrix element must be a device view (gcxx::device_mdspan /
+// gcxx::managed_mdspan). The HOST arrays holding the views are plain host
+// containers by design; the gate applies to the matrices they contain. In
+// check builds each matrix's data handle is probed at run time so a
+// mislabeled host pointer fails here, not inside the GPU kernel.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::value_type::element_type>
 auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
@@ -133,11 +139,15 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   }
 
   // materialise the host pointer arrays the entry point consumes: one device
-  // pointer per matrix, gathered from each mdspan view
+  // pointer per matrix, gathered from each mdspan view (probing each handle
+  // on the way — no-op unless checks are enabled)
   std::vector<const void*> a_ptrs(a.size());
   std::vector<const void*> b_ptrs(a.size());
   std::vector<void*>       c_ptrs(a.size());
   for (std::size_t i = 0; i < a.size(); ++i) {
+    details_::validate_device_view(a[i], "A[i]");
+    details_::validate_device_view(b[i], "B[i]");
+    details_::validate_device_view(c[i], "C[i]");
     a_ptrs[i] = a[i].data_handle();
     b_ptrs[i] = b[i].data_handle();
     c_ptrs[i] = c[i].data_handle();

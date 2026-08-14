@@ -16,7 +16,9 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 BlasHandle::BlasHandle() : BlasHandleView(driver::blasCreate()) {}
 
-GCXX_FH BlasHandle::~BlasHandle() noexcept { destroy(); }
+GCXX_FH BlasHandle::~BlasHandle() noexcept {
+  destroy();
+}
 
 GCXX_FH BlasHandle::BlasHandle(BlasHandle&& other) noexcept
     : BlasHandleView(std::exchange(other.m_handle, nullptr)) {}

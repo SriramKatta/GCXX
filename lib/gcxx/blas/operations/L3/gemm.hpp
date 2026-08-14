@@ -19,9 +19,6 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-#define GCXX_BLAS_GEMM(name) \
-  GCXX_DIRECT_BACKEND_ALT(CUBLAS_GEMM_##name, HIPBLAS_GEMM_##name)
-
 // Matrix-matrix product C = alpha * op(A) * op(B) + beta * C.
 //
 // A, B, and C are rank-2 mdspan objects. The effective dimensions, layout, and
@@ -90,22 +87,12 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
                 "type");
 
   // Select the pointer mode for this call and restore the prior mode on scope
-  // exit. Host mode reads alpha/beta from the by-value parameters; device mode
-  // reads them from the device pointers carried by device_scalar (no host copy,
-  // no host-side dereference).
-  details_::BlasPointerModeGuard guard{
-    h, device_mode ? driver::deviceBlasPointerModeDevice
-                   : driver::deviceBlasPointerModeHost};
+  // exit; alpha/beta are read from the host parameters or the device pointers
+  // carried by device_scalar, per the mode.
+  details_::BlasPointerModeGuard guard{h, device_mode};
 
-  const Sv* alpha_ptr{};
-  const Sv* beta_ptr{};
-  if constexpr (device_mode) {
-    alpha_ptr = alpha.ptr;
-    beta_ptr  = beta.ptr;
-  } else {
-    alpha_ptr = &alpha;
-    beta_ptr  = &beta;
-  }
+  const Sv* alpha_ptr = details_::blas_scalar_ptr(alpha);
+  const Sv* beta_ptr  = details_::blas_scalar_ptr(beta);
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
@@ -134,8 +121,6 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     details_::throwBlasError(status, "gemm failed");
   }
 }
-
-#undef GCXX_BLAS_GEMM
 
 GCXX_NAMESPACE_MAIN_BLAS_END()
 

@@ -27,6 +27,11 @@ namespace {
   using mat_left = gcxx::mdspan<double, gcxx::dextents<IndexT, 2>,
                                 gcxx::layout_left, gcxx::default_accessor<double>>;
 
+  // Device-memory counterpart required by the gcxx::blas operations.
+  template <class IndexT>
+  using dmat_left =
+    gcxx::device_mdspan<double, gcxx::dextents<IndexT, 2>, gcxx::layout_left>;
+
   template <class IndexT>
   void run_geam() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -50,9 +55,9 @@ namespace {
     gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
     gcxx::Copy(str, dB.get(), hB.data(), std::size_t{M * N});
 
-    mat_left<IndexT> A(dA.get(), M, N);
-    mat_left<IndexT> B(dB.get(), M, N);
-    mat_left<IndexT> C(dC.get(), M, N);
+    dmat_left<IndexT> A(dA.get(), M, N);
+    dmat_left<IndexT> B(dB.get(), M, N);
+    dmat_left<IndexT> C(dC.get(), M, N);
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -96,9 +101,9 @@ namespace {
     gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
     gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(xlen));
 
-    mat_left<IndexT> A(dA.get(), M, N);
-    mat_left<IndexT> C(dC.get(), M, N);
-    auto              X = gcxx::make_vector<IndexT>(
+    dmat_left<IndexT> A(dA.get(), M, N);
+    dmat_left<IndexT> C(dC.get(), M, N);
+    auto              X = gcxx::make_device_vector<IndexT>(
       gcxx::span(dX.get(), static_cast<std::size_t>(xlen)));
 
     gcxx::blas::BlasHandle handle;
