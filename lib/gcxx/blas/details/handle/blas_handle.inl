@@ -16,20 +16,14 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 BlasHandle::BlasHandle() : BlasHandleView(driver::blasCreate()) {}
 
-GCXX_FH BlasHandle::~BlasHandle() noexcept {
-  if (m_handle != nullptr) {
-    driver::blasDestroy(m_handle);
-  }
-}
+GCXX_FH BlasHandle::~BlasHandle() noexcept { destroy(); }
 
 GCXX_FH BlasHandle::BlasHandle(BlasHandle&& other) noexcept
     : BlasHandleView(std::exchange(other.m_handle, nullptr)) {}
 
 GCXX_FH auto BlasHandle::operator=(BlasHandle&& other) noexcept -> BlasHandle& {
   if (this != &other) {
-    if (m_handle != nullptr) {
-      driver::blasDestroy(m_handle);
-    }
+    destroy();
     m_handle = std::exchange(other.m_handle, nullptr);
   }
   return *this;
@@ -45,6 +39,13 @@ GCXX_FH auto BlasHandle::release() noexcept -> BlasHandleView {
   auto h   = m_handle;
   m_handle = nullptr;
   return BlasHandleView{h};
+}
+
+GCXX_FH auto BlasHandle::destroy() noexcept -> void {
+  if (m_handle != nullptr) {
+    driver::blasDestroy(m_handle);
+    m_handle = nullptr;
+  }
 }
 
 GCXX_FH BlasHandle::BlasHandle(driver::deviceBlasHandle_t handle) noexcept

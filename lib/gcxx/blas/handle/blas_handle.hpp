@@ -34,6 +34,9 @@ class BlasHandle : public BlasHandleView {
 
   GCXX_FH auto release() noexcept -> BlasHandleView;
 
+  // Safe to call multiple times; also invoked by the destructor.
+  GCXX_FH auto destroy() noexcept -> void;
+
  private:
   GCXX_FH explicit BlasHandle(driver::deviceBlasHandle_t handle) noexcept;
 };

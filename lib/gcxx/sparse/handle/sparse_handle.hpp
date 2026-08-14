@@ -34,6 +34,9 @@ class SparseHandle : public SparseHandleView {
 
   GCXX_FH auto release() noexcept -> SparseHandleView;
 
+  // Safe to call multiple times; also invoked by the destructor.
+  GCXX_FH auto destroy() noexcept -> void;
+
  private:
   GCXX_FH explicit SparseHandle(driver::deviceSparseHandle_t handle) noexcept;
 };

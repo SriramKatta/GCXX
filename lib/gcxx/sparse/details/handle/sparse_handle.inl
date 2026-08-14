@@ -15,11 +15,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 SparseHandle::SparseHandle() : SparseHandleView(driver::sparseCreate()) {}
 
-GCXX_FH SparseHandle::~SparseHandle() noexcept {
-  if (m_handle != nullptr) {
-    driver::sparseDestroy(m_handle);
-  }
-}
+GCXX_FH SparseHandle::~SparseHandle() noexcept { destroy(); }
 
 GCXX_FH SparseHandle::SparseHandle(SparseHandle&& other) noexcept
     : SparseHandleView(std::exchange(other.m_handle, nullptr)) {}
@@ -27,9 +23,7 @@ GCXX_FH SparseHandle::SparseHandle(SparseHandle&& other) noexcept
 GCXX_FH auto SparseHandle::operator=(SparseHandle&& other) noexcept
   -> SparseHandle& {
   if (this != &other) {
-    if (m_handle != nullptr) {
-      driver::sparseDestroy(m_handle);
-    }
+    destroy();
     m_handle = std::exchange(other.m_handle, nullptr);
   }
   return *this;
@@ -45,6 +39,13 @@ GCXX_FH auto SparseHandle::release() noexcept -> SparseHandleView {
   auto h   = m_handle;
   m_handle = nullptr;
   return SparseHandleView{h};
+}
+
+GCXX_FH auto SparseHandle::destroy() noexcept -> void {
+  if (m_handle != nullptr) {
+    driver::sparseDestroy(m_handle);
+    m_handle = nullptr;
+  }
 }
 
 GCXX_FH SparseHandle::SparseHandle(driver::deviceSparseHandle_t handle) noexcept
