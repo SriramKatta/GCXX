@@ -4,11 +4,38 @@
 #ifndef GCXX_BLAS_OPERATIONS_DETAILS_OP_INFERENCE_HPP_
 #define GCXX_BLAS_OPERATIONS_DETAILS_OP_INFERENCE_HPP_
 
+#include <string>
+
 #include <gcxx/blas/error/blas_exceptions.hpp>
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
+#include <gcxx/runtime_backend/backend_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
+
+// Debug-mode companion to the is_device_view_v compile-time gate: verifies at
+// run time (via cuda/hipPointerGetAttributes) that the operand's data handle
+// really points at device or managed memory, so a host pointer mislabeled as
+// a device view fails loudly at the BLAS call site instead of faulting
+// asynchronously inside the backend kernel. Compiles to nothing under
+// GCXX_DISABLE_RUNTIME_CHECKS.
+#ifndef GCXX_DISABLE_RUNTIME_CHECKS
+template <class MD>
+GCXX_FH auto validate_device_view(const MD& v, const char* name) -> void {
+  if (!driver::isDeviceOrManagedMemory(v.data_handle())) {
+    std::string msg{"BLAS operand '"};
+    msg += name;
+    msg +=
+      "' does not reside in device/managed memory (a device_accessor view was "
+      "passed, but the pointer is host memory)";
+    throw gcxx::blas::BlasException(GCXX_BLAS_STATUS(INVALID_VALUE), msg);
+  }
+}
+#else
+template <class MD>
+GCXX_FH auto validate_device_view(const MD&, const char*) -> void {}
+#endif
 
 GCXX_TEMPLATE(typename IdxT)
 GCXX_REQUIRES(std::is_integral_v<IdxT>)
@@ -32,6 +59,11 @@ constexpr auto infer_blas_matrix_view(const MD& v)
   using idx_t = typename MD::index_type;
   static_assert(MD::rank() == 2, "BLAS matrix operand must be rank-2");
 
+  static_assert(gcxx::is_device_view_v<typename MD::accessor_type>,
+                "BLAS matrix operands must view device memory: use "
+                "gcxx::device_mdspan / gcxx::managed_mdspan (or an mdspan "
+                "carrying gcxx::device_accessor / gcxx::managed_accessor)");
+
   const idx_t rows = v.extent(0);
   const idx_t cols = v.extent(1);
   const idx_t s0   = v.stride(0);
@@ -54,6 +86,13 @@ template <class VD>
 constexpr auto infer_blas_vector_view(const VD& v)
   -> blas_vector_view<typename VD::index_type> {
   static_assert(VD::rank() == 1, "BLAS vector operand must be rank-1");
+
+  static_assert(gcxx::is_device_view_v<typename VD::accessor_type>,
+                "BLAS vector operands must view device memory: use "
+                "gcxx::make_device_vector, gcxx::device_mdspan / "
+                "gcxx::managed_mdspan (or an mdspan carrying "
+                "gcxx::device_accessor / gcxx::managed_accessor)");
+
   return {v.extent(0), v.stride(0)};
 }
 

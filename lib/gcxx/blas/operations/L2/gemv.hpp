@@ -44,6 +44,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // int64_t index_type routes to the 64-bit cublas*gemv_64 entry point
 // (int64_t dimensions), while all other index_types use the standard 32-bit
 // interface.
+//
+// A, x, and y must be device views: mdspans carrying gcxx::device_accessor /
+// gcxx::managed_accessor (e.g. gcxx::device_mdspan, gcxx::make_device_vector).
+// Host views are rejected at compile time; in check builds the data handles
+// are additionally probed at run time so a mislabeled host pointer fails
+// here, not inside the GPU kernel.
 template <class A, class X, class Y,
           class S = typename std::decay_t<Y>::element_type>
 auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta,
@@ -110,6 +116,11 @@ auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta,
     alpha_ptr = &alpha;
     beta_ptr  = &beta;
   }
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(a, "A");
+  details_::validate_device_view(x, "x");
+  details_::validate_device_view(y, "y");
 
   // extract problem dimensions
   const auto [m, n, ld_a, op_a] = details_::infer_blas_matrix_view(a);

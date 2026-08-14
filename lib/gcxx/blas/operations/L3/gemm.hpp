@@ -46,6 +46,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // int64_t index_type routes to the 64-bit cu/hipblasGemmEx_64 entry point
 // (int64_t dimensions), while all other index_types use the standard 32-bit
 // interface.
+//
+// A, B, and C must be device views: mdspans carrying gcxx::device_accessor /
+// gcxx::managed_accessor (e.g. gcxx::device_mdspan). Host views are rejected
+// at compile time; in check builds the data handles are additionally probed
+// at run time so a mislabeled host pointer fails here, not inside the GPU
+// kernel.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
 auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
@@ -100,6 +106,11 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     alpha_ptr = &alpha;
     beta_ptr  = &beta;
   }
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(a, "A");
+  details_::validate_device_view(b, "B");
+  details_::validate_device_view(c, "C");
 
   // extract problem dimensions
   const auto [m, k, ld_a, op_a]     = details_::infer_blas_matrix_view(a);

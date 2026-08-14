@@ -40,6 +40,30 @@ GCXX_FH auto deviceFreeHost(void* ptr) -> void {
                          "Failed to free pinned host memory", ptr);
 }
 
+// Whether p points to memory the device can dereference (device or managed
+// memory). A failed probe — plain malloc'd host memory is unregistered —
+// clears the sticky last-error and returns false. Used by the BLAS layer's
+// debug validation of operand data handles; expect it on the hot path only
+// in check builds.
+GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
+  if (ptr == nullptr) {
+    return true;
+  }
+  devicePointerAttributes_t attrs{};
+  const deviceError_t err =
+    ::GCXX_RUNTIME_BACKEND(PointerGetAttributes)(&attrs, ptr);
+  if (err != deviceErrSuccess) {
+    (void)GetLastError();  // consume the recorded error; the probe is
+                           // expected to fail for unregistered memory
+    return false;
+  }
+  // Both backends spell the field `type`; managed memory maps to
+  // cudaMemoryTypeManaged / hipMemoryTypeManaged (hipMemoryTypeUnified is an
+  // AMD-specific unified-address-space concept, not managed memory).
+  return attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeDevice) ||
+         attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged);
+}
+
 GCXX_FH auto deviceMemset(void* dev_ptr, const int value,
                           const std::size_t countinBytes) -> void {
   GCXX_SAFE_RUNTIME_CALL(Memset, "Failed to perform GPU memset", dev_ptr, value,

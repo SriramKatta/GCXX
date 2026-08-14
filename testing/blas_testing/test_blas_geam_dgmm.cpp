@@ -1,0 +1,139 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Sriram Katta
+//
+// End-to-end GEAM / DGMM tests: C = alpha*op(A) + beta*op(B) and C =
+// diag(x)*A / A*diag(x) via the typed cu/hipblasS/Dgeam and S/Ddgmm entry
+// points, compared against a host reference. GPU-gated — skipped when no
+// device is present, but the template must still compile (it instantiates
+// both the int and the int64_t index_type dispatch, i.e. the *_64 entry
+// points).
+
+#include "tests_common.hpp"
+
+#include <cstddef>
+#include <cstdint>
+#include <type_traits>
+#include <vector>
+
+#include <gcxx/blas_api.hpp>
+#include <gcxx/runtime/memory/copy.hpp>
+#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/make_mdspan.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
+
+namespace {
+
+  template <class IndexT>
+  using mat_left = gcxx::mdspan<double, gcxx::dextents<IndexT, 2>,
+                                gcxx::layout_left, gcxx::default_accessor<double>>;
+
+  template <class IndexT>
+  void run_geam() {
+    if (!gcxx::testing::haveCudaDevice()) {
+      GTEST_SKIP() << "No CUDA device available";
+    }
+
+    constexpr int M = 3;
+    constexpr int N = 4;
+    const double alpha = 2.0, beta = -1.0;
+
+    std::vector<double> hA(M * N), hB(M * N);
+    for (int i = 0; i < M * N; ++i) {
+      hA[i] = static_cast<double>(i + 1);
+      hB[i] = static_cast<double>(2 * i);
+    }
+
+    gcxx::Stream str;
+    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    auto dB = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
+    gcxx::Copy(str, dB.get(), hB.data(), std::size_t{M * N});
+
+    mat_left<IndexT> A(dA.get(), M, N);
+    mat_left<IndexT> B(dB.get(), M, N);
+    mat_left<IndexT> C(dC.get(), M, N);
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::geam(handle, alpha, A, beta, B, C);
+    str.Synchronize();
+
+    std::vector<double> hResult(M * N);
+    gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
+    str.Synchronize();
+
+    for (int i = 0; i < M * N; ++i) {
+      EXPECT_NEAR(hResult[i], alpha * hA[i] + beta * hB[i], 1e-9)
+        << "geam mismatch at " << i;
+    }
+  }
+
+  template <class IndexT, class Side>
+  void run_dgmm() {
+    if (!gcxx::testing::haveCudaDevice()) {
+      GTEST_SKIP() << "No CUDA device available";
+    }
+
+    constexpr int M = 3;
+    constexpr int N = 4;
+    // the diagonal length follows from the side: rows (left) or cols (right)
+    constexpr int xlen = std::is_same_v<Side, gcxx::blas::left_t> ? M : N;
+
+    std::vector<double> hA(M * N), hX(xlen);
+    for (int i = 0; i < M * N; ++i) {
+      hA[i] = static_cast<double>(i + 1);
+    }
+    for (int i = 0; i < xlen; ++i) {
+      hX[i] = static_cast<double>(i + 2);
+    }
+
+    gcxx::Stream str;
+    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    auto dX = gcxx::make_device_unique_ptr<double>(
+      static_cast<std::size_t>(xlen));
+    auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
+    gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(xlen));
+
+    mat_left<IndexT> A(dA.get(), M, N);
+    mat_left<IndexT> C(dC.get(), M, N);
+    auto              X = gcxx::make_vector<IndexT>(
+      gcxx::span(dX.get(), static_cast<std::size_t>(xlen)));
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::dgmm(handle, Side{}, A, X, C);
+    str.Synchronize();
+
+    std::vector<double> hResult(M * N);
+    gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
+    str.Synchronize();
+
+    for (int j = 0; j < N; ++j) {
+      for (int i = 0; i < M; ++i) {
+        const double scale =
+          std::is_same_v<Side, gcxx::blas::left_t> ? hX[i] : hX[j];
+        EXPECT_NEAR(hResult[i + j * M], scale * hA[i + j * M], 1e-9)
+          << "dgmm mismatch at (" << i << "," << j << ")";
+      }
+    }
+  }
+
+}  // namespace
+
+TEST(BlasGeam, Double) {
+  run_geam<int>();
+}
+
+TEST(BlasGeam, Double_64bitIndex) {
+  run_geam<std::int64_t>();
+}
+
+TEST(BlasDgmm, Left_Double) {
+  run_dgmm<int, gcxx::blas::left_t>();
+}
+
+TEST(BlasDgmm, Right_Double_64bitIndex) {
+  run_dgmm<std::int64_t, gcxx::blas::right_t>();
+}

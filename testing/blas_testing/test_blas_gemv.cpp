@@ -29,6 +29,11 @@ namespace {
   template <class T, class IndexT>
   using mat_left = gcxx::mdspan<T, dextents2d<IndexT>, gcxx::layout_left,
                                 gcxx::default_accessor<T>>;
+
+  // Device-memory counterparts required by gcxx::blas::gemv.
+  template <class T, class IndexT>
+  using dmat_left =
+    gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_left>;
   template <class T, class IndexT>
   using vec = gcxx::mdspan<T, dextents1d<IndexT>, gcxx::layout_left,
                            gcxx::default_accessor<T>>;
@@ -86,9 +91,9 @@ namespace {
     gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
     gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(K));
 
-    mat_left<double, IndexT> A(dA.get(), M, K);
-    auto X = gcxx::make_vector<IndexT>(gcxx::span(dX.get(), K));
-    auto Y = gcxx::make_vector<IndexT>(gcxx::span(dY.get(), M));
+    dmat_left<double, IndexT> A(dA.get(), M, K);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), K));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), M));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -150,9 +155,9 @@ namespace {
     gcxx::Copy(str, dAlpha, &alpha, std::size_t{1});
     gcxx::Copy(str, dBeta, &beta, std::size_t{1});
 
-    mat_left<double, IndexT> A(dA.get(), M, K);
-    auto X = gcxx::make_vector<IndexT>(gcxx::span(dX.get(), K));
-    auto Y = gcxx::make_vector<IndexT>(gcxx::span(dY.get(), M));
+    dmat_left<double, IndexT> A(dA.get(), M, K);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), K));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), M));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);

@@ -18,9 +18,16 @@ namespace {
 
   using dextents2d = gcxx::dextents<int, 2>;
   using def_acc_d  = gcxx::default_accessor<double>;
+  using dev_acc_d  = gcxx::device_accessor<def_acc_d>;
 
   template <class Layout>
   using mat2d = gcxx::mdspan<double, dextents2d, Layout, def_acc_d>;
+
+  // The device-view counterpart the BLAS inference helpers require. The
+  // inference tests are metadata-only, so the underlying pointer never needs
+  // to be real device memory here.
+  template <class Layout>
+  using dmat2d = gcxx::mdspan<double, dextents2d, Layout, dev_acc_d>;
 
   // Infer the (op, ld) descriptor for a view — under test via the details
   // helper.
@@ -102,7 +109,7 @@ TEST(BlasTranspose, PreservesStaticExtentsAndType) {
 
 TEST(BlasOpInference, ColumnContiguous_IsOpN) {
   std::vector<double> buf(3 * 4);
-  mat2d<gcxx::layout_left> a(buf.data(), 3, 4);  // strides (1, 3)
+  dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);  // strides (1, 3)
 
   const auto info = infer(a);
   EXPECT_EQ(info.op, gcxx::driver::deviceBlasOpN);
@@ -113,7 +120,7 @@ TEST(BlasOpInference, ColumnContiguous_IsOpN) {
 
 TEST(BlasOpInference, RowContiguous_IsOpT) {
   std::vector<double> buf(3 * 4);
-  mat2d<gcxx::layout_right> a(buf.data(), 3, 4);  // strides (4, 1)
+  dmat2d<gcxx::layout_right> a(buf.data(), 3, 4);  // strides (4, 1)
 
   const auto info = infer(a);
   EXPECT_EQ(info.op, gcxx::driver::deviceBlasOpT);
@@ -124,7 +131,7 @@ TEST(BlasOpInference, RowContiguous_IsOpT) {
 
 TEST(BlasOpInference, TransposedLayoutLeft_IsOpT) {
   std::vector<double> buf(3 * 4);
-  mat2d<gcxx::layout_left> a(buf.data(), 3, 4);
+  dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);
 
   const auto info =
     infer(gcxx::blas::transpose(a));  // extents (4,3), strides (3,1)
@@ -136,7 +143,7 @@ TEST(BlasOpInference, TransposedLayoutLeft_IsOpT) {
 
 TEST(BlasOpInference, TransposedLayoutRight_IsOpN) {
   std::vector<double> buf(3 * 4);
-  mat2d<gcxx::layout_right> a(buf.data(), 3, 4);
+  dmat2d<gcxx::layout_right> a(buf.data(), 3, 4);
 
   const auto info =
     infer(gcxx::blas::transpose(a));  // extents (4,3), strides (1,4)
@@ -150,7 +157,7 @@ TEST(BlasOpInference, TransposedLayoutRight_IsOpN) {
 // (not reject it).
 TEST(BlasOpInference, DegenerateUnitStrides_TieBreaksToOpN) {
   std::vector<double> buf(4);
-  mat2d<gcxx::layout_left> a(buf.data(), 1, 4);  // strides (1, 1)
+  dmat2d<gcxx::layout_left> a(buf.data(), 1, 4);  // strides (1, 1)
 
   const auto info = infer(a);
   EXPECT_EQ(info.op, gcxx::driver::deviceBlasOpN);
@@ -164,8 +171,75 @@ TEST(BlasOpInference, NeitherAxisUnit_Throws) {
   std::vector<double> buf(100);
   dextents2d ext{4, 5};
   gcxx::layout_stride::mapping<dextents2d> map{ext, std::array<int, 2>{2, 7}};
-  gcxx::mdspan<double, dextents2d, gcxx::layout_stride, def_acc_d> s(buf.data(),
-                                                                     map);
+  gcxx::mdspan<double, dextents2d, gcxx::layout_stride, dev_acc_d> s(
+    buf.data(), map);
 
   EXPECT_THROW(infer(s), gcxx::blas::BlasException);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Device-view gating (host_device_accessor.hpp): trait polarity, transpose
+// preservation, and the deleted cross-memory-space conversions. All
+// compile-time checks.
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST(BlasDeviceView, AccessorTraitPolarity) {
+  static_assert(gcxx::is_device_view_v<gcxx::device_accessor<def_acc_d>>,
+                "device accessor is a device view");
+  static_assert(gcxx::is_device_view_v<gcxx::managed_accessor<def_acc_d>>,
+                "managed accessor is a device view");
+  static_assert(gcxx::is_device_view_v<gcxx::restrict_accessor<
+                  gcxx::device_accessor<def_acc_d>>>,
+                "wrapper accessors propagate device-ness");
+  static_assert(!gcxx::is_device_view_v<def_acc_d>,
+                "default accessor is not a device view");
+  static_assert(!gcxx::is_device_view_v<gcxx::host_accessor<def_acc_d>>,
+                "host accessor is not a device view");
+  static_assert(gcxx::is_host_view_v<gcxx::host_accessor<def_acc_d>>,
+                "host accessor is a host view");
+  static_assert(gcxx::is_host_view_v<gcxx::managed_accessor<def_acc_d>>,
+                "managed accessor is a host view");
+  static_assert(gcxx::is_restrict_accessor_v<
+                  gcxx::restrict_accessor<def_acc_d>>,
+                "restrict accessor identity trait");
+  static_assert(gcxx::is_shared_memory_accessor_v<
+                  gcxx::shared_memory_accessor<def_acc_d>>,
+                "shared memory accessor identity trait");
+  static_assert(!gcxx::is_device_view_v<gcxx::shared_memory_accessor<def_acc_d>>,
+                "shared memory is not a BLAS device view (kernel-only "
+                "address space)");
+  SUCCEED();
+}
+
+TEST(BlasDeviceView, TransposePreservesDeviceAccessor) {
+  std::vector<double> buf(3 * 4);
+  dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);
+
+  auto at = gcxx::blas::transpose(a);
+  static_assert(
+    std::is_same_v<decltype(at)::accessor_type, dev_acc_d>,
+    "transpose() forwards the device accessor, keeping the view BLAS-legal");
+  SUCCEED();
+}
+
+TEST(BlasDeviceView, CrossSpaceConversionsAreDeleted) {
+  using host_acc = gcxx::host_accessor<def_acc_d>;
+  using dev_acc  = gcxx::device_accessor<def_acc_d>;
+  using man_acc  = gcxx::managed_accessor<def_acc_d>;
+
+  static_assert(!std::is_constructible_v<dev_acc, host_acc>,
+                "device <- host accessor conversion is deleted");
+  static_assert(!std::is_constructible_v<host_acc, dev_acc>,
+                "host <- device accessor conversion is deleted");
+  static_assert(!std::is_constructible_v<man_acc, host_acc>,
+                "managed <- host accessor conversion is deleted");
+  static_assert(!std::is_constructible_v<man_acc, dev_acc>,
+                "managed <- device accessor conversion is deleted");
+  static_assert(std::is_constructible_v<dev_acc, man_acc>,
+                "device <- managed accessor conversion is allowed");
+  static_assert(std::is_constructible_v<host_acc, man_acc>,
+                "host <- managed accessor conversion is allowed");
+  static_assert(std::is_constructible_v<dev_acc, def_acc_d>,
+                "device <- plain accessor conversion is allowed");
+  SUCCEED();
 }

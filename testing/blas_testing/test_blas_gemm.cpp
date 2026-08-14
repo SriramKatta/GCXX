@@ -27,6 +27,11 @@ namespace {
   using mat_left = gcxx::mdspan<T, dextents2d<IndexT>, gcxx::layout_left,
                                 gcxx::default_accessor<T>>;
 
+  // Device-memory counterpart required by gcxx::blas::gemm.
+  template <class T, class IndexT>
+  using dmat_left =
+    gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_left>;
+
   // Column-major host reference: out = alpha * a * b + beta * cref.
   template <class T, class S>
   void host_gemm(const mat_left<T, int>& a, const mat_left<T, int>& b,
@@ -84,9 +89,9 @@ namespace {
     gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
     gcxx::Copy(str, dB.get(), hB.data(), static_cast<std::size_t>(K * N));
 
-    mat_left<double, IndexT> A(dA.get(), M, K);
-    mat_left<double, IndexT> B(dB.get(), K, N);
-    mat_left<double, IndexT> C(dC.get(), M, N);
+    dmat_left<double, IndexT> A(dA.get(), M, K);
+    dmat_left<double, IndexT> B(dB.get(), K, N);
+    dmat_left<double, IndexT> C(dC.get(), M, N);
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -153,9 +158,9 @@ namespace {
     gcxx::Copy(str, dAlpha, &alpha, std::size_t{1});
     gcxx::Copy(str, dBeta, &beta, std::size_t{1});
 
-    mat_left<double, IndexT> A(dA.get(), M, K);
-    mat_left<double, IndexT> B(dB.get(), K, N);
-    mat_left<double, IndexT> C(dC.get(), M, N);
+    dmat_left<double, IndexT> A(dA.get(), M, K);
+    dmat_left<double, IndexT> B(dB.get(), K, N);
+    dmat_left<double, IndexT> C(dC.get(), M, N);
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);

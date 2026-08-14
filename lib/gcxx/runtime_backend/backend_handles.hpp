@@ -14,6 +14,8 @@ GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 using devicePitchedPtr = GCXX_RUNTIME_BACKEND(PitchedPtr);
 using devicePos        = GCXX_RUNTIME_BACKEND(Pos);
 using deviceExtent     = GCXX_RUNTIME_BACKEND(Extent);
+using devicePointerAttributes_t =
+  GCXX_RUNTIME_BACKEND_ALT(PointerAttributes, PointerAttribute_t);
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                     Device Handles                     ║
