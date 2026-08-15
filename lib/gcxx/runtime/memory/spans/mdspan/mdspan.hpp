@@ -17,7 +17,7 @@
 
 #include <gcxx/runtime/memory/spans/mdspan/host_device_accessor.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/host_device_mdspan.hpp>
-#include <gcxx/runtime/memory/spans/mdspan/resrict_accessor.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/restrict_accessor.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/shared_memory_accessor.hpp>
 
 #endif
