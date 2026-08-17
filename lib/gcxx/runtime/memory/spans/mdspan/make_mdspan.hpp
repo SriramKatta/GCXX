@@ -70,8 +70,7 @@ GCXX_TEMPLATE(class Idx = int, class SpanLike)
 GCXX_REQUIRES(gcxx::is_span_like_v<SpanLike> GCXX_AND std::is_integral_v<Idx>)
 constexpr auto make_device_vector(SpanLike&& storage, Idx stride = Idx{1})
   -> gcxx::mdspan<gcxx::span_element_t<SpanLike>,
-                  gcxx::extents<Idx, gcxx::dynamic_extent>,
-                  gcxx::layout_stride,
+                  gcxx::extents<Idx, gcxx::dynamic_extent>, gcxx::layout_stride,
                   gcxx::device_accessor<
                     gcxx::default_accessor<gcxx::span_element_t<SpanLike>>>> {
   using T          = gcxx::span_element_t<SpanLike>;

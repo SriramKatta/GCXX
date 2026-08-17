@@ -13,6 +13,7 @@
 
 // Shared (non-level-specific) view helpers.
 #include <gcxx/blas/operations/side.hpp>
+#include <gcxx/blas/operations/symmetric.hpp>
 #include <gcxx/blas/operations/transpose.hpp>
 
 // Per-level barrels.

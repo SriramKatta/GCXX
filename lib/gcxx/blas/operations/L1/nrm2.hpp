@@ -21,7 +21,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // x is a rank-1 mdspan; the length n and the increment (incx) are inferred
 // from the mdspan metadata. The type-erased cu/hipblasNrm2Ex entry point is
 // used, with the data-type and execution-type enums derived from the element
-// type.
+// type. The operand is typed as a gcxx::mdspan in the signature, so wrong-rank
+// (or non-mdspan) arguments fail overload resolution.
 //
 // Example:
 //   double r{};
@@ -43,17 +44,18 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // probed at run time so a mislabeled host pointer fails here, not inside the
 // GPU kernel. The raw result pointer is NOT covered by the gate — it must
 // match the handle's current pointer mode per the note above.
-template <class X, class R = typename std::decay_t<X>::element_type>
-auto nrm2(BlasHandleView h, const X& x, R* result) -> void {
+GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+              class R = TX)
+GCXX_REQUIRES(ExtentsX::rank() == 1)
+auto nrm2(BlasHandleView h,
+          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+          R* result) -> void {
 
   // local alias for easier refrence
-  using X_t = std::decay_t<X>;
-  using XVt = typename X_t::element_type;
-  using XIt = typename X_t::index_type;
+  using XVt = TX;
+  using XIt = typename ExtentsX::index_type;
 
   // static asserts to verify no funny business
-  static_assert(X_t::rank() == 1, "nrm2 operand x must be a rank-1 mdspan");
-
   static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
                 "BLAS operands must use int32_t or int64_t as their "
                 "mdspan index_type");
@@ -62,8 +64,8 @@ auto nrm2(BlasHandleView h, const X& x, R* result) -> void {
                 "nrm2 result value type must match the operand's element "
                 "type");
 
-  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
-                "nrm2 currently supports only float/double element types "
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+                "nrm2 currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
 
   // run-time device-memory probe (no-op unless checks are enabled)

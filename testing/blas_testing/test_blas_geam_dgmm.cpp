@@ -24,8 +24,9 @@
 namespace {
 
   template <class IndexT>
-  using mat_left = gcxx::mdspan<double, gcxx::dextents<IndexT, 2>,
-                                gcxx::layout_left, gcxx::default_accessor<double>>;
+  using mat_left =
+    gcxx::mdspan<double, gcxx::dextents<IndexT, 2>, gcxx::layout_left,
+                 gcxx::default_accessor<double>>;
 
   // Device-memory counterpart required by the gcxx::blas operations.
   template <class IndexT>
@@ -38,8 +39,8 @@ namespace {
       GTEST_SKIP() << "No CUDA device available";
     }
 
-    constexpr int M = 3;
-    constexpr int N = 4;
+    constexpr int M    = 3;
+    constexpr int N    = 4;
     const double alpha = 2.0, beta = -1.0;
 
     std::vector<double> hA(M * N), hB(M * N);
@@ -95,15 +96,15 @@ namespace {
 
     gcxx::Stream str;
     auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    auto dX = gcxx::make_device_unique_ptr<double>(
-      static_cast<std::size_t>(xlen));
+    auto dX =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(xlen));
     auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
     gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
     gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(xlen));
 
     dmat_left<IndexT> A(dA.get(), M, N);
     dmat_left<IndexT> C(dC.get(), M, N);
-    auto              X = gcxx::make_device_vector<IndexT>(
+    auto X = gcxx::make_device_vector<IndexT>(
       gcxx::span(dX.get(), static_cast<std::size_t>(xlen)));
 
     gcxx::blas::BlasHandle handle;

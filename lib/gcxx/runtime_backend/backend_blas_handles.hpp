@@ -18,6 +18,7 @@ using deviceBlasHandle_t = GCXX_BLAS_BACKEND(Handle_t);
 using deviceBlasOp_t          = GCXX_BLAS_BACKEND(Operation_t);
 using deviceBlasPointerMode_t = GCXX_BLAS_BACKEND(PointerMode_t);
 using deviceBlasSideMode_t    = GCXX_BLAS_BACKEND(SideMode_t);
+using deviceBlasFillMode_t    = GCXX_BLAS_BACKEND(FillMode_t);
 
 inline constexpr deviceBlasStatus_t deviceBlasStatusSuccess =
   GCXX_BLAS_STATUS(SUCCESS);
@@ -31,6 +32,13 @@ inline constexpr deviceBlasOp_t deviceBlasOpT = GCXX_BLAS_OP(T);
 inline constexpr deviceBlasSideMode_t deviceBlasSideLeft = GCXX_BLAS_SIDE(LEFT);
 inline constexpr deviceBlasSideMode_t deviceBlasSideRight =
   GCXX_BLAS_SIDE(RIGHT);
+
+// Fill-mode constants: which triangle of a symmetric/hermitian matrix operand
+// is stored (cublasFillMode_t / hipblasFillMode_t), used by symm and friends.
+inline constexpr deviceBlasFillMode_t deviceBlasFillModeUpper =
+  GCXX_BLAS_FILL_MODE(UPPER);
+inline constexpr deviceBlasFillMode_t deviceBlasFillModeLower =
+  GCXX_BLAS_FILL_MODE(LOWER);
 
 // Pointer-mode constants: whether scalar arguments (alpha/beta) are read from
 // host or device memory by the BLAS compute routines.

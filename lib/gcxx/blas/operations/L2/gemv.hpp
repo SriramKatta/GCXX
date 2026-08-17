@@ -24,7 +24,9 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // A is a rank-2 mdspan; x and y are rank-1 mdspans. The operation op(A), the
 // matrix dimensions (m, n), the leading dimension, and the vector increments
 // (incx, incy) are all inferred from the mdspan metadata, so the API takes no
-// separate shape or operation arguments.
+// separate shape or operation arguments. Each operand is typed as a
+// gcxx::mdspan in the signature, so wrong-rank (or non-mdspan) arguments fail
+// overload resolution.
 //
 // Example:
 //   gcxx::blas::gemv(h, 1.0, A, x, 0.0, y);    // computes y = A * x
@@ -46,21 +48,24 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // Host views are rejected at compile time; in check builds the data handles
 // are additionally probed at run time so a mislabeled host pointer fails
 // here, not inside the GPU kernel.
-template <class A, class X, class Y,
-          class S = typename std::decay_t<Y>::element_type>
-auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta,
-          Y&& y) -> void {
+GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
+              class TX, class ExtentsX, class LayoutX, class AccessorX,
+              class TY, class ExtentsY, class LayoutY, class AccessorY,
+              class S = TY)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() ==
+              1 GCXX_AND ExtentsY::rank() == 1)
+auto gemv(BlasHandleView h, S alpha,
+          const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x, S beta,
+          const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> void {
 
   // local alias for easier refrence
-  using A_t = std::decay_t<A>;
-  using X_t = std::decay_t<X>;
-  using Y_t = std::decay_t<Y>;
-  using AVt = typename A_t::element_type;
-  using XVt = typename X_t::element_type;
-  using YVt = typename Y_t::element_type;
-  using AIt = typename A_t::index_type;
-  using XIt = typename X_t::index_type;
-  using YIt = typename Y_t::index_type;
+  using AVt = TA;
+  using XVt = TX;
+  using YVt = TY;
+  using AIt = typename ExtentsA::index_type;
+  using XIt = typename ExtentsX::index_type;
+  using YIt = typename ExtentsY::index_type;
 
   // Value type carried by alpha/beta: unwraps device_scalar<T> -> T. A
   // device_scalar argument selects device pointer mode; a plain scalar selects
@@ -69,9 +74,6 @@ auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta,
   constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
   // static asserts to verify no funny business
-  static_assert(A_t::rank() == 2 && X_t::rank() == 1 && Y_t::rank() == 1,
-                "gemv operands must be rank-2 (A) and rank-1 (x, y) mdspans");
-
   static_assert(gcxx::details_::all_same_v<AIt, XIt, YIt>,
                 "gemv operands A, x, y must share the same mdspan index_type");
 
@@ -91,8 +93,8 @@ auto gemv(BlasHandleView h, S alpha, const A& a, const X& x, S beta,
   //       std::complex<T> element type hits this assert and must be wired up
   //       (add Cgemv/Zgemv branches to GCXX_BLAS_DISPATCH_TYPED and route
   //       alpha/beta through native_scalar_t<S>).
-  static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
-                "gemv currently supports only float/double element types "
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
+                "gemv currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope

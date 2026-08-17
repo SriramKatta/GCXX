@@ -23,7 +23,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // x is a rank-1 mdspan; the length n and the increment (incx) are inferred
 // from the mdspan metadata. The type-erased cu/hipblasScalEx entry point is
 // used, with the data-type and execution-type enums derived from the element
-// type.
+// type. The operand is typed as a gcxx::mdspan in the signature, so wrong-rank
+// (or non-mdspan) arguments fail overload resolution.
 //
 // Example:
 //   gcxx::blas::scal(h, 3.0, x);
@@ -42,13 +43,15 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // rejected at compile time; in check builds the data handle is additionally
 // probed at run time so a mislabeled host pointer fails here, not inside the
 // GPU kernel.
-template <class X, class S = typename std::decay_t<X>::element_type>
-auto scal(BlasHandleView h, S alpha, X&& x) -> void {
+GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+              class S = TX)
+GCXX_REQUIRES(ExtentsX::rank() == 1)
+auto scal(BlasHandleView h, S alpha,
+          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x) -> void {
 
   // local alias for easier refrence
-  using X_t = std::decay_t<X>;
-  using XVt = typename X_t::element_type;
-  using XIt = typename X_t::index_type;
+  using XVt = TX;
+  using XIt = typename ExtentsX::index_type;
 
   // Value type carried by alpha: unwraps device_scalar<T> -> T. A
   // device_scalar argument selects device pointer mode; a plain scalar selects
@@ -57,8 +60,6 @@ auto scal(BlasHandleView h, S alpha, X&& x) -> void {
   constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
   // static asserts to verify no funny business
-  static_assert(X_t::rank() == 1, "scal operand x must be a rank-1 mdspan");
-
   static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
                 "BLAS operands must use int32_t or int64_t as their "
                 "mdspan index_type");
@@ -67,8 +68,8 @@ auto scal(BlasHandleView h, S alpha, X&& x) -> void {
                 "scal alpha value type must match the operand's element "
                 "type");
 
-  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
-                "scal currently supports only float/double element types "
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+                "scal currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope

@@ -24,7 +24,9 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // A, B, and C are rank-2 mdspan objects. The effective dimensions, the leading
 // dimensions, and the transpose state of each operand are inferred from the
 // mdspan metadata and any view wrappers (blas::transpose), so the API takes no
-// separate shape or operation arguments.
+// separate shape or operation arguments. Each operand is typed as a
+// gcxx::mdspan in the signature, so wrong-rank (or non-mdspan) arguments fail
+// overload resolution.
 //
 // Example:
 //   gcxx::blas::geam(h, 1.0, A, 0.0, B, C);    // computes C = A
@@ -44,21 +46,24 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // at compile time; in check builds the data handles are additionally probed
 // at run time so a mislabeled host pointer fails here, not inside the GPU
 // kernel.
-template <class A, class B, class C,
-          class S = typename std::decay_t<C>::element_type>
-auto geam(BlasHandleView h, S alpha, const A& a, S beta, const B& b,
-          C&& c) -> void {
+GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
+              class TB, class ExtentsB, class LayoutB, class AccessorB,
+              class TC, class ExtentsC, class LayoutC, class AccessorC,
+              class S = TC)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
+              2 GCXX_AND ExtentsC::rank() == 2)
+auto geam(BlasHandleView h, S alpha,
+          const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a, S beta,
+          const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+          const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   // local alias for easier refrence
-  using A_t = std::decay_t<A>;
-  using B_t = std::decay_t<B>;
-  using C_t = std::decay_t<C>;
-  using AVt = typename A_t::element_type;
-  using BVt = typename B_t::element_type;
-  using CVt = typename C_t::element_type;
-  using AIt = typename A_t::index_type;
-  using BIt = typename B_t::index_type;
-  using CIt = typename C_t::index_type;
+  using AVt = TA;
+  using BVt = TB;
+  using CVt = TC;
+  using AIt = typename ExtentsA::index_type;
+  using BIt = typename ExtentsB::index_type;
+  using CIt = typename ExtentsC::index_type;
 
   // Value type carried by alpha/beta: unwraps device_scalar<T> -> T. A
   // device_scalar argument selects device pointer mode; a plain scalar selects
@@ -67,9 +72,6 @@ auto geam(BlasHandleView h, S alpha, const A& a, S beta, const B& b,
   constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
   // static asserts to verify no funny business
-  static_assert(A_t::rank() == 2 && B_t::rank() == 2 && C_t::rank() == 2,
-                "geam operands must be rank-2 mdspans");
-
   static_assert(gcxx::details_::all_same_v<AIt, BIt, CIt>,
                 "geam operands A, B, C must share the same mdspan index_type");
 
@@ -86,8 +88,8 @@ auto geam(BlasHandleView h, S alpha, const A& a, S beta, const B& b,
   //       float and double; a std::complex<T> element type hits this assert
   //       and must be wired up (add Cgeam/Zgeam branches to
   //       GCXX_BLAS_DISPATCH_TYPED).
-  static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
-                "geam currently supports only float/double element types "
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
+                "geam currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope

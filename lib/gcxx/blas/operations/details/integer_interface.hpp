@@ -10,6 +10,7 @@
 #include <gcxx/backend/backend_blas.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/types/scalar_types.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 
@@ -20,6 +21,14 @@ inline constexpr bool is_supported_blas_index_v =
 template <class IdxT>
 inline constexpr bool uses_64bit_interface_v =
   std::is_same_v<IdxT, std::int64_t>;
+
+// Element types accepted by the BLAS operations. Centralized so widening the
+// set later (cf32_t/cf64_t once C/Z dispatch branches exist, then f16_t/bf16_t)
+// is a one-line change here. f32_t/f64_t are gcxx aliases for float/double, so
+// this matches exactly the set the per-op static_asserts gated before.
+template <class ElemT>
+inline constexpr bool is_supported_blas_element_v =
+  std::is_same_v<ElemT, gcxx::f32_t> || std::is_same_v<ElemT, gcxx::f64_t>;
 
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
@@ -44,13 +53,13 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
 // General typed routines (gemv, ger, symv, ...)
 #define GCXX_BLAS_DISPATCH_TYPED(OUT, IDX_TYPE, ELEM_TYPE, OP, ...)           \
   do {                                                                        \
-    if constexpr (std::is_same_v<ELEM_TYPE, float>) {                         \
+    if constexpr (std::is_same_v<ELEM_TYPE, gcxx::f32_t>) {                   \
       if constexpr (gcxx::blas::details_::uses_64bit_interface_v<IDX_TYPE>) { \
         OUT = ::GCXX_BLAS_TYPED_FN_64(S, OP)(__VA_ARGS__);                    \
       } else {                                                                \
         OUT = ::GCXX_BLAS_TYPED_FN(S, OP)(__VA_ARGS__);                       \
       }                                                                       \
-    } else if constexpr (std::is_same_v<ELEM_TYPE, double>) {                 \
+    } else if constexpr (std::is_same_v<ELEM_TYPE, gcxx::f64_t>) {            \
       if constexpr (gcxx::blas::details_::uses_64bit_interface_v<IDX_TYPE>) { \
         OUT = ::GCXX_BLAS_TYPED_FN_64(D, OP)(__VA_ARGS__);                    \
       } else {                                                                \
@@ -59,7 +68,7 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
     } else {                                                                  \
       static_assert(gcxx::details_::is_always_false_v<ELEM_TYPE>,             \
                     "GCXX_BLAS_DISPATCH_TYPED: unsupported element type "     \
-                    "(float/double only until C/Z branches are added)");      \
+                    "(f32_t/f64_t only until C/Z branches are added)");       \
     }                                                                         \
   } while (0)
 

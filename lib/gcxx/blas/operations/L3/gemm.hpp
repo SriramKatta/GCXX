@@ -23,7 +23,9 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 //
 // A, B, and C are rank-2 mdspan objects. The effective dimensions, layout, and
 // transpose state are inferred from the mdspan metadata and any view wrappers,
-// so the API does not take separate shape or operation arguments.
+// so the API does not take separate shape or operation arguments. Each operand
+// is typed as a gcxx::mdspan in the signature, so wrong-rank (or non-mdspan)
+// arguments fail overload resolution.
 //
 // Example:
 //   gcxx::blas::gemm(h, 1.0, A, B, 4.0, C);    // computes C = A * B + 4.0 * C
@@ -49,21 +51,24 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // at compile time; in check builds the data handles are additionally probed
 // at run time so a mislabeled host pointer fails here, not inside the GPU
 // kernel.
-template <class A, class B, class C,
-          class S = typename std::decay_t<C>::element_type>
-auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
-          C&& c) -> void {
+GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
+              class TB, class ExtentsB, class LayoutB, class AccessorB,
+              class TC, class ExtentsC, class LayoutC, class AccessorC,
+              class S = TC)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
+              2 GCXX_AND ExtentsC::rank() == 2)
+auto gemm(BlasHandleView h, S alpha,
+          const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+          const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b, S beta,
+          const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   // local alias for easier refrence
-  using A_t = std::decay_t<A>;
-  using B_t = std::decay_t<B>;
-  using C_t = std::decay_t<C>;
-  using AVt = typename A_t::element_type;
-  using BVt = typename B_t::element_type;
-  using CVt = typename C_t::element_type;
-  using AIt = typename A_t::index_type;
-  using BIt = typename B_t::index_type;
-  using CIt = typename C_t::index_type;
+  using AVt = TA;
+  using BVt = TB;
+  using CVt = TC;
+  using AIt = typename ExtentsA::index_type;
+  using BIt = typename ExtentsB::index_type;
+  using CIt = typename ExtentsC::index_type;
 
   // Value type carried by alpha/beta: unwraps device_scalar<T> -> T. A
   // device_scalar argument selects device pointer mode; a plain scalar selects
@@ -72,9 +77,6 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
   // static asserts to verify no funny business
-  static_assert(A_t::rank() == 2 && B_t::rank() == 2 && C_t::rank() == 2,
-                "gemm operands must be rank-2 mdspans");
-
   static_assert(gcxx::details_::all_same_v<AIt, BIt, CIt>,
                 "gemm operands A, B, C must share the same mdspan index_type");
 

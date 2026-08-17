@@ -7,6 +7,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 // section for types
+#include <gcxx/types/scalar_types.hpp>
 #include <gcxx/types/shared_mem.hpp>
 #include <gcxx/types/vector_types.hpp>
 #include <gcxx/types/vector_types_op.hpp>

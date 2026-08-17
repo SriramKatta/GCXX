@@ -171,8 +171,8 @@ TEST(BlasOpInference, NeitherAxisUnit_Throws) {
   std::vector<double> buf(100);
   dextents2d ext{4, 5};
   gcxx::layout_stride::mapping<dextents2d> map{ext, std::array<int, 2>{2, 7}};
-  gcxx::mdspan<double, dextents2d, gcxx::layout_stride, dev_acc_d> s(
-    buf.data(), map);
+  gcxx::mdspan<double, dextents2d, gcxx::layout_stride, dev_acc_d> s(buf.data(),
+                                                                     map);
 
   EXPECT_THROW(infer(s), gcxx::blas::BlasException);
 }
@@ -188,8 +188,8 @@ TEST(BlasDeviceView, AccessorTraitPolarity) {
                 "device accessor is a device view");
   static_assert(gcxx::is_device_view_v<gcxx::managed_accessor<def_acc_d>>,
                 "managed accessor is a device view");
-  static_assert(gcxx::is_device_view_v<gcxx::restrict_accessor<
-                  gcxx::device_accessor<def_acc_d>>>,
+  static_assert(gcxx::is_device_view_v<
+                  gcxx::restrict_accessor<gcxx::device_accessor<def_acc_d>>>,
                 "wrapper accessors propagate device-ness");
   static_assert(!gcxx::is_device_view_v<def_acc_d>,
                 "default accessor is not a device view");
@@ -199,15 +199,16 @@ TEST(BlasDeviceView, AccessorTraitPolarity) {
                 "host accessor is a host view");
   static_assert(gcxx::is_host_view_v<gcxx::managed_accessor<def_acc_d>>,
                 "managed accessor is a host view");
-  static_assert(gcxx::is_restrict_accessor_v<
-                  gcxx::restrict_accessor<def_acc_d>>,
-                "restrict accessor identity trait");
-  static_assert(gcxx::is_shared_memory_accessor_v<
-                  gcxx::shared_memory_accessor<def_acc_d>>,
-                "shared memory accessor identity trait");
-  static_assert(!gcxx::is_device_view_v<gcxx::shared_memory_accessor<def_acc_d>>,
-                "shared memory is not a BLAS device view (kernel-only "
-                "address space)");
+  static_assert(
+    gcxx::is_restrict_accessor_v<gcxx::restrict_accessor<def_acc_d>>,
+    "restrict accessor identity trait");
+  static_assert(
+    gcxx::is_shared_memory_accessor_v<gcxx::shared_memory_accessor<def_acc_d>>,
+    "shared memory accessor identity trait");
+  static_assert(
+    !gcxx::is_device_view_v<gcxx::shared_memory_accessor<def_acc_d>>,
+    "shared memory is not a BLAS device view (kernel-only "
+    "address space)");
   SUCCEED();
 }
 

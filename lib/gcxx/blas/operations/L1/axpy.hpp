@@ -24,7 +24,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // x and y are rank-1 mdspans; the length n and the increments (incx, incy) are
 // inferred from the mdspan metadata. The type-erased cu/hipblasAxpyEx entry
 // point is used, with the data-type and execution-type enums derived from the
-// element type.
+// element type. Each operand is typed as a gcxx::mdspan in the signature, so
+// wrong-rank (or non-mdspan) arguments fail overload resolution.
 //
 // Example:
 //   gcxx::blas::axpy(h, 2.0, x, y);    // computes y = 2 * x + y
@@ -43,16 +44,19 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // rejected at compile time; in check builds the data handles are
 // additionally probed at run time so a mislabeled host pointer fails here,
 // not inside the GPU kernel.
-template <class X, class Y, class S = typename std::decay_t<X>::element_type>
-auto axpy(BlasHandleView h, S alpha, const X& x, Y&& y) -> void {
+GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+              class TY, class ExtentsY, class LayoutY, class AccessorY,
+              class S = TX)
+GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
+auto axpy(BlasHandleView h, S alpha,
+          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+          const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> void {
 
   // local alias for easier refrence
-  using X_t = std::decay_t<X>;
-  using Y_t = std::decay_t<Y>;
-  using XVt = typename X_t::element_type;
-  using YVt = typename Y_t::element_type;
-  using XIt = typename X_t::index_type;
-  using YIt = typename Y_t::index_type;
+  using XVt = TX;
+  using YVt = TY;
+  using XIt = typename ExtentsX::index_type;
+  using YIt = typename ExtentsY::index_type;
 
   // Value type carried by alpha: unwraps device_scalar<T> -> T. A
   // device_scalar argument selects device pointer mode; a plain scalar selects
@@ -61,9 +65,6 @@ auto axpy(BlasHandleView h, S alpha, const X& x, Y&& y) -> void {
   constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
   // static asserts to verify no funny business
-  static_assert(X_t::rank() == 1 && Y_t::rank() == 1,
-                "axpy operands x, y must be rank-1 mdspans");
-
   static_assert(gcxx::details_::all_same_v<XIt, YIt>,
                 "axpy operands x, y must share the same mdspan index_type");
 
@@ -75,8 +76,8 @@ auto axpy(BlasHandleView h, S alpha, const X& x, Y&& y) -> void {
                 "axpy alpha value type must match the operands' element "
                 "type");
 
-  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
-                "axpy currently supports only float/double element types "
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+                "axpy currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope

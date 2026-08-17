@@ -26,7 +26,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // by the gcxx::blas::left / gcxx::blas::right tag, keeping the raw backend
 // side-mode enum out of the public API. With the left tag x scales rows of A
 // (x has length m); with the right tag x scales columns of A (x has length
-// n).
+// n). Each operand is typed as a gcxx::mdspan in the signature, so wrong-rank
+// (or non-mdspan) arguments fail overload resolution.
 //
 // Example:
 //   gcxx::blas::dgmm(h, gcxx::blas::left, A, x, C);    // C = diag(x) * A
@@ -41,24 +42,26 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // Host views are rejected at compile time; in check builds the data handles
 // are additionally probed at run time so a mislabeled host pointer fails
 // here, not inside the GPU kernel.
-template <class Side, class A, class X, class C>
-auto dgmm(BlasHandleView h, Side side, const A& a, const X& x, C&& c) -> void {
+GCXX_TEMPLATE(class Side, class TA, class ExtentsA, class LayoutA,
+              class AccessorA, class TX, class ExtentsX, class LayoutX,
+              class AccessorX, class TC, class ExtentsC, class LayoutC,
+              class AccessorC)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() ==
+              1 GCXX_AND ExtentsC::rank() == 2)
+auto dgmm(BlasHandleView h, Side side,
+          const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+          const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   // local alias for easier refrence
-  using A_t = std::decay_t<A>;
-  using X_t = std::decay_t<X>;
-  using C_t = std::decay_t<C>;
-  using AVt = typename A_t::element_type;
-  using XVt = typename X_t::element_type;
-  using CVt = typename C_t::element_type;
-  using AIt = typename A_t::index_type;
-  using XIt = typename X_t::index_type;
-  using CIt = typename C_t::index_type;
+  using AVt = TA;
+  using XVt = TX;
+  using CVt = TC;
+  using AIt = typename ExtentsA::index_type;
+  using XIt = typename ExtentsX::index_type;
+  using CIt = typename ExtentsC::index_type;
 
   // static asserts to verify no funny business
-  static_assert(A_t::rank() == 2 && X_t::rank() == 1 && C_t::rank() == 2,
-                "dgmm operands must be rank-2 (A, C) and rank-1 (x) mdspans");
-
   static_assert(gcxx::details_::all_same_v<AIt, XIt, CIt>,
                 "dgmm operands A, x, C must share the same mdspan index_type");
 
@@ -73,8 +76,8 @@ auto dgmm(BlasHandleView h, Side side, const A& a, const X& x, C&& c) -> void {
   //       dispatch macro below only handles float and double; a
   //       std::complex<T> element type hits this assert and must be wired up
   //       (add Cdgmm/Zdgmm branches to GCXX_BLAS_DISPATCH_TYPED).
-  static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
-                "dgmm currently supports only float/double element types "
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
+                "dgmm currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
 
   // run-time device-memory probe (no-op unless checks are enabled)
@@ -83,8 +86,8 @@ auto dgmm(BlasHandleView h, Side side, const A& a, const X& x, C&& c) -> void {
   details_::validate_device_view(c, "C");
 
   // extract problem dimensions
-  const auto [m, n, ld_a, op_a] = details_::infer_blas_matrix_view(a);
-  const auto [len_x, inc_x]     = details_::infer_blas_vector_view(x);
+  const auto [m, n, ld_a, op_a]     = details_::infer_blas_matrix_view(a);
+  const auto [len_x, inc_x]         = details_::infer_blas_vector_view(x);
   const auto [m_c, n_c, ld_c, op_c] = details_::infer_blas_matrix_view(c);
 
   // unused vars just to supress annoying warnings
@@ -108,8 +111,8 @@ auto dgmm(BlasHandleView h, Side side, const A& a, const X& x, C&& c) -> void {
   }
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, dgmm, h.getRawHandle(), mode, m,
-                           n, a.data_handle(), ld_a, x.data_handle(), inc_x,
+  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, dgmm, h.getRawHandle(), mode, m, n,
+                           a.data_handle(), ld_a, x.data_handle(), inc_x,
                            c.data_handle(), ld_c);
 
   if (status != driver::deviceBlasStatusSuccess) {

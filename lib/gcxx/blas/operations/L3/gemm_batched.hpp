@@ -58,9 +58,9 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
                   C&& c) -> void {
 
   // local alias for easier refrence
-  using A_t = std::decay_t<A>;
-  using B_t = std::decay_t<B>;
-  using C_t = std::decay_t<C>;
+  using A_t  = std::decay_t<A>;
+  using B_t  = std::decay_t<B>;
+  using C_t  = std::decay_t<C>;
   using AMat = typename A_t::value_type;
   using BMat = typename B_t::value_type;
   using CMat = typename C_t::value_type;
@@ -108,9 +108,9 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   // extract problem dimensions from the first element of each array; the
   // remaining elements must agree because the backend takes a single
   // m/n/k/ld/op for the whole batch
-  const auto [m, k, ld_a, op_a]       = details_::infer_blas_matrix_view(a[0]);
-  const auto [k_b, n, ld_b, op_b]     = details_::infer_blas_matrix_view(b[0]);
-  const auto [m_c, n_c, ld_c, op_c]   = details_::infer_blas_matrix_view(c[0]);
+  const auto [m, k, ld_a, op_a]     = details_::infer_blas_matrix_view(a[0]);
+  const auto [k_b, n, ld_b, op_b]   = details_::infer_blas_matrix_view(b[0]);
+  const auto [m_c, n_c, ld_c, op_c] = details_::infer_blas_matrix_view(c[0]);
 
   // unused vars just to supress annoying warnings
   (void)k_b;
@@ -143,7 +143,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   // on the way — no-op unless checks are enabled)
   std::vector<const void*> a_ptrs(a.size());
   std::vector<const void*> b_ptrs(a.size());
-  std::vector<void*>       c_ptrs(a.size());
+  std::vector<void*> c_ptrs(a.size());
   for (std::size_t i = 0; i < a.size(); ++i) {
     details_::validate_device_view(a[i], "A[i]");
     details_::validate_device_view(b[i], "B[i]");

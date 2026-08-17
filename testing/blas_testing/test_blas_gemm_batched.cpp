@@ -37,9 +37,9 @@ namespace {
                              gcxx::layout_left, gcxx::default_accessor<double>>;
 
   template <class IndexT>
-  using mat3_left = gcxx::mdspan<double, gcxx::dextents<IndexT, 3>,
-                                 gcxx::layout_left,
-                                 gcxx::default_accessor<double>>;
+  using mat3_left =
+    gcxx::mdspan<double, gcxx::dextents<IndexT, 3>, gcxx::layout_left,
+                 gcxx::default_accessor<double>>;
 
   // Device-memory counterparts required by the gcxx::blas operations.
   template <class IndexT>
@@ -55,9 +55,9 @@ namespace {
   void host_gemm3(const std::vector<double>& a, const std::vector<double>& b,
                   std::vector<double>& out, int m, int k, int n, int batch) {
     for (int bb = 0; bb < batch; ++bb) {
-      const double* ab = a.data() + bb * m * k;
+      const double* ab  = a.data() + bb * m * k;
       const double* bbp = b.data() + bb * k * n;
-      double*       ob  = out.data() + bb * m * n;
+      double* ob        = out.data() + bb * m * n;
       for (int j = 0; j < n; ++j) {
         for (int i = 0; i < m; ++i) {
           double acc{};
@@ -101,7 +101,7 @@ namespace {
 
     gcxx::Stream str;
     std::vector<gcxx::device_ptr<double>> dAs, dBs, dCs;
-    std::vector<dmat2d<IndexT>>            aViews, bViews, cViews;
+    std::vector<dmat2d<IndexT>> aViews, bViews, cViews;
     for (int i = 0; i < B; ++i) {
       dAs.push_back(gcxx::make_device_unique_ptr<double>(std::size_t{M * K}));
       dBs.push_back(gcxx::make_device_unique_ptr<double>(std::size_t{K * N}));

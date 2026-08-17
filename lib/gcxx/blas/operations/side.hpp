@@ -19,7 +19,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 struct left_t {};
 struct right_t {};
 
-inline constexpr left_t  left{};
+inline constexpr left_t left{};
 inline constexpr right_t right{};
 
 GCXX_NAMESPACE_MAIN_BLAS_END()

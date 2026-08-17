@@ -9,6 +9,7 @@
 #include <gcxx/backend/backend_blas.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/types/scalar_types.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
@@ -17,18 +18,18 @@ struct native_scalar {
   using type = T;
 };
 template <>
-struct native_scalar<std::complex<float>> {
+struct native_scalar<gcxx::cf32_t> {
   using type = GCXX_DIRECT_BACKEND_ALT(cuComplex, hipComplex);
 };
 template <>
-struct native_scalar<std::complex<double>> {
+struct native_scalar<gcxx::cf64_t> {
   using type = GCXX_DIRECT_BACKEND_ALT(cuDoubleComplex, hipDoubleComplex);
 };
 template <class T>
 using native_scalar_t = typename native_scalar<T>::type;
 
 // Compile-time dispatch table: maps a C++ element type to the address of the
-// matching typed backend symbol (e.g. gemm_ptr_v<float> == &cublasSgemm).
+// matching typed backend symbol (e.g. gemm_ptr_v<gcxx::f32_t> == &cublasSgemm).
 #define GCXX_BLAS_REGISTER_OP(name, S, D, C, Z)               \
   template <class T>                                          \
   struct name##_ptr {                                         \
@@ -36,19 +37,19 @@ using native_scalar_t = typename native_scalar<T>::type;
                   "Unsupported BLAS type for " #name "_ptr"); \
   };                                                          \
   template <>                                                 \
-  struct name##_ptr<float> {                                  \
+  struct name##_ptr<gcxx::f32_t> {                            \
     static constexpr auto value = &GCXX_BLAS_BACKEND(S);      \
   };                                                          \
   template <>                                                 \
-  struct name##_ptr<double> {                                 \
+  struct name##_ptr<gcxx::f64_t> {                            \
     static constexpr auto value = &GCXX_BLAS_BACKEND(D);      \
   };                                                          \
   template <>                                                 \
-  struct name##_ptr<std::complex<float>> {                    \
+  struct name##_ptr<gcxx::cf32_t> {                           \
     static constexpr auto value = &GCXX_BLAS_BACKEND(C);      \
   };                                                          \
   template <>                                                 \
-  struct name##_ptr<std::complex<double>> {                   \
+  struct name##_ptr<gcxx::cf64_t> {                           \
     static constexpr auto value = &GCXX_BLAS_BACKEND(Z);      \
   };                                                          \
   template <class T>                                          \

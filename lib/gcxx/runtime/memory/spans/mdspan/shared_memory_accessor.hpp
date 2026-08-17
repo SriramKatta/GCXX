@@ -38,9 +38,10 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 #if GCXX_DEVICE_COMPILE
 #define GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY() (void)0
 #else
-#define GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY()                      \
-  assert(false && "gcxx::shared_memory_accessor cannot be used "  \
-                  "in HOST code")
+#define GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY()            \
+  assert(false &&                                       \
+         "gcxx::shared_memory_accessor cannot be used " \
+         "in HOST code")
 #endif
 
 template <class Accessor>
@@ -72,20 +73,23 @@ class shared_memory_accessor : public Accessor {
   // Same-space conversion; implicit iff the base conversion is implicit.
   GCXX_TEMPLATE(class OtherAccessor)
   GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                std::is_convertible_v<const OtherAccessor&, Accessor>)
+                  std::is_convertible_v<const OtherAccessor&, Accessor>)
   constexpr shared_memory_accessor(
-    const shared_memory_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+    const shared_memory_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {
     GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY();
   }
 
   GCXX_TEMPLATE(class OtherAccessor)
-  GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                !std::is_convertible_v<const OtherAccessor&, Accessor>)
+  GCXX_REQUIRES(
+    std::is_constructible_v<Accessor, const OtherAccessor&>
+      GCXX_AND !std::is_convertible_v<const OtherAccessor&, Accessor>)
   explicit constexpr shared_memory_accessor(
-    const shared_memory_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+    const shared_memory_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {
     GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY();
   }
@@ -100,8 +104,7 @@ class shared_memory_accessor : public Accessor {
     return Accessor::access(p, i);
   }
 
-  constexpr data_handle_type offset(data_handle_type p,
-                                    std::size_t i) const {
+  constexpr data_handle_type offset(data_handle_type p, std::size_t i) const {
 #if GCXX_CUDA_MODE() && GCXX_DEVICE_COMPILE
     assert(__isShared(p) && "data handle is not a shared memory pointer");
 #endif

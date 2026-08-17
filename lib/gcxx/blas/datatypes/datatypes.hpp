@@ -9,6 +9,7 @@
 
 #include <gcxx/backend/backend_blas.hpp>
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/types/scalar_types.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
@@ -29,14 +30,14 @@ struct cuda_datatype {
 // ╔════════════════════════════════════════════════════════╗
 // ║                  real floating point                   ║
 // ╚════════════════════════════════════════════════════════╝
-DEFINE_DATATYPE(float, CUDA_R_32F, HIP_R_32F);
-DEFINE_DATATYPE(double, CUDA_R_64F, HIP_R_64F);
+DEFINE_DATATYPE(gcxx::f32_t, CUDA_R_32F, HIP_R_32F);
+DEFINE_DATATYPE(gcxx::f64_t, CUDA_R_64F, HIP_R_64F);
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                 complex floating point                 ║
 // ╚════════════════════════════════════════════════════════╝
-DEFINE_DATATYPE(std::complex<float>, CUDA_C_32F, HIP_C_32F);
-DEFINE_DATATYPE(std::complex<double>, CUDA_C_64F, HIP_C_64F);
+DEFINE_DATATYPE(gcxx::cf32_t, CUDA_C_32F, HIP_C_32F);
+DEFINE_DATATYPE(gcxx::cf64_t, CUDA_C_64F, HIP_C_64F);
 
 // ╔════════════════════════════════════════════════════════╗
 // ║                        integer                         ║
@@ -67,8 +68,8 @@ struct blas_compute_type {
 // ╔════════════════════════════════════════════════════════╗
 // ║                  real floating point                   ║
 // ╚════════════════════════════════════════════════════════╝
-DEFINE_COMPUTE_TYPE(float, CUBLAS_COMPUTE_32F, HIPBLAS_COMPUTE_32F);
-DEFINE_COMPUTE_TYPE(double, CUBLAS_COMPUTE_64F, HIPBLAS_COMPUTE_64F);
+DEFINE_COMPUTE_TYPE(gcxx::f32_t, CUBLAS_COMPUTE_32F, HIPBLAS_COMPUTE_32F);
+DEFINE_COMPUTE_TYPE(gcxx::f64_t, CUBLAS_COMPUTE_64F, HIPBLAS_COMPUTE_64F);
 
 #undef DEFINE_COMPUTE_TYPE
 

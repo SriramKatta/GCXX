@@ -82,7 +82,8 @@ class host_accessor : public Accessor {
 
   GCXX_TEMPLATE(class Base = Accessor)
   GCXX_REQUIRES(std::is_default_constructible_v<Base>)
-  constexpr host_accessor() noexcept(std::is_nothrow_default_constructible_v<Base>)
+  constexpr host_accessor() noexcept(
+    std::is_nothrow_default_constructible_v<Base>)
       : Accessor{} {}
 
   constexpr host_accessor(const Accessor& acc) noexcept(
@@ -92,16 +93,19 @@ class host_accessor : public Accessor {
   // Same-space conversion; implicit iff the base conversion is implicit.
   GCXX_TEMPLATE(class OtherAccessor)
   GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                std::is_convertible_v<const OtherAccessor&, Accessor>)
+                  std::is_convertible_v<const OtherAccessor&, Accessor>)
   constexpr host_accessor(const host_accessor<OtherAccessor>& acc) noexcept(
     std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
       : Accessor{acc} {}
 
   GCXX_TEMPLATE(class OtherAccessor)
-  GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                !std::is_convertible_v<const OtherAccessor&, Accessor>)
-  explicit constexpr host_accessor(const host_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+  GCXX_REQUIRES(
+    std::is_constructible_v<Accessor, const OtherAccessor&>
+      GCXX_AND !std::is_convertible_v<const OtherAccessor&, Accessor>)
+  explicit constexpr host_accessor(
+    const host_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {}
 
   // Cross-space conversions.
@@ -110,16 +114,19 @@ class host_accessor : public Accessor {
 
   GCXX_TEMPLATE(class OtherAccessor)
   GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                std::is_convertible_v<const OtherAccessor&, Accessor>)
+                  std::is_convertible_v<const OtherAccessor&, Accessor>)
   constexpr host_accessor(const managed_accessor<OtherAccessor>& acc) noexcept(
     std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
       : Accessor{acc} {}
 
   GCXX_TEMPLATE(class OtherAccessor)
-  GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                !std::is_convertible_v<const OtherAccessor&, Accessor>)
-  explicit constexpr host_accessor(const managed_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+  GCXX_REQUIRES(
+    std::is_constructible_v<Accessor, const OtherAccessor&>
+      GCXX_AND !std::is_convertible_v<const OtherAccessor&, Accessor>)
+  explicit constexpr host_accessor(
+    const managed_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {}
 
   constexpr reference access(data_handle_type p, std::size_t i) const {
@@ -161,17 +168,19 @@ class device_accessor : public Accessor {
   // Same-space conversion; implicit iff the base conversion is implicit.
   GCXX_TEMPLATE(class OtherAccessor)
   GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                std::is_convertible_v<const OtherAccessor&, Accessor>)
+                  std::is_convertible_v<const OtherAccessor&, Accessor>)
   constexpr device_accessor(const device_accessor<OtherAccessor>& acc) noexcept(
     std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
       : Accessor{acc} {}
 
   GCXX_TEMPLATE(class OtherAccessor)
-  GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                !std::is_convertible_v<const OtherAccessor&, Accessor>)
+  GCXX_REQUIRES(
+    std::is_constructible_v<Accessor, const OtherAccessor&>
+      GCXX_AND !std::is_convertible_v<const OtherAccessor&, Accessor>)
   explicit constexpr device_accessor(
-    const device_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+    const device_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {}
 
   // Cross-space conversions.
@@ -180,17 +189,21 @@ class device_accessor : public Accessor {
 
   GCXX_TEMPLATE(class OtherAccessor)
   GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                std::is_convertible_v<const OtherAccessor&, Accessor>)
-  constexpr device_accessor(const managed_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+                  std::is_convertible_v<const OtherAccessor&, Accessor>)
+  constexpr device_accessor(
+    const managed_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {}
 
   GCXX_TEMPLATE(class OtherAccessor)
-  GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                !std::is_convertible_v<const OtherAccessor&, Accessor>)
+  GCXX_REQUIRES(
+    std::is_constructible_v<Accessor, const OtherAccessor&>
+      GCXX_AND !std::is_convertible_v<const OtherAccessor&, Accessor>)
   explicit constexpr device_accessor(
-    const managed_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+    const managed_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {}
 
   constexpr reference access(data_handle_type p, std::size_t i) const {
@@ -230,17 +243,21 @@ class managed_accessor : public Accessor {
   // Same-space conversion; implicit iff the base conversion is implicit.
   GCXX_TEMPLATE(class OtherAccessor)
   GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                std::is_convertible_v<const OtherAccessor&, Accessor>)
-  constexpr managed_accessor(const managed_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+                  std::is_convertible_v<const OtherAccessor&, Accessor>)
+  constexpr managed_accessor(
+    const managed_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {}
 
   GCXX_TEMPLATE(class OtherAccessor)
-  GCXX_REQUIRES(std::is_constructible_v<Accessor, const OtherAccessor&> GCXX_AND
-                !std::is_convertible_v<const OtherAccessor&, Accessor>)
+  GCXX_REQUIRES(
+    std::is_constructible_v<Accessor, const OtherAccessor&>
+      GCXX_AND !std::is_convertible_v<const OtherAccessor&, Accessor>)
   explicit constexpr managed_accessor(
-    const managed_accessor<OtherAccessor>& acc) noexcept(
-    std::is_nothrow_constructible_v<Accessor, const OtherAccessor&>)
+    const managed_accessor<OtherAccessor>&
+      acc) noexcept(std::is_nothrow_constructible_v<Accessor,
+                                                    const OtherAccessor&>)
       : Accessor{acc} {}
 
   // Cross-space conversions.

@@ -22,7 +22,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // x and y are rank-1 mdspans; the length n and the increments (incx, incy) are
 // inferred from the mdspan metadata. The type-erased cu/hipblasDotEx entry
 // point is used, with the data-type and execution-type enums derived from the
-// element type.
+// element type. Each operand is typed as a gcxx::mdspan in the signature, so
+// wrong-rank (or non-mdspan) arguments fail overload resolution.
 //
 // Example:
 //   double r{};
@@ -44,22 +45,22 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // additionally probed at run time so a mislabeled host pointer fails here,
 // not inside the GPU kernel. The raw result pointer is NOT covered by the
 // gate — it must match the handle's current pointer mode per the note above.
-template <class X, class Y,
-          class R = typename std::decay_t<X>::element_type>
-auto dot(BlasHandleView h, const X& x, const Y& y, R* result) -> void {
+GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+              class TY, class ExtentsY, class LayoutY, class AccessorY,
+              class R = TX)
+GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
+auto dot(BlasHandleView h,
+         const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+         const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y,
+         R* result) -> void {
 
   // local alias for easier refrence
-  using X_t = std::decay_t<X>;
-  using Y_t = std::decay_t<Y>;
-  using XVt = typename X_t::element_type;
-  using YVt = typename Y_t::element_type;
-  using XIt = typename X_t::index_type;
-  using YIt = typename Y_t::index_type;
+  using XVt = TX;
+  using YVt = TY;
+  using XIt = typename ExtentsX::index_type;
+  using YIt = typename ExtentsY::index_type;
 
   // static asserts to verify no funny business
-  static_assert(X_t::rank() == 1 && Y_t::rank() == 1,
-                "dot operands x, y must be rank-1 mdspans");
-
   static_assert(gcxx::details_::all_same_v<XIt, YIt>,
                 "dot operands x, y must share the same mdspan index_type");
 
@@ -71,8 +72,8 @@ auto dot(BlasHandleView h, const X& x, const Y& y, R* result) -> void {
                 "dot result value type must match the operands' element "
                 "type");
 
-  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
-                "dot currently supports only float/double element types "
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+                "dot currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
 
   // run-time device-memory probe (no-op unless checks are enabled)
@@ -87,11 +88,10 @@ auto dot(BlasHandleView h, const X& x, const Y& y, R* result) -> void {
   (void)len_y;
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_INT64(status, XIt, DotEx, h.getRawHandle(), len_x,
-                           x.data_handle(), cuda_datatype_v<XVt>, inc_x,
-                           y.data_handle(), cuda_datatype_v<YVt>, inc_y,
-                           static_cast<void*>(result), cuda_datatype_v<R>,
-                           cuda_datatype_v<R>);
+  GCXX_BLAS_DISPATCH_INT64(
+    status, XIt, DotEx, h.getRawHandle(), len_x, x.data_handle(),
+    cuda_datatype_v<XVt>, inc_x, y.data_handle(), cuda_datatype_v<YVt>, inc_y,
+    static_cast<void*>(result), cuda_datatype_v<R>, cuda_datatype_v<R>);
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "dot failed");

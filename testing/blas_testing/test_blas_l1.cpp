@@ -28,7 +28,7 @@ namespace {
       GTEST_SKIP() << "No CUDA device available";
     }
 
-    constexpr int N = 5;
+    constexpr int N    = 5;
     const double alpha = 2.0, scale = 3.0;
 
     std::vector<double> hX{1.0, -2.0, 3.0, -4.0, 5.0};
@@ -66,7 +66,7 @@ namespace {
       GTEST_SKIP() << "No CUDA device available";
     }
 
-    constexpr int  N     = 5;
+    constexpr int N    = 5;
     constexpr double c = 0.8, s = 0.6;
 
     std::vector<double> hX{1.0, -2.0, 3.0, -4.0, 5.0};
@@ -108,8 +108,10 @@ namespace {
     str.Synchronize();
 
     for (int i = 0; i < N; ++i) {
-      EXPECT_NEAR(hXr[i], c * hX[i] + s * hY[i], 1e-9) << "rot x mismatch at " << i;
-      EXPECT_NEAR(hYr[i], c * hY[i] - s * hX[i], 1e-9) << "rot y mismatch at " << i;
+      EXPECT_NEAR(hXr[i], c * hX[i] + s * hY[i], 1e-9)
+        << "rot x mismatch at " << i;
+      EXPECT_NEAR(hYr[i], c * hY[i] - s * hX[i], 1e-9)
+        << "rot y mismatch at " << i;
     }
   }
 
