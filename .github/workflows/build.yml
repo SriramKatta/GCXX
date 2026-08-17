@@ -4,15 +4,18 @@
 # container's BASE_IMAGE, then runs the CUDA or HIP full-build preset inside
 # it. Runners have no GPU, but the presets are configure+build only.
 #
-# On pushes to main/DEV the built image is also pushed to GHCR and reused as
-# the build cache (cacheFrom) by subsequent runs.
+# The build runs automatically only on pushes to main. DEV gets frequent
+# pushes, so build it via workflow_dispatch (Actions tab or
+# `gh workflow run devcontainer.yml --ref DEV`) when wanted.
+#
+# On pushes to main (or a manual run on any branch) the built image is also
+# pushed to GHCR and reused as the build cache (cacheFrom) by subsequent runs.
 
-name: devcontainer
+name: build
 
 on:
   push:
-    branches: [main, DEV]
-  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
