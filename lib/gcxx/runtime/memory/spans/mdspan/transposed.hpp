@@ -39,21 +39,28 @@ constexpr auto transposed(const gcxx::mdspan<T, Extents, Layout, Accessor>& v) {
   using new_extents_t = transposed_extents_t<Extents>;
   new_extents_t new_extents(v.extent(1), v.extent(0));
 
+  // The mapping constructors below spell out their template argument instead
+  // of relying on CTAD: the vendored mdspan's constructors are __host__
+  // __device__ (MDSPAN_IMPL_HAS_CUDA/HIP), and nvcc's front-end forms no
+  // implicit deduction guides from __host__ __device__ constructors.
   if constexpr (std::is_same_v<Layout, gcxx::layout_left>) {
     // column-major (e0,e1) -> row-major (e1,e0)
     return gcxx::mdspan(v.data_handle(),
-                        gcxx::layout_right::mapping(new_extents), v.accessor());
+                        gcxx::layout_right::mapping<new_extents_t>(new_extents),
+                        v.accessor());
   } else if constexpr (std::is_same_v<Layout, gcxx::layout_right>) {
     // row-major (e0,e1) -> column-major (e1,e0)
     return gcxx::mdspan(v.data_handle(),
-                        gcxx::layout_left::mapping(new_extents), v.accessor());
+                        gcxx::layout_left::mapping<new_extents_t>(new_extents),
+                        v.accessor());
   } else {
     // Padded / strided inputs: explicit swapped-stride mapping.
     std::array<typename Extents::index_type, 2> new_strides{
       v.mapping().stride(1), v.mapping().stride(0)};
-    return gcxx::mdspan(v.data_handle(),
-                        gcxx::layout_stride::mapping(new_extents, new_strides),
-                        v.accessor());
+    return gcxx::mdspan(
+      v.data_handle(),
+      gcxx::layout_stride::mapping<new_extents_t>(new_extents, new_strides),
+      v.accessor());
   }
 }
 
