@@ -45,7 +45,7 @@ namespace {
   // B(b,p,j); layout-agnostic (works for layout_stride and layout_right).
   template <class MDA, class MDB, class MDC>
   void host_gemm3_bfirst(const MDA& a, const MDB& b, MDC& c) {
-    using idx_t = typename MDA::index_type;
+    using idx_t       = typename MDA::index_type;
     const idx_t batch = a.extent(0);
     const idx_t m     = a.extent(1);
     const idx_t k     = a.extent(2);

@@ -338,10 +338,8 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::matrix_product(
-      handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()},
-                                 A),
-      B, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, C),
-      C);
+      handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()}, A),
+      B, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, C), C);
     str.Synchronize();
 
     std::vector<double> hC_result(M * N);

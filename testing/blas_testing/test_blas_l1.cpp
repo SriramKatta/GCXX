@@ -107,9 +107,10 @@ namespace {
     // asynchronous device_scalar result forms
     auto dDot = gcxx::make_device_unique_ptr<double>(std::size_t{1});
     auto dNrm = gcxx::make_device_unique_ptr<double>(std::size_t{1});
-    gcxx::blas::dot(handle, X, Y, gcxx::blas::device_scalar<double>{dDot.get()});
-    gcxx::blas::vector_two_norm(
-      handle, X, gcxx::blas::device_scalar<double>{dNrm.get()});
+    gcxx::blas::dot(handle, X, Y,
+                    gcxx::blas::device_scalar<double>{dDot.get()});
+    gcxx::blas::vector_two_norm(handle, X,
+                                gcxx::blas::device_scalar<double>{dNrm.get()});
     str.Synchronize();
 
     double dot_d{}, nrm2_d{};

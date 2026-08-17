@@ -54,54 +54,54 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // probed at run time so a mislabeled host pointer fails here, not inside the
 // GPU kernel.
 namespace nrm2_impl_ {
-GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
-              class R = TX)
-GCXX_REQUIRES(ExtentsX::rank() == 1)
-auto sync_nrm2(BlasHandleView h,
-               const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
-               R* result) -> void {
+  GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+                class R = TX)
+  GCXX_REQUIRES(ExtentsX::rank() == 1)
+  auto sync_nrm2(BlasHandleView h,
+                 const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+                 R* result) -> void {
 
-  // local alias for easier refrence
-  using XVt = TX;
-  using XIt = typename ExtentsX::index_type;
+    // local alias for easier refrence
+    using XVt = TX;
+    using XIt = typename ExtentsX::index_type;
 
-  // static asserts to verify no funny business
-  static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
-                "BLAS operands must use int32_t or int64_t as their "
-                "mdspan index_type");
+    // static asserts to verify no funny business
+    static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
+                  "BLAS operands must use int32_t or int64_t as their "
+                  "mdspan index_type");
 
-  static_assert(std::is_same_v<R, XVt>,
-                "vector_two_norm result value type must match the operand's "
-                "element type");
+    static_assert(std::is_same_v<R, XVt>,
+                  "vector_two_norm result value type must match the operand's "
+                  "element type");
 
-  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
-                "vector_two_norm currently supports only float/double "
-                "element types (complex support is a TODO)");
+    static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
+                  "vector_two_norm currently supports only float/double "
+                  "element types (complex support is a TODO)");
 
-  // Pin host pointer mode for the call (restored on scope exit) so the result
-  // lands in the host storage below.
-  details_::BlasPointerModeGuard guard{h, false};
+    // Pin host pointer mode for the call (restored on scope exit) so the result
+    // lands in the host storage below.
+    details_::BlasPointerModeGuard guard{h, false};
 
-  // run-time device-memory probe (no-op unless checks are enabled)
-  details_::validate_device_view(x, "x");
+    // run-time device-memory probe (no-op unless checks are enabled)
+    details_::validate_device_view(x, "x");
 
-  // extract problem dimensions
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
+    // extract problem dimensions
+    const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
 
-  driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_INT64(status, XIt, Nrm2Ex, h.getRawHandle(), len_x,
-                           x.data_handle(), cuda_datatype_v<XVt>, inc_x,
-                           static_cast<void*>(result), cuda_datatype_v<R>,
-                           cuda_datatype_v<R>);
+    driver::deviceBlasStatus_t status{};
+    GCXX_BLAS_DISPATCH_INT64(status, XIt, Nrm2Ex, h.getRawHandle(), len_x,
+                             x.data_handle(), cuda_datatype_v<XVt>, inc_x,
+                             static_cast<void*>(result), cuda_datatype_v<R>,
+                             cuda_datatype_v<R>);
 
-  if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "vector_two_norm failed");
+    if (status != driver::deviceBlasStatusSuccess) {
+      details_::throwBlasError(status, "vector_two_norm failed");
+    }
+
+    // The backend's host-mode write may lag the host thread; make the returned
+    // value observable before this function returns.
+    h.getStream().Synchronize();
   }
-
-  // The backend's host-mode write may lag the host thread; make the returned
-  // value observable before this function returns.
-  h.getStream().Synchronize();
-}
 }  // namespace nrm2_impl_
 
 // Returning form: vector_two_norm(h, x) -> ||x||_2 (synchronizes).

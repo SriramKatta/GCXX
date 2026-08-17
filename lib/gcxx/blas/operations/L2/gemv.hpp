@@ -13,9 +13,9 @@
 #include <gcxx/blas/operations/L1/axpy.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
-#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
@@ -65,8 +65,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() == 1 GCXX_AND
-              ExtentsY::rank() == 1)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() ==
+              1 GCXX_AND ExtentsY::rank() == 1)
 auto matrix_vector_product(
   BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
   const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
@@ -112,10 +112,9 @@ auto matrix_vector_product(
   // in this write-only form, so y is never read.
   auto alpha_res = details_::combine_scaled_alpha(
     details_::resolve_scaled_alpha<Sv>(a.accessor()),
-    details_::resolve_scaled_alpha<Sv>(x.accessor()),
-    "matrix_vector_product");
+    details_::resolve_scaled_alpha<Sv>(x.accessor()), "matrix_vector_product");
   if (alpha_res.from_device()) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_vector_product: the write-only form has no device-resident "
       "beta, so a device_scalar scaled() factor is unsupported here; use the "
@@ -123,7 +122,7 @@ auto matrix_vector_product(
   }
   const Sv alpha_host = alpha_res.host_value;
   const Sv* alpha_ptr = &alpha_host;
-  const Sv  beta_host = Sv(0);
+  const Sv beta_host  = Sv(0);
   const Sv* beta_ptr  = &beta_host;
 
   // Pin host pointer mode for the call (restored on scope exit); both
@@ -141,7 +140,7 @@ auto matrix_vector_product(
   const auto [len_y, inc_y]     = details_::infer_blas_vector_view(y);
 
   if (len_x != n || len_y != m) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_vector_product requires x to have A.extent(1) elements and y "
       "to have A.extent(0) elements");
@@ -177,8 +176,8 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TY, class ExtentsY, class LayoutY, class AccessorY)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() == 1 GCXX_AND
-              ExtentsB::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() ==
+              1 GCXX_AND ExtentsB::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
 auto matrix_vector_product(
   BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
   const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
@@ -217,7 +216,7 @@ auto matrix_vector_product(
   details_::validate_device_view(y, "y");
 
   if (b.extent(0) != y.extent(0)) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_vector_product addend b must have the same extent as y");
   }
@@ -241,10 +240,9 @@ auto matrix_vector_product(
   // In-place path: one backend call with beta read from b's factor.
   auto alpha_res = details_::combine_scaled_alpha(
     details_::resolve_scaled_alpha<Sv>(a.accessor()),
-    details_::resolve_scaled_alpha<Sv>(x.accessor()),
-    "matrix_vector_product");
+    details_::resolve_scaled_alpha<Sv>(x.accessor()), "matrix_vector_product");
   if (alpha_res.from_device() != beta_res.from_device()) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_vector_product: the backend reads alpha and beta through one "
       "pointer mode, so host and device_scalar factors cannot be mixed in "
@@ -265,7 +263,7 @@ auto matrix_vector_product(
   const auto [len_y, inc_y]     = details_::infer_blas_vector_view(y);
 
   if (len_x != n || len_y != m) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_vector_product requires x to have A.extent(1) elements and y "
       "to have A.extent(0) elements");

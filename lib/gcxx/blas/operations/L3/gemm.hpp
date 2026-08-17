@@ -13,9 +13,9 @@
 #include <gcxx/blas/operations/L3/geam.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
-#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
@@ -66,13 +66,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TC, class ExtentsC, class LayoutC, class AccessorC)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() == 2 GCXX_AND
-              ExtentsC::rank() == 2)
-auto matrix_product(BlasHandleView h,
-                    const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-                    const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
-                    const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
-  -> void {
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
+              2 GCXX_AND ExtentsC::rank() == 2)
+auto matrix_product(
+  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+  const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   // local alias for easier refrence
   using AVt = TA;
@@ -110,7 +109,7 @@ auto matrix_product(BlasHandleView h,
     details_::resolve_scaled_alpha<Sv>(a.accessor()),
     details_::resolve_scaled_alpha<Sv>(b.accessor()), "matrix_product");
   if (alpha_res.from_device()) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_product: the write-only form has no device-resident beta, so a "
       "device_scalar scaled() factor is unsupported here; use the accumulate "
@@ -118,7 +117,7 @@ auto matrix_product(BlasHandleView h,
   }
   const Sv alpha_host = alpha_res.host_value;
   const Sv* alpha_ptr = &alpha_host;
-  const Sv  beta_host = Sv(0);
+  const Sv beta_host  = Sv(0);
   const Sv* beta_ptr  = &beta_host;
 
   // Pin host pointer mode for the call (restored on scope exit); both
@@ -138,14 +137,14 @@ auto matrix_product(BlasHandleView h,
   // extent compatibility (mandated by P1673R13; fail here rather than inside
   // the backend with a confusing status)
   if (k != k_b) {
-    throw gcxx::blas::BlasException(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      "matrix_product requires A.extent(1) == B.extent(0)");
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "matrix_product requires A.extent(1) == "
+                             "B.extent(0)");
   }
   if (out.rows != m || out.cols != n) {
-    throw gcxx::blas::BlasException(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      "matrix_product requires C to be A.extent(0) x B.extent(1)");
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "matrix_product requires C to be A.extent(0) x "
+                             "B.extent(1)");
   }
 
   driver::deviceBlasStatus_t status{};
@@ -182,14 +181,13 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TE, class ExtentsE, class LayoutE, class AccessorE,
               class TC, class ExtentsC, class LayoutC, class AccessorC)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() == 2 GCXX_AND
-              ExtentsE::rank() == 2 GCXX_AND ExtentsC::rank() == 2)
-auto matrix_product(BlasHandleView h,
-                    const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-                    const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
-                    const gcxx::mdspan<TE, ExtentsE, LayoutE, AccessorE>& e,
-                    const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
-  -> void {
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
+              2 GCXX_AND ExtentsE::rank() == 2 GCXX_AND ExtentsC::rank() == 2)
+auto matrix_product(
+  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+  const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+  const gcxx::mdspan<TE, ExtentsE, LayoutE, AccessorE>& e,
+  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   using AVt = TA;
   using BVt = TB;
@@ -224,7 +222,7 @@ auto matrix_product(BlasHandleView h,
   details_::validate_device_view(c, "C");
 
   if (e.extent(0) != c.extent(0) || e.extent(1) != c.extent(1)) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_product addend E must have the same extents as C");
   }
@@ -237,7 +235,7 @@ auto matrix_product(BlasHandleView h,
     // Split path: write A*B into C, then accumulate E in place
     // (C = factor*E + 1*C, the documented in-place geam mode).
     if (beta_res.from_device()) {
-      throw gcxx::blas::BlasException(
+      details_::throwBlasError(
         GCXX_BLAS_STATUS(INVALID_VALUE),
         "matrix_product: a non-aliased addend with a device_scalar scaled() "
         "factor is unsupported: the in-place geam accumulation would have to "
@@ -255,7 +253,7 @@ auto matrix_product(BlasHandleView h,
     details_::resolve_scaled_alpha<Sv>(a.accessor()),
     details_::resolve_scaled_alpha<Sv>(b.accessor()), "matrix_product");
   if (alpha_res.from_device() != beta_res.from_device()) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "matrix_product: the backend reads alpha and beta through one pointer "
       "mode, so host and device_scalar factors cannot be mixed in one call");
@@ -275,14 +273,14 @@ auto matrix_product(BlasHandleView h,
   const auto out                  = details_::infer_blas_output_view(c);
 
   if (k != k_b) {
-    throw gcxx::blas::BlasException(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      "matrix_product requires A.extent(1) == B.extent(0)");
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "matrix_product requires A.extent(1) == "
+                             "B.extent(0)");
   }
   if (out.rows != m || out.cols != n) {
-    throw gcxx::blas::BlasException(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      "matrix_product requires C to be A.extent(0) x B.extent(1)");
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "matrix_product requires C to be A.extent(0) x "
+                             "B.extent(1)");
   }
 
   driver::deviceBlasStatus_t status{};

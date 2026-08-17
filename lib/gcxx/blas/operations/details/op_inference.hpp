@@ -6,11 +6,12 @@
 
 #include <string>
 
+#include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/blas/error/blas_exceptions.hpp>
 #include <gcxx/blas/operations/details/scalar.hpp>
-#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
 #include <gcxx/runtime_backend/backend_memory.hpp>
 
@@ -25,13 +26,14 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 #ifndef GCXX_DISABLE_RUNTIME_CHECKS
 template <class MD>
 GCXX_FH auto validate_device_view(const MD& v, const char* name) -> void {
-  if (!driver::isDeviceOrManagedMemory(v.data_handle())) {
+  if (!driver::isDeviceUsableMemory(v.data_handle())) {
     std::string msg{"BLAS operand '"};
     msg += name;
     msg +=
-      "' does not reside in device/managed memory (a device_accessor view was "
-      "passed, but the pointer is host memory)";
-    throw gcxx::blas::BlasException(GCXX_BLAS_STATUS(INVALID_VALUE), msg);
+      "' does not reside in device-accessible memory (a device_accessor view "
+      "was passed, but the pointer is neither device/managed memory nor "
+      "pinned host memory with a device mapping)";
+    throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE), msg.c_str());
   }
 }
 #else
@@ -72,8 +74,8 @@ struct blas_batched_matrix_view {
   IdxT batch_count;        // number of matrices in the batch
   IdxT batch_stride;       // num elems between batch elements
   driver::deviceBlasOp_t op;
-  bool transposed;         // inner-matrix storage is row-major-like (see
-                           // blas_output_view)
+  bool transposed;  // inner-matrix storage is row-major-like (see
+                    // blas_output_view)
 };
 
 // Resolve the BLAS view (leading dimension + op) based on unit stride on row or
@@ -86,16 +88,16 @@ constexpr auto infer_blas_op_view(IdxT s0, IdxT s1) -> blas_op_view<IdxT> {
   if (s1 == 1) {
     return {s0, driver::deviceBlasOpT};
   }
-  throw gcxx::blas::BlasException(
-    GCXX_BLAS_STATUS(INVALID_VALUE),
-    "BLAS matrix operand must have a unit stride on one axis");
+  throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                 "BLAS matrix operand must have a unit stride on one axis");
 }
 
 // Flip an op flag (N <-> T). Reading the same storage with the flipped flag
 // yields the transpose of reading it with the original flag; this is how the
 // transposed-output dispatches below present the transposed problem to the
 // column-major backend.
-constexpr auto flip_blas_op(driver::deviceBlasOp_t op) -> driver::deviceBlasOp_t {
+constexpr auto flip_blas_op(driver::deviceBlasOp_t op)
+  -> driver::deviceBlasOp_t {
   return op == driver::deviceBlasOpN ? driver::deviceBlasOpT
                                      : driver::deviceBlasOpN;
 }
@@ -134,11 +136,16 @@ constexpr auto infer_blas_vector_view(const VD& v)
 // dimension is the FIRST one, i.e. extents (batch, rows, cols) — the
 // leftmost-batch convention of P1673R13's batched future work (P2901). The
 // inner rank-2 view of batch element 0 is resolved from the strides of axes
-// 1 and 2: a layout_left operand yields contiguous column-major matrices
-// (op = N), a layout_right one row-major matrices (op = T, plus transposed
-// = true for an OUTPUT operand), and the batch stride is stride(0) either
-// way. This matches how a single cublasXgemmStridedBatchedEx pointer +
-// stride covers the whole batch.
+// 1 and 2: a layout_right operand yields row-major matrices (op = T, plus
+// transposed = true for an OUTPUT operand) and a layout_stride packing the
+// matrices contiguously (batch outermost) column-major ones (op = N); the
+// batch stride is stride(0) either way. This matches how a single
+// cublasXgemmStridedBatchedEx pointer + stride covers the whole batch.
+//
+// A layout_left operand only works for batch <= 1: for batch > 1 the batch
+// axis is the unit-stride one (strides (1, batch, batch*rows)), interleaving
+// the inner matrices so neither matrix axis is dense — no (base, stride)
+// pair expresses that, so it is rejected below with a dedicated error.
 template <class MD>
 constexpr auto infer_blas_batched_matrix_view(const MD& v)
   -> blas_batched_matrix_view<typename MD::index_type> {
@@ -152,11 +159,21 @@ constexpr auto infer_blas_batched_matrix_view(const MD& v)
                 "gcxx::device_mdspan / gcxx::managed_mdspan (or an mdspan "
                 "carrying gcxx::device_accessor / gcxx::managed_accessor)");
 
+  if (v.stride(1) != 1 && v.stride(2) != 1) {
+    throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "BLAS batched matrix operand's inner matrices must have a unit stride "
+      "on one axis: a layout_left (batch, rows, cols) operand with batch > 1 "
+      "interleaves the inner matrices (its batch axis is the unit-stride "
+      "one), which a single (base, batch stride) pair cannot express; use "
+      "layout_right, or a layout_stride packing the matrices contiguously "
+      "with the batch outermost");
+  }
   const auto [ld, op] = infer_blas_op_view(v.stride(1), v.stride(2));
   const bool transposed =
     v.stride(1) != 1 && v.stride(2) == 1;  // inner matrix row-major-like
-  return {v.extent(1), v.extent(2), ld, v.extent(0), v.stride(0), op,
-          transposed};
+  return {v.extent(1), v.extent(2), ld,        v.extent(0),
+          v.stride(0), op,          transposed};
 }
 
 // ── scaled()-view factor resolution ────────────────────────────────────────
@@ -167,7 +184,7 @@ constexpr auto infer_blas_batched_matrix_view(const MD& v)
 // the backend's single alpha argument can be fed.
 template <class Sv>
 struct alpha_resolution {
-  Sv        host_value{1};
+  Sv host_value{1};
   const Sv* device_ptr{nullptr};
 
   GCXX_CXPR bool from_device() const noexcept { return device_ptr != nullptr; }
@@ -199,19 +216,20 @@ constexpr auto resolve_scaled_alpha(
 // multiply freely; a device-resident factor must be the only non-unit factor
 // (it cannot be multiplied on the host, and the backend takes one scalar).
 template <class Sv>
-auto combine_scaled_alpha(alpha_resolution<Sv>       total,
-                          const alpha_resolution<Sv>& extra, const char* op)
-  -> alpha_resolution<Sv> {
+auto combine_scaled_alpha(alpha_resolution<Sv> total,
+                          const alpha_resolution<Sv>& extra,
+                          const char* op) -> alpha_resolution<Sv> {
   const bool incompatible =
     (extra.from_device() &&
      (total.from_device() || total.host_value != Sv(1))) ||
     (total.from_device() && extra.host_value != Sv(1));
   if (incompatible) {
-    throw gcxx::blas::BlasException(
+    throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      std::string{op} +
-        ": a device_scalar scaled() factor cannot be combined with other "
-        "factors (the cu/hipBLAS entry points take a single alpha)");
+      (std::string{op} +
+       ": a device_scalar scaled() factor cannot be combined with other "
+       "factors (the cu/hipBLAS entry points take a single alpha)")
+        .c_str());
   }
   if (extra.from_device()) {
     total.device_ptr = extra.device_ptr;
@@ -273,9 +291,8 @@ constexpr auto infer_blas_output_view(const MD& v)
   if (s1 == 1) {
     return {v.extent(0), v.extent(1), s0, true};
   }
-  throw gcxx::blas::BlasException(
-    GCXX_BLAS_STATUS(INVALID_VALUE),
-    "BLAS matrix output must have a unit stride on one axis");
+  throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                 "BLAS matrix output must have a unit stride on one axis");
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()

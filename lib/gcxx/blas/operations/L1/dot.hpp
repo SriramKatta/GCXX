@@ -54,66 +54,70 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // additionally probed at run time so a mislabeled host pointer fails here,
 // not inside the GPU kernel.
 namespace dot_impl_ {
-GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
-              class TY, class ExtentsY, class LayoutY, class AccessorY,
-              class R = TX)
-GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
-auto sync_dot(BlasHandleView h,
-              const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
-              const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y,
-              R* result) -> void {
+  GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+                class TY, class ExtentsY, class LayoutY, class AccessorY,
+                class R = TX)
+  GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
+  auto sync_dot(BlasHandleView h,
+                const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+                const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y,
+                R* result) -> void {
 
-  // local alias for easier refrence
-  using XVt = TX;
-  using YVt = TY;
-  using XIt = typename ExtentsX::index_type;
-  using YIt = typename ExtentsY::index_type;
+    // local alias for easier refrence
+    using XVt = TX;
+    using YVt = TY;
+    using XIt = typename ExtentsX::index_type;
+    using YIt = typename ExtentsY::index_type;
 
-  // static asserts to verify no funny business
-  static_assert(gcxx::details_::all_same_v<XIt, YIt>,
-                "dot operands x, y must share the same mdspan index_type");
+    // static asserts to verify no funny business
+    static_assert(gcxx::details_::all_same_v<XIt, YIt>,
+                  "dot operands x, y must share the same mdspan index_type");
 
-  static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
-                "BLAS operands must use int32_t or int64_t as their "
-                "mdspan index_type");
+    static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
+                  "BLAS operands must use int32_t or int64_t as their "
+                  "mdspan index_type");
 
-  static_assert(gcxx::details_::all_same_v<R, XVt, YVt>,
-                "dot result value type must match the operands' element "
-                "type");
+    static_assert(gcxx::details_::all_same_v<R, XVt, YVt>,
+                  "dot result value type must match the operands' element "
+                  "type");
 
-  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
-                "dot currently supports only float/double element types "
-                "(complex support is a TODO)");
+    static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
+                  "dot currently supports only float/double element types "
+                  "(complex support is a TODO)");
 
-  // Pin host pointer mode for the call (restored on scope exit) so the result
-  // lands in the host storage below.
-  details_::BlasPointerModeGuard guard{h, false};
+    // Pin host pointer mode for the call (restored on scope exit) so the result
+    // lands in the host storage below.
+    details_::BlasPointerModeGuard guard{h, false};
 
-  // run-time device-memory probe (no-op unless checks are enabled)
-  details_::validate_device_view(x, "x");
-  details_::validate_device_view(y, "y");
+    // run-time device-memory probe (no-op unless checks are enabled)
+    details_::validate_device_view(x, "x");
+    details_::validate_device_view(y, "y");
 
-  // extract problem dimensions
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
-  const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
+    // extract problem dimensions
+    const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
+    const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
 
-  // unused vars just to supress annoying warnings
-  (void)len_y;
+    // extent compatibility: the backend takes a single n for both vectors, so
+    // mismatched extents would read y past its allocation
+    if (len_x != len_y) {
+      details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                               "dot requires x and y to have the same length");
+    }
 
-  driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_INT64(
-    status, XIt, DotEx, h.getRawHandle(), len_x, x.data_handle(),
-    cuda_datatype_v<XVt>, inc_x, y.data_handle(), cuda_datatype_v<YVt>, inc_y,
-    static_cast<void*>(result), cuda_datatype_v<R>, cuda_datatype_v<R>);
+    driver::deviceBlasStatus_t status{};
+    GCXX_BLAS_DISPATCH_INT64(
+      status, XIt, DotEx, h.getRawHandle(), len_x, x.data_handle(),
+      cuda_datatype_v<XVt>, inc_x, y.data_handle(), cuda_datatype_v<YVt>, inc_y,
+      static_cast<void*>(result), cuda_datatype_v<R>, cuda_datatype_v<R>);
 
-  if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "dot failed");
+    if (status != driver::deviceBlasStatusSuccess) {
+      details_::throwBlasError(status, "dot failed");
+    }
+
+    // The backend's host-mode write may lag the host thread; make the returned
+    // value observable before this function returns.
+    h.getStream().Synchronize();
   }
-
-  // The backend's host-mode write may lag the host thread; make the returned
-  // value observable before this function returns.
-  h.getStream().Synchronize();
-}
 }  // namespace dot_impl_
 
 // Returning form: dot(h, x, y) -> x . y (synchronizes).
@@ -189,15 +193,19 @@ auto dot(BlasHandleView h,
   const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
   const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
 
-  // unused vars just to supress annoying warnings
-  (void)len_y;
+  // extent compatibility: the backend takes a single n for both vectors, so
+  // mismatched extents would read y past its allocation
+  if (len_x != len_y) {
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "dot requires x and y to have the same length");
+  }
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_INT64(
-    status, XIt, DotEx, h.getRawHandle(), len_x, x.data_handle(),
-    cuda_datatype_v<XVt>, inc_x, y.data_handle(), cuda_datatype_v<YVt>, inc_y,
-    static_cast<void*>(const_cast<R*>(result.ptr)), cuda_datatype_v<R>,
-    cuda_datatype_v<R>);
+  GCXX_BLAS_DISPATCH_INT64(status, XIt, DotEx, h.getRawHandle(), len_x,
+                           x.data_handle(), cuda_datatype_v<XVt>, inc_x,
+                           y.data_handle(), cuda_datatype_v<YVt>, inc_y,
+                           static_cast<void*>(const_cast<R*>(result.ptr)),
+                           cuda_datatype_v<R>, cuda_datatype_v<R>);
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "dot failed");

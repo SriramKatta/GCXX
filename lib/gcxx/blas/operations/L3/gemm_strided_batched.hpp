@@ -9,6 +9,7 @@
 #include <gcxx/blas/datatypes/datatypes.hpp>
 #include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/blas/handle/blas_handle_view.hpp>
+#include <gcxx/blas/handle/blas_pointer_mode_guard.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
 #include <gcxx/blas/operations/details/scalar.hpp>
@@ -26,10 +27,14 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // P2901's leftmost-batch convention:
 //
 // A, B, and C are rank-3 mdspans whose batch dimension is the FIRST one,
-// i.e. extents (batch, rows, cols): a layout_left operand yields contiguous
-// column-major matrices, a layout_right one row-major matrices, both with a
-// uniform batch stride — exactly the (base pointer, stride) pair the
-// cu/hipblasGemmStridedBatchedEx entry point takes. The per-batch
+// i.e. extents (batch, rows, cols): a layout_right operand yields row-major
+// matrices with a uniform batch stride, and a layout_stride packing the
+// matrices contiguously (batch outermost) yields column-major ones — both
+// exactly the (base pointer, stride) pair the cu/hipblasGemmStridedBatchedEx
+// entry point takes. A layout_left operand only works for batch <= 1: for
+// batch > 1 the batch axis is the unit-stride one, interleaving the inner
+// matrices so neither matrix axis is dense — not expressible by a single
+// (base, stride) pair (rejected with a dedicated error). The per-batch
 // dimensions, leading dimensions, transpose state, batch count, and batch
 // strides are all inferred from the mdspan metadata. As with matrix_product,
 // the mathematical result C_i = A_i * B_i holds for ANY mix of operand
@@ -40,9 +45,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // Example:
 //   gcxx::blas::gemm_strided_batched(h, 1.0, A3, B3, 0.0, C3);
 //
-// alpha/beta are host scalars only: in device pointer mode the backend reads
-// scalars from device memory, which this wrapper does not set up, so
-// device_scalar arguments are rejected at compile time.
+// alpha/beta are host scalars only: the wrapper pins host pointer mode for
+// the call, so device_scalar arguments are rejected at compile time.
 //
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasGemmStridedBatchedEx_64
@@ -94,6 +98,10 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
     "gemm_strided_batched only supports host alpha/beta scalars (device "
     "pointer mode would require device-side scalar storage)");
 
+  // Pin host pointer mode for the call (restored on scope exit); alpha/beta
+  // below are host scalars.
+  details_::BlasPointerModeGuard guard{h, false};
+
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
   details_::validate_device_view(b, "B");
@@ -117,7 +125,7 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
 
   if (k != k_b || m_c != m || n_c != n || batch_a != batch_b ||
       batch_a != batch_c) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "gemm_strided_batched requires A_i to be (m x k), B_i to be (k x n), "
       "C_i to be (m x n), and all batches to have the same count");
@@ -126,8 +134,8 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
   driver::deviceBlasStatus_t status{};
   if (!trans_c) {
     GCXX_BLAS_DISPATCH_INT64(
-      status, AIt, GemmStridedBatchedEx, h.getRawHandle(), op_a, op_b, m, n,
-      k, &alpha, a.data_handle(), cuda_datatype_v<AVt>, ld_a, stride_a,
+      status, AIt, GemmStridedBatchedEx, h.getRawHandle(), op_a, op_b, m, n, k,
+      &alpha, a.data_handle(), cuda_datatype_v<AVt>, ld_a, stride_a,
       b.data_handle(), cuda_datatype_v<BVt>, ld_b, stride_b, &beta,
       c.data_handle(), cuda_datatype_v<CVt>, ld_c, stride_c, batch_a,
       blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));

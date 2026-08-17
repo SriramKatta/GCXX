@@ -134,12 +134,11 @@ TEST(BlasScaled, PreservesMappingAndDataHandle) {
 
 TEST(BlasScaled, DeviceViewPropagatesThroughAccessor) {
   static_assert(
-    gcxx::is_device_view_v<gcxx::scaled_accessor<
-      double, gcxx::device_accessor<def_acc_d>>>,
+    gcxx::is_device_view_v<
+      gcxx::scaled_accessor<double, gcxx::device_accessor<def_acc_d>>>,
     "a scaled device view is still a device view (BLAS operand gate)");
   static_assert(
-    !gcxx::is_device_view_v<
-      gcxx::scaled_accessor<double, def_acc_d>>,
+    !gcxx::is_device_view_v<gcxx::scaled_accessor<double, def_acc_d>>,
     "a scaled host view is not a device view");
   static_assert(
     gcxx::is_host_view_v<
@@ -150,8 +149,7 @@ TEST(BlasScaled, DeviceViewPropagatesThroughAccessor) {
     "a plain default_accessor view carries no space classification (and "
     "neither does its scaled wrapper)");
   static_assert(
-    gcxx::is_scaled_accessor_v<
-      gcxx::scaled_accessor<double, dev_acc_d>>,
+    gcxx::is_scaled_accessor_v<gcxx::scaled_accessor<double, dev_acc_d>>,
     "identity trait");
 
   // and end-to-end through the view function on a device mdspan
@@ -181,10 +179,10 @@ TEST(BlasScaled, StripScaledRecoversBaseView) {
 }
 
 TEST(BlasScaled, AlphaResolutionCombinesHostFactors) {
+  using gcxx::scaled_accessor;
   using gcxx::blas::details_::alpha_resolution;
   using gcxx::blas::details_::combine_scaled_alpha;
   using gcxx::blas::details_::resolve_scaled_alpha;
-  using gcxx::scaled_accessor;
 
   constexpr alpha_resolution<double> none{};
   static_assert(!none.from_device(), "default resolution is host");
@@ -233,8 +231,7 @@ TEST(BlasOpInference, TransposedLayoutLeft_IsOpT) {
   std::vector<double> buf(3 * 4);
   dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);
 
-  const auto info =
-    infer(gcxx::transposed(a));  // extents (4,3), strides (3,1)
+  const auto info = infer(gcxx::transposed(a));  // extents (4,3), strides (3,1)
   EXPECT_EQ(info.op, gcxx::driver::deviceBlasOpT);
   EXPECT_EQ(info.rows, 4);
   EXPECT_EQ(info.cols, 3);
@@ -245,8 +242,7 @@ TEST(BlasOpInference, TransposedLayoutRight_IsOpN) {
   std::vector<double> buf(3 * 4);
   dmat2d<gcxx::layout_right> a(buf.data(), 3, 4);
 
-  const auto info =
-    infer(gcxx::transposed(a));  // extents (4,3), strides (1,4)
+  const auto info = infer(gcxx::transposed(a));  // extents (4,3), strides (1,4)
   EXPECT_EQ(info.op, gcxx::driver::deviceBlasOpN);
   EXPECT_EQ(info.rows, 4);
   EXPECT_EQ(info.cols, 3);
@@ -266,15 +262,21 @@ TEST(BlasOpInference, DegenerateUnitStrides_TieBreaksToOpN) {
   EXPECT_EQ(info.leading_dimension, 1);
 }
 
-// A genuinely strided subview (no unit stride on either axis) is rejected.
-TEST(BlasOpInference, NeitherAxisUnit_Throws) {
+// A genuinely strided subview (no unit stride on either axis) is rejected
+// through the throwBlasError mechanism: a thrown BlasException in exception
+// builds, a logged message + abort in no-exception builds.
+TEST(BlasOpInference, NeitherAxisUnit_Rejected) {
   std::vector<double> buf(100);
   dextents2d ext{4, 5};
   gcxx::layout_stride::mapping<dextents2d> map{ext, std::array<int, 2>{2, 7}};
   gcxx::mdspan<double, dextents2d, gcxx::layout_stride, dev_acc_d> s(buf.data(),
                                                                      map);
 
+#if defined(GCXX_WITH_EXCEPTIONS)
   EXPECT_THROW(infer(s), gcxx::blas::BlasException);
+#else
+  EXPECT_DEATH(infer(s), "unit stride on one axis");
+#endif
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -304,15 +306,20 @@ TEST(BlasOutputInference, RowMajorOutput_IsTransposed) {
   EXPECT_EQ(out.leading_dimension, 4);
 }
 
-TEST(BlasOutputInference, NeitherAxisUnit_Throws) {
+TEST(BlasOutputInference, NeitherAxisUnit_Rejected) {
   std::vector<double> buf(100);
   dextents2d ext{4, 5};
   gcxx::layout_stride::mapping<dextents2d> map{ext, std::array<int, 2>{2, 7}};
   gcxx::mdspan<double, dextents2d, gcxx::layout_stride, dev_acc_d> s(buf.data(),
                                                                      map);
 
+#if defined(GCXX_WITH_EXCEPTIONS)
   EXPECT_THROW(gcxx::blas::details_::infer_blas_output_view(s),
                gcxx::blas::BlasException);
+#else
+  EXPECT_DEATH(gcxx::blas::details_::infer_blas_output_view(s),
+               "unit stride on one axis");
+#endif
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

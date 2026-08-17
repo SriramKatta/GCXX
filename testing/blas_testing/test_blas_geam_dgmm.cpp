@@ -150,9 +150,8 @@ namespace {
       }
     }
 
-    using mat_right =
-      gcxx::device_mdspan<double, gcxx::dextents<IndexT, 2>,
-                          gcxx::layout_right>;
+    using mat_right = gcxx::device_mdspan<double, gcxx::dextents<IndexT, 2>,
+                                          gcxx::layout_right>;
 
     gcxx::Stream str;
     auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});

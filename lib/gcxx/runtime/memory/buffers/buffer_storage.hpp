@@ -64,7 +64,11 @@ class buffer_storage {
   buffer_storage& operator=(const buffer_storage&) = delete;
 
   buffer_storage(buffer_storage&& other) noexcept
-      : m_resource(std::move(other.m_resource)),
+      // Resources (unlike the allocation) are cheap, shareable handles that
+      // may be reused to allocate further buffers — copy, don't move, so the
+      // moved-from storage retains a valid resource for reallocation (e.g.
+      // buffer::resize on a moved-from buffer).
+      : m_resource(other.m_resource),
         m_stream(other.m_stream),
         m_ptr(other.m_ptr),
         m_num_elems(other.m_num_elems) {
@@ -76,7 +80,9 @@ class buffer_storage {
   buffer_storage& operator=(buffer_storage&& other) noexcept {
     if (this != &other) {
       release();
-      m_resource        = std::move(other.m_resource);
+      // Copy the resource (see the move constructor): the moved-from storage
+      // keeps a valid resource for reallocation.
+      m_resource        = other.m_resource;
       m_stream          = other.m_stream;
       m_ptr             = other.m_ptr;
       m_num_elems       = other.m_num_elems;

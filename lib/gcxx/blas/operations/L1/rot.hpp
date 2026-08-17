@@ -104,8 +104,13 @@ auto apply_givens_rotation(
   const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
   const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
 
-  // unused vars just to supress annoying warnings
-  (void)len_y;
+  // extent compatibility: the backend takes a single n and writes BOTH
+  // vectors, so mismatched extents would write past the shorter allocation
+  if (len_x != len_y) {
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "apply_givens_rotation requires x and y to have the same length");
+  }
 
   driver::deviceBlasStatus_t status{};
   GCXX_BLAS_DISPATCH_INT64(status, XIt, RotEx, h.getRawHandle(), len_x,

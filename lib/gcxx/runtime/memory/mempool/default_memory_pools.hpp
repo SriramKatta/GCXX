@@ -102,6 +102,9 @@ GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
   static PinnedMemPoolView pool = [] {
     PinnedMemPoolView ref(get_default_mem_pool(flags::MemLocation::Host, 0,
                                                flags::MemAllocation::Pinned));
+    // Host-location pool allocations are only GPU-mapped after access is
+    // granted — do it here so the cached view is ready to allocate from.
+    ref.enable_access_from_all();
     return ref;
   }();
   return pool;

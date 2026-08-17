@@ -57,8 +57,8 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TC, class ExtentsC, class LayoutC, class AccessorC,
               class S = TC)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() == 2 GCXX_AND
-              ExtentsC::rank() == 2)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
+              2 GCXX_AND ExtentsC::rank() == 2)
 auto geam(BlasHandleView h, S alpha,
           const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a, S beta,
           const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
@@ -114,15 +114,13 @@ auto geam(BlasHandleView h, S alpha,
 
   // extract problem dimensions; the output's orientation decides how the
   // problem is presented to the column-major backend
-  const auto [rows_a, cols_a, ld_a, op_a] =
-    details_::infer_blas_matrix_view(a);
-  const auto [rows_b, cols_b, ld_b, op_b] =
-    details_::infer_blas_matrix_view(b);
-  const auto out = details_::infer_blas_output_view(c);
+  const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
+  const auto [rows_b, cols_b, ld_b, op_b] = details_::infer_blas_matrix_view(b);
+  const auto out                          = details_::infer_blas_output_view(c);
 
   if (rows_a != out.rows || cols_a != out.cols || rows_b != out.rows ||
       cols_b != out.cols) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "geam requires A, B, and C to share the same extents");
   }

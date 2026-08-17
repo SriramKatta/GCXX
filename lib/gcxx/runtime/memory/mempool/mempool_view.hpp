@@ -122,47 +122,63 @@ class MemPoolView {
   }
 
   // ╔════════════════════════════════════════════════════════╗
-  // ║               TODO : Peer / cross-device access        ║
+  // ║                Peer / cross-device access              ║
   // ╚════════════════════════════════════════════════════════╝
-  // GCXX_FH auto enable_access_from(int device_id) -> void {
-  //   const MemAccessDesc desc{flags::MemLocation::Device, device_id,
-  //                            flags::MemAccessFlags::ReadWrite};
-  //   auto raw = desc.getRawMemAccessDesc();
-  //   driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
-  // }
 
-  // // Disable access to this pool's allocations from `device_id`.
-  // GCXX_FH auto disable_access_from(int device_id) -> void {
-  //   const MemAccessDesc desc{flags::MemLocation::Device, device_id,
-  //                            flags::MemAccessFlags::None};
-  //   auto raw = desc.getRawMemAccessDesc();
-  //   driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
-  // }
+  // Grant `device_id` read/write access to this pool's allocations. A no-op
+  // on a view with no underlying pool handle (e.g. the HIP pinned shim).
+  GCXX_FH auto enable_access_from(int device_id) -> void {
+    if (m_pool_ == nullptr) {
+      return;
+    }
+    const MemAccessDesc desc{flags::MemLocation::Device, device_id,
+                             flags::MemAccessFlags::ReadWrite};
+    auto raw = desc.getRawMemAccessDesc();
+    driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
+  }
 
-  // // Enable read/write access from every device in the system.
-  // GCXX_FH auto enable_access_from_all() -> void {
-  //   const int count = driver::deviceGetCount();
-  //   std::vector<driver::deviceMemAccessDesc_t> descs;
-  //   descs.reserve(static_cast<std::size_t>(count));
-  //   for (int dev = 0; dev < count; ++dev) {
-  //     const MemAccessDesc desc{flags::MemLocation::Device, dev,
-  //                              flags::MemAccessFlags::ReadWrite};
-  //     descs.push_back(desc.getRawMemAccessDesc());
-  //   }
-  //   if (!descs.empty()) {
-  //     driver::deviceMemPoolSetAccess(m_pool_, descs.data(), descs.size());
-  //   }
-  // }
+  // Revoke `device_id`'s access to this pool's allocations.
+  GCXX_FH auto disable_access_from(int device_id) -> void {
+    if (m_pool_ == nullptr) {
+      return;
+    }
+    const MemAccessDesc desc{flags::MemLocation::Device, device_id,
+                             flags::MemAccessFlags::None};
+    auto raw = desc.getRawMemAccessDesc();
+    driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
+  }
 
-  // // true iff `device_id` has read/write access to this pool's allocations.
-  // GCXX_FH auto is_accessible_from(int device_id) -> bool {
-  //   const MemAccessDesc location{flags::MemLocation::Device, device_id,
-  //                                flags::MemAccessFlags::None};
-  //   auto rawLoc = location.getRawMemLocation();
-  //   auto flags  = driver::deviceMemPoolGetAccess(m_pool_, &rawLoc);
-  //   return flags == static_cast<driver::deviceMemAccessFlags_t>(
-  //                     flags::MemAccessFlags::ReadWrite);
-  // }
+  // Enable read/write access from every device in the system. A no-op on a
+  // view with no underlying pool handle (e.g. the HIP pinned shim).
+  GCXX_FH auto enable_access_from_all() -> void {
+    if (m_pool_ == nullptr) {
+      return;
+    }
+    const int count = driver::deviceGetCount();
+    std::vector<driver::deviceMemAccessDesc_t> descs;
+    descs.reserve(static_cast<std::size_t>(count));
+    for (int dev = 0; dev < count; ++dev) {
+      const MemAccessDesc desc{flags::MemLocation::Device, dev,
+                               flags::MemAccessFlags::ReadWrite};
+      descs.push_back(desc.getRawMemAccessDesc());
+    }
+    if (!descs.empty()) {
+      driver::deviceMemPoolSetAccess(m_pool_, descs.data(), descs.size());
+    }
+  }
+
+  // true iff `device_id` has read/write access to this pool's allocations.
+  GCXX_FH auto is_accessible_from(int device_id) -> bool {
+    if (m_pool_ == nullptr) {
+      return false;
+    }
+    const MemAccessDesc location{flags::MemLocation::Device, device_id,
+                                 flags::MemAccessFlags::None};
+    auto rawLoc      = location.getRawMemLocation();
+    auto accessFlags = driver::deviceMemPoolGetAccess(m_pool_, &rawLoc);
+    return accessFlags == static_cast<driver::deviceMemAccessFlags_t>(
+                            flags::MemAccessFlags::ReadWrite);
+  }
 
   // ╔════════════════════════════════════════════════════════╗
   // ║                       Comparison                       ║

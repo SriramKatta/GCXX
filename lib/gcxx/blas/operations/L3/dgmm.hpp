@@ -29,6 +29,13 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // n). Each operand is typed as a gcxx::mdspan in the signature, so wrong-rank
 // (or non-mdspan) arguments fail overload resolution.
 //
+// A and C must share storage orientation (both column-major-like or both
+// row-major-like): the backend's dgmm entry point takes no transpose flags,
+// so it cannot pair, say, a row-major A with a column-major C. Both
+// same-orientation cases work — a row-major-like pair is dispatched as the
+// transposed problem with the side mode flipped — and mixed orientations are
+// rejected with a clear error.
+//
 // Example:
 //   gcxx::blas::dgmm(h, gcxx::blas::left, A, x, C);    // C = diag(x) * A
 //   gcxx::blas::dgmm(h, gcxx::blas::right, A, x, C);   // C = A * diag(x)
@@ -86,34 +93,58 @@ auto dgmm(BlasHandleView h, Side side,
   details_::validate_device_view(c, "C");
 
   // extract problem dimensions
-  const auto [m, n, ld_a, op_a]     = details_::infer_blas_matrix_view(a);
-  const auto [len_x, inc_x]         = details_::infer_blas_vector_view(x);
-  const auto [m_c, n_c, ld_c, op_c] = details_::infer_blas_matrix_view(c);
+  const auto [m, n, ld_a, op_a] = details_::infer_blas_matrix_view(a);
+  const auto [len_x, inc_x]     = details_::infer_blas_vector_view(x);
+  const auto out                = details_::infer_blas_output_view(c);
 
-  // unused vars just to supress annoying warnings
+  // the tag object itself is unused (the mode comes from its type)
   (void)side;
-  (void)m_c;
-  (void)n_c;
-  (void)op_a;
-  (void)op_c;
 
   // the diagonal vector must match the scaled extent for the chosen side
   constexpr driver::deviceBlasSideMode_t mode = details_::side_mode_v<Side>;
   if (mode == driver::deviceBlasSideLeft && len_x != m) {
-    throw gcxx::blas::BlasException(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      "dgmm left side requires x length == rows of A");
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "dgmm left side requires x length == rows of A");
   }
   if (mode == driver::deviceBlasSideRight && len_x != n) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "dgmm right side requires x length == cols of A");
+  }
+  if (out.rows != m || out.cols != n) {
+    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             "dgmm requires C to have the same extents as A");
+  }
+  // cublasDdgmm takes no transpose flags: A and C are read/written
+  // column-major as given, so their orientations must match.
+  if ((op_a == driver::deviceBlasOpN) != !out.transposed) {
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      "dgmm right side requires x length == cols of A");
+      "dgmm requires A and C to share storage orientation: the backend entry "
+      "point takes no transpose flags, so a column-major-like A must pair "
+      "with a column-major-like C and a row-major-like A with a row-major-"
+      "like C");
   }
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, dgmm, h.getRawHandle(), mode, m, n,
-                           a.data_handle(), ld_a, x.data_handle(), inc_x,
-                           c.data_handle(), ld_c);
+  if (!out.transposed) {
+    // A and C column-major-like: the problem passes through as declared.
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, dgmm, h.getRawHandle(), mode, m,
+                             n, a.data_handle(), ld_a, x.data_handle(), inc_x,
+                             c.data_handle(), out.leading_dimension);
+  } else {
+    // A and C row-major-like: present the transposed problem to the
+    // column-major backend. (diag(x) * A)^T = A^T * diag(x) and
+    // (A * diag(x))^T = diag(x) * A^T, so the side mode flips along with the
+    // swapped m/n; reading the same storage column-major yields the
+    // transposes, and the leading dimensions carry over unchanged.
+    constexpr driver::deviceBlasSideMode_t flipped_mode =
+      mode == driver::deviceBlasSideLeft ? driver::deviceBlasSideRight
+                                         : driver::deviceBlasSideLeft;
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, dgmm, h.getRawHandle(),
+                             flipped_mode, n, m, a.data_handle(), ld_a,
+                             x.data_handle(), inc_x, c.data_handle(),
+                             out.leading_dimension);
+  }
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "dgmm failed");

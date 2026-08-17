@@ -147,7 +147,12 @@ struct PinnedMemPool : PinnedMemPoolView {
   GCXX_FH PinnedMemPool(memory_pool_properties props = {})
       : PinnedMemPoolView(
           create_memory_pool(flags::MemLocation::Host, /*location_id=*/0,
-                             flags::MemAllocation::Pinned, props)) {}
+                             flags::MemAllocation::Pinned, props)) {
+    // Host-location pool allocations are only GPU-mapped once
+    // cudaMemPoolSetAccess grants access (unlike cudaMallocHost), so grant
+    // read/write access from every device up front, matching CCCL.
+    enable_access_from_all();
+  }
 #endif
 
   GCXX_FH ~PinnedMemPool() noexcept {

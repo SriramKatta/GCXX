@@ -36,6 +36,11 @@ struct memory_pool_properties {
 
   /// Upper bound on bytes the pool may keep reserved; above this, unused memory
   /// is released to the driver at the next sync.
+  ///
+  /// NOTE: the default (SIZE_MAX, matching CCCL) flips CUDA's own default of
+  /// eager release to "never release": a pool keeps its peak reservation for
+  /// its lifetime. Pass {.release_threshold = 0} to restore eager release, or
+  /// trim on demand with MemPoolView::trim_to.
   std::size_t release_threshold = std::numeric_limits<std::size_t>::max();
 
   /// Handle type for inter-process sharing of the pool (None = no IPC).

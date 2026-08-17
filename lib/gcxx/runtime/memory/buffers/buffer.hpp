@@ -315,18 +315,24 @@ class buffer {
     -> gcxx::span<value_type> {
     GCXX_RUNTIME_EXPECT(offset <= size(),
                         "buffer::subspan offset out of range");
-    return count == gcxx::dynamic_extent
-             ? gcxx::span<value_type>{data() + offset, size() - offset}
-             : gcxx::span<value_type>{data() + offset, count};
+    if (count == gcxx::dynamic_extent) {
+      return gcxx::span<value_type>{data() + offset, size() - offset};
+    }
+    GCXX_RUNTIME_EXPECT(count <= size() - offset,
+                        "buffer::subspan count out of range");
+    return gcxx::span<value_type>{data() + offset, count};
   }
   GCXX_FHDC auto subspan(size_type offset,
                          size_type count = gcxx::dynamic_extent) const noexcept
     -> gcxx::span<const value_type> {
     GCXX_RUNTIME_EXPECT(offset <= size(),
                         "buffer::subspan offset out of range");
-    return count == gcxx::dynamic_extent
-             ? gcxx::span<const value_type>{data() + offset, size() - offset}
-             : gcxx::span<const value_type>{data() + offset, count};
+    if (count == gcxx::dynamic_extent) {
+      return gcxx::span<const value_type>{data() + offset, size() - offset};
+    }
+    GCXX_RUNTIME_EXPECT(count <= size() - offset,
+                        "buffer::subspan count out of range");
+    return gcxx::span<const value_type>{data() + offset, count};
   }
 
   // ─────────────────────────────── observers ─────────────────────────────────

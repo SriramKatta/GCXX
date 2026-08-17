@@ -25,8 +25,8 @@ template <class ScalingFactor, class Reference>
 struct scaled_reference<ScalingFactor, Reference,
                         std::void_t<decltype(std::declval<ScalingFactor>() *
                                              std::declval<Reference>())>> {
-  using type = decltype(std::declval<ScalingFactor>() *
-                        std::declval<Reference>());
+  using type =
+    decltype(std::declval<ScalingFactor>() * std::declval<Reference>());
 };
 
 // Whether ScalingFactor * Reference is a well-formed expression (i.e.
@@ -74,16 +74,16 @@ struct scaled_accessor : public NestedAccessor {
  public:
   using offset_policy =
     scaled_accessor<ScalingFactor, typename NestedAccessor::offset_policy>;
-  using element_type     = typename NestedAccessor::element_type;
-  using reference        = typename details_::scaled_reference<
-    ScalingFactor, typename NestedAccessor::reference>::type;
+  using element_type = typename NestedAccessor::element_type;
+  using reference    = typename details_::scaled_reference<
+       ScalingFactor, typename NestedAccessor::reference>::type;
   using data_handle_type = typename NestedAccessor::data_handle_type;
 
   constexpr scaled_accessor() noexcept = default;
 
-  constexpr scaled_accessor(const ScalingFactor&  s,
+  constexpr scaled_accessor(const ScalingFactor& s,
                             const NestedAccessor& a) noexcept
-    : NestedAccessor(a), scaling_factor_(s) {}
+      : NestedAccessor(a), scaling_factor_(s) {}
 
   constexpr reference access(data_handle_type p, std::size_t i) const {
     static_assert(
@@ -96,7 +96,7 @@ struct scaled_accessor : public NestedAccessor {
   }
 
   constexpr data_handle_type offset(data_handle_type p,
-                                    std::size_t          i) const noexcept {
+                                    std::size_t i) const noexcept {
     return NestedAccessor::offset(p, i);
   }
 
@@ -132,11 +132,11 @@ GCXX_CXPR inline bool
 GCXX_TEMPLATE(class ScalingFactor, class T, class Extents, class Layout,
               class Accessor)
 GCXX_REQUIRES(std::is_object_v<T>)
-constexpr auto scaled(ScalingFactor                                        alpha,
+constexpr auto scaled(ScalingFactor alpha,
                       const gcxx::mdspan<T, Extents, Layout, Accessor>& x) {
-  return gcxx::mdspan(x.data_handle(), x.mapping(),
-                      scaled_accessor<ScalingFactor, Accessor>{alpha,
-                                                               x.accessor()});
+  return gcxx::mdspan(
+    x.data_handle(), x.mapping(),
+    scaled_accessor<ScalingFactor, Accessor>{alpha, x.accessor()});
 }
 
 // strip_scaled(x) removes ONE scaled_accessor layer, returning the unmodified
@@ -154,7 +154,8 @@ constexpr auto strip_scaled(
 
 GCXX_TEMPLATE(class T, class Extents, class Layout, class Accessor)
 GCXX_REQUIRES(!is_scaled_accessor_v<Accessor>)
-constexpr auto strip_scaled(const gcxx::mdspan<T, Extents, Layout, Accessor>& x) {
+constexpr auto strip_scaled(
+  const gcxx::mdspan<T, Extents, Layout, Accessor>& x) {
   return gcxx::mdspan(x.data_handle(), x.mapping(), x.accessor());
 }
 

@@ -305,10 +305,8 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::matrix_vector_product(
-      handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()},
-                                 A),
-      X, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, Y),
-      Y);
+      handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()}, A),
+      X, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, Y), Y);
     str.Synchronize();
 
     std::vector<double> hY_result(M);

@@ -11,6 +11,7 @@
 #include <gcxx/blas/datatypes/datatypes.hpp>
 #include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/blas/handle/blas_handle_view.hpp>
+#include <gcxx/blas/handle/blas_pointer_mode_guard.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
 #include <gcxx/blas/operations/details/scalar.hpp>
@@ -104,41 +105,48 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     "gemm_batched requires host pointer mode (its pointer arrays live in "
     "host memory), so alpha/beta must be host scalars");
 
+  // every array must hold the same number of matrices, checked BEFORE any
+  // element is accessed: reading [0] of an empty or shorter array (e.g. an
+  // empty std::vector) is undefined behaviour
+  if (a.size() != b.size() || a.size() != c.size()) {
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "gemm_batched operands must hold the same number of matrices");
+  }
+
   // an empty batch has nothing to compute
   if (a.size() == 0) {
     return;
   }
 
+  // Pin host pointer mode for the call (restored on scope exit): the pointer
+  // arrays materialised below and the alpha/beta scalars are host memory.
+  details_::BlasPointerModeGuard guard{h, false};
+
   // extract problem dimensions from the first element of each array; the
   // remaining elements must agree because the backend takes a single
   // m/n/k/ld/op for the whole batch
-  const auto [m, k, ld_a, op_a]     = details_::infer_blas_matrix_view(a[0]);
-  const auto [k_b, n, ld_b, op_b]   = details_::infer_blas_matrix_view(b[0]);
-  const auto out                    = details_::infer_blas_output_view(c[0]);
+  const auto [m, k, ld_a, op_a]   = details_::infer_blas_matrix_view(a[0]);
+  const auto [k_b, n, ld_b, op_b] = details_::infer_blas_matrix_view(b[0]);
+  const auto out                  = details_::infer_blas_output_view(c[0]);
 
   if (k != k_b || out.rows != m || out.cols != n) {
-    throw gcxx::blas::BlasException(
+    details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       "gemm_batched requires A_i to be (m x k), B_i to be (k x n), and C_i "
       "to be (m x n)");
   }
 
-  if (a.size() != b.size() || a.size() != c.size()) {
-    throw gcxx::blas::BlasException(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      "gemm_batched operands must hold the same number of matrices");
-  }
   for (std::size_t i = 1; i < a.size(); ++i) {
-    const auto va  = details_::infer_blas_matrix_view(a[i]);
-    const auto vb  = details_::infer_blas_matrix_view(b[i]);
-    const auto vc  = details_::infer_blas_output_view(c[i]);
+    const auto va = details_::infer_blas_matrix_view(a[i]);
+    const auto vb = details_::infer_blas_matrix_view(b[i]);
+    const auto vc = details_::infer_blas_output_view(c[i]);
     if (va.rows != m || va.cols != k || va.leading_dimension != ld_a ||
         va.op != op_a || vb.rows != k || vb.cols != n ||
-        vb.leading_dimension != ld_b || vb.op != op_b ||
-        vc.rows != out.rows || vc.cols != out.cols ||
-        vc.leading_dimension != out.leading_dimension ||
+        vb.leading_dimension != ld_b || vb.op != op_b || vc.rows != out.rows ||
+        vc.cols != out.cols || vc.leading_dimension != out.leading_dimension ||
         vc.transposed != out.transposed) {
-      throw gcxx::blas::BlasException(
+      details_::throwBlasError(
         GCXX_BLAS_STATUS(INVALID_VALUE),
         "gemm_batched requires all matrices in an array to share extents, "
         "leading dimension, and layout");
@@ -191,19 +199,17 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   // CUDA keeps the Ex call; the two entry points are argument-compatible
   // apart from the type-erasure parameters.
   GCXX_BLAS_DISPATCH_TYPED(
-    status, AIt, AVt, gemmBatched, h.getRawHandle(), first_op, second_op,
-    m_arg, n_arg, k, &alpha,
-    reinterpret_cast<const AVt* const*>(first_ptrs), first_ld,
+    status, AIt, AVt, gemmBatched, h.getRawHandle(), first_op, second_op, m_arg,
+    n_arg, k, &alpha, reinterpret_cast<const AVt* const*>(first_ptrs), first_ld,
     reinterpret_cast<const BVt* const*>(second_ptrs), second_ld, &beta,
-    reinterpret_cast<CVt* const*>(c_ptrs.data()), out.leading_dimension,
-    batch);
+    reinterpret_cast<CVt* const*>(c_ptrs.data()), out.leading_dimension, batch);
 #else
   GCXX_BLAS_DISPATCH_INT64(
     status, AIt, GemmBatchedEx, h.getRawHandle(), first_op, second_op, m_arg,
-    n_arg, k, &alpha, first_ptrs, cuda_datatype_v<AVt>, first_ld,
-    second_ptrs, cuda_datatype_v<BVt>, second_ld, &beta, c_ptrs.data(),
-    cuda_datatype_v<CVt>, out.leading_dimension, batch,
-    blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
+    n_arg, k, &alpha, first_ptrs, cuda_datatype_v<AVt>, first_ld, second_ptrs,
+    cuda_datatype_v<BVt>, second_ld, &beta, c_ptrs.data(), cuda_datatype_v<CVt>,
+    out.leading_dimension, batch, blas_compute_type_v<CVt>,
+    GCXX_BLAS_GEMM(DEFAULT));
 #endif
 
   if (status != driver::deviceBlasStatusSuccess) {

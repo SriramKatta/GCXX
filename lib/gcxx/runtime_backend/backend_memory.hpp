@@ -64,6 +64,34 @@ GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
          attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged);
 }
 
+// Whether p points to memory a BLAS-style backend call may consume: device
+// or managed memory, or page-locked host memory with a device mapping. The
+// latter is how the pinned pools' allocations behave — host-typed (so
+// isDeviceOrManagedMemory rejects them) but lawfully dereferenceable from
+// the device: cudaMallocHost / hipMallocHost memory carries the device-side
+// address of its UVA mapping, and host-location pool allocations do once
+// cudaMemPoolSetAccess has granted access. Plain malloc'd host memory has no
+// mapping (devicePointer stays null) and is still rejected.
+GCXX_FH auto isDeviceUsableMemory(const void* ptr) -> bool {
+  if (ptr == nullptr) {
+    return true;
+  }
+  devicePointerAttributes_t attrs{};
+  const deviceError_t err =
+    ::GCXX_RUNTIME_BACKEND(PointerGetAttributes)(&attrs, ptr);
+  if (err != deviceErrSuccess) {
+    (void)GetLastError();  // consume the recorded error; the probe is
+                           // expected to fail for unregistered memory
+    return false;
+  }
+  if (attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeDevice) ||
+      attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged)) {
+    return true;
+  }
+  return attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeHost) &&
+         attrs.devicePointer != nullptr;
+}
+
 GCXX_FH auto deviceMemset(void* dev_ptr, const int value,
                           const std::size_t countinBytes) -> void {
   GCXX_SAFE_RUNTIME_CALL(Memset, "Failed to perform GPU memset", dev_ptr, value,

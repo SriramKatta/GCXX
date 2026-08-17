@@ -12,8 +12,8 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 
-inline auto throwBlasError(driver::deviceBlasStatus_t status,
-                           const char* msg) -> void {
+[[noreturn]] inline auto throwBlasError(driver::deviceBlasStatus_t status,
+                                        const char* msg) -> void {
 #if defined(GCXX_WITH_EXCEPTIONS)
   throw gcxx::blas::BlasException(status, msg);
 #else

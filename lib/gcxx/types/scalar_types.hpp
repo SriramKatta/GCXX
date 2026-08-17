@@ -4,8 +4,8 @@
 #ifndef GCXX_TYPES_SCALAR_TYPES_HPP
 #define GCXX_TYPES_SCALAR_TYPES_HPP
 
-#include <gcxx/internal/prologue.hpp>
 #include <complex>
+#include <gcxx/internal/prologue.hpp>
 
 // Scalar element-type vocabulary for gcxx. Library code refers to element
 // types exclusively through these aliases, so backend-native low-precision
