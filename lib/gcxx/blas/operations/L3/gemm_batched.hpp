@@ -24,9 +24,11 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // Batched matrix-matrix product C_i = alpha * op(A_i) * op(B_i) + beta * C_i,
 // where each A_i, B_i, C_i is a rank-2 mdspan and the operands are span-like
 // HOST arrays (gcxx::span, std::vector, ...) of those views — the batch
-// matrices may live at unrelated device addresses, which is exactly what the
-// cu/hipblasGemmBatchedEx pointer-array entry point is for. For matrices that
-// share one contiguous buffer with a uniform batch stride, use
+// matrices may live at unrelated device addresses, which is exactly what a
+// pointer-array batched entry point is for (cuBLAS GemmBatchedEx; on HIP the
+// classic typed hipblas<S,D>gemmBatched, because rocBLAS's GemmBatchedEx
+// pointer-array path page-faults — see the dispatch note below). For
+// matrices that share one contiguous buffer with a uniform batch stride, use
 // gemm_strided_batched instead: it passes (base, stride) straight through
 // with no per-call pointer materialisation.
 //
@@ -160,25 +162,49 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
 
   const AIt batch = static_cast<AIt>(a.size());
 
+  // The C_i's orientation decides the problem handed to the column-major
+  // backend: a row-major-like output takes the transposed problem
+  // C_i^T = B_i^T * A_i^T (swapped operand slots, flipped op flags, swapped
+  // m/n) — see matrix_product. Hoisted here so every entry point below
+  // shares it.
+  const auto first_op  = out.transposed ? details_::flip_blas_op(op_b) : op_a;
+  const auto second_op = out.transposed ? details_::flip_blas_op(op_a) : op_b;
+  const auto m_arg     = out.transposed ? n : m;
+  const auto n_arg     = out.transposed ? m : n;
+  const void* const* first_ptrs =
+    out.transposed ? static_cast<const void* const*>(b_ptrs.data())
+                   : static_cast<const void* const*>(a_ptrs.data());
+  const void* const* second_ptrs =
+    out.transposed ? static_cast<const void* const*>(a_ptrs.data())
+                   : static_cast<const void* const*>(b_ptrs.data());
+  const auto first_ld  = out.transposed ? ld_b : ld_a;
+  const auto second_ld = out.transposed ? ld_a : ld_b;
+
   driver::deviceBlasStatus_t status{};
-  if (!out.transposed) {
-    GCXX_BLAS_DISPATCH_INT64(
-      status, AIt, GemmBatchedEx, h.getRawHandle(), op_a, op_b, m, n, k,
-      &alpha, a_ptrs.data(), cuda_datatype_v<AVt>, ld_a, b_ptrs.data(),
-      cuda_datatype_v<BVt>, ld_b, &beta, c_ptrs.data(), cuda_datatype_v<CVt>,
-      out.leading_dimension, batch, blas_compute_type_v<CVt>,
-      GCXX_BLAS_GEMM(DEFAULT));
-  } else {
-    // The C_i are row-major-like: present the transposed problem
-    // C_i^T = B_i^T * A_i^T to the column-major backend.
-    GCXX_BLAS_DISPATCH_INT64(
-      status, AIt, GemmBatchedEx, h.getRawHandle(),
-      details_::flip_blas_op(op_b), details_::flip_blas_op(op_a), n, m, k,
-      &alpha, b_ptrs.data(), cuda_datatype_v<BVt>, ld_b, a_ptrs.data(),
-      cuda_datatype_v<AVt>, ld_a, &beta, c_ptrs.data(), cuda_datatype_v<CVt>,
-      out.leading_dimension, batch, blas_compute_type_v<CVt>,
-      GCXX_BLAS_GEMM(DEFAULT));
-  }
+#if GCXX_HIP_MODE()
+  // rocBLAS's type-erased GemmBatchedEx pointer-array entry point page-faults
+  // the GPU on double-precision batches ("Memory access fault ... Page not
+  // present", observed on an IHPC HIP node with all-column-major operands),
+  // while the same problem through the strided entry point and through the
+  // classic typed batched gemm runs fine. cuBLAS exposes no typed
+  // gemmBatched in cublas_v2, so HIP routes to hipblas<S,D>gemmBatched and
+  // CUDA keeps the Ex call; the two entry points are argument-compatible
+  // apart from the type-erasure parameters.
+  GCXX_BLAS_DISPATCH_TYPED(
+    status, AIt, AVt, gemmBatched, h.getRawHandle(), first_op, second_op,
+    m_arg, n_arg, k, &alpha,
+    reinterpret_cast<const AVt* const*>(first_ptrs), first_ld,
+    reinterpret_cast<const BVt* const*>(second_ptrs), second_ld, &beta,
+    reinterpret_cast<CVt* const*>(c_ptrs.data()), out.leading_dimension,
+    batch);
+#else
+  GCXX_BLAS_DISPATCH_INT64(
+    status, AIt, GemmBatchedEx, h.getRawHandle(), first_op, second_op, m_arg,
+    n_arg, k, &alpha, first_ptrs, cuda_datatype_v<AVt>, first_ld,
+    second_ptrs, cuda_datatype_v<BVt>, second_ld, &beta, c_ptrs.data(),
+    cuda_datatype_v<CVt>, out.leading_dimension, batch,
+    blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
+#endif
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "gemm_batched failed");
