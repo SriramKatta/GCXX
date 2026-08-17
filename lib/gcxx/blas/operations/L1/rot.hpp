@@ -19,9 +19,14 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Givens rotation applied to (x, y):
+// Apply a Givens rotation to (x, y), P1673R13's apply_givens_rotation (the
+// BLAS rot with the data operands first and the coefficients after, per the
+// r13 argument order):
 //   x_i = c * x_i + s * y_i
 //   y_i = c * y_i - s * x_i   (with the pre-rotation x_i)
+//
+// (P1673R13 pairs this with a host-side setup_givens_rotation(a, b) that
+// computes c, s, r without a handle; that half is deferred here.)
 //
 // x and y are rank-1 mdspans; the length n and the increments (incx, incy) are
 // inferred from the mdspan metadata. The type-erased cu/hipblasRotEx entry
@@ -30,7 +35,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // wrong-rank (or non-mdspan) arguments fail overload resolution.
 //
 // Example:
-//   gcxx::blas::rot(h, 0.8, 0.6, x, y);
+//   gcxx::blas::apply_givens_rotation(h, x, y, 0.8, 0.6);
 //
 // c/s may be passed either as host scalars (host pointer mode) or as
 // gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer
@@ -50,9 +55,9 @@ GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY,
               class S = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
-auto rot(BlasHandleView h, S c, S s,
-         const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
-         const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> void {
+auto apply_givens_rotation(
+  BlasHandleView h, const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+  const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y, S c, S s) -> void {
 
   // local alias for easier refrence
   using XVt = TX;
@@ -68,18 +73,20 @@ auto rot(BlasHandleView h, S c, S s,
 
   // static asserts to verify no funny business
   static_assert(gcxx::details_::all_same_v<XIt, YIt>,
-                "rot operands x, y must share the same mdspan index_type");
+                "apply_givens_rotation operands x, y must share the same "
+                "mdspan index_type");
 
   static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
                 "BLAS operands must use int32_t or int64_t as their "
                 "mdspan index_type");
 
   static_assert(gcxx::details_::all_same_v<Sv, XVt, YVt>,
-                "rot c/s value type must match the operands' element type");
+                "apply_givens_rotation c/s value type must match the "
+                "operands' element type");
 
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
-                "rot currently supports only f32_t/f64_t element types "
-                "(complex support is a TODO)");
+  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
+                "apply_givens_rotation currently supports only float/double "
+                "element types (complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope
   // exit; c/s are read from the host parameters or the device pointers carried
@@ -107,7 +114,7 @@ auto rot(BlasHandleView h, S c, S s,
                            s_ptr, cuda_datatype_v<Sv>, cuda_datatype_v<XVt>);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "rot failed");
+    details_::throwBlasError(status, "apply_givens_rotation failed");
   }
 }
 

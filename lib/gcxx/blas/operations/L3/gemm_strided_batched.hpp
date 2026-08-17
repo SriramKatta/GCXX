@@ -21,13 +21,21 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // Strided batched matrix-matrix product C_i = alpha * op(A_i) * op(B_i) +
 // beta * C_i, where batch element i lives at base + i * stride.
 //
-// A, B, and C are rank-3 mdspans whose batch dimension is the LAST one, i.e.
-// extents (rows, cols, batch): a layout_left operand yields contiguous
-// column-major matrices, a layout_right one row-major (op = T), both with a
+// NOT part of P1673R13 proper (batching is the P2901 follow-up); kept as a
+// cu/hipBLAS extension with its BLAS-style alpha/beta parameters, but with
+// P2901's leftmost-batch convention:
+//
+// A, B, and C are rank-3 mdspans whose batch dimension is the FIRST one,
+// i.e. extents (batch, rows, cols): a layout_left operand yields contiguous
+// column-major matrices, a layout_right one row-major matrices, both with a
 // uniform batch stride — exactly the (base pointer, stride) pair the
-// cu/hipblasGemmStridedBatchedEx entry point takes. The per-batch dimensions,
-// leading dimensions, transpose state, batch count, and batch strides are all
-// inferred from the mdspan metadata.
+// cu/hipblasGemmStridedBatchedEx entry point takes. The per-batch
+// dimensions, leading dimensions, transpose state, batch count, and batch
+// strides are all inferred from the mdspan metadata. As with matrix_product,
+// the mathematical result C_i = A_i * B_i holds for ANY mix of operand
+// layouts: when C's inner matrices are row-major-like the dispatch presents
+// the transposed problem (swapped operand slots, flipped op flags, swapped
+// m/n) to the column-major backend.
 //
 // Example:
 //   gcxx::blas::gemm_strided_batched(h, 1.0, A3, B3, 0.0, C3);
@@ -66,8 +74,8 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
 
   // static asserts to verify no funny business
   static_assert(A_t::rank() == 3 && B_t::rank() == 3 && C_t::rank() == 3,
-                "gemm_strided_batched operands must be rank-3 (rows, cols, "
-                "batch) mdspans");
+                "gemm_strided_batched operands must be rank-3 (batch, rows, "
+                "cols) mdspans");
 
   static_assert(gcxx::details_::all_same_v<AIt, BIt, CIt>,
                 "gemm_strided_batched operands A, B, C must share the same "
@@ -92,11 +100,11 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
   details_::validate_device_view(c, "C");
 
   // extract problem dimensions
-  const auto [m, k, ld_a, batch_a, stride_a, op_a] =
+  const auto [m, k, ld_a, batch_a, stride_a, op_a, trans_a] =
     details_::infer_blas_batched_matrix_view(a);
-  const auto [k_b, n, ld_b, batch_b, stride_b, op_b] =
+  const auto [k_b, n, ld_b, batch_b, stride_b, op_b, trans_b] =
     details_::infer_blas_batched_matrix_view(b);
-  const auto [m_c, n_c, ld_c, batch_c, stride_c, op_c] =
+  const auto [m_c, n_c, ld_c, batch_c, stride_c, op_c, trans_c] =
     details_::infer_blas_batched_matrix_view(c);
 
   // unused vars just to supress annoying warnings
@@ -104,14 +112,36 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
   (void)m_c;
   (void)n_c;
   (void)op_c;
+  (void)trans_a;
+  (void)trans_b;
+
+  if (k != k_b || m_c != m || n_c != n || batch_a != batch_b ||
+      batch_a != batch_c) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "gemm_strided_batched requires A_i to be (m x k), B_i to be (k x n), "
+      "C_i to be (m x n), and all batches to have the same count");
+  }
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_INT64(
-    status, AIt, GemmStridedBatchedEx, h.getRawHandle(), op_a, op_b, m, n, k,
-    &alpha, a.data_handle(), cuda_datatype_v<AVt>, ld_a, stride_a,
-    b.data_handle(), cuda_datatype_v<BVt>, ld_b, stride_b, &beta,
-    c.data_handle(), cuda_datatype_v<CVt>, ld_c, stride_c, batch_a,
-    blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
+  if (!trans_c) {
+    GCXX_BLAS_DISPATCH_INT64(
+      status, AIt, GemmStridedBatchedEx, h.getRawHandle(), op_a, op_b, m, n,
+      k, &alpha, a.data_handle(), cuda_datatype_v<AVt>, ld_a, stride_a,
+      b.data_handle(), cuda_datatype_v<BVt>, ld_b, stride_b, &beta,
+      c.data_handle(), cuda_datatype_v<CVt>, ld_c, stride_c, batch_a,
+      blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
+  } else {
+    // C's inner matrices are row-major-like: present the transposed problem
+    // C_i^T = B_i^T * A_i^T to the column-major backend.
+    GCXX_BLAS_DISPATCH_INT64(
+      status, AIt, GemmStridedBatchedEx, h.getRawHandle(),
+      details_::flip_blas_op(op_b), details_::flip_blas_op(op_a), n, m, k,
+      &alpha, b.data_handle(), cuda_datatype_v<BVt>, ld_b, stride_b,
+      a.data_handle(), cuda_datatype_v<AVt>, ld_a, stride_a, &beta,
+      c.data_handle(), cuda_datatype_v<CVt>, ld_c, stride_c, batch_a,
+      blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
+  }
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "gemm_strided_batched failed");

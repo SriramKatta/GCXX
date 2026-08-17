@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 #pragma once
-#ifndef GCXX_BLAS_OPERATIONS_TRANSPOSE_HPP_
-#define GCXX_BLAS_OPERATIONS_TRANSPOSE_HPP_
+#ifndef GCXX_BLAS_OPERATIONS_TRANSPOSED_HPP_
+#define GCXX_BLAS_OPERATIONS_TRANSPOSED_HPP_
 
 #include <array>
 #include <cstddef>
@@ -29,10 +29,13 @@ struct transposed_extents<gcxx::extents<IndexType, E0, E1>> {
 template <class Extents>
 using transposed_extents_t = typename transposed_extents<Extents>::type;
 
-// transpose(v) returns a non-owning view of v with extents and strides swapped
+// transposed(v) returns a non-owning view of v with extents and strides
+// swapped (P1673R13's transposed; renamed from gcxx::blas::transpose). The
+// BLAS operations infer the transpose state from the view's mapping, so
+// passing transposed(A) to a product computes with A^T at zero cost.
 GCXX_TEMPLATE(class T, class Extents, class Layout, class Accessor)
 GCXX_REQUIRES(Extents::rank() == 2)
-constexpr auto transpose(const gcxx::mdspan<T, Extents, Layout, Accessor>& v) {
+constexpr auto transposed(const gcxx::mdspan<T, Extents, Layout, Accessor>& v) {
   using new_extents_t = transposed_extents_t<Extents>;
   new_extents_t new_extents(v.extent(1), v.extent(0));
 

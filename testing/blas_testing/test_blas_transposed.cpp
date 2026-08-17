@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 //
-// Host-only tests for the BLAS view helpers: transpose() and the stride-based
-// op/leading-dim inference (details/op_inference.hpp). These run without a GPU
-// — they exercise pure mdspan-metadata logic.
+// Host-only tests for the BLAS view helpers: transposed(), scaled(), and the
+// stride-based op/leading-dim/output-orientation inference
+// (details/op_inference.hpp). These run without a GPU — they exercise pure
+// mdspan-metadata logic.
 
 #include "tests_common.hpp"
 
@@ -39,36 +40,36 @@ namespace {
 }  // namespace
 
 // ─────────────────────────────────────────────────────────────────────────────
-// transpose(): extents and strides swap, round-trips.
+// transposed(): extents and strides swap, round-trips.
 // ─────────────────────────────────────────────────────────────────────────────
 
-TEST(BlasTranspose, SwapsExtentsAndStrides_LayoutLeft) {
+TEST(BlasTransposed, SwapsExtentsAndStrides_LayoutLeft) {
   std::vector<double> buf(3 * 4);
   mat2d<gcxx::layout_left> a(buf.data(), 3, 4);  // strides (1, 3)
 
-  auto at = gcxx::blas::transpose(a);
+  auto at = gcxx::blas::transposed(a);
   EXPECT_EQ(at.extent(0), 4);
   EXPECT_EQ(at.extent(1), 3);
   EXPECT_EQ(at.mapping().stride(0), 3);
   EXPECT_EQ(at.mapping().stride(1), 1);
 }
 
-TEST(BlasTranspose, SwapsExtentsAndStrides_LayoutRight) {
+TEST(BlasTransposed, SwapsExtentsAndStrides_LayoutRight) {
   std::vector<double> buf(3 * 4);
   mat2d<gcxx::layout_right> a(buf.data(), 3, 4);  // strides (4, 1)
 
-  auto at = gcxx::blas::transpose(a);
+  auto at = gcxx::blas::transposed(a);
   EXPECT_EQ(at.extent(0), 4);
   EXPECT_EQ(at.extent(1), 3);
   EXPECT_EQ(at.mapping().stride(0), 1);
   EXPECT_EQ(at.mapping().stride(1), 4);
 }
 
-TEST(BlasTranspose, RoundTrips_LayoutLeft) {
+TEST(BlasTransposed, RoundTrips_LayoutLeft) {
   std::vector<double> buf(3 * 4);
   mat2d<gcxx::layout_left> a(buf.data(), 3, 4);
 
-  auto att = gcxx::blas::transpose(gcxx::blas::transpose(a));
+  auto att = gcxx::blas::transposed(gcxx::blas::transposed(a));
   EXPECT_EQ(att.extent(0), a.extent(0));
   EXPECT_EQ(att.extent(1), a.extent(1));
   EXPECT_EQ(att.mapping().stride(0), a.mapping().stride(0));
@@ -76,16 +77,16 @@ TEST(BlasTranspose, RoundTrips_LayoutLeft) {
 }
 
 // Static extents must be preserved at the type level (extents<int,3,4> ->
-// extents<int,4,3>), the layout must flip, and transpose(transpose(v)) must
+// extents<int,4,3>), the layout must flip, and transposed(transposed(v)) must
 // restore the exact original type. This is the property the dextents-only
 // version could not provide.
-TEST(BlasTranspose, PreservesStaticExtentsAndType) {
+TEST(BlasTransposed, PreservesStaticExtentsAndType) {
   double buf[12] = {};
   gcxx::mdspan<double, gcxx::extents<int, 3, 4>, gcxx::layout_left,
                gcxx::default_accessor<double>>
     a(buf);
 
-  auto at = gcxx::blas::transpose(a);
+  auto at = gcxx::blas::transposed(a);
   static_assert(
     std::is_same_v<decltype(at)::extents_type, gcxx::extents<int, 4, 3>>,
     "static extents transpose 3x4 -> 4x3");
@@ -94,12 +95,111 @@ TEST(BlasTranspose, PreservesStaticExtentsAndType) {
   EXPECT_EQ(at.extent(0), 4);
   EXPECT_EQ(at.extent(1), 3);
 
-  auto att = gcxx::blas::transpose(at);
+  auto att = gcxx::blas::transposed(at);
   static_assert(
     std::is_same_v<decltype(att)::extents_type, gcxx::extents<int, 3, 4>>,
     "round-trip restores original static extents");
   static_assert(std::is_same_v<decltype(att)::layout_type, gcxx::layout_left>,
                 "round-trip restores original layout");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// scaled(): factor plumbing, element access, device-view propagation.
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST(BlasScaled, ElementAccessIsScaled) {
+  std::vector<double> buf{1.0, -2.0, 3.0, -4.0};
+  gcxx::mdspan<double, gcxx::dextents<int, 1>> x(buf.data(), 4);
+
+  auto xs = gcxx::blas::scaled(2.5, x);
+  static_assert(std::is_same_v<decltype(xs)::element_type, double>,
+                "scaled views keep the inner element type (BLAS dispatch "
+                "keys on it)");
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(xs[i], 2.5 * buf[static_cast<std::size_t>(i)]);
+  }
+}
+
+TEST(BlasScaled, PreservesMappingAndDataHandle) {
+  std::vector<double> buf(3 * 4);
+  mat2d<gcxx::layout_left> a(buf.data(), 3, 4);
+
+  auto as = gcxx::blas::scaled(2.0, a);
+  EXPECT_EQ(as.data_handle(), a.data_handle());
+  EXPECT_EQ(as.extent(0), 3);
+  EXPECT_EQ(as.extent(1), 4);
+  EXPECT_EQ(as.mapping().stride(0), 1);
+  EXPECT_EQ(as.mapping().stride(1), 3);
+}
+
+TEST(BlasScaled, DeviceViewPropagatesThroughAccessor) {
+  static_assert(
+    gcxx::is_device_view_v<gcxx::blas::scaled_accessor<
+      double, gcxx::device_accessor<def_acc_d>>>,
+    "a scaled device view is still a device view (BLAS operand gate)");
+  static_assert(
+    !gcxx::is_device_view_v<
+      gcxx::blas::scaled_accessor<double, def_acc_d>>,
+    "a scaled host view is not a device view");
+  static_assert(
+    gcxx::is_host_view_v<
+      gcxx::blas::scaled_accessor<double, gcxx::host_accessor<def_acc_d>>>,
+    "a scaled host_accessor view is a host view");
+  static_assert(
+    !gcxx::is_host_view_v<gcxx::blas::scaled_accessor<double, def_acc_d>>,
+    "a plain default_accessor view carries no space classification (and "
+    "neither does its scaled wrapper)");
+  static_assert(
+    gcxx::blas::is_scaled_accessor_v<
+      gcxx::blas::scaled_accessor<double, dev_acc_d>>,
+    "identity trait");
+
+  // and end-to-end through the view function on a device mdspan
+  std::vector<double> buf(3 * 4);
+  dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);
+  auto as = gcxx::blas::scaled(1.5, a);
+  static_assert(gcxx::is_device_view_v<decltype(as)::accessor_type>,
+                "scaled(device view) still passes the BLAS operand gate");
+  SUCCEED();
+}
+
+TEST(BlasScaled, StripScaledRecoversBaseView) {
+  std::vector<double> buf{1.0, 2.0};
+  gcxx::mdspan<double, gcxx::dextents<int, 1>> x(buf.data(), 2);
+
+  auto xs  = gcxx::blas::scaled(3.0, x);
+  auto xs2 = gcxx::blas::strip_scaled(xs);
+  static_assert(!gcxx::blas::is_scaled_accessor_v<decltype(xs2)::accessor_type>,
+                "strip_scaled removes the scaled layer");
+  EXPECT_EQ(xs2.data_handle(), x.data_handle());
+  EXPECT_EQ(xs2[0], 1.0);
+
+  auto idem = gcxx::blas::strip_scaled(x);
+  static_assert(!gcxx::blas::is_scaled_accessor_v<decltype(idem)::accessor_type>,
+                "strip_scaled is the identity on plain views");
+  EXPECT_EQ(idem.data_handle(), x.data_handle());
+}
+
+TEST(BlasScaled, AlphaResolutionCombinesHostFactors) {
+  using gcxx::blas::details_::alpha_resolution;
+  using gcxx::blas::details_::combine_scaled_alpha;
+  using gcxx::blas::details_::resolve_scaled_alpha;
+  using gcxx::blas::scaled_accessor;
+
+  constexpr alpha_resolution<double> none{};
+  static_assert(!none.from_device(), "default resolution is host");
+  EXPECT_EQ(none.host_value, 1.0);
+
+  scaled_accessor<double, def_acc_d> acc{2.0, def_acc_d{}};
+  const auto r2 = resolve_scaled_alpha<double>(acc);
+  EXPECT_EQ(r2.host_value, 2.0);
+  EXPECT_FALSE(r2.from_device());
+
+  const auto both =
+    combine_scaled_alpha(resolve_scaled_alpha<double>(acc),
+                         resolve_scaled_alpha<double>(acc), "test");
+  EXPECT_EQ(both.host_value, 4.0);
+  EXPECT_FALSE(both.from_device());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,7 +234,7 @@ TEST(BlasOpInference, TransposedLayoutLeft_IsOpT) {
   dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);
 
   const auto info =
-    infer(gcxx::blas::transpose(a));  // extents (4,3), strides (3,1)
+    infer(gcxx::blas::transposed(a));  // extents (4,3), strides (3,1)
   EXPECT_EQ(info.op, gcxx::driver::deviceBlasOpT);
   EXPECT_EQ(info.rows, 4);
   EXPECT_EQ(info.cols, 3);
@@ -146,7 +246,7 @@ TEST(BlasOpInference, TransposedLayoutRight_IsOpN) {
   dmat2d<gcxx::layout_right> a(buf.data(), 3, 4);
 
   const auto info =
-    infer(gcxx::blas::transpose(a));  // extents (4,3), strides (1,4)
+    infer(gcxx::blas::transposed(a));  // extents (4,3), strides (1,4)
   EXPECT_EQ(info.op, gcxx::driver::deviceBlasOpN);
   EXPECT_EQ(info.rows, 4);
   EXPECT_EQ(info.cols, 3);
@@ -178,7 +278,45 @@ TEST(BlasOpInference, NeitherAxisUnit_Throws) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Device-view gating (host_device_accessor.hpp): trait polarity, transpose
+// Output-orientation inference (details_::infer_blas_output_view): what the
+// transposed-output dispatch keys on.
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST(BlasOutputInference, ColumnMajorOutput_IsNotTransposed) {
+  std::vector<double> buf(3 * 4);
+  dmat2d<gcxx::layout_left> c(buf.data(), 3, 4);
+
+  const auto out = gcxx::blas::details_::infer_blas_output_view(c);
+  EXPECT_FALSE(out.transposed);
+  EXPECT_EQ(out.rows, 3);
+  EXPECT_EQ(out.cols, 4);
+  EXPECT_EQ(out.leading_dimension, 3);
+}
+
+TEST(BlasOutputInference, RowMajorOutput_IsTransposed) {
+  std::vector<double> buf(3 * 4);
+  dmat2d<gcxx::layout_right> c(buf.data(), 3, 4);
+
+  const auto out = gcxx::blas::details_::infer_blas_output_view(c);
+  EXPECT_TRUE(out.transposed);
+  EXPECT_EQ(out.rows, 3);
+  EXPECT_EQ(out.cols, 4);
+  EXPECT_EQ(out.leading_dimension, 4);
+}
+
+TEST(BlasOutputInference, NeitherAxisUnit_Throws) {
+  std::vector<double> buf(100);
+  dextents2d ext{4, 5};
+  gcxx::layout_stride::mapping<dextents2d> map{ext, std::array<int, 2>{2, 7}};
+  gcxx::mdspan<double, dextents2d, gcxx::layout_stride, dev_acc_d> s(buf.data(),
+                                                                     map);
+
+  EXPECT_THROW(gcxx::blas::details_::infer_blas_output_view(s),
+               gcxx::blas::BlasException);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Device-view gating (host_device_accessor.hpp): trait polarity, transposed
 // preservation, and the deleted cross-memory-space conversions. All
 // compile-time checks.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -212,14 +350,14 @@ TEST(BlasDeviceView, AccessorTraitPolarity) {
   SUCCEED();
 }
 
-TEST(BlasDeviceView, TransposePreservesDeviceAccessor) {
+TEST(BlasDeviceView, TransposedPreservesDeviceAccessor) {
   std::vector<double> buf(3 * 4);
   dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);
 
-  auto at = gcxx::blas::transpose(a);
+  auto at = gcxx::blas::transposed(a);
   static_assert(
     std::is_same_v<decltype(at)::accessor_type, dev_acc_d>,
-    "transpose() forwards the device accessor, keeping the view BLAS-legal");
+    "transposed() forwards the device accessor, keeping the view BLAS-legal");
   SUCCEED();
 }
 

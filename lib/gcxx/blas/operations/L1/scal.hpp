@@ -18,7 +18,8 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Vector scaling x = alpha * x.
+// Vector scaling x = alpha * x (P1673R13 keeps this BLAS-1 routine's scalar
+// parameter and renames it scal -> scale).
 //
 // x is a rank-1 mdspan; the length n and the increment (incx) are inferred
 // from the mdspan metadata. The type-erased cu/hipblasScalEx entry point is
@@ -27,7 +28,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // (or non-mdspan) arguments fail overload resolution.
 //
 // Example:
-//   gcxx::blas::scal(h, 3.0, x);
+//   gcxx::blas::scale(h, 3.0, x);
 //
 // alpha may be passed either as a host scalar (host pointer mode) or as a
 // gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer
@@ -46,8 +47,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class S = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1)
-auto scal(BlasHandleView h, S alpha,
-          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x) -> void {
+auto scale(BlasHandleView h, S alpha,
+           const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x) -> void {
 
   // local alias for easier refrence
   using XVt = TX;
@@ -65,11 +66,11 @@ auto scal(BlasHandleView h, S alpha,
                 "mdspan index_type");
 
   static_assert(std::is_same_v<Sv, XVt>,
-                "scal alpha value type must match the operand's element "
+                "scale alpha value type must match the operand's element "
                 "type");
 
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
-                "scal currently supports only f32_t/f64_t element types "
+  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
+                "scale currently supports only float/double element types "
                 "(complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope
@@ -91,7 +92,7 @@ auto scal(BlasHandleView h, S alpha,
                            cuda_datatype_v<XVt>, inc_x, cuda_datatype_v<Sv>);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "scal failed");
+    details_::throwBlasError(status, "scale failed");
   }
 }
 

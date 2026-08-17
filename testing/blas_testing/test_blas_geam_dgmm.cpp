@@ -126,6 +126,63 @@ namespace {
     }
   }
 
+  // Layout-independence gate: a NON-SQUARE all-row-major geam must compute
+  // C = alpha*A + beta*B mathematically. Before the output-orientation fix
+  // this path flipped m/n against the operand ld's and read out of bounds.
+  template <class IndexT>
+  void run_geam_rowmajor() {
+    if (!gcxx::testing::haveCudaDevice()) {
+      GTEST_SKIP() << "No CUDA device available";
+    }
+
+    constexpr int M    = 3;
+    constexpr int N    = 5;
+    const double alpha = 2.0, beta = -1.0;
+
+    // filled in ROW-major order
+    std::vector<double> hA(M * N), hB(M * N);
+    for (int i = 0; i < M; ++i) {
+      for (int j = 0; j < N; ++j) {
+        hA[static_cast<std::size_t>(i * N + j)] =
+          static_cast<double>(i + 1) - static_cast<double>(j);
+        hB[static_cast<std::size_t>(i * N + j)] =
+          static_cast<double>(2 * i) + 0.5 * static_cast<double>(j);
+      }
+    }
+
+    using mat_right =
+      gcxx::device_mdspan<double, gcxx::dextents<IndexT, 2>,
+                          gcxx::layout_right>;
+
+    gcxx::Stream str;
+    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    auto dB = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
+    gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
+    gcxx::Copy(str, dB.get(), hB.data(), std::size_t{M * N});
+
+    mat_right A(dA.get(), M, N);
+    mat_right B(dB.get(), M, N);
+    mat_right C(dC.get(), M, N);
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::geam(handle, alpha, A, beta, B, C);
+    str.Synchronize();
+
+    std::vector<double> hResult(M * N);
+    gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
+    str.Synchronize();
+
+    for (int i = 0; i < M; ++i) {
+      for (int j = 0; j < N; ++j) {
+        const auto idx = static_cast<std::size_t>(i * N + j);
+        EXPECT_NEAR(hResult[idx], alpha * hA[idx] + beta * hB[idx], 1e-9)
+          << "row-major geam mismatch at (" << i << "," << j << ")";
+      }
+    }
+  }
+
 }  // namespace
 
 TEST(BlasGeam, Double) {
@@ -134,6 +191,14 @@ TEST(BlasGeam, Double) {
 
 TEST(BlasGeam, Double_64bitIndex) {
   run_geam<std::int64_t>();
+}
+
+TEST(BlasGeam, RowMajor_NonSquare_Double) {
+  run_geam_rowmajor<int>();
+}
+
+TEST(BlasGeam, RowMajor_NonSquare_Double_64bitIndex) {
+  run_geam_rowmajor<std::int64_t>();
 }
 
 TEST(BlasDgmm, Left_Double) {

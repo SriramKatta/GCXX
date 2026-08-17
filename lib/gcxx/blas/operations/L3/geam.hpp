@@ -21,16 +21,23 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 // Matrix-matrix addition / transpose-copy C = alpha * op(A) + beta * op(B).
 //
-// A, B, and C are rank-2 mdspan objects. The effective dimensions, the leading
-// dimensions, and the transpose state of each operand are inferred from the
-// mdspan metadata and any view wrappers (blas::transpose), so the API takes no
-// separate shape or operation arguments. Each operand is typed as a
-// gcxx::mdspan in the signature, so wrong-rank (or non-mdspan) arguments fail
-// overload resolution.
+// NOT part of P1673R13 (matrix addition is element-wise and left to
+// std::ranges there); kept as a cu/hipBLAS extension with its BLAS-style
+// alpha/beta parameters. It also serves as the accumulate step of
+// matrix_product's 5-argument form.
+//
+// A, B, and C are rank-2 mdspan objects. The effective dimensions, the
+// leading dimensions, and the transpose state of each operand are inferred
+// from the mdspan metadata and any view wrappers (blas::transposed), so the
+// API takes no separate shape or operation arguments. The mathematical
+// result C = alpha * op(A) + beta * op(B) holds for ANY mix of operand
+// layouts: when C's storage is row-major-like, the dispatch presents the
+// transposed problem (flipped op flags, swapped m/n) to the column-major
+// backend.
 //
 // Example:
 //   gcxx::blas::geam(h, 1.0, A, 0.0, B, C);    // computes C = A
-//   gcxx::blas::geam(h, 1.0, blas::transpose(A), 0.0, B, C);  // C = A^T
+//   gcxx::blas::geam(h, 1.0, blas::transposed(A), 0.0, B, C);  // C = A^T
 //
 // alpha/beta may be passed either as host scalars (host pointer mode) or as
 // gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer
@@ -41,17 +48,17 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // int64_t index_type routes to the 64-bit cu/hipblasSgeam_64 (Dgeam_64) entry
 // point, while all other index_types use the standard 32-bit interface.
 //
-// A, B, and C must be device views: mdspans carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::device_mdspan). Host views are rejected
-// at compile time; in check builds the data handles are additionally probed
-// at run time so a mislabeled host pointer fails here, not inside the GPU
-// kernel.
+// A, B, and C must be device views: mdspans carrying
+// gcxx::device_accessor / gcxx::managed_accessor (e.g. gcxx::device_mdspan).
+// Host views are rejected at compile time; in check builds the data handles
+// are additionally probed at run time so a mislabeled host pointer fails
+// here, not inside the GPU kernel.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TC, class ExtentsC, class LayoutC, class AccessorC,
               class S = TC)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
-              2 GCXX_AND ExtentsC::rank() == 2)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() == 2 GCXX_AND
+              ExtentsC::rank() == 2)
 auto geam(BlasHandleView h, S alpha,
           const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a, S beta,
           const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
@@ -88,8 +95,8 @@ auto geam(BlasHandleView h, S alpha,
   //       float and double; a std::complex<T> element type hits this assert
   //       and must be wired up (add Cgeam/Zgeam branches to
   //       GCXX_BLAS_DISPATCH_TYPED).
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
-                "geam currently supports only f32_t/f64_t element types "
+  static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
+                "geam currently supports only float/double element types "
                 "(complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope
@@ -105,25 +112,38 @@ auto geam(BlasHandleView h, S alpha,
   details_::validate_device_view(b, "B");
   details_::validate_device_view(c, "C");
 
-  // extract problem dimensions: A's logical (post-op) extent defines (m, n)
-  const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
-  const auto [rows_b, cols_b, ld_b, op_b] = details_::infer_blas_matrix_view(b);
-  const auto [rows_c, cols_c, ld_c, op_c] = details_::infer_blas_matrix_view(c);
+  // extract problem dimensions; the output's orientation decides how the
+  // problem is presented to the column-major backend
+  const auto [rows_a, cols_a, ld_a, op_a] =
+    details_::infer_blas_matrix_view(a);
+  const auto [rows_b, cols_b, ld_b, op_b] =
+    details_::infer_blas_matrix_view(b);
+  const auto out = details_::infer_blas_output_view(c);
 
-  // unused vars just to supress annoying warnings
-  (void)rows_b;
-  (void)cols_b;
-  (void)rows_c;
-  (void)cols_c;
-  (void)op_c;
-
-  const AIt m = op_a == driver::deviceBlasOpN ? rows_a : cols_a;
-  const AIt n = op_a == driver::deviceBlasOpN ? cols_a : rows_a;
+  if (rows_a != out.rows || cols_a != out.cols || rows_b != out.rows ||
+      cols_b != out.cols) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "geam requires A, B, and C to share the same extents");
+  }
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, geam, h.getRawHandle(), op_a, op_b,
-                           m, n, alpha_ptr, a.data_handle(), ld_a, beta_ptr,
-                           b.data_handle(), ld_b, c.data_handle(), ld_c);
+  if (!out.transposed) {
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, geam, h.getRawHandle(), op_a,
+                             op_b, out.rows, out.cols, alpha_ptr,
+                             a.data_handle(), ld_a, beta_ptr, b.data_handle(),
+                             ld_b, c.data_handle(), out.leading_dimension);
+  } else {
+    // C's storage is row-major-like: compute its transpose instead,
+    // C^T = alpha * op(A)^T + beta * op(B)^T (reading the same storage with
+    // a flipped op flag yields the transpose, so only the flags and m/n
+    // change).
+    GCXX_BLAS_DISPATCH_TYPED(
+      status, AIt, AVt, geam, h.getRawHandle(), details_::flip_blas_op(op_a),
+      details_::flip_blas_op(op_b), out.cols, out.rows, alpha_ptr,
+      a.data_handle(), ld_a, beta_ptr, b.data_handle(), ld_b, c.data_handle(),
+      out.leading_dimension);
+  }
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "geam failed");

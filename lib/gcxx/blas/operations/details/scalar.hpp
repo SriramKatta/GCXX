@@ -15,10 +15,12 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // (cublasSetPointerMode(..., _DEVICE)); a plain scalar selects host mode. It
 // holds a single pointer to one device-side element and is passed by value.
 //
-// Example:
+// Example (the scaled() view forwards the factor to the operation, which
+// selects device pointer mode from its type):
 //   gcxx::blas::device_scalar<double> alpha_d{dAlpha.get()};
-//   gcxx::blas::gemm(h, alpha_d, A, B,
-//                    gcxx::blas::device_scalar<double>{dBeta.get()}, C);
+//   gcxx::blas::device_scalar<double> beta_d{dBeta.get()};
+//   gcxx::blas::matrix_product(h, gcxx::blas::scaled(alpha_d, A), B,
+//                              gcxx::blas::scaled(beta_d, C), C);
 template <class T>
 struct device_scalar {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)

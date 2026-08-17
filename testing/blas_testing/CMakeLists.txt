@@ -1,6 +1,6 @@
 set(SRC_BASE_NAMES
     test_blas_handle
-    test_blas_transpose
+    test_blas_transposed
     test_blas_gemm
     test_blas_gemv
     test_blas_pointer_mode

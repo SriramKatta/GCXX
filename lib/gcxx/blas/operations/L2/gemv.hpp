@@ -10,54 +10,67 @@
 #include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/blas/handle/blas_handle_view.hpp>
 #include <gcxx/blas/handle/blas_pointer_mode_guard.hpp>
+#include <gcxx/blas/operations/L1/axpy.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
-#include <gcxx/blas/operations/details/scalar.hpp>
+#include <gcxx/blas/operations/scaled.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Matrix-vector product y = alpha * op(A) * x + beta * y.
+// Matrix-vector product, the P1673R13 matrix_vector_product shape.
 //
-// A is a rank-2 mdspan; x and y are rank-1 mdspans. The operation op(A), the
-// matrix dimensions (m, n), the leading dimension, and the vector increments
-// (incx, incy) are all inferred from the mdspan metadata, so the API takes no
-// separate shape or operation arguments. Each operand is typed as a
-// gcxx::mdspan in the signature, so wrong-rank (or non-mdspan) arguments fail
-// overload resolution.
+//   matrix_vector_product(h, A, x, y)     ->  y = A * x     (write-only)
+//   matrix_vector_product(h, A, x, b, y)  ->  y = A * x + b (accumulate)
 //
-// Example:
-//   gcxx::blas::gemv(h, 1.0, A, x, 0.0, y);    // computes y = A * x
-//   gcxx::blas::gemv(h, 1.0, blas::transpose(A), x, 0.0, y); // computes y =
-//   A^T * x
+// A is a rank-2 mdspan; x, y (and the addend b) are rank-1 mdspans. The
+// operation state, the matrix dimensions, the leading dimension, and the
+// vector increments are all inferred from the mdspan metadata, so the API
+// takes no separate shape or operation arguments. The mathematical result
+// holds for ANY operand layout (column-major, row-major, or transposed
+// views).
 //
-// alpha/beta may be passed either as host scalars (host pointer mode) or as
-// gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer mode).
-// The mode is selected per call from the argument type; the handle's prior
-// pointer mode is restored when the call returns.
+// There is no alpha/beta parameter; per P1673R13 10.3, scaling is expressed
+// with scaled(alpha, x) views on the INPUTS (A or x), whose factors are
+// unwrapped and folded into the backend's single alpha:
+//
+//   matrix_vector_product(h, scaled(2.0, A), x, y);       // y = 2*A*x
+//   matrix_vector_product(h, A, x, scaled(0.5, y), y);    // y = A*x + 0.5*y
+//
+// The 3-argument form never reads y (the backend's beta is a host zero), so
+// y may hold uninitialized or NaN data. The 4-argument accumulate form reads
+// b: when b aliases y exactly the backend's in-place beta path computes
+// everything in one call; otherwise the product is written first and b is
+// accumulated with a follow-up axpy (which also applies b's factor).
+//
+// A device_scalar scaled() factor is subject to the same rules as
+// matrix_product: at most one non-unit factor, and never in the write-only
+// form (implicit zero beta). In the accumulate form, the aliased path needs
+// the alpha and addend factors to be either both host values or both
+// device_scalars (one pointer mode); the split path handles any mix, since
+// its follow-up axpy carries the addend factor as its single scalar.
 //
 // The integer interface is selected from the operands' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cublas*gemv_64 entry point
 // (int64_t dimensions), while all other index_types use the standard 32-bit
 // interface.
 //
-// A, x, and y must be device views: mdspans carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::device_mdspan, gcxx::make_device_vector).
-// Host views are rejected at compile time; in check builds the data handles
-// are additionally probed at run time so a mislabeled host pointer fails
-// here, not inside the GPU kernel.
+// A, x, y (and b) must be device views: mdspans carrying
+// gcxx::device_accessor / gcxx::managed_accessor (e.g. gcxx::device_mdspan,
+// gcxx::make_device_vector). Host views are rejected at compile time; in
+// check builds the data handles are additionally probed at run time so a
+// mislabeled host pointer fails here, not inside the GPU kernel.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TX, class ExtentsX, class LayoutX, class AccessorX,
-              class TY, class ExtentsY, class LayoutY, class AccessorY,
-              class S = TY)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() ==
-              1 GCXX_AND ExtentsY::rank() == 1)
-auto gemv(BlasHandleView h, S alpha,
-          const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x, S beta,
-          const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> void {
+              class TY, class ExtentsY, class LayoutY, class AccessorY)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() == 1 GCXX_AND
+              ExtentsY::rank() == 1)
+auto matrix_vector_product(
+  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+  const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+  const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> void {
 
   // local alias for easier refrence
   using AVt = TA;
@@ -66,44 +79,56 @@ auto gemv(BlasHandleView h, S alpha,
   using AIt = typename ExtentsA::index_type;
   using XIt = typename ExtentsX::index_type;
   using YIt = typename ExtentsY::index_type;
-
-  // Value type carried by alpha/beta: unwraps device_scalar<T> -> T. A
-  // device_scalar argument selects device pointer mode; a plain scalar selects
-  // host mode.
-  using Sv                   = details_::scalar_value_t<S>;
-  constexpr bool device_mode = details_::is_device_scalar_v<S>;
+  using Sv  = YVt;
 
   // static asserts to verify no funny business
+  static_assert(!gcxx::blas::is_scaled_accessor_v<AccessorY>,
+                "matrix_vector_product outputs cannot be scaled() views; "
+                "scale an input, or use the accumulate form with a scaled "
+                "addend");
+
   static_assert(gcxx::details_::all_same_v<AIt, XIt, YIt>,
-                "gemv operands A, x, y must share the same mdspan index_type");
+                "matrix_vector_product operands A, x, y must share the same "
+                "mdspan index_type");
 
   static_assert(gcxx::blas::details_::is_supported_blas_index_v<AIt>,
                 "BLAS operands must use int32_t or int64_t as their "
                 "mdspan index_type");
 
-  // The typed gemv backend routines require A, x, y, alpha and beta to share a
-  // single element type.
-  static_assert(gcxx::details_::all_same_v<Sv, AVt, XVt, YVt>,
-                "gemv alpha/beta value type must match the operands' element "
-                "type");
+  static_assert(gcxx::details_::all_same_v<AVt, XVt, YVt>,
+                "matrix_vector_product operands A, x, y must share a single "
+                "element type");
 
   // TODO: support complex element types via cublasCgemv / cublasZgemv
   //       (cublas_v2.h aliases these to the *_v2 forms; hipBLAS uses them
   //       natively). The dispatch macro below only handles float and double; a
   //       std::complex<T> element type hits this assert and must be wired up
-  //       (add Cgemv/Zgemv branches to GCXX_BLAS_DISPATCH_TYPED and route
-  //       alpha/beta through native_scalar_t<S>).
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
-                "gemv currently supports only f32_t/f64_t element types "
-                "(complex support is a TODO)");
+  //       (add Cgemv/Zgemv branches to GCXX_BLAS_DISPATCH_TYPED).
+  static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
+                "matrix_vector_product currently supports only float/double "
+                "element types (complex support is a TODO)");
 
-  // Select the pointer mode for this call and restore the prior mode on scope
-  // exit; alpha/beta are read from the host parameters or the device pointers
-  // carried by device_scalar, per the mode.
-  details_::BlasPointerModeGuard guard{h, device_mode};
+  // alpha comes only from scaled() views on the inputs; beta is a host zero
+  // in this write-only form, so y is never read.
+  auto alpha_res = details_::combine_scaled_alpha(
+    details_::resolve_scaled_alpha<Sv>(a.accessor()),
+    details_::resolve_scaled_alpha<Sv>(x.accessor()),
+    "matrix_vector_product");
+  if (alpha_res.from_device()) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "matrix_vector_product: the write-only form has no device-resident "
+      "beta, so a device_scalar scaled() factor is unsupported here; use the "
+      "accumulate form (with a device_scalar zero addend) or host factors");
+  }
+  const Sv alpha_host = alpha_res.host_value;
+  const Sv* alpha_ptr = &alpha_host;
+  const Sv  beta_host = Sv(0);
+  const Sv* beta_ptr  = &beta_host;
 
-  const Sv* alpha_ptr = details_::blas_scalar_ptr(alpha);
-  const Sv* beta_ptr  = details_::blas_scalar_ptr(beta);
+  // Pin host pointer mode for the call (restored on scope exit); both
+  // scalars above are host values in this form.
+  details_::BlasPointerModeGuard guard{h, false};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
@@ -115,17 +140,136 @@ auto gemv(BlasHandleView h, S alpha,
   const auto [len_x, inc_x]     = details_::infer_blas_vector_view(x);
   const auto [len_y, inc_y]     = details_::infer_blas_vector_view(y);
 
-  // unused vars just to supress annoying warnings
-  (void)len_x;
-  (void)len_y;
+  if (len_x != n || len_y != m) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "matrix_vector_product requires x to have A.extent(1) elements and y "
+      "to have A.extent(0) elements");
+  }
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, gemv, h.getRawHandle(), op_a, m, n,
-                           alpha_ptr, a.data_handle(), ld_a, x.data_handle(),
-                           inc_x, beta_ptr, y.data_handle(), inc_y);
+  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, gemv, h.getRawHandle(), op_a, m,
+                           n, alpha_ptr, a.data_handle(), ld_a,
+                           x.data_handle(), inc_x, beta_ptr, y.data_handle(),
+                           inc_y);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "gemv failed");
+    details_::throwBlasError(status, "matrix_vector_product failed");
+  }
+}
+
+// Accumulate form: y = A * x + b (P1673R13's read-and-write version). b may
+// carry a scaled() factor. When b aliases y exactly the backend's in-place
+// beta path computes everything in one call; otherwise the product is
+// written to y first and b is accumulated with a follow-up axpy (which also
+// applies b's factor). b must either alias y exactly or not overlap it at
+// all.
+GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
+              class TX, class ExtentsX, class LayoutX, class AccessorX,
+              class TB, class ExtentsB, class LayoutB, class AccessorB,
+              class TY, class ExtentsY, class LayoutY, class AccessorY)
+GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() == 1 GCXX_AND
+              ExtentsB::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
+auto matrix_vector_product(
+  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+  const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+  const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+  const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> void {
+
+  using AVt = TA;
+  using XVt = TX;
+  using BVt = TB;
+  using YVt = TY;
+  using AIt = typename ExtentsA::index_type;
+  using BIt = typename ExtentsB::index_type;
+  using YIt = typename ExtentsY::index_type;
+  using Sv  = YVt;
+
+  static_assert(gcxx::details_::all_same_v<AIt, BIt, YIt>,
+                "matrix_vector_product operands must share the same mdspan "
+                "index_type");
+
+  static_assert(gcxx::blas::details_::is_supported_blas_index_v<AIt>,
+                "BLAS operands must use int32_t or int64_t as their "
+                "mdspan index_type");
+
+  static_assert(gcxx::details_::all_same_v<AVt, XVt, BVt, YVt>,
+                "matrix_vector_product operands A, x, b, y must share a "
+                "single element type");
+
+  static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
+                "matrix_vector_product currently supports only float/double "
+                "element types (complex support is a TODO)");
+
+  // run-time device-memory probe (no-op unless checks are enabled)
+  details_::validate_device_view(a, "A");
+  details_::validate_device_view(x, "x");
+  details_::validate_device_view(b, "b");
+  details_::validate_device_view(y, "y");
+
+  if (b.extent(0) != y.extent(0)) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "matrix_vector_product addend b must have the same extent as y");
+  }
+
+  // The addend's factor (identity 1 for a plain b) doubles as the backend's
+  // beta in the aliased case, and as axpy's alpha in the split case.
+  auto beta_res = details_::resolve_scaled_alpha<Sv>(b.accessor());
+
+  if (!details_::views_alias(b, y)) {
+    // Split path: write A*x into y, then accumulate b.
+    matrix_vector_product(h, a, x, y);
+    if (beta_res.from_device()) {
+      axpy(h, gcxx::blas::device_scalar<Sv>{beta_res.device_ptr},
+           gcxx::blas::strip_scaled(b), y);
+    } else {
+      axpy(h, beta_res.host_value, gcxx::blas::strip_scaled(b), y);
+    }
+    return;
+  }
+
+  // In-place path: one backend call with beta read from b's factor.
+  auto alpha_res = details_::combine_scaled_alpha(
+    details_::resolve_scaled_alpha<Sv>(a.accessor()),
+    details_::resolve_scaled_alpha<Sv>(x.accessor()),
+    "matrix_vector_product");
+  if (alpha_res.from_device() != beta_res.from_device()) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "matrix_vector_product: the backend reads alpha and beta through one "
+      "pointer mode, so host and device_scalar factors cannot be mixed in "
+      "one call");
+  }
+
+  const Sv alpha_host = alpha_res.host_value;
+  const Sv* alpha_ptr =
+    alpha_res.from_device() ? alpha_res.device_ptr : &alpha_host;
+  const Sv beta_host = beta_res.host_value;
+  const Sv* beta_ptr =
+    beta_res.from_device() ? beta_res.device_ptr : &beta_host;
+
+  details_::BlasPointerModeGuard guard{h, alpha_res.from_device()};
+
+  const auto [m, n, ld_a, op_a] = details_::infer_blas_matrix_view(a);
+  const auto [len_x, inc_x]     = details_::infer_blas_vector_view(x);
+  const auto [len_y, inc_y]     = details_::infer_blas_vector_view(y);
+
+  if (len_x != n || len_y != m) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "matrix_vector_product requires x to have A.extent(1) elements and y "
+      "to have A.extent(0) elements");
+  }
+
+  driver::deviceBlasStatus_t status{};
+  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, gemv, h.getRawHandle(), op_a, m,
+                           n, alpha_ptr, a.data_handle(), ld_a,
+                           x.data_handle(), inc_x, beta_ptr, y.data_handle(),
+                           inc_y);
+
+  if (status != driver::deviceBlasStatusSuccess) {
+    details_::throwBlasError(status, "matrix_vector_product failed");
   }
 }
 

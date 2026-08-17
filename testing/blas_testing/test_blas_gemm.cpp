@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 //
-// End-to-end GEMM tests: C = alpha * op(A) * op(B) + beta * C via cuBLAS,
-// compared against a host reference. GPU-gated — skipped when no device is
-// present, but the template must still compile (it instantiates gemm and its
-// cu/hipblasGemmEx dispatch, plus the GemmEx_64 64-bit-integer dispatch for the
-// int64_t index_type variant).
+// End-to-end matrix_product tests (P1673R13's gemm shape): C = A * B and
+// C = A * B + E via cuBLAS, with scaling expressed through scaled() views.
+// Includes the layout-independence gates: the same call must produce the
+// mathematical A * B for column-major and row-major operands. GPU-gated —
+// skipped when no device is present, but the template must still compile (it
+// instantiates matrix_product and its cu/hipblasGemmEx dispatch, plus the
+// GemmEx_64 64-bit-integer dispatch for the int64_t index_type variant).
 
 #include "tests_common.hpp"
 
@@ -26,27 +28,33 @@ namespace {
   template <class T, class IndexT>
   using mat_left = gcxx::mdspan<T, dextents2d<IndexT>, gcxx::layout_left,
                                 gcxx::default_accessor<T>>;
+  template <class T, class IndexT>
+  using mat_right = gcxx::mdspan<T, dextents2d<IndexT>, gcxx::layout_right,
+                                 gcxx::default_accessor<T>>;
 
-  // Device-memory counterpart required by gcxx::blas::gemm.
+  // Device-memory counterparts required by gcxx::blas::matrix_product.
   template <class T, class IndexT>
   using dmat_left =
     gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_left>;
+  template <class T, class IndexT>
+  using dmat_right =
+    gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_right>;
 
-  // Column-major host reference: out = alpha * a * b + beta * cref.
-  template <class T, class S>
-  void host_gemm(const mat_left<T, int>& a, const mat_left<T, int>& b,
-                 const mat_left<T, int>& cref, std::vector<T>& out, S alpha,
-                 S beta) {
-    const int m = a.extent(0);
-    const int k = a.extent(1);
-    const int n = b.extent(1);
+  // Layout-agnostic host reference: out = alpha * a * b + beta * cref, with
+  // out written through the OUTPUT mdspan's own layout.
+  template <class MatA, class MatB, class MatC, class S>
+  void host_gemm(const MatA& a, const MatB& b, const MatC& cref, MatC out,
+                 S alpha, S beta) {
+    const int m = static_cast<int>(a.extent(0));
+    const int k = static_cast<int>(a.extent(1));
+    const int n = static_cast<int>(b.extent(1));
     for (int i = 0; i < m; ++i) {
       for (int j = 0; j < n; ++j) {
         S acc{};
         for (int p = 0; p < k; ++p) {
           acc += static_cast<S>(a(i, p)) * static_cast<S>(b(p, j));
         }
-        out[i + j * m] = alpha * acc + beta * static_cast<S>(cref(i, j));
+        out(i, j) = alpha * acc + beta * static_cast<S>(cref(i, j));
       }
     }
   }
@@ -77,7 +85,8 @@ namespace {
     mat_left<double, int> hostCref(hC.data(), M, N);
 
     std::vector<double> href(M * N);
-    host_gemm<double, double>(hostA, hostB, hostCref, href, 1.0, 0.0);
+    mat_left<double, int> hostOut(href.data(), M, N);
+    host_gemm(hostA, hostB, hostCref, hostOut, 1.0, 0.0);
 
     gcxx::Stream str;
     auto dA =
@@ -95,7 +104,7 @@ namespace {
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
-    gcxx::blas::gemm(handle, 1.0, A, B, 0.0, C);
+    gcxx::blas::matrix_product(handle, A, B, C);
     str.Synchronize();
 
     std::vector<double> hC_result(M * N);
@@ -109,10 +118,159 @@ namespace {
     }
   }
 
-  // Device-pointer-mode variant: alpha/beta live in device memory and are
-  // passed via gcxx::blas::device_scalar, selecting device pointer mode. Uses
-  // non-trivial alpha/beta and a non-zero C so both scalars are actually read.
-  // (Also serves as the compile check for the device_scalar dispatch branch.)
+  // Layout-independence gate: ALL-row-major operands (A, B, C stored
+  // row-major) must give the same mathematical A * B as the column-major
+  // case, and the accumulate form with scaled() views must hold too. Before
+  // the transposed-output dispatch this computed (A * B)^T.
+  template <class IndexT>
+  void run_rowmajor_and_scaled() {
+    if (!gcxx::testing::haveCudaDevice()) {
+      GTEST_SKIP() << "No CUDA device available";
+    }
+
+    constexpr int M = 3;
+    constexpr int K = 4;
+    constexpr int N = 5;
+
+    // filled in ROW-major order
+    std::vector<double> hA(M * K), hB(K * N), hC(M * N);
+    for (int i = 0; i < M; ++i) {
+      for (int j = 0; j < K; ++j) {
+        hA[static_cast<std::size_t>(i * K + j)] =
+          static_cast<double>(i + 1) - static_cast<double>(j);
+      }
+    }
+    for (int i = 0; i < K; ++i) {
+      for (int j = 0; j < N; ++j) {
+        hB[static_cast<std::size_t>(i * N + j)] =
+          static_cast<double>((i + j) % 3) - 1.0;
+      }
+    }
+    for (int i = 0; i < M * N; ++i) {
+      hC[i] = static_cast<double>(i % 5);
+    }
+
+    mat_right<double, int> hostA(hA.data(), M, K);
+    mat_right<double, int> hostB(hB.data(), K, N);
+    mat_right<double, int> hostCref(hC.data(), M, N);
+
+    std::vector<double> href(M * N);
+    mat_right<double, int> hostOut(href.data(), M, N);
+    host_gemm(hostA, hostB, hostCref, hostOut, 1.0, 0.0);
+    std::vector<double> href_acc(M * N);
+    mat_right<double, int> hostOutAcc(href_acc.data(), M, N);
+    host_gemm(hostA, hostB, hostCref, hostOutAcc, 2.0, 0.5);
+
+    gcxx::Stream str;
+    auto dA =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
+    auto dB =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K * N));
+    auto dC =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * N));
+    gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dB.get(), hB.data(), static_cast<std::size_t>(K * N));
+    gcxx::Copy(str, dC.get(), hC.data(), static_cast<std::size_t>(M * N));
+
+    dmat_right<double, IndexT> A(dA.get(), M, K);
+    dmat_right<double, IndexT> B(dB.get(), K, N);
+    dmat_right<double, IndexT> C(dC.get(), M, N);
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+
+    // write-only, then the accumulate form scaled(0.5, C) aliased onto C
+    gcxx::blas::matrix_product(handle, A, B, C);
+    str.Synchronize();
+    gcxx::blas::matrix_product(handle, gcxx::blas::scaled(2.0, A), B,
+                               gcxx::blas::scaled(0.5, C), C);
+    str.Synchronize();
+
+    std::vector<double> hC_result(M * N);
+    gcxx::Copy(str, hC_result.data(), dC.get(),
+               static_cast<std::size_t>(M * N));
+    str.Synchronize();
+
+    for (int i = 0; i < M * N; ++i) {
+      EXPECT_NEAR(hC_result[i], href_acc[i], 1e-9)
+        << "row-major accumulate mismatch at linear index " << i;
+      (void)href;
+    }
+  }
+
+  // Accumulate form with a NON-aliased addend: C = A * B + E where E is a
+  // separate buffer (split path via the in-place geam step).
+  template <class IndexT>
+  void run_colmajor_accumulate_unaliased() {
+    if (!gcxx::testing::haveCudaDevice()) {
+      GTEST_SKIP() << "No CUDA device available";
+    }
+
+    constexpr int M = 3;
+    constexpr int K = 4;
+    constexpr int N = 5;
+
+    std::vector<double> hA(M * K), hB(K * N), hC(M * N, 0.0), hE(M * N);
+    for (int i = 0; i < M * K; ++i) {
+      hA[i] = static_cast<double>(i + 1);
+    }
+    for (int i = 0; i < K * N; ++i) {
+      hB[i] = static_cast<double>((i % 3) - 1);
+    }
+    for (int i = 0; i < M * N; ++i) {
+      hE[i] = static_cast<double>(2 * (i % 7) - 3);
+    }
+
+    mat_left<double, int> hostA(hA.data(), M, K);
+    mat_left<double, int> hostB(hB.data(), K, N);
+    mat_left<double, int> hostZero(hC.data(), M, N);
+    mat_left<double, int> hostE(hE.data(), M, N);
+
+    std::vector<double> href(M * N);
+    mat_left<double, int> hostOut(href.data(), M, N);
+    host_gemm(hostA, hostB, hostZero, hostOut, 1.0, 0.0);
+    for (int i = 0; i < M * N; ++i) {
+      href[i] += hE[i];
+    }
+
+    gcxx::Stream str;
+    auto dA =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
+    auto dB =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K * N));
+    auto dC =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * N));
+    auto dE =
+      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * N));
+    gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dB.get(), hB.data(), static_cast<std::size_t>(K * N));
+    gcxx::Copy(str, dE.get(), hE.data(), static_cast<std::size_t>(M * N));
+
+    dmat_left<double, IndexT> A(dA.get(), M, K);
+    dmat_left<double, IndexT> B(dB.get(), K, N);
+    dmat_left<double, IndexT> C(dC.get(), M, N);
+    dmat_left<double, IndexT> E(dE.get(), M, N);
+
+    gcxx::blas::BlasHandle handle;
+    handle.setStream(str);
+    gcxx::blas::matrix_product(handle, A, B, E, C);
+    str.Synchronize();
+
+    std::vector<double> hC_result(M * N);
+    gcxx::Copy(str, hC_result.data(), dC.get(),
+               static_cast<std::size_t>(M * N));
+    str.Synchronize();
+
+    for (int i = 0; i < M * N; ++i) {
+      EXPECT_NEAR(hC_result[i], href[i], 1e-9)
+        << "mismatch at linear index " << i;
+    }
+  }
+
+  // Device-pointer-mode variant: the scaled() factors live in device memory
+  // and are passed via gcxx::blas::device_scalar, selecting device pointer
+  // mode (both factors must be device-resident). Uses non-trivial alpha and
+  // a non-zero C so both scalars are actually read.
   template <class IndexT>
   void run_colmajor_double_ab_device_scalar() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -141,7 +299,8 @@ namespace {
     mat_left<double, int> hostCref(hC.data(), M, N);
 
     std::vector<double> href(M * N);
-    host_gemm<double, double>(hostA, hostB, hostCref, href, alpha, beta);
+    mat_left<double, int> hostOut(href.data(), M, N);
+    host_gemm(hostA, hostB, hostCref, hostOut, alpha, beta);
 
     gcxx::Stream str;
     auto dA =
@@ -164,8 +323,11 @@ namespace {
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
-    gcxx::blas::gemm(handle, gcxx::blas::device_scalar<double>{dAlpha.get()}, A,
-                     B, gcxx::blas::device_scalar<double>{dBeta.get()}, C);
+    gcxx::blas::matrix_product(
+      handle, gcxx::blas::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()},
+                                 A),
+      B, gcxx::blas::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, C),
+      C);
     str.Synchronize();
 
     std::vector<double> hC_result(M * N);
@@ -187,6 +349,18 @@ TEST(BlasGemm, ColMajorDouble_AB) {
 
 TEST(BlasGemm, ColMajorDouble_AB_64bitIndex) {
   run_colmajor_double_ab<std::int64_t>();
+}
+
+TEST(BlasGemm, RowMajorDouble_ScaledAccumulate) {
+  run_rowmajor_and_scaled<int>();
+}
+
+TEST(BlasGemm, RowMajorDouble_ScaledAccumulate_64bitIndex) {
+  run_rowmajor_and_scaled<std::int64_t>();
+}
+
+TEST(BlasGemm, ColMajorDouble_AB_AccumulateUnaliased) {
+  run_colmajor_accumulate_unaliased<int>();
 }
 
 TEST(BlasGemm, ColMajorDouble_AB_DeviceScalar) {

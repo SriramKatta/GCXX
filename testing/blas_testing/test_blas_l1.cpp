@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 //
-// End-to-end Level-1 tests: axpy / scal / dot / nrm2 / rot via the
-// type-erased cu/hipblas*Ex entry points, compared against a host reference.
+// End-to-end Level-1 tests: axpy / scale / dot / vector_two_norm /
+// apply_givens_rotation via the type-erased cu/hipblas*Ex entry points,
+// compared against a host reference. Covers the P1673R13 shapes: the
+// returning (synchronizing) reduction forms, their init-accumulating
+// overloads, and the asynchronous device_scalar result forms.
 // GPU-gated — skipped when no device is present, but the template must still
 // compile (it instantiates both the int and the int64_t index_type dispatch,
 // i.e. the *_Ex and *_Ex_64 entry points).
@@ -23,7 +26,7 @@
 namespace {
 
   template <class IndexT>
-  void run_axpy_scal() {
+  void run_axpy_scale() {
     if (!gcxx::testing::haveCudaDevice()) {
       GTEST_SKIP() << "No CUDA device available";
     }
@@ -46,7 +49,7 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
-    gcxx::blas::scal(handle, scale, X);
+    gcxx::blas::scale(handle, scale, X);
     gcxx::blas::axpy(handle, alpha, X, Y);
     str.Synchronize();
 
@@ -56,12 +59,12 @@ namespace {
 
     for (int i = 0; i < N; ++i) {
       const double want = alpha * scale * hX[i] + hY[i];
-      EXPECT_NEAR(hResult[i], want, 1e-9) << "axpy/scal mismatch at " << i;
+      EXPECT_NEAR(hResult[i], want, 1e-9) << "axpy/scale mismatch at " << i;
     }
   }
 
   template <class IndexT>
-  void run_dot_nrm2_rot() {
+  void run_dot_two_norm_givens() {
     if (!gcxx::testing::haveCudaDevice()) {
       GTEST_SKIP() << "No CUDA device available";
     }
@@ -84,11 +87,11 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
-    // dot + nrm2: host pointer mode writes the result synchronously
-    double dot_r{}, nrm2_r{};
-    gcxx::blas::dot(handle, X, Y, &dot_r);
-    gcxx::blas::nrm2(handle, X, &nrm2_r);
-    str.Synchronize();
+    // returning forms (synchronize before returning) + init accumulation
+    const double dot_r     = gcxx::blas::dot(handle, X, Y);
+    const double dot_init  = gcxx::blas::dot(handle, X, Y, 10.0);
+    const double nrm2_r    = gcxx::blas::vector_two_norm(handle, X);
+    const double nrm2_init = gcxx::blas::vector_two_norm(handle, X, 3.0);
 
     double dot_ref{}, nrm2_ref{};
     for (int i = 0; i < N; ++i) {
@@ -97,9 +100,26 @@ namespace {
     }
     nrm2_ref = std::sqrt(nrm2_ref);
     EXPECT_NEAR(dot_r, dot_ref, 1e-9);
+    EXPECT_NEAR(dot_init, 10.0 + dot_ref, 1e-9);
     EXPECT_NEAR(nrm2_r, nrm2_ref, 1e-9);
+    EXPECT_NEAR(nrm2_init, std::sqrt(3.0 * 3.0 + nrm2_ref * nrm2_ref), 1e-9);
 
-    gcxx::blas::rot(handle, c, s, X, Y);
+    // asynchronous device_scalar result forms
+    auto dDot = gcxx::make_device_unique_ptr<double>(std::size_t{1});
+    auto dNrm = gcxx::make_device_unique_ptr<double>(std::size_t{1});
+    gcxx::blas::dot(handle, X, Y, gcxx::blas::device_scalar<double>{dDot.get()});
+    gcxx::blas::vector_two_norm(
+      handle, X, gcxx::blas::device_scalar<double>{dNrm.get()});
+    str.Synchronize();
+
+    double dot_d{}, nrm2_d{};
+    gcxx::Copy(str, &dot_d, dDot.get(), std::size_t{1});
+    gcxx::Copy(str, &nrm2_d, dNrm.get(), std::size_t{1});
+    str.Synchronize();
+    EXPECT_NEAR(dot_d, dot_ref, 1e-9);
+    EXPECT_NEAR(nrm2_d, nrm2_ref, 1e-9);
+
+    gcxx::blas::apply_givens_rotation(handle, X, Y, c, s);
     str.Synchronize();
 
     std::vector<double> hXr(N), hYr(N);
@@ -109,26 +129,26 @@ namespace {
 
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hXr[i], c * hX[i] + s * hY[i], 1e-9)
-        << "rot x mismatch at " << i;
+        << "apply_givens_rotation x mismatch at " << i;
       EXPECT_NEAR(hYr[i], c * hY[i] - s * hX[i], 1e-9)
-        << "rot y mismatch at " << i;
+        << "apply_givens_rotation y mismatch at " << i;
     }
   }
 
 }  // namespace
 
-TEST(BlasL1, AxpyScal_Double) {
-  run_axpy_scal<int>();
+TEST(BlasL1, AxpyScale_Double) {
+  run_axpy_scale<int>();
 }
 
-TEST(BlasL1, AxpyScal_Double_64bitIndex) {
-  run_axpy_scal<std::int64_t>();
+TEST(BlasL1, AxpyScale_Double_64bitIndex) {
+  run_axpy_scale<std::int64_t>();
 }
 
-TEST(BlasL1, DotNrm2Rot_Double) {
-  run_dot_nrm2_rot<int>();
+TEST(BlasL1, DotTwoNormGivens_Double) {
+  run_dot_two_norm_givens<int>();
 }
 
-TEST(BlasL1, DotNrm2Rot_Double_64bitIndex) {
-  run_dot_nrm2_rot<std::int64_t>();
+TEST(BlasL1, DotTwoNormGivens_Double_64bitIndex) {
+  run_dot_two_norm_givens<std::int64_t>();
 }

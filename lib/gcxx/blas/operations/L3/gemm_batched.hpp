@@ -30,10 +30,18 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // gemm_strided_batched instead: it passes (base, stride) straight through
 // with no per-call pointer materialisation.
 //
+// NOT part of P1673R13 proper (batching is the P2901 follow-up, whose
+// pure-mdspan design gains the batch dimension instead of taking host arrays
+// of views); kept as a cu/hipBLAS extension with its BLAS-style alpha/beta
+// parameters.
+//
 // The per-batch dimensions, leading dimensions, and transpose state are
 // inferred from the mdspan metadata of the first element of each array and
 // runtime-checked against the remaining elements (the backend takes a single
-// m/n/k/ld/op for the whole batch, so every element must agree).
+// m/n/k/ld/op for the whole batch, so every element must agree). As with
+// matrix_product, the mathematical result C_i = A_i * B_i holds for ANY mix
+// of operand layouts: when the C_i are row-major-like the dispatch presents
+// the transposed problem to the column-major backend.
 //
 // Example:
 //   std::vector<mat2d> aViews{...}, bViews{...}, cViews{...};
@@ -68,8 +76,6 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   using BVt  = typename BMat::element_type;
   using CVt  = typename CMat::element_type;
   using AIt  = typename AMat::index_type;
-  using BIt  = typename BMat::index_type;
-  using CIt  = typename CMat::index_type;
 
   // Value type carried by alpha/beta: unwraps device_scalar<T> -> T.
   using Sv = details_::scalar_value_t<S>;
@@ -82,10 +88,6 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
 
   static_assert(AMat::rank() == 2 && BMat::rank() == 2 && CMat::rank() == 2,
                 "gemm_batched array elements must be rank-2 mdspans");
-
-  static_assert(gcxx::details_::all_same_v<AIt, BIt, CIt>,
-                "gemm_batched operands A, B, C must share the same mdspan "
-                "index_type");
 
   static_assert(gcxx::blas::details_::is_supported_blas_index_v<AIt>,
                 "BLAS operands must use int32_t or int64_t as their "
@@ -110,13 +112,14 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   // m/n/k/ld/op for the whole batch
   const auto [m, k, ld_a, op_a]     = details_::infer_blas_matrix_view(a[0]);
   const auto [k_b, n, ld_b, op_b]   = details_::infer_blas_matrix_view(b[0]);
-  const auto [m_c, n_c, ld_c, op_c] = details_::infer_blas_matrix_view(c[0]);
+  const auto out                    = details_::infer_blas_output_view(c[0]);
 
-  // unused vars just to supress annoying warnings
-  (void)k_b;
-  (void)m_c;
-  (void)n_c;
-  (void)op_c;
+  if (k != k_b || out.rows != m || out.cols != n) {
+    throw gcxx::blas::BlasException(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "gemm_batched requires A_i to be (m x k), B_i to be (k x n), and C_i "
+      "to be (m x n)");
+  }
 
   if (a.size() != b.size() || a.size() != c.size()) {
     throw gcxx::blas::BlasException(
@@ -124,13 +127,15 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
       "gemm_batched operands must hold the same number of matrices");
   }
   for (std::size_t i = 1; i < a.size(); ++i) {
-    const auto va = details_::infer_blas_matrix_view(a[i]);
-    const auto vb = details_::infer_blas_matrix_view(b[i]);
-    const auto vc = details_::infer_blas_matrix_view(c[i]);
+    const auto va  = details_::infer_blas_matrix_view(a[i]);
+    const auto vb  = details_::infer_blas_matrix_view(b[i]);
+    const auto vc  = details_::infer_blas_output_view(c[i]);
     if (va.rows != m || va.cols != k || va.leading_dimension != ld_a ||
         va.op != op_a || vb.rows != k || vb.cols != n ||
-        vb.leading_dimension != ld_b || vb.op != op_b || vc.rows != m ||
-        vc.cols != n || vc.leading_dimension != ld_c || vc.op != op_c) {
+        vb.leading_dimension != ld_b || vb.op != op_b ||
+        vc.rows != out.rows || vc.cols != out.cols ||
+        vc.leading_dimension != out.leading_dimension ||
+        vc.transposed != out.transposed) {
       throw gcxx::blas::BlasException(
         GCXX_BLAS_STATUS(INVALID_VALUE),
         "gemm_batched requires all matrices in an array to share extents, "
@@ -156,11 +161,24 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   const AIt batch = static_cast<AIt>(a.size());
 
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_INT64(
-    status, AIt, GemmBatchedEx, h.getRawHandle(), op_a, op_b, m, n, k, &alpha,
-    a_ptrs.data(), cuda_datatype_v<AVt>, ld_a, b_ptrs.data(),
-    cuda_datatype_v<BVt>, ld_b, &beta, c_ptrs.data(), cuda_datatype_v<CVt>,
-    ld_c, batch, blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
+  if (!out.transposed) {
+    GCXX_BLAS_DISPATCH_INT64(
+      status, AIt, GemmBatchedEx, h.getRawHandle(), op_a, op_b, m, n, k,
+      &alpha, a_ptrs.data(), cuda_datatype_v<AVt>, ld_a, b_ptrs.data(),
+      cuda_datatype_v<BVt>, ld_b, &beta, c_ptrs.data(), cuda_datatype_v<CVt>,
+      out.leading_dimension, batch, blas_compute_type_v<CVt>,
+      GCXX_BLAS_GEMM(DEFAULT));
+  } else {
+    // The C_i are row-major-like: present the transposed problem
+    // C_i^T = B_i^T * A_i^T to the column-major backend.
+    GCXX_BLAS_DISPATCH_INT64(
+      status, AIt, GemmBatchedEx, h.getRawHandle(),
+      details_::flip_blas_op(op_b), details_::flip_blas_op(op_a), n, m, k,
+      &alpha, b_ptrs.data(), cuda_datatype_v<BVt>, ld_b, a_ptrs.data(),
+      cuda_datatype_v<AVt>, ld_a, &beta, c_ptrs.data(), cuda_datatype_v<CVt>,
+      out.leading_dimension, batch, blas_compute_type_v<CVt>,
+      GCXX_BLAS_GEMM(DEFAULT));
+  }
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "gemm_batched failed");
