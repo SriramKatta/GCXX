@@ -179,11 +179,26 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
-    // write-only, then the accumulate form scaled(0.5, C) aliased onto C
+    // Stage 1: write-only C = A * B (verifies the transposed-output dispatch
+    // on its own, without any accumulate masking).
     gcxx::blas::matrix_product(handle, A, B, C);
     str.Synchronize();
-    gcxx::blas::matrix_product(handle, gcxx::blas::scaled(2.0, A), B,
-                               gcxx::blas::scaled(0.5, C), C);
+    std::vector<double> hC_stage1(M * N);
+    gcxx::Copy(str, hC_stage1.data(), dC.get(),
+               static_cast<std::size_t>(M * N));
+    str.Synchronize();
+    for (int i = 0; i < M * N; ++i) {
+      EXPECT_NEAR(hC_stage1[i], href[i], 1e-9)
+        << "row-major write-only mismatch at linear index " << i;
+    }
+
+    // Restore the original C so stage 2's beta applies to it (the accumulate
+    // form reads its aliased addend).
+    gcxx::Copy(str, dC.get(), hC.data(), static_cast<std::size_t>(M * N));
+
+    // Stage 2: accumulate C = 2*A*B + 0.5*C via scaled() views.
+    gcxx::blas::matrix_product(handle, gcxx::scaled(2.0, A), B,
+                               gcxx::scaled(0.5, C), C);
     str.Synchronize();
 
     std::vector<double> hC_result(M * N);
@@ -194,7 +209,6 @@ namespace {
     for (int i = 0; i < M * N; ++i) {
       EXPECT_NEAR(hC_result[i], href_acc[i], 1e-9)
         << "row-major accumulate mismatch at linear index " << i;
-      (void)href;
     }
   }
 
@@ -324,9 +338,9 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::matrix_product(
-      handle, gcxx::blas::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()},
+      handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()},
                                  A),
-      B, gcxx::blas::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, C),
+      B, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, C),
       C);
     str.Synchronize();
 

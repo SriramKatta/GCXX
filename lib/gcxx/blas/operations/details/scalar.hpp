@@ -19,8 +19,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // selects device pointer mode from its type):
 //   gcxx::blas::device_scalar<double> alpha_d{dAlpha.get()};
 //   gcxx::blas::device_scalar<double> beta_d{dBeta.get()};
-//   gcxx::blas::matrix_product(h, gcxx::blas::scaled(alpha_d, A), B,
-//                              gcxx::blas::scaled(beta_d, C), C);
+//   gcxx::blas::matrix_product(h, gcxx::scaled(alpha_d, A), B,
+//                              gcxx::scaled(beta_d, C), C);
 template <class T>
 struct device_scalar {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)

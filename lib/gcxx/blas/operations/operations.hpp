@@ -11,11 +11,12 @@
 #include <gcxx/blas/datatypes/datatypes.hpp>
 #include <gcxx/blas/type_map.hpp>
 
-// Shared (non-level-specific) view helpers.
-#include <gcxx/blas/operations/scaled.hpp>
+// Shared (non-level-specific) helpers. scaled()/transposed() live in the
+// mdspan layer (gcxx/runtime/memory/spans/mdspan/) and arrive via
+// details/op_inference.hpp and the mdspan barrel; side/symmetric tags are
+// BLAS-specific and stay here.
 #include <gcxx/blas/operations/side.hpp>
 #include <gcxx/blas/operations/symmetric.hpp>
-#include <gcxx/blas/operations/transposed.hpp>
 
 // Per-level barrels.
 #include <gcxx/blas/operations/L1/L1.hpp>

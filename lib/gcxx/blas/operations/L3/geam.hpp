@@ -28,7 +28,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 //
 // A, B, and C are rank-2 mdspan objects. The effective dimensions, the
 // leading dimensions, and the transpose state of each operand are inferred
-// from the mdspan metadata and any view wrappers (blas::transposed), so the
+// from the mdspan metadata and any view wrappers (gcxx::transposed), so the
 // API takes no separate shape or operation arguments. The mathematical
 // result C = alpha * op(A) + beta * op(B) holds for ANY mix of operand
 // layouts: when C's storage is row-major-like, the dispatch presents the
@@ -37,7 +37,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 //
 // Example:
 //   gcxx::blas::geam(h, 1.0, A, 0.0, B, C);    // computes C = A
-//   gcxx::blas::geam(h, 1.0, blas::transposed(A), 0.0, B, C);  // C = A^T
+//   gcxx::blas::geam(h, 1.0, gcxx::transposed(A), 0.0, B, C);  // C = A^T
 //
 // alpha/beta may be passed either as host scalars (host pointer mode) or as
 // gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer

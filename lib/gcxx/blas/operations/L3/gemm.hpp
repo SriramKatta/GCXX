@@ -13,7 +13,7 @@
 #include <gcxx/blas/operations/L3/geam.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
-#include <gcxx/blas/operations/scaled.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
@@ -84,7 +84,7 @@ auto matrix_product(BlasHandleView h,
   using Sv  = CVt;
 
   // static asserts to verify no funny business
-  static_assert(!gcxx::blas::is_scaled_accessor_v<AccessorC>,
+  static_assert(!gcxx::is_scaled_accessor_v<AccessorC>,
                 "matrix_product outputs cannot be scaled() views; scale an "
                 "input, or use the accumulate form with a scaled addend");
 
@@ -246,7 +246,7 @@ auto matrix_product(BlasHandleView h,
         "with a device-resident zero addend, or host factors");
     }
     matrix_product(h, a, b, c);
-    geam(h, beta_res.host_value, gcxx::blas::strip_scaled(e), Sv(1), c, c);
+    geam(h, beta_res.host_value, gcxx::strip_scaled(e), Sv(1), c, c);
     return;
   }
 

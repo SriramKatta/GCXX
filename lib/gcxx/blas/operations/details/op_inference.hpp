@@ -8,7 +8,7 @@
 
 #include <gcxx/blas/error/blas_exceptions.hpp>
 #include <gcxx/blas/operations/details/scalar.hpp>
-#include <gcxx/blas/operations/scaled.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
@@ -182,7 +182,7 @@ constexpr auto resolve_scaled_alpha(const Accessor&) -> alpha_resolution<Sv> {
 
 template <class Sv, class ScalingFactor, class NestedAccessor>
 constexpr auto resolve_scaled_alpha(
-  const gcxx::blas::scaled_accessor<ScalingFactor, NestedAccessor>& acc)
+  const gcxx::scaled_accessor<ScalingFactor, NestedAccessor>& acc)
   -> alpha_resolution<Sv> {
   using factor_t = std::remove_cv_t<ScalingFactor>;
   if constexpr (is_device_scalar_v<factor_t>) {

@@ -169,11 +169,25 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
-    // write-only, then the accumulate form scaled(0.5, Y) aliased onto Y
+    // Stage 1: write-only y = A * x (verifies the row-major dispatch on its
+    // own, without any accumulate masking).
     gcxx::blas::matrix_vector_product(handle, A, X, Y);
     str.Synchronize();
-    gcxx::blas::matrix_vector_product(handle, gcxx::blas::scaled(2.0, A), X,
-                                      gcxx::blas::scaled(0.5, Y), Y);
+    std::vector<double> hY_stage1(M);
+    gcxx::Copy(str, hY_stage1.data(), dY.get(), static_cast<std::size_t>(M));
+    str.Synchronize();
+    for (int i = 0; i < M; ++i) {
+      EXPECT_NEAR(hY_stage1[i], href[i], 1e-9)
+        << "row-major write-only mismatch at index " << i;
+    }
+
+    // Restore the original y so stage 2's beta applies to it (the accumulate
+    // form reads its aliased addend).
+    gcxx::Copy(str, dY.get(), hY.data(), static_cast<std::size_t>(M));
+
+    // Stage 2: accumulate y = 2*A*x + 0.5*y via scaled() views.
+    gcxx::blas::matrix_vector_product(handle, gcxx::scaled(2.0, A), X,
+                                      gcxx::scaled(0.5, Y), Y);
     str.Synchronize();
 
     std::vector<double> hY_result(M);
@@ -183,7 +197,6 @@ namespace {
     for (int i = 0; i < M; ++i) {
       EXPECT_NEAR(hY_result[i], href_acc[i], 1e-9)
         << "row-major accumulate mismatch at index " << i;
-      (void)href;
     }
   }
 
@@ -211,7 +224,7 @@ namespace {
     vec<double, int> hostY(hY.data(), K);
 
     std::vector<double> href(K);
-    host_gemv(gcxx::blas::transposed(hostA), hostX, hostY, href, 1.0, 0.0);
+    host_gemv(gcxx::transposed(hostA), hostX, hostY, href, 1.0, 0.0);
 
     gcxx::Stream str;
     auto dA =
@@ -227,7 +240,7 @@ namespace {
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
-    gcxx::blas::matrix_vector_product(handle, gcxx::blas::transposed(A), X, Y);
+    gcxx::blas::matrix_vector_product(handle, gcxx::transposed(A), X, Y);
     str.Synchronize();
 
     std::vector<double> hY_result(K);
@@ -292,9 +305,9 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::matrix_vector_product(
-      handle, gcxx::blas::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()},
+      handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()},
                                  A),
-      X, gcxx::blas::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, Y),
+      X, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, Y),
       Y);
     str.Synchronize();
 

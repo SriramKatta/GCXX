@@ -13,7 +13,7 @@
 #include <gcxx/blas/operations/L1/axpy.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
-#include <gcxx/blas/operations/scaled.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
@@ -82,7 +82,7 @@ auto matrix_vector_product(
   using Sv  = YVt;
 
   // static asserts to verify no funny business
-  static_assert(!gcxx::blas::is_scaled_accessor_v<AccessorY>,
+  static_assert(!gcxx::is_scaled_accessor_v<AccessorY>,
                 "matrix_vector_product outputs cannot be scaled() views; "
                 "scale an input, or use the accumulate form with a scaled "
                 "addend");
@@ -147,9 +147,18 @@ auto matrix_vector_product(
       "to have A.extent(0) elements");
   }
 
+  // cu/hipBLAS gemv follows the Fortran convention: the STORED matrix is
+  // always m x n column-major and op = T computes y = A_st^T * x (an
+  // m-contraction, n-long result). An operand inferred as op = T (row-major
+  // or transposed storage) therefore swaps the m/n arguments relative to its
+  // extents, unlike the gemm family where op = T keeps m/n and swaps the
+  // stored dimensions instead.
+  const auto m_arg = op_a == driver::deviceBlasOpN ? m : n;
+  const auto n_arg = op_a == driver::deviceBlasOpN ? n : m;
+
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, gemv, h.getRawHandle(), op_a, m,
-                           n, alpha_ptr, a.data_handle(), ld_a,
+  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, gemv, h.getRawHandle(), op_a,
+                           m_arg, n_arg, alpha_ptr, a.data_handle(), ld_a,
                            x.data_handle(), inc_x, beta_ptr, y.data_handle(),
                            inc_y);
 
@@ -222,9 +231,9 @@ auto matrix_vector_product(
     matrix_vector_product(h, a, x, y);
     if (beta_res.from_device()) {
       axpy(h, gcxx::blas::device_scalar<Sv>{beta_res.device_ptr},
-           gcxx::blas::strip_scaled(b), y);
+           gcxx::strip_scaled(b), y);
     } else {
-      axpy(h, beta_res.host_value, gcxx::blas::strip_scaled(b), y);
+      axpy(h, beta_res.host_value, gcxx::strip_scaled(b), y);
     }
     return;
   }
@@ -262,9 +271,13 @@ auto matrix_vector_product(
       "to have A.extent(0) elements");
   }
 
+  // See the write-only form: op = T operands swap the gemv m/n arguments.
+  const auto m_arg = op_a == driver::deviceBlasOpN ? m : n;
+  const auto n_arg = op_a == driver::deviceBlasOpN ? n : m;
+
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, gemv, h.getRawHandle(), op_a, m,
-                           n, alpha_ptr, a.data_handle(), ld_a,
+  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, gemv, h.getRawHandle(), op_a,
+                           m_arg, n_arg, alpha_ptr, a.data_handle(), ld_a,
                            x.data_handle(), inc_x, beta_ptr, y.data_handle(),
                            inc_y);
 

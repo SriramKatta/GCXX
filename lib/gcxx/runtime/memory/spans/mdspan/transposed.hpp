@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 #pragma once
-#ifndef GCXX_BLAS_OPERATIONS_TRANSPOSED_HPP_
-#define GCXX_BLAS_OPERATIONS_TRANSPOSED_HPP_
+#ifndef GCXX_RUNTIME_MEMORY_SPANS_MDSPAN_TRANSPOSED_HPP_
+#define GCXX_RUNTIME_MEMORY_SPANS_MDSPAN_TRANSPOSED_HPP_
 
 #include <array>
 #include <cstddef>
@@ -11,7 +11,7 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 
-GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
+GCXX_NAMESPACE_MAIN_BEGIN()
 
 // Metafunction: swap the (compile-time) dimensions of a rank-2 extents.
 template <class Extents>
@@ -30,8 +30,8 @@ template <class Extents>
 using transposed_extents_t = typename transposed_extents<Extents>::type;
 
 // transposed(v) returns a non-owning view of v with extents and strides
-// swapped (P1673R13's transposed; renamed from gcxx::blas::transpose). The
-// BLAS operations infer the transpose state from the view's mapping, so
+// swapped (P1673R13's transposed). Consumers that infer a transpose state
+// from the mapping (the gcxx::blas operations) pick it up for free, so
 // passing transposed(A) to a product computes with A^T at zero cost.
 GCXX_TEMPLATE(class T, class Extents, class Layout, class Accessor)
 GCXX_REQUIRES(Extents::rank() == 2)
@@ -57,6 +57,6 @@ constexpr auto transposed(const gcxx::mdspan<T, Extents, Layout, Accessor>& v) {
   }
 }
 
-GCXX_NAMESPACE_MAIN_BLAS_END()
+GCXX_NAMESPACE_MAIN_END()
 
 #endif
