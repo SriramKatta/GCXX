@@ -17,6 +17,8 @@
 #include <gcxx/blas/operations/details/scalar.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/runtime/memory/copy.hpp>
+#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/span/span.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
@@ -25,11 +27,11 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // Batched matrix-matrix product C_i = alpha * op(A_i) * op(B_i) + beta * C_i,
 // where each A_i, B_i, C_i is a rank-2 mdspan and the operands are span-like
 // HOST arrays (gcxx::span, std::vector, ...) of those views — the batch
-// matrices may live at unrelated device addresses, which is exactly what a
-// pointer-array batched entry point is for (cuBLAS GemmBatchedEx; on HIP the
-// classic typed hipblas<S,D>gemmBatched, because rocBLAS's GemmBatchedEx
-// pointer-array path page-faults — see the dispatch note below). For
-// matrices that share one contiguous buffer with a uniform batch stride, use
+// matrices may live at unrelated device addresses, which is exactly what the
+// cu/hipblasGemmBatchedEx pointer-array entry point is for. The entry point
+// dereferences the pointer arrays on the DEVICE, so the wrapper stages them
+// into stream-ordered device memory before the call. For matrices that share
+// one contiguous buffer with a uniform batch stride, use
 // gemm_strided_batched instead: it passes (base, stride) straight through
 // with no per-call pointer materialisation.
 //
@@ -50,9 +52,10 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 //   std::vector<mat2d> aViews{...}, bViews{...}, cViews{...};
 //   gcxx::blas::gemm_batched(h, 1.0, aViews, bViews, 0.0, cViews);
 //
-// alpha/beta are host scalars only: the backend reads the pointer arrays from
-// host memory in host pointer mode, which this wrapper sets up, so
-// device_scalar arguments are rejected at compile time.
+// alpha/beta are host scalars only: the entry point reads them (but not the
+// pointer arrays, which live in device memory) in host pointer mode, which
+// this wrapper sets up, so device_scalar arguments are rejected at compile
+// time.
 //
 // The integer interface is selected from the elements' mdspan index_type: an
 // int64_t index_type routes to the 64-bit cu/hipblasGemmBatchedEx_64 entry
@@ -153,9 +156,14 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     }
   }
 
-  // materialise the host pointer arrays the entry point consumes: one device
+  // materialise the pointer arrays the entry point consumes: one device
   // pointer per matrix, gathered from each mdspan view (probing each handle
-  // on the way — no-op unless checks are enabled)
+  // on the way — no-op unless checks are enabled). cu/hipBLAS dereference
+  // these arrays ON THE DEVICE, so they must be staged into device memory;
+  // the stream-ordered allocation below frees them only after the batched
+  // call has run, and the upload shares the handle's stream so it is ordered
+  // before it.
+  const gcxx::StreamView stream = h.getStream();
   std::vector<const void*> a_ptrs(a.size());
   std::vector<const void*> b_ptrs(a.size());
   std::vector<void*> c_ptrs(a.size());
@@ -167,6 +175,12 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     b_ptrs[i] = b[i].data_handle();
     c_ptrs[i] = c[i].data_handle();
   }
+  auto d_a_ptrs = gcxx::make_device_unique_ptr<const void*>(stream, a.size());
+  auto d_b_ptrs = gcxx::make_device_unique_ptr<const void*>(stream, a.size());
+  auto d_c_ptrs = gcxx::make_device_unique_ptr<void*>(stream, a.size());
+  gcxx::Copy(stream, d_a_ptrs.get(), a_ptrs.data(), a.size());
+  gcxx::Copy(stream, d_b_ptrs.get(), b_ptrs.data(), a.size());
+  gcxx::Copy(stream, d_c_ptrs.get(), c_ptrs.data(), a.size());
 
   const AIt batch = static_cast<AIt>(a.size());
 
@@ -180,11 +194,11 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   const auto m_arg     = out.transposed ? n : m;
   const auto n_arg     = out.transposed ? m : n;
   const void* const* first_ptrs =
-    out.transposed ? static_cast<const void* const*>(b_ptrs.data())
-                   : static_cast<const void* const*>(a_ptrs.data());
+    out.transposed ? static_cast<const void* const*>(d_b_ptrs.get())
+                   : static_cast<const void* const*>(d_a_ptrs.get());
   const void* const* second_ptrs =
-    out.transposed ? static_cast<const void* const*>(a_ptrs.data())
-                   : static_cast<const void* const*>(b_ptrs.data());
+    out.transposed ? static_cast<const void* const*>(d_a_ptrs.get())
+                   : static_cast<const void* const*>(d_b_ptrs.get());
   const auto first_ld  = out.transposed ? ld_b : ld_a;
   const auto second_ld = out.transposed ? ld_a : ld_b;
 
@@ -197,17 +211,19 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   // classic typed batched gemm runs fine. cuBLAS exposes no typed
   // gemmBatched in cublas_v2, so HIP routes to hipblas<S,D>gemmBatched and
   // CUDA keeps the Ex call; the two entry points are argument-compatible
-  // apart from the type-erasure parameters.
+  // apart from the type-erasure parameters. Both consume the pointer arrays
+  // staged into device memory above.
   GCXX_BLAS_DISPATCH_TYPED(
     status, AIt, AVt, gemmBatched, h.getRawHandle(), first_op, second_op, m_arg,
     n_arg, k, &alpha, reinterpret_cast<const AVt* const*>(first_ptrs), first_ld,
     reinterpret_cast<const BVt* const*>(second_ptrs), second_ld, &beta,
-    reinterpret_cast<CVt* const*>(c_ptrs.data()), out.leading_dimension, batch);
+    reinterpret_cast<CVt* const*>(d_c_ptrs.get()), out.leading_dimension,
+    batch);
 #else
   GCXX_BLAS_DISPATCH_INT64(
     status, AIt, GemmBatchedEx, h.getRawHandle(), first_op, second_op, m_arg,
     n_arg, k, &alpha, first_ptrs, cuda_datatype_v<AVt>, first_ld, second_ptrs,
-    cuda_datatype_v<BVt>, second_ld, &beta, c_ptrs.data(), cuda_datatype_v<CVt>,
+    cuda_datatype_v<BVt>, second_ld, &beta, d_c_ptrs.get(), cuda_datatype_v<CVt>,
     out.leading_dimension, batch, blas_compute_type_v<CVt>,
     GCXX_BLAS_GEMM(DEFAULT));
 #endif
