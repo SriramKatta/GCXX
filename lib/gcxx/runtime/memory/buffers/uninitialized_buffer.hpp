@@ -245,16 +245,15 @@ class uninit_buffer {
   // passed to a launch customization point (CCCL cuda::launch parity).
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
   GCXX_REQUIRES(D)
-  GCXX_FH friend auto transform_launch_argument(gcxx::StreamView,
-                                                uninit_buffer& self) noexcept
-    -> gcxx::span<value_type> {
+  GCXX_FH friend auto transform_launch_argument(
+    gcxx::StreamView, uninit_buffer& self) noexcept -> gcxx::span<value_type> {
     return {self.data(), self.size()};
   }
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
   GCXX_REQUIRES(D)
   GCXX_FH friend auto transform_launch_argument(
-    gcxx::StreamView, const uninit_buffer& self) noexcept
-    -> gcxx::span<const value_type> {
+    gcxx::StreamView,
+    const uninit_buffer& self) noexcept -> gcxx::span<const value_type> {
     return {self.data(), self.size()};
   }
 

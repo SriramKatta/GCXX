@@ -5,21 +5,15 @@
 #define GCXX_TYPES_SCALAR_TYPES_HPP
 
 #include <complex>
+#include <cstdint>
 #include <gcxx/internal/prologue.hpp>
 
-// Scalar element-type vocabulary for gcxx. Library code refers to element
-// types exclusively through these aliases, so backend-native low-precision
-// types can be added later without touching call sites:
-//   gcxx::f32_t  -> float
-//   gcxx::f64_t  -> double
-//   gcxx::cf32_t -> std::complex<float>
-//   gcxx::cf64_t -> std::complex<double>
-//
-// Deferred extension point (do NOT add here): f16_t = __half,
-// bf16_t = __nv_bfloat16, cf16_t, cbf16_t. Those require CUDA/HIP headers
-// (cuda_fp16.h / cuda_bf16.h / hip/hip_fp16.h) and must not leak into this
-// portable header; they belong in a backend-gated companion header when
-// half/bfloat16 support lands.
+// TODO : Deferred extension point
+// using f16_t = __half,
+// using  bf16_t = __nv_bfloat16 etc etc
+// These require CUDA/HIP headers (cuda_fp16.h / cuda_bf16.h / hip/hip_fp16.h)
+// and must not leak into this portable header; they belong in a backend-gated
+// companion header when half/bfloat16 support lands.
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 using f32_t = float;
@@ -27,6 +21,10 @@ using f64_t = double;
 
 using cf32_t = std::complex<f32_t>;
 using cf64_t = std::complex<f64_t>;
+
+using i8_t  = std::int8_t;
+using u8_t  = std::uint8_t;
+using i32_t = std::int32_t;
 
 GCXX_NAMESPACE_MAIN_END()
 

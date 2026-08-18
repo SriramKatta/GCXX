@@ -223,9 +223,9 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   GCXX_BLAS_DISPATCH_INT64(
     status, AIt, GemmBatchedEx, h.getRawHandle(), first_op, second_op, m_arg,
     n_arg, k, &alpha, first_ptrs, cuda_datatype_v<AVt>, first_ld, second_ptrs,
-    cuda_datatype_v<BVt>, second_ld, &beta, d_c_ptrs.get(), cuda_datatype_v<CVt>,
-    out.leading_dimension, batch, blas_compute_type_v<CVt>,
-    GCXX_BLAS_GEMM(DEFAULT));
+    cuda_datatype_v<BVt>, second_ld, &beta, d_c_ptrs.get(),
+    cuda_datatype_v<CVt>, out.leading_dimension, batch,
+    blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
 #endif
 
   if (status != driver::deviceBlasStatusSuccess) {

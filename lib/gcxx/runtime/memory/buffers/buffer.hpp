@@ -379,9 +379,8 @@ class buffer {
   // launch customization point (CCCL cuda::launch parity).
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
   GCXX_REQUIRES(D)
-  GCXX_FH friend auto transform_launch_argument(gcxx::StreamView,
-                                                buffer& self) noexcept
-    -> gcxx::span<value_type> {
+  GCXX_FH friend auto transform_launch_argument(
+    gcxx::StreamView, buffer& self) noexcept -> gcxx::span<value_type> {
     return {self.data(), self.size()};
   }
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)

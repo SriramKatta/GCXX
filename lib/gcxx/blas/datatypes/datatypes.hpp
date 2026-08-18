@@ -42,9 +42,9 @@ DEFINE_DATATYPE(gcxx::cf64_t, CUDA_C_64F, HIP_C_64F);
 // ╔════════════════════════════════════════════════════════╗
 // ║                        integer                         ║
 // ╚════════════════════════════════════════════════════════╝
-DEFINE_DATATYPE(std::int8_t, CUDA_R_8I, HIP_R_8I);
-DEFINE_DATATYPE(std::uint8_t, CUDA_R_8U, HIP_R_8U);
-DEFINE_DATATYPE(std::int32_t, CUDA_R_32I, HIP_R_32I);
+DEFINE_DATATYPE(gcxx::i8_t, CUDA_R_8I, HIP_R_8I);
+DEFINE_DATATYPE(gcxx::u8_t, CUDA_R_8U, HIP_R_8U);
+DEFINE_DATATYPE(gcxx::i32_t, CUDA_R_32I, HIP_R_32I);
 
 #undef DEFINE_DATATYPE
 
