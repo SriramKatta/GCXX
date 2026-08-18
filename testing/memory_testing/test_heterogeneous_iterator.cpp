@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
 //
-// Coverage for heterogeneous_iterator: the buffer's iterator type, its
-// random-access mechanics, dereference from host code (host_accessible buffer),
-// and interop with std algorithms (std::fill / std::accumulate). Uses a host
-// mock so the suite runs without a GPU.
+// Coverage for heterogeneous_iterator: the buffer's iterator type (aliased
+// from uninit_buffer), its random-access mechanics, dereference from
+// host code (host_accessible buffer), and interop with std algorithms
+// (std::fill / std::accumulate). Uses a host mock so the suite runs without a
+// GPU.
 //
 // Accessibility-matrix coverage: the iterator's dereference is space-restricted
 // (host-only / device-only / both) while every non-dereference operation is
@@ -72,17 +73,137 @@ namespace {
 }  // namespace
 
 // =============================================================================
-// buffer<VT, Properties...>::iterator is heterogeneous_iterator<VT,
-// Properties...>.
+// gcxx::iterator_traits (alias of std::iterator_traits) + gcxx category tags.
+// The tags ARE the std tag types (algorithms and std::iterator_traits keep
+// working); contiguous_iterator_tag only exists under C++20. Every gcxx
+// iterator declares the five typedefs directly (LWG 2438).
 // =============================================================================
-TEST(HeterogeneousIteratorTest, BufferIteratorIsHeterogeneous) {
+TEST(HeterogeneousIteratorTest, IteratorTraitsAliasAndTags) {
+  static_assert(std::is_same_v<gcxx::random_access_iterator_tag,
+                               std::random_access_iterator_tag>);
+  static_assert(
+    std::is_same_v<gcxx::input_iterator_tag, std::input_iterator_tag>);
+  static_assert(
+    std::is_same_v<gcxx::forward_iterator_tag, std::forward_iterator_tag>);
+  static_assert(std::is_same_v<gcxx::bidirectional_iterator_tag,
+                               std::bidirectional_iterator_tag>);
+#if defined(__cpp_lib_contiguous_iterator) && \
+  __cpp_lib_contiguous_iterator >= 201902L
+  static_assert(std::is_same_v<gcxx::contiguous_iterator_tag,
+                               std::contiguous_iterator_tag>);
+#endif
+
+  // gcxx::iterator_traits IS std::iterator_traits: it queries any iterator,
+  // raw pointers included.
+  static_assert(std::is_same_v<gcxx::iterator_traits<int*>::value_type, int>);
+  static_assert(std::is_same_v<gcxx::iterator_traits<int*>::difference_type,
+                               std::ptrdiff_t>);
+  static_assert(std::is_same_v<gcxx::iterator_traits<int*>::pointer, int*>);
+  static_assert(std::is_same_v<gcxx::iterator_traits<int*>::reference, int&>);
+
+  // All gcxx iterators report the gcxx (== std) tag directly.
+  static_assert(std::is_same_v<host_buf::iterator::iterator_category,
+                               gcxx::random_access_iterator_tag>);
+  static_assert(std::is_same_v<gcxx::stride_iterator<int*>::iterator_category,
+                               gcxx::random_access_iterator_tag>);
+  static_assert(std::is_same_v<
+                gcxx::reverse_iterator<host_buf::iterator>::iterator_category,
+                gcxx::random_access_iterator_tag>);
+
+  // The five typedefs are declared directly: std::iterator_traits finds them
+  // without any base class.
+  using hit = gcxx::heterogeneous_iterator<int, gcxx::host_accessible>;
+  static_assert(std::is_same_v<hit::value_type, int>);
+  static_assert(std::is_same_v<hit::pointer, int*>);
+  static_assert(std::is_same_v<hit::reference, int&>);
+  static_assert(std::is_same_v<gcxx::iterator_traits<hit>::iterator_category,
+                               gcxx::random_access_iterator_tag>);
+  using const_hit =
+    gcxx::heterogeneous_iterator<const int, gcxx::device_accessible>;
+  static_assert(std::is_same_v<const_hit::value_type, int>);
+  static_assert(std::is_same_v<const_hit::pointer, const int*>);
+  static_assert(std::is_same_v<const_hit::reference, const int&>);
+  static_assert(std::is_same_v<gcxx::stride_iterator<int*>::value_type, int>);
+  static_assert(std::is_same_v<gcxx::stride_iterator<int*>::reference, int&>);
+  static_assert(std::is_same_v<gcxx::reverse_iterator<hit>::value_type, int>);
+  static_assert(std::is_same_v<gcxx::reverse_iterator<hit>::reference, int&>);
+}
+
+// =============================================================================
+// buffer<VT, Properties...>::iterator aliases the storage's
+// (uninit_buffer<VT, Properties...>) iterator, which is the
+// space-restricted heterogeneous_iterator<VT, Properties...>.
+// =============================================================================
+TEST(HeterogeneousIteratorTest, BufferIteratorAliasesStorage) {
   static_assert(
     std::is_same_v<host_buf::iterator,
                    gcxx::heterogeneous_iterator<int, gcxx::host_accessible>>);
   static_assert(
+    std::is_same_v<host_buf::iterator,
+                   gcxx::uninit_buffer<int, gcxx::host_accessible>::iterator>);
+  static_assert(
     std::is_same_v<
       host_buf::const_iterator,
-      gcxx::heterogeneous_iterator<const int, gcxx::host_accessible>>);
+      gcxx::uninit_buffer<int, gcxx::host_accessible>::const_iterator>);
+}
+
+// =============================================================================
+// gcxx::reverse_iterator<Iterator>: the generic adapter (CCCL
+// cuda::std::reverse_iterator parity) — takes any iterator and flips its
+// traversal. buffer/storage aliasing, std::reverse_iterator semantics (rbegin
+// references the LAST element, relational order flipped), mechanics, and the
+// any-iterator genericity (works over raw pointers too).
+// =============================================================================
+TEST(HeterogeneousIteratorTest, ReverseIteratorAliasesAndSemantics) {
+  static_assert(
+    std::is_same_v<host_buf::reverse_iterator,
+                   gcxx::reverse_iterator<gcxx::heterogeneous_iterator<
+                     int, gcxx::host_accessible>>>);
+  static_assert(
+    std::is_same_v<
+      host_buf::reverse_iterator,
+      gcxx::uninit_buffer<int, gcxx::host_accessible>::reverse_iterator>);
+  static_assert(
+    std::is_same_v<host_buf::const_reverse_iterator,
+                   gcxx::reverse_iterator<gcxx::heterogeneous_iterator<
+                     const int, gcxx::host_accessible>>>);
+
+  host_buf b(gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{5},
+             gcxx::no_init);
+  raw_fill(b, 0);  // elements 0 1 2 3 4
+
+  // rbegin references the last element; indexing counts backwards.
+  EXPECT_EQ(*b.rbegin(), 4);
+  EXPECT_EQ(b.rbegin()[0], 4);
+  EXPECT_EQ(b.rbegin()[2], 2);
+
+  // [rbegin, rend) visits elements in reverse order.
+  int expected = 4;
+  for (auto it = b.rbegin(); it != b.rend(); ++it, --expected) {
+    EXPECT_EQ(*it, expected);
+  }
+  EXPECT_EQ(std::accumulate(b.rbegin(), b.rend(), 0),
+            std::accumulate(b.begin(), b.end(), 0));
+
+  // Mechanics: ++ moves backwards, -- forwards, +/-/comparisons flipped.
+  auto it = b.rbegin();
+  it += 2;
+  EXPECT_EQ(*it, 2);
+  it -= 1;
+  EXPECT_EQ(*it, 3);
+  EXPECT_EQ(*(it + 1), 2);
+  EXPECT_EQ(*(it - 1), 4);
+  EXPECT_EQ(b.rend() - b.rbegin(), 5);
+  EXPECT_TRUE(b.rbegin() < b.rend());
+  --it;
+  EXPECT_EQ(*it, 4);
+
+  // Genericity: the adapter wraps ANY iterator — raw pointers included.
+  int arr[5]{0, 1, 2, 3, 4};
+  gcxx::reverse_iterator<int*> rp(arr + 5);
+  EXPECT_EQ(*rp, 4);
+  EXPECT_EQ(rp[3], 1);
+  EXPECT_EQ(gcxx::reverse_iterator<int*>(arr) - rp, 5);  // rend - rbegin
 }
 
 // =============================================================================

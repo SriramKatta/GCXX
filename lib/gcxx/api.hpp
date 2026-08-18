@@ -33,7 +33,10 @@
 #include <gcxx/runtime/memory.hpp>
 
 // section for iterators
-#include <gcxx/runtime/iterators/stride_iterator.hpp>
+#include <gcxx/iterators/heterogeneous_iterator.hpp>
+#include <gcxx/iterators/iterator_traits.hpp>
+#include <gcxx/iterators/reverse_iterator.hpp>
+#include <gcxx/iterators/stride_iterator.hpp>
 
 // clang-format on
 #endif

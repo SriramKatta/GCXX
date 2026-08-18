@@ -270,3 +270,38 @@ TEST(SpanConstructors, CrossStorageConversions) {
   EXPECT_EQ(rs_from_s.data(), values);
   EXPECT_EQ(rs_from_s.size(), std::size(values));
 }
+
+// Span iteration uses the space-aware iterators (resolves the old
+// "iterator that can be used on device" TODO): iterator is a
+// host+device heterogeneous_iterator and reverse_iterator wraps it in the
+// generic gcxx::reverse_iterator adapter — never a raw T* /
+// std::reverse_iterator.
+TEST(SpanConstructors, IteratorsAreSpaceAwareNotRawPointers) {
+  static_assert(
+    std::is_same_v<gcxx::span<int>::iterator,
+                   gcxx::heterogeneous_iterator<int, gcxx::host_accessible,
+                                                gcxx::device_accessible>>);
+  static_assert(std::is_same_v<
+                gcxx::span<const int>::iterator,
+                gcxx::heterogeneous_iterator<const int, gcxx::host_accessible,
+                                             gcxx::device_accessible>>);
+  static_assert(
+    std::is_same_v<gcxx::span<int>::reverse_iterator,
+                   gcxx::reverse_iterator<gcxx::span<int>::iterator>>);
+  static_assert(!std::is_same_v<gcxx::span<int>::iterator, int*>);
+  static_assert(!std::is_same_v<gcxx::span<int>::reverse_iterator,
+                                std::reverse_iterator<int*>>);
+
+  int values[]{1, 2, 3, 4, 5};
+  gcxx::span<int> s{values};
+
+  // Forward and reverse traversal + std-algorithm interop.
+  EXPECT_EQ(*s.begin(), 1);
+  EXPECT_EQ(s.begin()[4], 5);
+  EXPECT_EQ(*s.rbegin(), 5);
+  EXPECT_EQ(s.rend() - s.rbegin(), 5);
+  int expected = 5;
+  for (auto it = s.rbegin(); it != s.rend(); ++it, --expected) {
+    EXPECT_EQ(*it, expected);
+  }
+}

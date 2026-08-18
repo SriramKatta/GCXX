@@ -4,6 +4,7 @@
 #ifndef GCXX_RUNTIME_MEMORY_BUFFERS_BUFFER_HPP_
 #define GCXX_RUNTIME_MEMORY_BUFFERS_BUFFER_HPP_
 
+#include <algorithm>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
@@ -14,10 +15,9 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-#include <gcxx/runtime/iterators/heterogeneous_iterator.hpp>
-#include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
 #include <gcxx/runtime/memory/buffers/properties.hpp>
+#include <gcxx/runtime/memory/buffers/uninitialized_buffer.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
 #include <gcxx/runtime/memory/memory_resource/resource_concepts.hpp>
@@ -32,11 +32,12 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 // gcxx::buffer<VT, Properties...>
 //
 // Responsibilities:
-//   * buffer_storage<VT> — owns the raw byte block + the type-erased
-//                          any_resource (allocation/deallocation); RAII.
+//   * uninit_buffer<VT, Properties...> — owns the raw byte block +
+//                          the type-erased any_resource (allocation/
+//                          deallocation); RAII. Never initializes elements
 //   * buffer<VT, Properties...> — typed data()/iterator access, ctor
 //                          validation, accessor gating on Properties,
-//                          copy/cross-ctors.
+//                          copy/cross-ctors, fill/copy initialization.
 // ─────────────────────────────────────────────────────────────────────────────
 template <typename VT, typename... Properties>
 class buffer {
@@ -50,18 +51,18 @@ class buffer {
 
  public:
   /// The buffer's accessibility contract (uniform with resources).
-  using properties       = TypeSet<Properties...>;
-  using buffer_t         = buffer_storage<VT>;
-  using value_type       = VT;
-  using reference        = value_type&;
-  using const_reference  = const value_type&;
-  using size_type        = std::size_t;
-  using pointer          = value_type*;
-  using const_pointer    = const value_type*;
-  using iterator         = heterogeneous_iterator<VT, Properties...>;
-  using const_iterator   = heterogeneous_iterator<const VT, Properties...>;
-  using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using properties             = TypeSet<Properties...>;
+  using buffer_t               = uninit_buffer<VT, Properties...>;
+  using value_type             = VT;
+  using reference              = value_type&;
+  using const_reference        = const value_type&;
+  using size_type              = std::size_t;
+  using pointer                = value_type*;
+  using const_pointer          = const value_type*;
+  using iterator               = typename buffer_t::iterator;
+  using const_iterator         = typename buffer_t::const_iterator;
+  using reverse_iterator       = typename buffer_t::reverse_iterator;
+  using const_reverse_iterator = typename buffer_t::const_reverse_iterator;
 
   // ─────────────────────── resource-taking ctors ─────────────────────────────
   // Each accepts any resource whose advertised properties ⊇ this buffer's
@@ -100,8 +101,19 @@ class buffer {
       : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
     validate_resource<Resource>();
     if (n != 0) {
-      pointer p = data();  // Fill takes Ptr& (lvalue) — bind to a local.
-      Fill(stream, p, value, n);
+      // CCCL __fill_n accessibility dispatch: host-writable storage (e.g.
+      // malloc-backed) gets a plain host fill — the driver path (memset /
+      // fill kernel) requires device memory and fails on host pointers. A
+      // fresh allocation has no in-flight device work, so the immediate host
+      // write needs no stream ordering. host+device (managed/pinned) storage
+      // is host-coherent too, so it also takes the host path (CCCL probes
+      // pointer attributes at runtime instead; both choices are valid).
+      if constexpr (is_host_accessible<Properties...>) {
+        std::fill_n(data(), n, value);
+      } else {
+        pointer p = data();  // Fill takes Ptr& (lvalue) — bind to a local.
+        Fill(stream, p, value, n);
+      }
     }
   }
 
@@ -202,41 +214,33 @@ class buffer {
   ~buffer() = default;
 
   // ───────────────────────────── element access ──────────────────────────────
-  GCXX_FHDC auto data() noexcept -> pointer {
-    return static_cast<pointer>(m_storage.get());
-  }
+  GCXX_FHDC auto data() noexcept -> pointer { return m_storage.data(); }
   GCXX_FHDC auto data() const noexcept -> const_pointer {
-    return static_cast<const_pointer>(m_storage.get());
+    return m_storage.data();
   }
 
-  GCXX_FHDC auto begin() noexcept -> iterator { return iterator(data()); }
+  GCXX_FHDC auto begin() noexcept -> iterator { return m_storage.begin(); }
   GCXX_FHDC auto begin() const noexcept -> const_iterator {
-    return const_iterator(data());
+    return m_storage.begin();
   }
-  GCXX_FHDC auto end() noexcept -> iterator {
-    return iterator(data() + size());
-  }
+  GCXX_FHDC auto end() noexcept -> iterator { return m_storage.end(); }
   GCXX_FHDC auto end() const noexcept -> const_iterator {
-    return const_iterator(data() + size());
+    return m_storage.end();
   }
   GCXX_FHDC auto cbegin() const noexcept -> const_iterator {
-    return const_iterator(data());
+    return m_storage.begin();
   }
   GCXX_FHDC auto cend() const noexcept -> const_iterator {
-    return const_iterator(data() + size());
+    return m_storage.end();
   }
   GCXX_FHDC auto rbegin() const noexcept -> const_reverse_iterator {
-    return const_reverse_iterator(end());
+    return m_storage.rbegin();
   }
   GCXX_FHDC auto rend() const noexcept -> const_reverse_iterator {
-    return const_reverse_iterator(begin());
+    return m_storage.rend();
   }
 
-  // ─────────────────────────── element access (gated) ────────────────────────
-  // Gated on host_accessible: dereferencing device-only memory from the host is
-  // UB, so the accessors are SFINAE-removed unless the buffer's Properties
-  // include host_accessible. first/last/subspan below stay un-gated — they
-  // return spans (views), safe to construct without touching memory.
+  // ──────── element access (gated on host allocation) ────────────────────────
   GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FHDC auto operator[](size_type i) noexcept -> reference {
@@ -336,9 +340,7 @@ class buffer {
   }
 
   // ─────────────────────────────── observers ─────────────────────────────────
-  GCXX_FHDC auto size() const noexcept -> size_type {
-    return m_storage.size_bytes() / sizeof(VT);
-  }
+  GCXX_FHDC auto size() const noexcept -> size_type { return m_storage.size(); }
   GCXX_FHDC auto size_bytes() const noexcept -> size_type {
     return m_storage.size_bytes();
   }
@@ -353,6 +355,12 @@ class buffer {
   GCXX_FH auto set_stream(gcxx::StreamView new_stream) -> void {
     m_storage.set_stream(new_stream);
   }
+  /// Rebind without synchronizing — the user ensures stream order going
+  /// forward (see uninit_buffer::set_stream_unsynchronized).
+  GCXX_FH auto set_stream_unsynchronized(gcxx::StreamView new_stream) noexcept
+    -> void {
+    m_storage.set_stream_unsynchronized(new_stream);
+  }
 
   // ─────────────────────────────── operations ────────────────────────────────
   GCXX_FH auto destroy() -> void { m_storage.destroy(); }
@@ -360,7 +368,7 @@ class buffer {
 
   /// Reallocate to n elements (discards contents) reusing the stored resource.
   GCXX_FH auto resize(size_type n) -> void {
-    *this = buffer(stream(), m_storage.borrow_resource(), n, no_init);
+    m_storage.replace_allocation_discard(stream(), n);
   }
 
   GCXX_FH auto storage() noexcept -> buffer_t& { return m_storage; }
@@ -371,8 +379,9 @@ class buffer {
   // launch customization point (CCCL cuda::launch parity).
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
   GCXX_REQUIRES(D)
-  GCXX_FH friend auto transform_launch_argument(
-    gcxx::StreamView, buffer& self) noexcept -> gcxx::span<value_type> {
+  GCXX_FH friend auto transform_launch_argument(gcxx::StreamView,
+                                                buffer& self) noexcept
+    -> gcxx::span<value_type> {
     return {self.data(), self.size()};
   }
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)

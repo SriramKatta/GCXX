@@ -13,8 +13,11 @@
 #include <vector>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/iterators/heterogeneous_iterator.hpp>
+#include <gcxx/iterators/reverse_iterator.hpp>
 #include <gcxx/runtime/details/helper_function.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/types/size_holder.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
@@ -77,26 +80,6 @@ using strip_pointer_t = typename strip_pointer<T>::type;
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                      Span Storage                      █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-
-template <std::size_t Extent>
-struct size_holder {
-  GCXX_FHDC size_holder() noexcept = default;
-
-  GCXX_FHDC explicit size_holder(std::size_t) noexcept {}
-
-  static GCXX_FHDC std::size_t size() noexcept { return Extent; }
-};
-
-template <>
-struct size_holder<gcxx::dynamic_extent> {
-  std::size_t m_size{0};
-
-  size_holder() noexcept = default;
-
-  GCXX_FHDC explicit size_holder(std::size_t n) noexcept : m_size(n) {}
-
-  GCXX_FHDC std::size_t size() const noexcept { return m_size; }
-};
 
 template <typename VT, std::size_t Extent>
 struct span_storage : size_holder<Extent> {
@@ -187,11 +170,14 @@ class span_base {
   using reference       = element_type&;
   using const_reference = const element_type&;
 
-  // TODO : change to a  iterator that can be used on device
-  using iterator = pointer;  // dont assume this to be T* in your code
-
-  // TODO : change to a  iterator that can be used on device
-  using reverse_iterator            = std::reverse_iterator<iterator>;
+  // the span itself makes no accessibility claim (it can view host or device
+  // memory), so the iterator carries host_accessible + device_accessible —
+  // dereference is tagged for both spaces. Restricting further requires the
+  // underlying buffer's heterogeneous_iterator (buffer::first/last/subspan
+  // style).
+  using iterator =
+    heterogeneous_iterator<element_type, host_accessible, device_accessible>;
+  using reverse_iterator            = gcxx::reverse_iterator<iterator>;
   static constexpr size_type extent = Extent;
 
   // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -359,17 +345,19 @@ class span_base {
   //                         Iterators
   // ==========================================================
 
-  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator { return data(); }
-
-  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT -> iterator {
-    return data() + size();
+  GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator {
+    return iterator(data());
   }
 
-  GCXX_FHC auto rbegin() GCXX_CONST_NOEXCEPT -> reverse_iterator {
+  GCXX_FHDC auto end() GCXX_CONST_NOEXCEPT -> iterator {
+    return iterator(data() + size());
+  }
+
+  GCXX_FHDC auto rbegin() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(end());
   }
 
-  GCXX_FHC auto rend() GCXX_CONST_NOEXCEPT -> reverse_iterator {
+  GCXX_FHDC auto rend() GCXX_CONST_NOEXCEPT -> reverse_iterator {
     return reverse_iterator(begin());
   }
 
@@ -379,9 +367,7 @@ class span_base {
 
   GCXX_FHDC auto front() const -> reference { return m_storage[0]; }
 
-  GCXX_FHDC auto back() const -> reference {
-    return m_storage[size() - 1];
-  }  //*rbegin() cant be used since operator * in host only
+  GCXX_FHDC auto back() const -> reference { return m_storage[size() - 1]; }
 
   GCXX_FHDC auto operator[](size_type idx) const -> reference {
     GCXX_RUNTIME_EXPECT(idx < size(), "Out of bounds access");
@@ -506,9 +492,8 @@ template <class T, std::size_t N>
 span(const std::array<T, N>&) -> span<const T, N>;
 
 template <class R>
-span(R&&)
-  -> span<
-    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+span(R&&) -> span<
+  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 // █                     Restrcit Span                      █
@@ -528,9 +513,8 @@ class restrict_span
 // █             Restrcit Span Deduction guides             █
 // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class It, class EndOrSize>
-restrict_span(It, EndOrSize)
-  -> restrict_span<
-    std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
+restrict_span(It, EndOrSize) -> restrict_span<
+  std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
 
 template <class T, std::size_t N>
 restrict_span(T (&)[N]) -> restrict_span<T, N>;
@@ -542,9 +526,8 @@ template <class T, std::size_t N>
 restrict_span(const std::array<T, N>&) -> restrict_span<const T, N>;
 
 template <class R>
-restrict_span(R&&)
-  -> restrict_span<
-    std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
+restrict_span(R&&) -> restrict_span<
+  std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
 // ╔════════════════════════════════════════════════════════╗
 // ║           Public span-like concept and helpers         ║
