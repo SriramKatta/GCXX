@@ -1,12 +1,12 @@
 {
-  "name": "cuda13.2.1-runtime-gcc13",
+  "name": "nvhpc26.5-cuda13.2-gcc13",
   "build": {
     "dockerfile": "../Dockerfile",
     "context": ".",
     "args": {
-      "BASE_IMAGE": "nvcr.io/nvidia/cuda:13.2.1-devel-ubuntu24.04",
+      "BASE_IMAGE": "nvcr.io/nvidia/nvhpc:26.5-devel-cuda13.2-ubuntu24.04",
       "GCC_VERSION": "13",
-      "CONTAINER_NAME": "cuda13.2.1-runtime-gcc13"
+      "CONTAINER_NAME": "nvhpc26.5-cuda13.2-gcc13"
     }
   },
   "mounts": [

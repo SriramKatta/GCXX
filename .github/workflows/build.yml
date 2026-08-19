@@ -38,7 +38,7 @@ jobs:
           - { container: nvhpc25.7-cuda12.9-gcc13,  preset: workflow_debug_cuda_full }
           - { container: nvhpc25.11-cuda13.0-gcc13, preset: workflow_debug_cuda_full }
           - { container: nvhpc26.3-cuda13.1-gcc13,  preset: workflow_debug_cuda_full }
-          - { container: cuda13.2.1-runtime-gcc13,  preset: workflow_debug_cuda_full }
+          - { container: nvhpc26.5-cuda13.2-gcc13,  preset: workflow_debug_cuda_full }
           - { container: cuda13.3.0-runtime-gcc13,  preset: workflow_debug_cuda_full }
           - { container: rocm7.1.1-complete,        preset: workflow_debug_hip_full }
           - { container: rocm7.2.3-complete,        preset: workflow_debug_hip_full }
