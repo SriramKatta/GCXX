@@ -11,22 +11,7 @@
 #include <gcxx/api.hpp>
 #include <gcxx/macros/template_helper_macros.hpp>
 
-// Stamps out a SFINAE detection trait: std::true_type iff __VA_ARGS__ is
-// well-formed for the given Args... Write the expression using Args...
-// where the candidate types go. Enables both positive AND negative asserts
-// (the latter is impossible with a plain decltype(...) type check).
-//
-// Implementation: the std::is_detected (n4502) detector pattern. The pack
-// is kept LAST in both the primary template and the partial specialization —
-// NVCC's EDG frontend rejects a pack followed by another parameter, so the
-// common `template <typename... Args, typename = void>` idiom (legal on
-// GCC/Clang as an extension) does not compile here.
-//
-// Example:
-//   GCXX_DEFINE_IS_CALLABLE(is_memset_callable,
-//       gcxx::Memset(std::declval<Args>()..., 0, std::size_t{0}));
-//   static_assert( is_memset_callable_v<int*>);
-//   static_assert(!is_memset_callable_v<NotAHandle>);
+// SFINAE detector (n4502); param pack kept LAST for NVCC's EDG frontend.
 #define GCXX_DEFINE_IS_CALLABLE(Name, ...)                               \
   template <typename... Args>                                            \
   using Name##_detail = decltype(__VA_ARGS__);                           \
@@ -45,8 +30,6 @@ template <class T>
 GCXX_CONCEPT has_raw_handle_type_v =
   GCXX_REQUIRES_EXPR((T))(sizeof(typename T::raw_handle_type));
 
-// Asserts that `gcxx::WRAPPER` both exposes `raw_handle_type` AND that it
-// names EXPECTED
 #define GCXX_ASSERT_RAW_HANDLE(WRAPPER, EXPECTED)                         \
   static_assert(has_raw_handle_type_v<gcxx::WRAPPER>,                     \
                 #WRAPPER " must expose ::raw_handle_type");               \
@@ -55,14 +38,7 @@ GCXX_CONCEPT has_raw_handle_type_v =
 
 namespace gcxx::testing {
 
-  // True iff a usable CUDA device is present on the host. Used to skip
-  // GPU-dependent tests gracefully on GPU-less CI.
-  //
-  // Why a direct backend probe instead of gcxx::Device::count(): the wrapped
-  // API funnels everything through GCXX_SAFE_RUNTIME_CALL, which (with
-  // GCXX_WITH_EXCEPTIONS off) std::abort()s on failure. A plain device-count
-  // query would kill the test binary on a GPU-less host. Going through the
-  // raw backend returns an error code we can branch on.
+  // Raw backend probe; Device::count() can abort when exceptions are off.
   inline auto haveCudaDevice() -> bool {
     int count      = 0;
     const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);

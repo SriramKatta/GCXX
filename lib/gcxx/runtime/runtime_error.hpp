@@ -7,10 +7,8 @@
 
 #include <gcxx/runtime/error/runtime_error.hpp>
 
-#ifndef GCXX_DISABLE_RUNTIME_CHECKS
-// =======================
-// Checks ENABLED (default)
-// =======================
+#ifdef GCXX_ENABLE_RUNTIME_CHECKS
+// Checks ENABLED (opt in).
 #define GCXX_SAFE_RUNTIME_CALL(BASEFUNCNAME, MSG, ...)                        \
   do {                                                                        \
     const auto err_state = ::GCXX_RUNTIME_BACKEND(BASEFUNCNAME)(__VA_ARGS__); \
@@ -23,11 +21,7 @@
     }                                                                         \
   } while (0)
 #else
-
-// =======================
-// Checks DISABLED (opt in)
-// =======================
-
+// Checks DISABLED (default).
 #define GCXX_DISCARD_RETURN_VALUES(expr) ((void)(expr))
 
 #define GCXX_SAFE_RUNTIME_CALL(BASEFUNCNAME, MSG, ...)    \

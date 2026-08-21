@@ -1,18 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Coverage for heterogeneous_iterator: the buffer's iterator type (aliased
-// from uninit_buffer), its random-access mechanics, dereference from
-// host code (host_accessible buffer), and interop with std algorithms
-// (std::fill / std::accumulate). Uses a host mock so the suite runs without a
-// GPU.
-//
-// Accessibility-matrix coverage: the iterator's dereference is space-restricted
-// (host-only / device-only / both) while every non-dereference operation is
-// usable from both host and device. The device half of the matrix is exercised
-// by deref_device_iter, a __global__ kernel whose body nvcc type-checks on the
-// device path (so the test compiles even where no GPU is present) and which is
-// launched GPU-guarded below for an end-to-end round-trip.
+// Coverage: heterogeneous_iterator mechanics, host-space deref, std
+// algorithm interop; accessibility matrix incl. a GPU-guarded device kernel.
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -37,24 +26,14 @@ namespace {
       b.data()[i] = start + static_cast<int>(i);
   }
 
-  // ─────────────── device-space access proof (compile + runtime)
-  // ────────────── A __global__ entry point: nvcc compiles its body on the
-  // device path, so the deref of a device_accessible iterator, the device-side
-  // deref of a host_device (managed) iterator, and host-only-iterator
-  // *arithmetic* (never its deref) are all type-checked — proving deref is
-  // space-restricted while non-deref operations are always available. The
-  // GPU-guarded test below launches it for an end-to-end round-trip; where no
-  // GPU is present the body is still compiled (the restriction guarantee), the
-  // launch is just skipped.
+  // Compiled by nvcc even unlaunched; body proves the deref restrictions.
   __global__ void deref_device_iter(const int* in, int* out) {
-    // device_accessible iterator: deref + subscript reachable from device code.
-    // const CvTp so it binds the read-only device input (const int*).
+    // Device-accessible iterator: deref + subscript usable from device code.
     gcxx::heterogeneous_iterator<const int, gcxx::device_accessible> dit(in);
     const int a = *dit;    // device-only deref, on device: OK
     const int b = dit[2];  // device-only subscript, on device: OK
 
-    // host_device (managed) iterator: deref reachable from device code over the
-    // same device storage, plus arithmetic.
+    // Managed iterator: deref reachable from device code, plus arithmetic.
     gcxx::heterogeneous_iterator<const int, gcxx::host_accessible,
                                  gcxx::device_accessible>
       mit(in);
@@ -62,9 +41,7 @@ namespace {
 
     *out = a + b + c;
 
-    // host_accessible iterator: arithmetic is legal on the device (touches no
-    // memory). Its deref is host-only and is deliberately NOT used — that is
-    // the type-safe restriction; dereferencing `hit` here would not compile.
+    // Host-only iterator: on-device arithmetic is legal; its deref is not.
     gcxx::heterogeneous_iterator<int, gcxx::host_accessible> hit(nullptr);
     ++hit;
     (void)((hit + 1) - hit);
@@ -72,12 +49,7 @@ namespace {
 
 }  // namespace
 
-// =============================================================================
-// gcxx::iterator_traits (alias of std::iterator_traits) + gcxx category tags.
-// The tags ARE the std tag types (algorithms and std::iterator_traits keep
-// working); contiguous_iterator_tag only exists under C++20. Every gcxx
-// iterator declares the five typedefs directly (LWG 2438).
-// =============================================================================
+// Tags ARE the std tag types; typedefs declared directly (LWG 2438).
 TEST(HeterogeneousIteratorTest, IteratorTraitsAliasAndTags) {
   static_assert(std::is_same_v<gcxx::random_access_iterator_tag,
                                std::random_access_iterator_tag>);
@@ -93,8 +65,7 @@ TEST(HeterogeneousIteratorTest, IteratorTraitsAliasAndTags) {
                                std::contiguous_iterator_tag>);
 #endif
 
-  // gcxx::iterator_traits IS std::iterator_traits: it queries any iterator,
-  // raw pointers included.
+  // gcxx::iterator_traits IS std::iterator_traits (pointers included).
   static_assert(std::is_same_v<gcxx::iterator_traits<int*>::value_type, int>);
   static_assert(std::is_same_v<gcxx::iterator_traits<int*>::difference_type,
                                std::ptrdiff_t>);
@@ -110,8 +81,7 @@ TEST(HeterogeneousIteratorTest, IteratorTraitsAliasAndTags) {
                 gcxx::reverse_iterator<host_buf::iterator>::iterator_category,
                 gcxx::random_access_iterator_tag>);
 
-  // The five typedefs are declared directly: std::iterator_traits finds them
-  // without any base class.
+  // The five typedefs are declared directly (no base class needed).
   using hit = gcxx::heterogeneous_iterator<int, gcxx::host_accessible>;
   static_assert(std::is_same_v<hit::value_type, int>);
   static_assert(std::is_same_v<hit::pointer, int*>);
@@ -129,11 +99,6 @@ TEST(HeterogeneousIteratorTest, IteratorTraitsAliasAndTags) {
   static_assert(std::is_same_v<gcxx::reverse_iterator<hit>::reference, int&>);
 }
 
-// =============================================================================
-// buffer<VT, Properties...>::iterator aliases the storage's
-// (uninit_buffer<VT, Properties...>) iterator, which is the
-// space-restricted heterogeneous_iterator<VT, Properties...>.
-// =============================================================================
 TEST(HeterogeneousIteratorTest, BufferIteratorAliasesStorage) {
   static_assert(
     std::is_same_v<host_buf::iterator,
@@ -147,13 +112,6 @@ TEST(HeterogeneousIteratorTest, BufferIteratorAliasesStorage) {
       gcxx::uninit_buffer<int, gcxx::host_accessible>::const_iterator>);
 }
 
-// =============================================================================
-// gcxx::reverse_iterator<Iterator>: the generic adapter (CCCL
-// cuda::std::reverse_iterator parity) — takes any iterator and flips its
-// traversal. buffer/storage aliasing, std::reverse_iterator semantics (rbegin
-// references the LAST element, relational order flipped), mechanics, and the
-// any-iterator genericity (works over raw pointers too).
-// =============================================================================
 TEST(HeterogeneousIteratorTest, ReverseIteratorAliasesAndSemantics) {
   static_assert(
     std::is_same_v<host_buf::reverse_iterator,
@@ -206,9 +164,6 @@ TEST(HeterogeneousIteratorTest, ReverseIteratorAliasesAndSemantics) {
   EXPECT_EQ(gcxx::reverse_iterator<int*>(arr) - rp, 5);  // rend - rbegin
 }
 
-// =============================================================================
-// Dereference + iteration via begin()/end() from host code.
-// =============================================================================
 TEST(HeterogeneousIteratorTest, IterateAndDereference) {
   host_buf b(gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{4},
              gcxx::no_init);
@@ -220,9 +175,6 @@ TEST(HeterogeneousIteratorTest, IterateAndDereference) {
   EXPECT_EQ(sum, 10 + 11 + 12 + 13);
 }
 
-// =============================================================================
-// Random-access mechanics: [], +, -, ++/--.
-// =============================================================================
 TEST(HeterogeneousIteratorTest, RandomAccessOps) {
   host_buf b(gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{8},
              gcxx::no_init);
@@ -244,9 +196,6 @@ TEST(HeterogeneousIteratorTest, RandomAccessOps) {
   EXPECT_EQ(*it, 2);
 }
 
-// =============================================================================
-// std algorithms work through the iterators (contiguous random-access).
-// =============================================================================
 TEST(HeterogeneousIteratorTest, StdAlgorithmsInterop) {
   host_buf b(gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{8},
              gcxx::no_init);
@@ -258,11 +207,7 @@ TEST(HeterogeneousIteratorTest, StdAlgorithmsInterop) {
   EXPECT_EQ(total, 7 * 8);
 }
 
-// =============================================================================
-// Member-type traits across the accessibility matrix. The CvTp qualifier maps
-// to const-qualified pointer/reference; every instantiation is trivially
-// copyable (one pointer of storage), so it is passable to a kernel by value.
-// =============================================================================
+// One pointer of storage; trivially copyable, so passable to kernels by value.
 TEST(HeterogeneousIteratorTest, MemberTypeTraitsAcrossAccessibility) {
   using d_iter = gcxx::heterogeneous_iterator<int, gcxx::device_accessible>;
   using d_citer =
@@ -281,12 +226,7 @@ TEST(HeterogeneousIteratorTest, MemberTypeTraitsAcrossAccessibility) {
                   int, gcxx::host_accessible, gcxx::device_accessible>>);
 }
 
-// =============================================================================
-// Host-space dereference (host_accessible + host_device) and cross-space
-// arithmetic. A device_accessible iterator's arithmetic is usable from host
-// code because it touches no memory; its deref is device-only and is
-// intentionally never used here — adding `*dit` would be a compile error.
-// =============================================================================
+// Device-it arithmetic is host-legal (touches no memory); *dit won't compile.
 TEST(HeterogeneousIteratorTest, HostSpaceDerefAndCrossSpaceArithmetic) {
   int raw[4] = {1, 2, 3, 4};
 
@@ -311,11 +251,7 @@ TEST(HeterogeneousIteratorTest, HostSpaceDerefAndCrossSpaceArithmetic) {
   (void)d3;
 }
 
-// =============================================================================
-// End-to-end device dereference: launch deref_device_iter over device storage
-// and read the result back. Skipped on GPU-less hosts (the compile-time device
-// guarantees above still hold). in = {10, 20, 30} → out = 10 + 30 + 20 = 60.
-// =============================================================================
+// in = {10, 20, 30} -> out = 10 + 30 + 20 = 60.
 TEST(HeterogeneousIteratorTest, DeviceDerefFromDeviceKernel) {
   if (!gcxx::testing::haveCudaDevice())
     GTEST_SKIP() << "no CUDA device";

@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// End-to-end GEAM / DGMM tests: C = alpha*op(A) + beta*op(B) and C =
-// diag(x)*A / A*diag(x) via the typed cu/hipblasS/Dgeam and S/Ddgmm entry
-// points, compared against a host reference. GPU-gated — skipped when no
-// device is present, but the template must still compile (it instantiates
-// both the int and the int64_t index_type dispatch, i.e. the *_64 entry
-// points).
+// End-to-end GEAM/DGMM tests via the typed cu/hipblas entry points against
+// a host reference; GPU-gated, must still compile (int + int64_t dispatch).
 
 #include "tests_common.hpp"
 
@@ -83,7 +78,7 @@ namespace {
 
     constexpr int M = 3;
     constexpr int N = 4;
-    // the diagonal length follows from the side: rows (left) or cols (right)
+    // The diagonal length follows from the side: rows (left) or cols (right).
     constexpr int xlen = std::is_same_v<Side, gcxx::blas::left_t> ? M : N;
 
     std::vector<double> hA(M * N), hX(xlen);
@@ -126,9 +121,7 @@ namespace {
     }
   }
 
-  // Layout-independence gate: a NON-SQUARE all-row-major geam must compute
-  // C = alpha*A + beta*B mathematically. Before the output-orientation fix
-  // this path flipped m/n against the operand ld's and read out of bounds.
+  // Regression gate: non-square row-major geam once flipped m/n and read OOB.
   template <class IndexT>
   void run_geam_rowmajor() {
     if (!gcxx::testing::haveCudaDevice()) {

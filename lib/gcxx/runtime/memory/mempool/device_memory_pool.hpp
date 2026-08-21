@@ -27,7 +27,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class DeviceMemPoolView : public MemPoolView {
  public:
-  /// Pool memory is always device-visible.
+  // Pool memory is always device-visible.
   using properties = TypeSet<device_accessible>;
 
   GCXX_FH explicit DeviceMemPoolView(driver::deviceMemPool_t pool) noexcept
@@ -40,11 +40,9 @@ class DeviceMemPoolView : public MemPoolView {
 struct DeviceMemPool : DeviceMemPoolView {
   using reference_type = DeviceMemPoolView;
 
-  /// Construct an empty pool with no underlying handle.
   GCXX_FH explicit DeviceMemPool(no_init_t) noexcept
       : DeviceMemPoolView(driver::deviceMemPool_t{}) {}
 
-  /// Construct and own a device memory pool on `device`.
   GCXX_FH explicit DeviceMemPool(const gcxx::DeviceHandle& device,
                                  memory_pool_properties props = {})
       : DeviceMemPoolView(
@@ -57,21 +55,18 @@ struct DeviceMemPool : DeviceMemPoolView {
     }
   }
 
-  /// Adopt an existing cudaMemPool_t without creating a new one.
   GCXX_FH static auto from_native_handle(driver::deviceMemPool_t pool) noexcept
     -> DeviceMemPool {
     return DeviceMemPool(pool);
   }
 
-  /// Relinquish ownership of the handle and return it (pool left empty).
-  // std::exchange is not constexpr until C++20;
+  // Hand-rolled instead of std::exchange: not constexpr until C++20.
   GCXX_FH constexpr auto release() noexcept -> driver::deviceMemPool_t {
     auto old = m_pool_;
     m_pool_  = nullptr;
     return old;
   }
 
-  /// A non-owning ref to this pool (the buffer-compatible view).
   GCXX_FH auto as_ref() noexcept -> DeviceMemPoolView& {
     return static_cast<DeviceMemPoolView&>(*this);
   }

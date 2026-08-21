@@ -19,8 +19,6 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class MemPool : public MemPoolView {
  public:
-  /// Create and own a pool at `locationType`/`locationId` of `allocType`,
-  /// honouring `props`. Defaults to a device pool on the current device.
   GCXX_FH explicit MemPool(
     flags::MemLocation locationType = flags::MemLocation::Device,
     int locationId                  = driver::deviceGet(),
@@ -54,14 +52,11 @@ class MemPool : public MemPoolView {
     return *this;
   }
 
-  /// Adopt an existing cudaMemPool_t without creating a new one.
   GCXX_FH static auto from_native_handle(driver::deviceMemPool_t pool) noexcept
     -> MemPool {
     return MemPool(pool);
   }
 
-  /// Relinquish ownership of the handle and return a non-owning view; the pool
-  /// is left empty and the caller now owns the handle.
   GCXX_FH auto Release() noexcept -> MemPoolView {
     auto pool = m_pool_;
     m_pool_   = nullptr;
@@ -69,7 +64,7 @@ class MemPool : public MemPoolView {
   }
 
  private:
-  /// Wrap an existing handle without creating a pool (for from_native_handle).
+  // Wrap an existing handle without creating a pool (for from_native_handle).
   GCXX_FH explicit MemPool(driver::deviceMemPool_t pool) noexcept
       : MemPoolView(pool) {}
 };

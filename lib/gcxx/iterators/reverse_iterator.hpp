@@ -15,8 +15,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// notes #20013-D/#20015-D ("calling a __host__ function from a __host__
-// __device__ function is not allowed")
+// Notes #20013-D/#20015-D: calling a __host__ fn from __host__ __device__.
 #if defined(__NVCOMPILER)
 #pragma diag_suppress 20013
 #pragma diag_suppress 20015
@@ -25,15 +24,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 #pragma nv_diag_suppress 20015
 #endif
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::reverse_iterator<Iterator>
-//
-// A generic adapter that takes ANY randomly-traversable iterator as its
-// template parameter and gives it the reverse traversal pattern
-//
-// Every operation delegates to the wrapped iterator only iter movement is
-// controlled here
-// ─────────────────────────────────────────────────────────────────────────────
+// gcxx::reverse_iterator<I>: adapts a random-access iterator to go backwards.
 
 template <typename Iterator_t>
 class reverse_iterator {
@@ -59,7 +50,6 @@ class reverse_iterator {
 
   explicit GCXX_FHDC reverse_iterator(Iterator_t x) noexcept : current_(x) {}
 
-  /// Converting ctor (e.g. iterator → const_iterator rewrapee).
   GCXX_TEMPLATE(typename Other)
   GCXX_REQUIRES(!std::is_same_v<Other, Iterator_t> GCXX_AND
                   std::is_convertible_v<const Other&, Iterator_t>)
@@ -76,13 +66,9 @@ class reverse_iterator {
     return *this;
   }
 
-  /// The wrapped iterator at the same position
   GCXX_FHDC auto base() const noexcept -> Iterator_t { return current_; }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║   dereference — delegated to the wrapped iterator       ║
-  // ║   (this is what preserves its space restrictions)       ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Dereference (delegated; preserves space restrictions).
   GCXX_FHDC auto operator*() const -> reference {
     Iterator_t tmp = current_;
     --tmp;
@@ -108,9 +94,7 @@ class reverse_iterator {
     return *(*this + n);
   }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║        random-access mechanics (direction flipped)     ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Random-access mechanics (direction flipped).
   GCXX_FHDC auto operator++() noexcept -> reverse_iterator& {
     --current_;
     return *this;
@@ -153,16 +137,14 @@ class reverse_iterator {
     -> reverse_iterator {
     return reverse_iterator{it.base() + n};
   }
-  /// std::reverse_iterator: x - y == y.base() - x.base()
+  // std::reverse_iterator: x - y == y.base() - x.base().
   GCXX_FHDC friend auto operator-(const reverse_iterator& a,
                                   const reverse_iterator& b) noexcept
     -> difference_type {
     return b.base() - a.base();
   }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║        relational (delegated, direction flipped)       ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Relational (delegated, direction flipped).
   GCXX_FHDC friend auto operator==(const reverse_iterator& a,
                                    const reverse_iterator& b) noexcept -> bool {
     return a.base() == b.base();
@@ -200,7 +182,6 @@ class reverse_iterator {
 #pragma nv_diag_default 20015
 #endif
 
-/// Factory (std::make_reverse_iterator shape).
 template <typename Iterator_t>
 GCXX_FH auto make_reverse_iterator(Iterator_t i) noexcept
   -> reverse_iterator<Iterator_t> {

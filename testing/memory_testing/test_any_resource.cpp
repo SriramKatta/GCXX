@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Phase 3/4 coverage for any_resource (the non-templated type-erased
-// allocator): type-erasure round-trip (dispatch to the held resource), copy
-// (clone) independence, move (source empties), empty state. Properties live on
-// the buffer type, not any_resource; the resource_has_all_v contract is
-// enforced by the buffer ctor (covered in test_buffer_properties).
+// Phase 3/4 coverage: any_resource dispatch, copy independence, move,
+// empty state; properties live on buffers (see test_buffer_properties).
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -17,8 +13,7 @@
 
 namespace {
 
-  // Copyable mock: counts allocate/deallocate via shared pointers (a clone
-  // keeps counting into the same counters).
+  // Clone keeps counting into the SAME shared counters.
   struct counting_mock_resource {
     using properties = gcxx::TypeSet<gcxx::host_accessible>;
     int* alloc_count_;
@@ -39,9 +34,6 @@ namespace {
 
 }  // namespace
 
-// =============================================================================
-// Type-erasure round-trip: allocate/deallocate dispatch to the held resource.
-// =============================================================================
 TEST(AnyResourceTest, DispatchesToHeldResource) {
   int allocs = 0;
   int frees  = 0;
@@ -56,10 +48,6 @@ TEST(AnyResourceTest, DispatchesToHeldResource) {
   EXPECT_EQ(frees, 1);
 }
 
-// =============================================================================
-// Copy: a clone is an independent holder that dispatches to its own copy of
-// the resource (the shared counters still advance).
-// =============================================================================
 TEST(AnyResourceTest, CopyIsIndependent) {
   int allocs = 0;
   int frees  = 0;
@@ -81,9 +69,6 @@ TEST(AnyResourceTest, CopyIsIndependent) {
   EXPECT_EQ(frees, 2);
 }
 
-// =============================================================================
-// Move: the source becomes empty.
-// =============================================================================
 TEST(AnyResourceTest, MoveEmptiesSource) {
   int allocs = 0;
   gcxx::any_resource ar(counting_mock_resource{&allocs, nullptr});
@@ -95,9 +80,6 @@ TEST(AnyResourceTest, MoveEmptiesSource) {
   ar2.deallocate(gcxx::StreamView::Null(), p);
 }
 
-// =============================================================================
-// Empty default-constructed any_resource.
-// =============================================================================
 TEST(AnyResourceTest, DefaultIsEmpty) {
   gcxx::any_resource ar;
   EXPECT_FALSE(static_cast<bool>(ar));

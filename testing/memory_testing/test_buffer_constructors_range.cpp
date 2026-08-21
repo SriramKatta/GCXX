@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Tier 1 coverage for the initializer_list and range constructors.
-// The Copy call inside both ctors needs a GPU, so:
-//   * Runtime tests use zero-size inputs (Copy is skipped via an early return).
-//   * Callability for the non-zero path is verified via static_assert below.
+// Tier 1 coverage: initializer_list/range ctors; runtime tests use zero
+// sizes (no GPU Copy) while non-zero callability is checked statically.
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -29,9 +26,7 @@ namespace {
   template <typename VT>
   using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 
-  // Detects whether `buffer(stream, resource, T{})` resolves to the range
-  // ctor. Used to assert the SFINAE boundary: integral types must hit the
-  // size ctor, not the range ctor.
+  // SFINAE boundary: integral args must hit the size ctor, not range.
   GCXX_DEFINE_IS_CALLABLE(is_range_ctor_callable,
                           mock_buffer<int>(std::declval<gcxx::StreamView>(),
                                            std::declval<host_mock_resource>(),
@@ -39,9 +34,6 @@ namespace {
 
 }  // namespace
 
-// =============================================================================
-// Initializer-list ctor: zero-size at runtime (Copy is skipped), size tracked.
-// =============================================================================
 TEST(BufferRangeCtorTest, InitializerListEmptyHasZeroSize) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::initializer_list<int>{});
@@ -49,9 +41,6 @@ TEST(BufferRangeCtorTest, InitializerListEmptyHasZeroSize) {
   EXPECT_EQ(buf.size_bytes(), 0);
 }
 
-// =============================================================================
-// Range ctor: empty vector at runtime (Copy is skipped), size tracked.
-// =============================================================================
 TEST(BufferRangeCtorTest, EmptyVectorRangeHasZeroSize) {
   std::vector<int> v;
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, v);
@@ -66,20 +55,13 @@ TEST(BufferRangeCtorTest, EmptyStdArrayRangeHasZeroSize) {
   EXPECT_EQ(buf.size(), 0);
 }
 
-// =============================================================================
-// SFINAE: range ctor accepts sized ranges. Integral types still resolve to
-// the existing size ctor (also callable), so we don't assert rejection here —
-// the positive asserts below prove the range ctor is in the overload set.
-// =============================================================================
+// No rejection assert: integrals still legally call the size ctor.
 TEST(BufferRangeCtorSfinaeTest, AcceptsSizedRanges) {
   static_assert(is_range_ctor_callable_v<std::vector<int>&>);
   static_assert(is_range_ctor_callable_v<std::vector<int>>);
   static_assert(is_range_ctor_callable_v<std::array<int, 4>&>);
 }
 
-// =============================================================================
-// make_buffer factory: forwards to the matching ctor.
-// =============================================================================
 TEST(MakeBufferTest, MakeBufferWithSize) {
   auto buf = gcxx::make_buffer<int, gcxx::host_accessible>(
     gcxx::StreamView::Null(), host_mock_resource{}, std::size_t{8},

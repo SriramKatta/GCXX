@@ -1,20 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// End-to-end batched GEMM tests, compared against a host reference:
-//  - gemm_batched: C_i = A_i * B_i via cu/hipblasGemmBatchedEx, with each
-//    batch matrix in its OWN device allocation (span-of-matrices operands,
-//    i.e. non-uniform pointer placement — the capability that separates the
-//    pointer-array entry point from the strided one).
-//  - gemm_strided_batched: the same product via GemmStridedBatchedEx over
-//    rank-3 mdspans with the P2901 leftmost-batch extents (batch, rows,
-//    cols), in two storages: column-major inner matrices via layout_stride
-//    (strides {m*k, 1, m} — no standard rank-3 layout packs
-//    batch-outermost + column-major-inner), and row-major inner matrices via
-//    layout_right, which also gates the transposed-output batched dispatch.
-// GPU-gated — skipped when no device is present, but the templates must
-// still compile (they instantiate both the int and the int64_t index_type
-// dispatch, i.e. the *_64 entry points).
+// Batched GEMM tests vs host reference: gemm_batched with per-batch
+// allocations and strided rank-3 batches; GPU-gated, must still compile.
 
 #include "tests_common.hpp"
 
@@ -41,8 +28,6 @@ namespace {
   using dmat2d =
     gcxx::device_mdspan<double, gcxx::dextents<IndexT, 2>, gcxx::layout_left>;
 
-  // Host reference over leftmost-batch rank-3 views: C(b,i,j) = A(b,i,p) *
-  // B(b,p,j); layout-agnostic (works for layout_stride and layout_right).
   template <class MDA, class MDB, class MDC>
   void host_gemm3_bfirst(const MDA& a, const MDB& b, MDC& c) {
     using idx_t       = typename MDA::index_type;
@@ -79,8 +64,6 @@ namespace {
     return hB;
   }
 
-  // gemm_batched over a host array of matrix views whose device storages are
-  // all SEPARATE allocations, proving non-uniform pointer placement.
   template <class IndexT>
   void run_gemm_batched_separate_allocs() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -90,8 +73,7 @@ namespace {
     std::vector<double> hA = make_a();
     std::vector<double> hB = make_b();
 
-    // column-major per-batch reference (each batch element is (m x k)/(k x n)
-    // column-major, matching the per-matrix views below)
+    // Column-major per-batch reference matching the views below.
     std::vector<double> href(M * N * B);
     {
       using ext3     = gcxx::dextents<int, 3>;
@@ -140,13 +122,7 @@ namespace {
     }
   }
 
-  // gemm_strided_batched over one contiguous buffer per operand, rank-3
-  // extents (batch, rows, cols):
-  //  - colmajor-inner: layout_stride with strides {m*k, 1, m} — contiguous
-  //    column-major matrices with a uniform batch stride (the direct
-  //    analogue of the pre-P2901 batch-last layout_left);
-  //  - rowmajor-inner: layout_right — contiguous row-major matrices; for the
-  //    OUTPUT this takes the transposed batched dispatch.
+  // Strided-batched rank-3 (batch,rows,cols): inner cm=stride, rm=right.
   template <class IndexT>
   void run_gemm_strided_batched(bool rowmajor_inner) {
     if (!gcxx::testing::haveCudaDevice()) {

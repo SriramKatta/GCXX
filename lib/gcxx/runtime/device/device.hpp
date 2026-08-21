@@ -26,15 +26,15 @@ namespace Device {
 
   GCXX_FH auto getDeviceProp() -> driver::deviceProp_t;
 
-  /// Read a typed device attribute (see dev_attr).
+  // Read a typed device attribute (see dev_attr).
   template <typename Attr>
   GCXX_FH auto attribute(Attr attr) -> typename Attr::type;
 
-  /// Read a typed device limit for the current device (see device_limits).
+  // Read a typed device limit for the current device (see device_limits).
   template <typename Lim>
   GCXX_FH auto limit(Lim lim) -> typename Lim::type;
 
-  /// Write a typed device limit for the current device (see device_limits).
+  // Write a typed device limit for the current device (see device_limits).
   template <typename Lim>
   GCXX_FH auto set_limit(Lim lim, typename Lim::type value) -> void;
 

@@ -8,11 +8,9 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/sparse/error/sparse_error.hpp>
 
-// GCXX_SAFE_SPARSE_CALL — the SPARSE analogue of GCXX_SAFE_BLAS_CALL
-#ifndef GCXX_DISABLE_RUNTIME_CHECKS
-// =======================
-// Checks ENABLED (default)
-// =======================
+// GCXX_SAFE_SPARSE_CALL — the SPARSE analogue of GCXX_SAFE_BLAS_CALL.
+#ifdef GCXX_ENABLE_RUNTIME_CHECKS
+// Checks ENABLED (opt in).
 #define GCXX_SAFE_SPARSE_CALL(BASEFUNCNAME, MSG, ...)         \
   do {                                                        \
     const auto sparse_status =                                \
@@ -22,9 +20,7 @@
     }                                                         \
   } while (0)
 #else
-// =======================
-// Checks DISABLED (opt in)
-// =======================
+// Checks DISABLED (default).
 #define GCXX_SAFE_SPARSE_CALL(BASEFUNCNAME, MSG, ...)       \
   do {                                                      \
     (void)::GCXX_SPARSE_BACKEND(BASEFUNCNAME)(__VA_ARGS__); \

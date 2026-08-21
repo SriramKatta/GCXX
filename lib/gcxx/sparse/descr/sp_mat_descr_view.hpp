@@ -26,9 +26,7 @@ class SpMatDescrView {
 
   GCXX_FHC explicit SpMatDescrView(deviceSpMatDescr_t descr) noexcept;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Introspection                      ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Introspection.
 
   GCXX_FH auto getFormat() const -> driver::deviceSparseFormat_t;
 
@@ -40,9 +38,7 @@ class SpMatDescrView {
 
   GCXX_FHC auto getRawHandle() const noexcept -> deviceSpMatDescr_t;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                      Comparison                        ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Comparison.
   GCXX_FHC auto operator==(const SpMatDescrView& rhs) const noexcept -> bool;
   GCXX_FHC auto operator!=(const SpMatDescrView& rhs) const noexcept -> bool;
 };

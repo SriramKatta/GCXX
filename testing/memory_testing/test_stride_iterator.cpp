@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Coverage for gcxx::stride_iterator: stride-stepped iteration over a raw
-// range, random-access ops, distance measured in stride steps, the
-// make_stride_iterator factory, and std-algorithm interop. Host-side (raw
-// array); no GPU needed.
+// Coverage: stride_iterator stepping, random-access ops, step-based
+// distance, factory, std interop. Host-side; no GPU needed.
 #include "tests_common.hpp"
 
 #include <algorithm>
@@ -53,10 +50,7 @@ TEST(StrideIteratorTest, SubscriptAdvancesByStride) {
 }
 
 TEST(StrideIteratorTest, StdAlgorithmInteropStatic) {
-  // Every 2nd element from a[0]: 0,2,4,6. The end sentinel (a+8) is stride-
-  // aligned with begin (a): (8-0)/2 == 4 stride steps. operator-(end,begin)
-  // requires aligned bases; an unaligned end would truncate on integer
-  // division.
+  // Every 2nd element; aligned bases let operator- count stride steps.
   int a[8]   = {0, 1, 2, 3, 4, 5, 6, 7};
   auto begin = gcxx::make_stride_iterator<2>(a);
   auto end   = gcxx::make_stride_iterator<2>(a + 8);
@@ -69,10 +63,7 @@ TEST(StrideIteratorTest, StdAlgorithmInteropStatic) {
 }
 
 TEST(StrideIteratorTest, StdAlgorithmInteropDynamic) {
-  // Every 2nd element from a[0]: 0,2,4,6. The end sentinel (a+8) is stride-
-  // aligned with begin (a): (8-0)/2 == 4 stride steps. operator-(end,begin)
-  // requires aligned bases; an unaligned end would truncate on integer
-  // division.
+  // Every 2nd element; aligned bases let operator- count stride steps.
   int a[8]   = {0, 1, 2, 3, 4, 5, 6, 7};
   auto begin = gcxx::make_stride_iterator(a, 2);
   auto end   = gcxx::make_stride_iterator(a + 8, 2);
@@ -93,9 +84,7 @@ TEST(StrideIteratorTest, IteratorTraits) {
   static_assert(std::is_same_v<it_t::pointer, int*>);
 }
 
-// Compile-time stride (size_holder mechanism shared with span's extent):
-// stride_iterator<T, N> bakes the stride into the type — no stored stride —
-// while the default (dynamic) keeps the runtime constructor.
+// Compile-time stride bakes N into the type; no stored stride member.
 TEST(StrideIteratorTest, CompileTimeStride) {
   using fixed_t   = gcxx::stride_iterator<int*, 3>;
   using dynamic_t = gcxx::stride_iterator<int*>;
@@ -107,8 +96,7 @@ TEST(StrideIteratorTest, CompileTimeStride) {
     gcxx::stride_iterator<int*, gcxx::dynamic_extent>::stride_extent ==
     std::numeric_limits<std::size_t>::max());
 
-  // Fixed stride stores nothing beyond the pointer (empty size_holder,
-  // [[no_unique_address]]); dynamic carries the runtime value.
+  // Fixed stride stores nothing beyond the pointer; dynamic carries it.
   static_assert(sizeof(fixed_t) == sizeof(int*));
   static_assert(sizeof(dynamic_t) == 2 * sizeof(int*));
 
@@ -131,9 +119,7 @@ TEST(StrideIteratorTest, CompileTimeStride) {
   EXPECT_EQ(fbegin.base() + 6, dbegin.base() + 6);
 }
 
-// The adapter wraps ANY random-access iterator, not just pointers: striding a
-// heterogeneous_iterator keeps its space-restricted dereference (host here),
-// and adapters compose (stride over reverse).
+// Wraps any random-access iterator; adapters compose (stride over reverse).
 TEST(StrideIteratorTest, WrapsArbitraryRandomAccessIterators) {
   using hetero_t = gcxx::heterogeneous_iterator<int, gcxx::host_accessible>;
   static_assert(

@@ -10,9 +10,7 @@
 
 namespace {
 
-  // Host-only resource (malloc/free) so ctor/size logic can be exercised
-  // without a GPU or the CUDA runtime. T3: must advertise host_accessible
-  // to satisfy buffer's static_assert on execution-space properties.
+  // Host-only malloc/free mock; properties satisfy buffer's static_assert.
   struct host_mock_resource {
     void* allocate(gcxx::StreamView, std::size_t num_bytes) {
       return std::malloc(num_bytes);
@@ -29,19 +27,10 @@ namespace {
   using device_ptr = gcxx::device_ptr<std::uint32_t>;
   using device_buf = gcxx::device_buffer<std::uint32_t>;
 
-  // Satisfies neither is_pointer_or_has_get_v nor is_span_like_v — the
-  // universal negative case for every overload's SFINAE constraint.
+  // Satisfies no handle/span trait: universal negative case.
   struct NotAHandle {};
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Detection traits per overload shape. Args... is the candidate pack; the
-  // rest of the call (stream, resource, count) is concrete. Positive asserts
-  // check each accepted shape; negative asserts check rejection — something
-  // the old decltype(...) type check could not do at all.
-  //
-  // value-init ctor: Args = the value type (last ctor arg).
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // Args... is the candidate pack; stream/resource/count are concrete.
   GCXX_DEFINE_IS_CALLABLE(
     is_buf_value_init_callable,
     mock_buffer<std::uint32_t>(std::declval<gcxx::StreamView>(),
@@ -58,9 +47,6 @@ namespace {
 
 }  // namespace
 
-// =============================================================================
-// Positive: value-init ctor + each Fill overload resolve for accepted shapes.
-// =============================================================================
 TEST(BufferSfinaeTest, AcceptsValidHandleShapes) {
   static_assert(is_buf_value_init_callable_v<std::uint32_t>);
   static_assert(is_fill_ptr_callable_v<std::uint32_t*&>);
@@ -69,10 +55,7 @@ TEST(BufferSfinaeTest, AcceptsValidHandleShapes) {
   static_assert(is_fill_span_callable_v<device_buf&>);
 }
 
-// =============================================================================
-// Negative: each overload rejects the wrong handle / value shape. This is the
-// part the old decltype(...) type check could not do at all.
-// =============================================================================
+// Negative asserts impossible with the old decltype type check.
 TEST(BufferSfinaeTest, RejectsInvalidHandleShapes) {
   static_assert(!is_buf_value_init_callable_v<NotAHandle>);
 
@@ -85,9 +68,6 @@ TEST(BufferSfinaeTest, RejectsInvalidHandleShapes) {
   static_assert(!is_fill_span_callable_v<NotAHandle>);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// buffer(stream, resource) — empty buffer bound to a stream + resource.
-// ─────────────────────────────────────────────────────────────────────────────
 TEST(BufferCtorTest, StreamResourceCtorIsEmpty) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{});
 
@@ -106,9 +86,6 @@ TEST(BufferCtorTest, StreamResourceCtorKeepsResourceAndStream) {
             gcxx::StreamView::Null().getRawHandle());
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// buffer(stream, resource, n, no_init) — allocate n elements, uninitialized.
-// ─────────────────────────────────────────────────────────────────────────────
 TEST(BufferCtorTest, NoInitCtorAllocatesRequestedSize) {
   constexpr std::size_t N = 1024;
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, N,
@@ -120,9 +97,7 @@ TEST(BufferCtorTest, NoInitCtorAllocatesRequestedSize) {
 }
 
 TEST(BufferCtorTest, NoInitCtorZeroSizeHasZeroSize) {
-  // A zero-size allocation is a valid (possibly non-null) handle with a count
-  // of zero — empty() is ptr-based and implementation-defined for malloc(0),
-  // so assert on the element/byte counts instead.
+  // Zero-size allocations are valid handles; assert counts, not empty().
   mock_buffer<float> buf(gcxx::StreamView::Null(), host_mock_resource{},
                          std::size_t{0}, gcxx::no_init);
 
@@ -130,17 +105,7 @@ TEST(BufferCtorTest, NoInitCtorZeroSizeHasZeroSize) {
   EXPECT_EQ(buf.size_bytes(), 0);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// buffer(stream, resource, n, value) — value-initialized. The dispatch
-// (memset for zero, kernel for non-zero) needs a GPU to execute, so callability
-// is asserted at namespace scope above (is_buf_value_init_callable); here we
-// only run the zero-size path.
-// ─────────────────────────────────────────────────────────────────────────────
-
-// n == 0 actually constructs via the value-init ctor, which forces the whole
-// Fill / fill_dispatch template to instantiate (so the fill_kernel + launch
-// path is compiled and linked) while performing no GPU operation —
-// fill_dispatch returns early on a zero element count.
+// n=0 still compiles/links the whole fill path; fill_dispatch early-returns.
 TEST(BufferCtorTest, ValueInitZeroSizeInstantiatesFillPath) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{0}, 0);

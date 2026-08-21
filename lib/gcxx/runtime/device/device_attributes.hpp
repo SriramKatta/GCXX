@@ -26,25 +26,20 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ── device_attr: read-only device attribute descriptor ──────────────────────
-// Attr        — the flags::deviceAttribute this describes.
-// ValueType   — what the user sees (int by default; bool for the flags below).
-// CUDA stores every attribute as int, so the storage type is fixed at int.
+// Attributes are stored as int by CUDA; ValueType is the exposed type.
 template <flags::deviceAttribute Attr, typename ValueType>
 struct device_attr_impl {
   using type = ValueType;
 
   static inline constexpr flags::deviceAttribute attribute = Attr;
 
-  // TODO : MAY NOT BE RIGHT BUT WORKS FOR NOW
-  // Implicit conversion to the underlying enum value.
+  // TODO: May not be right but works for now.
   GCXX_FH constexpr operator flags::deviceAttribute() const noexcept {
     // NOLINT(google-explicit-constructor)
     return Attr;
   }
 
-  // Read the attribute for the given device (cudaDeviceGetAttribute takes the
-  // device ordinal explicitly, so no current-device dependency).
+  // Takes the device ordinal explicitly; no current-device dependency.
   GCXX_FH auto operator()(int device) const -> type {
     return static_cast<type>(driver::deviceGetAttribute(
       static_cast<driver::deviceAttribute_t>(Attr), device));
@@ -62,8 +57,6 @@ struct device_attr : device_attr_impl<Attr, int> {};
       : device_attr_impl<flags::deviceAttribute::DEV_ATTR_FLAG, TYPE> {}
 
 
-// Boolean attributes — CUDA stores 0/1, expose as bool. One specialization per
-// documented boolean attribute; guards mirror flags::deviceAttribute exactly.
 GCXX_DEVICE_ATTR_SPECIALIZATION(CanMapHostMemory, bool);
 GCXX_DEVICE_ATTR_SPECIALIZATION(CanUseHostPointerForRegisteredMem, bool);
 GCXX_DEVICE_ATTR_SPECIALIZATION(ComputePreemptionSupported, bool);
@@ -115,12 +108,7 @@ GCXX_DEVICE_ATTR_SPECIALIZATION(VulkanCigSupported, bool);
 #undef GCXX_DEVICE_ATTR_SPECIALIZATION
 
 
-// dev_attr: named, typed, constexpr attribute objects passed to
-// Device::attribute() / DeviceHandle::attribute(). Covers the usable device
-// attributes; the MaxTexture*/MaxSurface* dimension families are omitted (they
-// belong to the not-yet-wrapped texture/surface-object modules) and the
-// Reserved* slots are skipped. Any attribute is still reachable directly as
-// device_attr<flags::deviceAttribute::Name>{}.
+// MaxTexture*/MaxSurface*/Reserved* attributes are omitted on purpose.
 namespace dev_attr {
 
 #define GCXX_DEVICE_ATTR_DEFINE(ATTR_MEMBER, NAME)                   \
@@ -327,10 +315,7 @@ namespace dev_attr {
 
 }  // namespace dev_attr
 
-// ── device_limit: get/set device limit descriptor ───────────────────────────
-// All device limits are size_t and operate on the *current* device
-// (cudaDeviceGetLimit/SetLimit take no device ordinal), so the value/storage
-// types are fixed at size_t and operator() takes no argument.
+// Limits are size_t and operate on the current device (no device ordinal).
 template <flags::deviceLimit Attr>
 struct device_limit_impl {
   using type = std::size_t;
@@ -342,12 +327,12 @@ struct device_limit_impl {
     return Attr;
   }
 
-  /// Read the limit for the current device.
+  // Read the limit for the current device.
   GCXX_FH auto operator()() const -> type {
     return driver::deviceGetLimit(static_cast<driver::deviceLimit_t>(Attr));
   }
 
-  /// Write the limit for the current device.
+  // Write the limit for the current device.
   GCXX_FH static auto set(type value) -> void {
     driver::deviceSetLimit(static_cast<driver::deviceLimit_t>(Attr), value);
   }
@@ -356,8 +341,7 @@ struct device_limit_impl {
 template <flags::deviceLimit Attr>
 struct device_limit : device_limit_impl<Attr> {};
 
-// device_limits: named, typed, constexpr limit objects passed to
-// Device::limit() / Device::set_limit() / DeviceHandle equivalents.
+// Named typed limit objects for Device::limit()/set_limit().
 namespace device_limits {
 
 #define GCXX_DEVICE_LIMIT_DEFINE(LIMIT_MEMBER, NAME)               \

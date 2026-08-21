@@ -11,25 +11,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ─────────────────────────────────────────────────────────────────────────────
-// host/device/managed mdspan accessors.
-//
-// Port of CCCL libcudacxx's cuda/__mdspan/host_device_accessor.h: accessor
-// policies that mark which CUDA/HIP memory space the viewed data resides in.
-// Each wrapper inherits the base accessor and forwards access/offset
-// unchanged — data_handle_type stays the raw pointer, so mdspans carrying
-// these accessors are still constructed from ordinary pointers. The point is
-// the type: APIs (e.g. every gcxx::blas operation) require
-// device_accessor/managed_accessor at compile time and reject host views,
-// while the deleted cross-space converting constructors make host<->device
-// mdspan conversion a compile error.
-//
-// Conversion rules (CCCL parity):
-//   host_mdspan   -> host memory only; device access is a compile error
-//   device_mdspan -> device memory only; host access is a compile error
-//   managed_mdspan-> both, validity of the space checked at run time in debug
-//   other mdspan  -> converts to any of the three
-// ─────────────────────────────────────────────────────────────────────────────
+// CCCL-port accessor tags marking memory space; cross-space ctors deleted.
 
 template <class Accessor>
 class host_accessor;
@@ -40,7 +22,7 @@ class device_accessor;
 template <class Accessor>
 class managed_accessor;
 
-// ─── Accessor identity traits ────────────────────────────────────────────────
+// Accessor identity traits.
 
 template <class>
 GCXX_CXPR inline bool is_host_accessor_v = false;
@@ -65,9 +47,8 @@ GCXX_CXPR inline bool is_host_device_managed_accessor_v =
   is_host_accessor_v<Accessor> || is_device_accessor_v<Accessor> ||
   is_managed_accessor_v<Accessor>;
 
-// ─── Host accessor ───────────────────────────────────────────────────────────
+// Host accessor: memory reachable from host code only.
 
-// Marks the viewed memory as host-resident: reachable from host code only.
 template <class Accessor>
 class host_accessor : public Accessor {
   static_assert(!is_host_device_managed_accessor_v<Accessor>,
@@ -138,11 +119,8 @@ class host_accessor : public Accessor {
   }
 };
 
-// ─── Device accessor ─────────────────────────────────────────────────────────
+// Device accessor: dereferenceable from device code only (cu/hipBLAS).
 
-// Marks the viewed memory as device-resident: dereferenceable from device
-// code (and passable to device libraries such as cu/hipBLAS) only. This is
-// the mdspan-side sibling of gcxx::blas::device_scalar.
 template <class Accessor>
 class device_accessor : public Accessor {
   static_assert(!is_host_device_managed_accessor_v<Accessor>,
@@ -215,9 +193,8 @@ class device_accessor : public Accessor {
   }
 };
 
-// ─── Managed accessor ────────────────────────────────────────────────────────
+// Managed accessor: reachable from both host and device.
 
-// Marks the viewed memory as managed: reachable from both host and device.
 template <class Accessor>
 class managed_accessor : public Accessor {
   static_assert(!is_host_device_managed_accessor_v<Accessor>,
@@ -276,12 +253,7 @@ class managed_accessor : public Accessor {
   }
 };
 
-// ─── Accessibility traits ────────────────────────────────────────────────────
-//
-// Named *_view_v rather than CCCL's is_host/device_accessible_v because
-// gcxx::is_host_accessible_v / gcxx::is_device_accessible_v already name the
-// buffer resource-property traits (runtime/memory/buffers/properties.hpp),
-// which query a `properties` set instead of an accessor.
+// Traits named *_view_v to avoid clashing with gcxx buffer-property traits.
 
 // A view is device-accessible iff it carries the device or managed accessor.
 template <class>
@@ -302,9 +274,7 @@ GCXX_CXPR inline bool is_host_view_v<host_accessor<Accessor>> = true;
 template <class Accessor>
 GCXX_CXPR inline bool is_host_view_v<managed_accessor<Accessor>> = true;
 
-// Wrapper accessors (e.g. restrict_accessor) propagate the wrapped
-// accessor's memory space, so restrict_accessor<device_accessor<T>> remains
-// a device view.
+// Wrapper accessors propagate the wrapped accessor's memory space.
 template <template <class> class Wrapper, class Accessor>
 GCXX_CXPR inline bool is_device_view_v<Wrapper<Accessor>> =
   is_device_view_v<Accessor>;

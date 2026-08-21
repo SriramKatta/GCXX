@@ -14,9 +14,7 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
-// length = number of strided elements reachable in the storage (stride >= 1):
-// floor((size-1)/stride)+1, or 0 for empty storage. Shared by make_vector and
-// make_device_vector.
+// Reachable elements at stride >= 1: floor((size-1)/stride)+1, else 0.
 template <class Idx, class SpanLike>
 constexpr auto strided_length(const SpanLike& storage, Idx stride) -> Idx {
   const Idx cap = static_cast<Idx>(gcxx::details_::size(storage));
@@ -27,22 +25,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// build rank 1 mdspan for use with Level 1&2 blas using a linear data
-// structure like vector, buffer or spans
-//
-// The index_type Idx defaults to int; override it explicitly with the first
-// template argument (e.g. make_vector<int64_t>(...) for the *_64 BLAS path),
-// or let it be deduced from a passed `stride`.
-//
-// Example:
-// auto x = make_vector(gcxx::span(dX.get(), cap));      // contiguous, int
-// auto y = make_vector(gcxx::span(buf, cap), 2);        // every other, int
-// auto z = make_vector<int64_t>(gcxx::span(buf));       // contiguous, int64
-//
-// The vector length is *derived* from the storage: how many elements are
-// reachable stepping by `stride`, floor((size-1)/stride)+1. Deriving it (rather
-// than taking n = size) keeps the view in-bounds for stride > 1 — a span of 10
-// elements at stride 3 yields a length-4 vector (indices 0,3,6,9).
+// Length derived from stride (stays in-bounds); Idx defaults to int.
 GCXX_TEMPLATE(class Idx = int, class SpanLike)
 GCXX_REQUIRES(gcxx::is_span_like_v<SpanLike> GCXX_AND std::is_integral_v<Idx>)
 constexpr auto make_vector(SpanLike&& storage, Idx stride = Idx{1})
@@ -60,12 +43,7 @@ constexpr auto make_vector(SpanLike&& storage, Idx stride = Idx{1})
     gcxx::details_::data(storage), map);
 }
 
-// Same as make_vector, but the returned view is marked device-resident via
-// gcxx::device_accessor — the form the gcxx::blas operations require for
-// vector operands.
-//
-// Example:
-// auto x = make_device_vector(gcxx::span(dX.get(), cap));
+// make_vector with a device_accessor — what gcxx::blas requires.
 GCXX_TEMPLATE(class Idx = int, class SpanLike)
 GCXX_REQUIRES(gcxx::is_span_like_v<SpanLike> GCXX_AND std::is_integral_v<Idx>)
 constexpr auto make_device_vector(SpanLike&& storage, Idx stride = Idx{1})

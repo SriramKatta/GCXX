@@ -57,7 +57,7 @@ GCXX_FH auto streamCopyAttributes(deviceStream_t dst,
 }
 #endif
 
-// TODO : needed for device side stream allocation
+// TODO: Needed for device side stream allocation.
 // GCXX_FD auto streamCreateWithFlags(unsigned int flags) -> deviceStream_t {
 //   deviceStream_t stream{NULL_STREAM};
 //   GCXX_SAFE_RUNTIME_CALL(StreamCreate, "Failed to Create Stream", &stream,

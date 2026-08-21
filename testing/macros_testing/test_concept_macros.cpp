@@ -1,17 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Exercises the GCXX concept DSL ported from CCCL's concept_macros.h:
-// GCXX_REQUIRES_EXPR, GCXX_CONCEPT_FRAGMENT / GCXX_FRAGMENT, and every
-// requirement form (requires / typename / noexcept / _Same_as / _Satisfies /
-// (EXPR) / EXPR).
-//
-// The same source is built twice (see CMakeLists.txt):
-//   * CUDA_STANDARD 17 -> pre-C++20 SFINAE-emulation branch
-//   (!GCXX_HAS_CONCEPTS)
-//   * CUDA_STANDARD 20 -> C++20 requires(...) branch        (
-//   GCXX_HAS_CONCEPTS)
-// so both implementations of every macro are covered.
+// Exercises the GCXX concept DSL ported from CCCL's concept_macros.h; built
+// twice (C++17 SFINAE and C++20 concepts) so both branches are covered.
 #include "tests_common.hpp"
 
 #include <memory>
@@ -33,19 +23,12 @@ namespace {
   };
   struct Incomparable {};  // no relational operators
 
-  // (1) GCXX_REQUIRES_EXPR: inline requires-body, the last requirement of a
-  // concept.
+  // GCXX_REQUIRES_EXPR: inline requires-body as a concept's last requirement.
   template <class T>
   GCXX_CONCEPT has_eq_neq =
     GCXX_REQUIRES_EXPR((T), T const& a, T const& b)(a == b, a != b);
 
-  // (2) GCXX_CONCEPT_FRAGMENT + GCXX_FRAGMENT: a named fragment exercising
-  // every requirement form.
-  //
-  // _Same_as targets a prvalue (T{}) so the requirement holds in BOTH the C++17
-  // (decltype(EXPR)) and C++20 (decltype((EXPR))) branches; an lvalue would
-  // differ because the C++20 compound-requirement rule yields a reference type.
-  // This reference-vs-value behavior matches CCCL exactly.
+  // Fragment exercising every requirement form (_Same_as targets prvalue).
   template <class T, class U>
   GCXX_CONCEPT_FRAGMENT(
     frag_, requires(T t, U u)(requires(has_eq_neq<T>), requires(has_eq_neq<U>),
@@ -56,9 +39,7 @@ namespace {
 
 }  // namespace
 
-// Positive / negative checks at compile time (these are the real test of both
-// branches: the static_asserts must hold whether concepts are emulated or
-// native).
+// Compile-time positive/negative checks covering both macro branches.
 static_assert(has_eq_neq<int>, "");
 static_assert(has_eq_neq<Comparable>, "");
 static_assert(!has_eq_neq<Incomparable>, "");
@@ -66,8 +47,6 @@ static_assert(frag<Comparable, Comparable>, "");
 static_assert(!frag<Incomparable, Comparable>, "");
 static_assert(!frag<Comparable, Incomparable>, "");
 
-// The gcxx::details_:: detector traits are now built on the concept DSL.
-// Forward-declared only -> not complete.
 struct ForwardDeclaredOnly;
 static_assert(gcxx::details_::is_complete_v<int>, "");
 static_assert(!gcxx::details_::is_complete_v<ForwardDeclaredOnly>, "");
@@ -90,8 +69,7 @@ TEST(GcxxConceptMacros, Fragment) {
   EXPECT_FALSE((frag<Comparable, Incomparable>));
 }
 
-// (3) Regression: the pre-existing GCXX_TEMPLATE / GCXX_REQUIRES still
-// constrain overloads (used by ~30 existing call sites in the library).
+// Regression: GCXX_TEMPLATE/GCXX_REQUIRES still constrain ~30 call sites.
 GCXX_TEMPLATE(typename T)
 GCXX_REQUIRES(has_eq_neq<T>)
 T echo(T x) {

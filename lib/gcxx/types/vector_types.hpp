@@ -27,7 +27,7 @@ struct vec_traits : std::false_type {};
     static constexpr int size = N;              \
   }
 
-// Helper variable template
+// Helper variable template.
 template <typename VT>
 inline constexpr bool is_vectype_v = vec_traits<VT>::value;
 
@@ -60,9 +60,7 @@ inline constexpr bool is_vectype_v = vec_traits<VT>::value;
   MAP_1_3(BASETYPE, BASE);      \
   DEFINE_VEC_VEC_TRAITS(BASETYPE, 4, BASE##4)
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █    Standard type mappings (CUDA ≤ 12.x base types)     █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+// Standard type mappings (CUDA <= 12.x base types).
 MAP_1_4(char, char);
 MAP_1_4(unsigned char, uchar);
 MAP_1_4(short, short);
@@ -77,51 +75,32 @@ MAP_1_3(long long, longlong);
 MAP_1_3(unsigned long long, ulonglong);
 MAP_1_3(double, double);
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █       CUDA 13.0+ alignment-aware vec4 overrides        █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+// CUDA 13.0+ alignment-aware vec4 overrides.
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                          long                          █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long, 4, 16, long4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long, 4, 32, long4_32a);
 DEFINE_VEC(long, 4, long4_16a);  // default vec<long,4> -> 16a
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                     unsigned long                      █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long, 4, 16, ulong4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long, 4, 32, ulong4_32a);
 DEFINE_VEC(unsigned long, 4, ulong4_16a);
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                       long long                        █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long long, 4, 16, longlong4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(long long, 4, 32, longlong4_32a);
 DEFINE_VEC(long long, 4, longlong4_16a);
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                   unsigned long long                   █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long long, 4, 16, ulonglong4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(unsigned long long, 4, 32, ulonglong4_32a);
 DEFINE_VEC(unsigned long long, 4, ulonglong4_16a);
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                         double                         █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 DEFINE_VEC_ALIGNED_VEC_TRAITS(double, 4, 16, double4_16a);
 DEFINE_VEC_ALIGNED_VEC_TRAITS(double, 4, 32, double4_32a);
 DEFINE_VEC(double, 4, double4_16a);
 
 #else
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █ Legacy CUDA or non-CUDA device: use legacy 4-wide names █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+// Legacy CUDA or non-CUDA device: use legacy 4-wide names.
 DEFINE_VEC(long, 4, long4);
 DEFINE_VEC(unsigned long, 4, ulong4);
 DEFINE_VEC(long long, 4, longlong4);
@@ -131,9 +110,7 @@ DEFINE_VEC(double, 4, double4);
 
 GCXX_NAMESPACE_DETAILS_END()
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                  User-facing aliases                   █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+// User-facing aliases.
 template <typename VT>
 using vec1_t = typename details_::vec<VT, 1>::type;
 
@@ -144,20 +121,18 @@ template <typename VT>
 using vec3_t = typename details_::vec<VT, 3>::type;
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-// Alignment-aware vec4 variants (only valid if mapped above)
+// Alignment-aware vec4 variants (only valid if mapped above).
 template <typename VT>
 using vec4_16a_t = typename details_::vec<VT, 4, 16>::type;
 
 template <typename VT>
 using vec4_32a_t = typename details_::vec<VT, 4, 32>::type;
 #endif
-// Default vec4_t — will be 16a on CUDA 13+ (due to override above)
+// Default vec4_t — will be 16a on CUDA 13+ (due to override above).
 template <typename VT>
 using vec4_t = typename details_::vec<VT, 4>::type;
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                    Helper function                     █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+// Helper function.
 
 template <class VT>
 using vec1_no_cv_t = vec1_t<std::remove_cv_t<VT>>;
@@ -256,9 +231,6 @@ GCXX_FHD auto cast_as_vec4_ptr(const VT* data) -> const vec4_no_cv_t<VT>* {
   return reinterpret_cast<const vec4_no_cv_t<VT>*>(data);
 }
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                  Cleanup local macros                  █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 #undef DEFINE_VEC_TRAITS
 #undef DEFINE_VEC
 #undef DEFINE_VEC_ALIGNED

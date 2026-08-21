@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Tests for ManagedMemPool. Managed memory pools are CUDA 13.0+, so the entire
-// body is gated; on older toolkits (and on HIP, where GCXX_CUDA_VERSION is 0)
-// this compiles to an empty TU. The managed pool is a real cudaMemPool_t on
-// CUDA (not a shim), so it exposes the full MemPoolView API; coverage mirrors
-// test_device_memory_pool.
+// Tests for ManagedMemPool (CUDA 13.0+; empty TU otherwise). A real
+// cudaMemPool_t with the full MemPoolView API; mirrors device-pool tests.
 #include "tests_common.hpp"
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
@@ -16,7 +12,7 @@ namespace {
   struct not_a_resource {};  // for negative concept checks
 }  // namespace
 
-// ── Compile-time concept checks (run on every CUDA-13+ build) ────────────────
+// Compile-time concept checks (run on every CUDA-13+ build).
 static_assert(gcxx::resource_with<gcxx::ManagedMemPool, gcxx::device_accessible,
                                   gcxx::host_accessible>,
               "");

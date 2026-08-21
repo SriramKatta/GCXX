@@ -27,37 +27,23 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-/// Creation-time options for a memory pool. Properties are fixed at creation;
-/// runtime tuning uses memory_pool_attributes instead.
+// Creation-time options; fixed at creation, unlike memory_pool_attributes.
 struct memory_pool_properties {
-  /// Bytes to reserve up-front (primed via an allocate/free on the default
-  /// stream). 0 means no pre-allocation.
+  // Bytes to reserve up-front (primed via allocate/free); 0 = none.
   std::size_t initial_pool_size = 0;
 
-  /// Upper bound on bytes the pool may keep reserved; above this, unused memory
-  /// is released to the driver at the next sync.
-  ///
-  /// NOTE: the default (SIZE_MAX, matching CCCL) flips CUDA's own default of
-  /// eager release to "never release": a pool keeps its peak reservation for
-  /// its lifetime. Pass {.release_threshold = 0} to restore eager release, or
-  /// trim on demand with MemPoolView::trim_to.
+  // Release threshold; SIZE_MAX default keeps peak reservation forever.
   std::size_t release_threshold = std::numeric_limits<std::size_t>::max();
 
-  /// Handle type for inter-process sharing of the pool (None = no IPC).
+  // Handle type for inter-process sharing of the pool (None = no IPC).
   flags::MemAllocationHandle allocation_handle_type =
     flags::MemAllocationHandle::None;
 
-  /// Hard maximum size of the pool (0 = no limit).
+  // Hard maximum size of the pool (0 = no limit).
   std::size_t max_pool_size = 0;
 };
 
-/// Create a cudaMemPool_t at `location`/`alloc_type` honouring `props`.
-///
-/// Builds a CUmemPoolProps (via the shared MemPoolProps descriptor), creates
-/// the pool, sets the release-threshold attribute, and primes
-/// `initial_pool_size`. Mirrors CCCL's __create_cuda_mempool. The returned
-/// handle is owned by the caller (the owning device/managed/pinned pools
-/// destroy it in their dtor).
+// Caller owns the returned handle (owning pools destroy it in their dtor).
 GCXX_FH auto create_memory_pool(
   flags::MemLocation location_type, int location_id,
   flags::MemAllocation alloc_type,

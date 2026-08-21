@@ -17,33 +17,16 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory resource concepts.
-//
-// A gcxx resource is duck-typed around the stream-ordered allocation contract:
-//
-//   void* allocate(gcxx::StreamView, std::size_t num_bytes);
-//   void  deallocate(gcxx::StreamView, void* ptr);
-//
-// and advertises its accessibility via `using properties = TypeSet<...>;`.
-// ─────────────────────────────────────────────────────────────────────────────
+// Resources are duck-typed on stream-ordered allocate/deallocate.
 
-// resource_api<Resource>: true iff Resource exposes the stream-ordered
-// allocate/deallocate members with the expected signatures. This is the
-// duck-typed signature check, isolated so buffer can report a missing API
-// distinctly from a missing property.
-//
-// allocate must yield void* (the gcxx resource contract).
-// deallocate is only required to be callable.
+// Isolated signature check so a missing API is reported distinctly.
 template <typename Resource>
 GCXX_CONCEPT resource_api = GCXX_REQUIRES_EXPR(
   (Resource), Resource& r, gcxx::StreamView stream, std::size_t num_bytes,
   void* ptr)(_Same_as(void*)(r.allocate(stream, num_bytes)),
              (r.deallocate(stream, ptr)));
 
-// resource_with<Resource, Properties...>: a type with the resource API that
-// advertises every one of Properties... via its `using properties` TypeSet.
-// Mirrors CCCL's cuda::mr::resource_with (API + properties
+// Mirrors CCCL's cuda::mr::resource_with (API + properties).
 template <typename Resource, typename... Properties>
 GCXX_CONCEPT resource_with =
   resource_has_all_v<Resource, Properties...> && resource_api<Resource>;

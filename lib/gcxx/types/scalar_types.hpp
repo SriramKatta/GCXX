@@ -8,12 +8,7 @@
 #include <cstdint>
 #include <gcxx/internal/prologue.hpp>
 
-// TODO : Deferred extension point
-// using f16_t = __half,
-// using  bf16_t = __nv_bfloat16 etc etc
-// These require CUDA/HIP headers (cuda_fp16.h / cuda_bf16.h / hip/hip_fp16.h)
-// and must not leak into this portable header; they belong in a backend-gated
-// companion header when half/bfloat16 support lands.
+// TODO: Deferred f16_t/bf16_t extension point; needs a backend-gated header.
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 using f32_t = float;

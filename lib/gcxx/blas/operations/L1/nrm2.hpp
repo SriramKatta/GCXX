@@ -19,40 +19,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Euclidean norm result = ||x||_2, in the P1673R13 vector_two_norm shapes.
-//
-// Three overloads:
-//   vector_two_norm(h, x)                    -> result, synchronizes the
-//                                              handle's stream first
-//   vector_two_norm(h, x, init)              -> sqrt(init^2 + ||x||_2^2)
-//                                              (host-side accumulation, also
-//                                              synchronizes)
-//   vector_two_norm(h, x, device_scalar<R>)  -> void; writes the result to
-//                                              the wrapped device pointer
-//                                              asynchronously (device pointer
-//                                              mode), no synchronization
-//
-// The returning forms are P1673R13's interface; a GPU backend cannot return
-// an asynchronously computed scalar, so they block on the stream first. The
-// device_scalar form is gcxx's asynchronous counterpart. Unlike the
-// raw-pointer form it once replaced, the storage space is carried by the
-// argument type instead of depending on the handle's ambient pointer mode.
-//
-// x is a rank-1 mdspan; the length n and the increment (incx) are inferred
-// from the mdspan metadata. The type-erased cu/hipblasNrm2Ex entry point is
-// used, with the data-type and execution-type enums derived from the element
-// type. The operand is typed as a gcxx::mdspan in the signature, so wrong-rank
-// (or non-mdspan) arguments fail overload resolution.
-//
-// The integer interface is selected from the operand's mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasNrm2Ex_64 entry point,
-// while all other index_types use the standard 32-bit interface.
-//
-// x must be a device view: an mdspan carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
-// rejected at compile time; in check builds the data handle is additionally
-// probed at run time so a mislabeled host pointer fails here, not inside the
-// GPU kernel.
+// nrm2: returning forms sync the stream; the device_scalar form is async.
 namespace nrm2_impl_ {
   GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
                 class R = TX)
@@ -115,9 +82,7 @@ auto vector_two_norm(BlasHandleView h,
   return result;
 }
 
-// Returning form with accumulation: vector_two_norm(h, x, init) ->
-// sqrt(init^2 + ||x||_2^2) (synchronizes; the accumulation happens on the
-// host, matching P1673R13's init semantics).
+// Returning form: sqrt(init^2 + ||x||^2), host-side accumulation (syncs).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class R = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1)
@@ -130,9 +95,7 @@ auto vector_two_norm(BlasHandleView h,
   return sqrt(init * init + result * result);
 }
 
-// Asynchronous form: vector_two_norm(h, x, device_scalar<R>) writes the
-// result to the wrapped device pointer on the handle's stream (device
-// pointer mode; the handle's prior mode is restored on return).
+// Async form: writes the result to the device_scalar pointer (device mode).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class R = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1)

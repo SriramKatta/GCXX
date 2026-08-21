@@ -29,15 +29,12 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-/// Non-owning ref to the default device memory pool for `device`. The default
-/// device pool exists on all CUDA versions that support memory pools.
 GCXX_FH auto device_default_memory_pool(const gcxx::DeviceHandle& device)
   -> DeviceMemPoolView {
   return DeviceMemPoolView(driver::deviceGetDefaultMemoryPool(device.id()));
 }
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-/// Non-owning ref to the default managed (unified) memory pool (CUDA 13.0+).
 GCXX_FH auto managed_default_memory_pool() -> ManagedMemPoolView {
   MemAccessDesc location{flags::MemLocation::None, 0,
                          flags::MemAccessFlags::None};
@@ -49,13 +46,7 @@ GCXX_FH auto managed_default_memory_pool() -> ManagedMemPoolView {
 }
 #endif  // GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
-/// Get a memory pool for a (location, type): on CUDA 13.0+ the runtime default
-/// pool (cudaMemPoolGetDefaultMemPool — the gcxx analogue); pre-13.0 (where
-/// that API doesn't exist) a freshly created pool of that location/type.
-/// Pre-13.0 callers wanting process-lifetime "default pool" semantics should
-/// cache the result in a static local (magic-static thread-safe) — see
-/// pinned_default_memory_pool, which owns one static per default pool so
-/// different (location, type) requests never collide.
+// Pre-13.0 this creates a fresh pool; cache it for default-pool semantics.
 inline auto get_default_mem_pool(flags::MemLocation locationType,
                                  int locationId, flags::MemAllocation type)
   -> driver::deviceMemPool_t {
@@ -69,18 +60,7 @@ inline auto get_default_mem_pool(flags::MemLocation locationType,
 #endif
 }
 
-/// Non-owning ref to the default pinned (page-locked) host memory pool. The
-/// pool is shared and process-lifetime: on CUDA 13.0+ it is the runtime default
-/// pinned pool; pre-13.0 it is a host pool created once (emulating the 13.0
-/// API). Allocations are reachable from every device.
-///
-/// The generic Host location (not a specific HostNuma node) is used on purpose:
-/// a NUMA id is only valid on machines whose topology contains that node, and
-/// binding a shared default pool to a fixed node makes cudaMallocFromPoolAsync
-/// fail with a misleading "out of memory" on multi-NUMA systems (e.g. the GPU
-/// may sit on node 7 while id 0 is a far/different node). The OS first-touch
-/// policy places the pages instead, which the caller can steer via numactl.
-/// PinnedMemPool therefore always uses this generic Host location.
+// Deliberately uses the generic Host location (NUMA pinning breaks allocs).
 GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
 #if GCXX_HIP_MODE()
   // ROCm has no host-location memory pool, so the default pinned pool is the
@@ -98,7 +78,7 @@ GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
   // (matching CCCL's call_once init). The handle lives for the process (default
   // pools are never destroyed) and PinnedMemPoolView is trivially destructible,
   // so the static releases nothing at exit.
-  // TODO : absolutely an stupid thing since on alex we dont know what is the
+  // TODO: Absolutely an stupid thing since on alex we dont know what is the.
   static PinnedMemPoolView pool = [] {
     PinnedMemPoolView ref(get_default_mem_pool(flags::MemLocation::Host, 0,
                                                flags::MemAllocation::Pinned));

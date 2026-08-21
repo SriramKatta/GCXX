@@ -5,7 +5,7 @@
 #include <array>
 #include <gcxx/runtime/event.hpp>
 
-// can also use gcxx::Event with refrence since copy ctor of it marked deleted
+// Takes an EventView by value; Event's copy ctor is deleted.
 void eve_ref_check(const gcxx::EventView event) {
   if (event.HasOccurred()) {
     fmt::print("Event has occurred.\n");

@@ -12,10 +12,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Tag types selecting which side of a matrix a vector operand applies to
-// (e.g. whether dgmm scales rows or columns). Passing the tag objects
-// gcxx::blas::left / gcxx::blas::right keeps the raw backend side-mode enum
-// out of the public API, mirroring how transpose() hides the op enum.
+// Tags selecting which side (rows vs cols) a vector operand applies to.
 struct left_t {};
 struct right_t {};
 
@@ -26,9 +23,7 @@ GCXX_NAMESPACE_MAIN_BLAS_END()
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 
-// Compile-time side-tag -> backend side-mode mapping, so the driver enum is
-// touched in exactly one place and an argument that is not one of the two
-// tags fails to compile at the call site.
+// Tag -> backend side enum in one place; other tags fail at the call site.
 template <class Side>
 struct side_mode {
   static_assert(gcxx::details_::is_always_false_v<Side>,

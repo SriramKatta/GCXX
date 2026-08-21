@@ -29,35 +29,19 @@ class BlasHandleView {
 
   GCXX_FHC explicit BlasHandleView(deviceBlasHandle_t handle) noexcept;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Stream binding                      ║
-  // ╚════════════════════════════════════════════════════════╝
-
   GCXX_FH auto setStream(gcxx::StreamView stream) -> void;
 
   GCXX_FH auto getStream() const -> gcxx::StreamView;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Pointer mode                        ║
-  // ╚════════════════════════════════════════════════════════╝
-
-  // Controls whether scalar arguments (alpha/beta) to BLAS routines are read
-  // from host or device memory.
+  // Whether scalar args (alpha/beta) are read from host or device memory.
   GCXX_FH auto setPointerMode(pointer_mode_type mode) -> void;
 
   GCXX_FH auto getPointerMode() const -> pointer_mode_type;
-
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                     Introspection                      ║
-  // ╚════════════════════════════════════════════════════════╝
 
   GCXX_FH auto getVersion() const -> int;
 
   GCXX_FHC auto getRawHandle() const noexcept -> deviceBlasHandle_t;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                      Comparison                        ║
-  // ╚════════════════════════════════════════════════════════╝
   GCXX_FHC auto operator==(const BlasHandleView& rhs) const noexcept -> bool;
   GCXX_FHC auto operator!=(const BlasHandleView& rhs) const noexcept -> bool;
 };

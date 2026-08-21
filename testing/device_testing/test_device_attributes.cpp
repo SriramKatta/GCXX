@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Tests for the typed device_attr / device_limit descriptor API — the pool_attr
-// pattern ported to the device surface (Device::attribute / Device::limit /
-// Device::set_limit and the DeviceHandle equivalents). GPU-dependent cases are
-// skipped on hosts without a usable device; the compile-time type checks run on
-// every build, so a clean compile already proves the bool/int/size_t typing.
+// Tests for the typed device_attr / device_limit descriptor API
+// (Device::attribute/limit/set_limit); GPU-dependent cases skip cleanly.
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -13,17 +9,14 @@
 
 #include <gcxx/api.hpp>
 
-// raw_handle_type contract for the graph wrappers (see tests_common.hpp). No
-// dedicated graph test exists yet; relocate when a graph_testing/ dir is added.
+// Raw-handle contract for the graph wrappers; no dedicated graph test yet.
 GCXX_ASSERT_RAW_HANDLE(GraphView, gcxx::driver::deviceGraph_t);
 GCXX_ASSERT_RAW_HANDLE(Graph, gcxx::driver::deviceGraph_t);
 GCXX_ASSERT_RAW_HANDLE(GraphExecView, gcxx::driver::deviceGraphExec_t);
 GCXX_ASSERT_RAW_HANDLE(GraphExec, gcxx::driver::deviceGraphExec_t);
 GCXX_ASSERT_RAW_HANDLE(GraphNodeView, gcxx::driver::deviceGraphNode_t);
 
-// ── Compile-time type checks (run on every build) ───────────────────────────
-// Numeric attributes expose int; boolean attributes expose bool; limits are
-// always size_t. If a specialization is mis-wired these fail at compile time.
+// Compile-time type checks: int attributes, bool attributes, size_t limits.
 static_assert(std::is_same_v<gcxx::dev_attr::warp_size_t::type, int>,
               "warp_size must be int-typed");
 static_assert(std::is_same_v<gcxx::dev_attr::multiprocessor_count_t::type, int>,
@@ -57,13 +50,11 @@ class DeviceAttributeTest : public ::testing::Test {
   }
 };
 
-// Numeric attribute reads as int via the free Device:: API (current device).
 TEST_F(DeviceAttributeTest, NumericAttributeReadsAsInt) {
   int warp = gcxx::Device::attribute(gcxx::dev_attr::warp_size);
   EXPECT_GT(warp, 0);  // warp size is always positive
 }
 
-// Boolean attribute reads as bool (the whole point of the typed descriptors).
 TEST_F(DeviceAttributeTest, BooleanAttributeReadsAsBool) {
   bool managed = gcxx::Device::attribute(gcxx::dev_attr::managed_memory);
   bool unified = gcxx::Device::attribute(gcxx::dev_attr::unified_addressing);
@@ -76,7 +67,6 @@ TEST_F(DeviceAttributeTest, BooleanAttributeReadsAsBool) {
   }
 }
 
-// Several numeric attrs in one pass to exercise the int path broadly.
 TEST_F(DeviceAttributeTest, NumericAttributesAreSane) {
   EXPECT_GT(gcxx::Device::attribute(gcxx::dev_attr::max_threads_per_block), 0);
   EXPECT_GT(gcxx::Device::attribute(gcxx::dev_attr::multiprocessor_count), 0);
@@ -84,8 +74,7 @@ TEST_F(DeviceAttributeTest, NumericAttributesAreSane) {
             0);
 }
 
-// DeviceHandle::attribute scopes the query to the handle's device directly
-// (more correct than the old getAttribute, which ignored the handle's device).
+// Scopes to the handle's device; old getAttribute ignored it.
 TEST_F(DeviceAttributeTest, HandleScopedAttribute) {
   gcxx::DeviceHandle handle{0};
   int warp = handle.attribute(gcxx::dev_attr::warp_size);
@@ -93,7 +82,6 @@ TEST_F(DeviceAttributeTest, HandleScopedAttribute) {
 }
 
 #if GCXX_CUDA_MODE()
-// Limit get/set round-trip via the free Device:: API (current device).
 TEST_F(DeviceAttributeTest, LimitRoundTripViaDevice) {
   const std::size_t original =
     gcxx::Device::limit(gcxx::device_limits::printf_fifo_size);
@@ -107,7 +95,6 @@ TEST_F(DeviceAttributeTest, LimitRoundTripViaDevice) {
             original);
 }
 
-// DeviceHandle limit get/set (makes the handle's device current first).
 TEST_F(DeviceAttributeTest, HandleLimitRoundTrip) {
   gcxx::DeviceHandle handle{0};
   const std::size_t original =

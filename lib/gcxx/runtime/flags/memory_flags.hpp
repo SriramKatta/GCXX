@@ -15,8 +15,7 @@ enum class MemAllocation : details_::flag_t {
   Pinned  = GCXX_RUNTIME_BACKEND(MemAllocationTypePinned),
   Max     = GCXX_RUNTIME_BACKEND(MemAllocationTypeMax),
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-  // CUDA 13.0+ runtime: managed-allocation memory pools. Used by
-  // ManagedMemPool. Requires a 13.0+ toolchain to compile.
+  // CUDA 13.0+ managed-allocation pools; used by ManagedMemPool. Needs 13.0+.
   Managed = GCXX_RUNTIME_BACKEND(MemAllocationTypeManaged),
 #endif
 };
@@ -38,9 +37,7 @@ enum class MemLocation : details_::flag_t {
   HostNuma        = GCXX_RUNTIME_BACKEND(MemLocationTypeHostNuma),
   HostNumaCurrent = GCXX_RUNTIME_BACKEND(MemLocationTypeHostNumaCurrent),
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
-  // CUDA 13.0+ runtime: location-less allocation (managed memory pools, which
-  // have no fixed device placement). Used by ManagedMemPool. Requires a
-  // 13.0+ toolchain to compile.
+  // CUDA 13.0+ runtime: location-less managed pools (no fixed placement).
   None = GCXX_RUNTIME_BACKEND(MemLocationTypeNone),
 #endif
 };
@@ -52,13 +49,11 @@ enum class MemAccessFlags : details_::flag_t {
 };
 
 enum class memAttach : details_::flag_t {
-  /// Memory is accessible from any stream on any device (cudaMemAttachGlobal).
+  // Memory is accessible from any stream on any device (cudaMemAttachGlobal).
   Global = GCXX_RUNTIME_BACKEND(MemAttachGlobal),
-  /// Memory is attached to the host and inaccessible from the device until it
-  /// is attached back to a stream (cudaMemAttachHost).
+  // Host-attached; device sees it only after reattach (cudaMemAttachHost).
   Host = GCXX_RUNTIME_BACKEND(MemAttachHost),
-  /// Memory is accessible only from the stream it was attached to
-  /// (cudaMemAttachSingle). This is the default attachment behavior.
+  // Stream-only attachment (cudaMemAttachSingle); the default behavior.
   Single = GCXX_RUNTIME_BACKEND(MemAttachSingle),
 };
 

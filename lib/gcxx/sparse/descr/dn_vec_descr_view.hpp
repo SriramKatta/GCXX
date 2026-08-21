@@ -26,9 +26,7 @@ class DnVecDescrView {
 
   GCXX_FHC explicit DnVecDescrView(deviceDnVecDescr_t descr) noexcept;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Introspection                      ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Introspection.
 
   GCXX_FH auto getValues() const -> void*;
 
@@ -36,9 +34,7 @@ class DnVecDescrView {
 
   GCXX_FHC auto getRawHandle() const noexcept -> deviceDnVecDescr_t;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                      Comparison                        ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Comparison.
   GCXX_FHC auto operator==(const DnVecDescrView& rhs) const noexcept -> bool;
   GCXX_FHC auto operator!=(const DnVecDescrView& rhs) const noexcept -> bool;
 };

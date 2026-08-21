@@ -12,14 +12,14 @@
 #ifndef GCXX_MACROS_PREPROCESSOR_MACROS_HPP_
 #define GCXX_MACROS_PREPROCESSOR_MACROS_HPP_
 
-// check taken from google benchmark
+// Check taken from google benchmark.
 #if defined(__COUNTER__) && (__COUNTER__ + 1 == __COUNTER__ + 0)
 #define GCXX_PP_COUNTER() __COUNTER__
 #else
 #define GCXX_PP_COUNTER() __LINE__
 #endif
 
-// Convert parameter to a string literal
+// Convert parameter to a string literal.
 #define GCXX_PP_TO_STRING2(_STR) #_STR
 #define GCXX_PP_TO_STRING(_STR) GCXX_PP_TO_STRING2(_STR)
 
@@ -50,10 +50,7 @@
 #define GCXX_PP_LPAREN (
 #define GCXX_PP_RPAREN )
 
-// Empty object-like placemarker (mirrors CCCL's empty _CCCL token). Pasting it
-// with another token yields that token: GCXX_PP_CAT(GCXX_PP_PLACEMARKER, X) ->
-// X. Used by the concept DSL's _Same_as / _Satisfies type extractors, where it
-// also works around MSVC's traditional-preprocessor rescan limitations.
+// Empty placemarker: CAT(GCXX_PP_PLACEMARKER, X) -> X; MSVC rescan aid.
 #define GCXX_PP_PLACEMARKER
 
 #define GCXX_PP_EMPTY()
@@ -61,17 +58,10 @@
 #define GCXX_PP_LBRACE() {
 #define GCXX_PP_RBRACE() }
 
-// GCXX_PP_CASE(ARG) yields a probe whose second field is ARG. The ARG token is
-// then recovered by GCXX_PP_CHECK and used to select a *_CASE_<ARG> handler.
-// ARG is a bare placeholder token (e.g. GCXX_SWITCH_DEFAULT); it is never
-// defined as a macro.
+// Probe whose second field is bare ARG; PP_CHECK recovers it for dispatch.
 #define GCXX_PP_CASE(_ARG) GCXX_PP_PROBE_N(~, _ARG)
 
-// GCXX_PP_SWITCH / GCXX_PP_SWITCH2 dispatch on the first token of __VA_ARGS__:
-//   GCXX_PP_SWITCH(PREFIX, X...) ->
-//     PREFIX_CASE_<label>(X...)
-// where <label> is ARG if `PREFIX_SWITCH_<first-token>` is defined as
-// GCXX_PP_CASE(ARG), otherwise GCXX_SWITCH_DEFAULT.
+// Dispatch: PREFIX_CASE_<label> chosen by the first token's SWITCH_ probe.
 #define GCXX_PP_SWITCH(_PREFIX, ...)                                      \
   GCXX_PP_CAT(_PREFIX##_CASE_, GCXX_PP_CASE_LABEL_(_PREFIX, __VA_ARGS__)) \
   (__VA_ARGS__)
@@ -83,11 +73,7 @@
                GCXX_PP_CAT(_PREFIX##_SWITCH_, GCXX_PP_FIRST(__VA_ARGS__)), \
                GCXX_SWITCH_DEFAULT, )
 
-///////////////////////////////////////////////////////////////////////////////
-// GCXX_PP_FOR_EACH
-//
-// Applies the macro _Mp to each argument: GCXX_PP_FOR_EACH(_Mp, a, b, c) ->
-// _Mp(a) _Mp(b) _Mp(c). Up to 19 arguments are supported.
+// GCXX_PP_FOR_EACH(_Mp, ...): applies _Mp to each arg; up to 19 arguments.
 #define GCXX_PP_FOR_EACH(_Mp, ...) \
   GCXX_PP_FOR_EACH_N(GCXX_PP_COUNT(__VA_ARGS__), _Mp, __VA_ARGS__)
 #define GCXX_PP_FOR_EACH_N(_Np, _Mp, ...) \
@@ -147,10 +133,7 @@
     _Mp(_10) _Mp(_11) _Mp(_12) _Mp(_13) _Mp(_14) _Mp(_15) _Mp(_16) _Mp(_17)    \
       _Mp(_18) _Mp(_19)
 
-///////////////////////////////////////////////////////////////////////////////
-// GCXX_PP_COUNT
-//
-// Count the number of arguments.
+// GCXX_PP_COUNT: number of arguments.
 // clang-format off
 #define GCXX_PP_COUNT_IMPL(                                                                      \
   _125, _124, _123, _122, _121, _120, _119, _118, _117, _116, _115, _114, _113, _112, _111, _110, \

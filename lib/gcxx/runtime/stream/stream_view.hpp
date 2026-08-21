@@ -52,7 +52,7 @@ class StreamView {
     flags::eventCreate createflag = flags::eventCreate::None,
     flags::eventRecord recordFlag = flags::eventRecord::None) const -> Event;
 
-  // TODO : NO op in hip
+  // TODO: No op in HIP.
   GCXX_TEMPLATE(typename Span)
   GCXX_REQUIRES(is_span_like_v<Span>)
   GCXX_FH auto AttachMemAsync(
@@ -79,10 +79,7 @@ class StreamView {
 
   GCXX_FH auto EndCapture() const -> Graph;
 
-  /// @brief End stream capture and update the graph that was passed to
-  /// BeginCaptureToGraph. Use this instead of EndCapture() when using
-  /// BeginCaptureToGraph to avoid ownership issues.
-  /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
+  // Updates the graph passed to BeginCaptureToGraph; avoids ownership issues.
   GCXX_FH auto EndCaptureToGraph(const GraphView& graph) const -> void;
 
 #if GCXX_CUDA_MODE()

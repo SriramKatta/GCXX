@@ -12,10 +12,7 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █            Impl of std::size and std::data             █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-// TODO : make a snesible implementation for both host and device compatibility
+// TODO: Sensible implementations for both host and device compatibility
 
 template <class C>
 GCXX_FHDC auto data(C& c) {
@@ -57,26 +54,23 @@ GCXX_FHDC std::size_t size(const T (&)[N]) noexcept {  // NOLINT
   return N;
 }
 
-// TODO : C++ 20 has this implemented so have the conditional compilation
-//  ---- detection for pointer_traits<T>::to_address ----
+// TODO: C++20 has pointer_traits<T>::to_address detection built in.
 template <class T>
 GCXX_CONCEPT has_ptr_traits_to_address_v =
   GCXX_REQUIRES_EXPR((T), const T& p)(std::pointer_traits<T>::to_address(p));
 
-// ---- overload 1: raw pointers ----
 template <class T>
 GCXX_FHDC T* to_address(T* p) noexcept {
   static_assert(!std::is_function_v<T>);
   return p;
 }
 
-// ---- overload 2: fancy pointers ----
 template <class T>
 GCXX_FHDC auto to_address(const T& p) noexcept {
   if constexpr (has_ptr_traits_to_address_v<T>)
     return std::pointer_traits<T>::to_address(p);
   else {
-#if GCXX_DEVICE_COMPILE  // TODO : implement properly
+#if GCXX_DEVICE_COMPILE  // TODO: Implement properly.
     return nullptr;
 #else
     return to_address(p.operator->());  // recurse, not std::

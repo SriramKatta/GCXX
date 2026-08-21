@@ -34,45 +34,23 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PinnedMemPoolView: a non-owning pinned host memory pool. Does NOT own the
-// underlying cudaMemPool_t; the caller must keep the pool alive longer than the
-// view. Copyable (shallow handle copy), so it can back a buffer. Pinned memory
-// is reachable from both host and device, so it advertises both.
-// ─────────────────────────────────────────────────────────────────────────────
+// Non-owning view; caller must keep the pool alive longer than the view.
 class PinnedMemPoolView : public MemPoolView {
  public:
-  /// Pinned memory is always host- and device-visible.
+  // Pinned memory is always host- and device-visible.
   using properties = TypeSet<device_accessible, host_accessible>;
 
   GCXX_FH explicit PinnedMemPoolView(driver::deviceMemPool_t pool) noexcept
       : MemPoolView(pool) {}
 
-  // Block `PinnedMemPoolView{0}` / `{nullptr}`, which would otherwise
-  // null-pointer-convert into the explicit handle ctor above and silently build
-  // a null-handle view (the base's deleted nullptr_t ctor does not catch int
-  // 0).
+  // Blocks {0}/{nullptr} silently building a null-handle view.
   PinnedMemPoolView(int)            = delete;
   PinnedMemPoolView(std::nullptr_t) = delete;
 
 #if GCXX_HIP_MODE()
-  // ─────────────────────────────────────────────────────────────────────────
-  // HIP pinned-pool shim
-  //
-  // ROCm cannot back a pinned pool with a real hipMemPool_t: hipMemPoolCreate
-  // rejects hipMemLocationTypeHost ("invalid argument"), and there is no
-  // runtime API for a default host pool. The shim instead routes (de)allocation
-  // through hipMallocHost / hipFreeHost (the synchronous ROCm equivalent of a
-  // stream-ordered pinned pool) and carries no pool handle. Pool-management ops
-  // (trim_to / attribute) are unsupported — there is no pool to manage on HIP.
-  // The stream argument is accepted for API parity but ignored: hipMallocHost
-  // is synchronous because no stream-ordered host pool exists on ROCm.
-  // ─────────────────────────────────────────────────────────────────────────
-  /// Tag type selecting the no-handle shim constructor (HIP only).
+  // HIP shim: ROCm has no host hipMemPool_t; routes through hipMallocHost.
   struct hip_shim_handle_t {};
 
-  /// Build a pinned view with no underlying pool (allocations use
-  /// hipMallocHost).
   GCXX_FH explicit PinnedMemPoolView(hip_shim_handle_t) noexcept
       : MemPoolView(driver::deviceMemPool_t{}) {}
 
@@ -112,38 +90,19 @@ class PinnedMemPoolView : public MemPoolView {
 #endif  // GCXX_HIP_MODE()
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PinnedMemPool: an owning pinned host memory pool. Creates a cudaMemPool_t at
-// a host location and destroys it on destruction, then grants read/write access
-// from every device (matching CCCL) so its allocations can be used in peer
-// transfers without further setup. Non-copyable, non-movable;
-// transfer the handle via release() / from_native_handle(). Satisfies
-// resource_with but cannot back a buffer directly (not copyable) — use
-// as_ref().
-// ─────────────────────────────────────────────────────────────────────────────
+// Owning pinned pool; non-copyable, so back buffers via as_ref().
 struct PinnedMemPool : PinnedMemPoolView {
   using reference_type = PinnedMemPoolView;
 
-  /// Construct an empty pool with no underlying handle.
   GCXX_FH explicit PinnedMemPool(no_init_t) noexcept
       : PinnedMemPoolView(driver::deviceMemPool_t{}) {}
 
 #if GCXX_HIP_MODE()
-  /// HIP has no host memory pool: build the hipMallocHost-backed shim view.
-  /// `props` (size/threshold/handle) have no pool to apply to and are ignored.
+  // Props are ignored: HIP has no host pool to configure.
   GCXX_FH PinnedMemPool(memory_pool_properties /*props*/ = {})
       : PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{}) {}
 #else
-  /// Create a pinned pool on the generic host location.
-  ///
-  /// Always uses cudaMemLocationTypeHost, never a specific HostNuma node:
-  /// HostNuma only allocates on the GPU's own local NUMA node and returns a
-  /// misleading "out of memory" for every other node, so binding to a
-  /// caller-chosen id is a portable foot-gun. The generic Host location works
-  /// on every node — CUDA lets the OS first-touch policy place the pages
-  /// (steerable via numactl). cudaMemPoolCreate at a Host location has existed
-  /// since CUDA 11.2, so this single ctor is universal across the 12.8+ minimum
-  /// (and mirrors the HIP shim's default ctor).
+  // Generic Host location on purpose; HostNuma ids are a portability trap.
   GCXX_FH PinnedMemPool(memory_pool_properties props = {})
       : PinnedMemPoolView(
           create_memory_pool(flags::MemLocation::Host, /*location_id=*/0,
@@ -161,21 +120,18 @@ struct PinnedMemPool : PinnedMemPoolView {
     }
   }
 
-  /// Adopt an existing cudaMemPool_t without creating a new one.
   GCXX_FH static auto from_native_handle(driver::deviceMemPool_t pool) noexcept
     -> PinnedMemPool {
     return PinnedMemPool(pool);
   }
 
-  /// Relinquish ownership of the handle and return it (pool left empty).
-  // std::exchange is not constexpr until C++20
+  // Hand-rolled instead of std::exchange: not constexpr until C++20.
   GCXX_FH constexpr auto release() noexcept -> driver::deviceMemPool_t {
     auto old = m_pool_;
     m_pool_  = nullptr;
     return old;
   }
 
-  /// A non-owning ref to this pool (the buffer-compatible view).
   GCXX_FH auto as_ref() noexcept -> PinnedMemPoolView& {
     return static_cast<PinnedMemPoolView&>(*this);
   }

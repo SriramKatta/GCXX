@@ -24,48 +24,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Batched matrix-matrix product C_i = alpha * op(A_i) * op(B_i) + beta * C_i,
-// where each A_i, B_i, C_i is a rank-2 mdspan and the operands are span-like
-// HOST arrays (gcxx::span, std::vector, ...) of those views — the batch
-// matrices may live at unrelated device addresses, which is exactly what the
-// cu/hipblasGemmBatchedEx pointer-array entry point is for. The entry point
-// dereferences the pointer arrays on the DEVICE, so the wrapper stages them
-// into stream-ordered device memory before the call. For matrices that share
-// one contiguous buffer with a uniform batch stride, use
-// gemm_strided_batched instead: it passes (base, stride) straight through
-// with no per-call pointer materialisation.
-//
-// NOT part of P1673R13 proper (batching is the P2901 follow-up, whose
-// pure-mdspan design gains the batch dimension instead of taking host arrays
-// of views); kept as a cu/hipBLAS extension with its BLAS-style alpha/beta
-// parameters.
-//
-// The per-batch dimensions, leading dimensions, and transpose state are
-// inferred from the mdspan metadata of the first element of each array and
-// runtime-checked against the remaining elements (the backend takes a single
-// m/n/k/ld/op for the whole batch, so every element must agree). As with
-// matrix_product, the mathematical result C_i = A_i * B_i holds for ANY mix
-// of operand layouts: when the C_i are row-major-like the dispatch presents
-// the transposed problem to the column-major backend.
-//
-// Example:
-//   std::vector<mat2d> aViews{...}, bViews{...}, cViews{...};
-//   gcxx::blas::gemm_batched(h, 1.0, aViews, bViews, 0.0, cViews);
-//
-// alpha/beta are host scalars only: the entry point reads them (but not the
-// pointer arrays, which live in device memory) in host pointer mode, which
-// this wrapper sets up, so device_scalar arguments are rejected at compile
-// time.
-//
-// The integer interface is selected from the elements' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasGemmBatchedEx_64 entry
-// point, while all other index_types use the standard 32-bit interface.
-//
-// Every matrix element must be a device view (gcxx::device_mdspan /
-// gcxx::managed_mdspan). The HOST arrays holding the views are plain host
-// containers by design; the gate applies to the matrices they contain. In
-// check builds each matrix's data handle is probed at run time so a
-// mislabeled host pointer fails here, not inside the GPU kernel.
+// Batched C_i = A_i*B_i from host arrays of views (pointer-array API).
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::value_type::element_type>
 auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
@@ -108,9 +67,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     "gemm_batched requires host pointer mode (its pointer arrays live in "
     "host memory), so alpha/beta must be host scalars");
 
-  // every array must hold the same number of matrices, checked BEFORE any
-  // element is accessed: reading [0] of an empty or shorter array (e.g. an
-  // empty std::vector) is undefined behaviour
+  // All arrays must hold the same matrix count; checked before any access.
   if (a.size() != b.size() || a.size() != c.size()) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
@@ -126,9 +83,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   // arrays materialised below and the alpha/beta scalars are host memory.
   details_::BlasPointerModeGuard guard{h, false};
 
-  // extract problem dimensions from the first element of each array; the
-  // remaining elements must agree because the backend takes a single
-  // m/n/k/ld/op for the whole batch
+  // Extract dims from array[0]; all elements must agree (one m/n/k/ld/op).
   const auto [m, k, ld_a, op_a]   = details_::infer_blas_matrix_view(a[0]);
   const auto [k_b, n, ld_b, op_b] = details_::infer_blas_matrix_view(b[0]);
   const auto out                  = details_::infer_blas_output_view(c[0]);
@@ -156,13 +111,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     }
   }
 
-  // materialise the pointer arrays the entry point consumes: one device
-  // pointer per matrix, gathered from each mdspan view (probing each handle
-  // on the way — no-op unless checks are enabled). cu/hipBLAS dereference
-  // these arrays ON THE DEVICE, so they must be staged into device memory;
-  // the stream-ordered allocation below frees them only after the batched
-  // call has run, and the upload shares the handle's stream so it is ordered
-  // before it.
+  // Stage pointer arrays to device memory; backend dereferences them there.
   const gcxx::StreamView stream = h.getStream();
   std::vector<const void*> a_ptrs(a.size());
   std::vector<const void*> b_ptrs(a.size());
@@ -204,15 +153,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
 
   driver::deviceBlasStatus_t status{};
 #if GCXX_HIP_MODE()
-  // rocBLAS's type-erased GemmBatchedEx pointer-array entry point page-faults
-  // the GPU on double-precision batches ("Memory access fault ... Page not
-  // present", observed on an IHPC HIP node with all-column-major operands),
-  // while the same problem through the strided entry point and through the
-  // classic typed batched gemm runs fine. cuBLAS exposes no typed
-  // gemmBatched in cublas_v2, so HIP routes to hipblas<S,D>gemmBatched and
-  // CUDA keeps the Ex call; the two entry points are argument-compatible
-  // apart from the type-erasure parameters. Both consume the pointer arrays
-  // staged into device memory above.
+  // HIP: typed batched gemm (rocBLAS Ex page-faults); CUDA keeps the Ex call.
   GCXX_BLAS_DISPATCH_TYPED(
     status, AIt, AVt, gemmBatched, h.getRawHandle(), first_op, second_op, m_arg,
     n_arg, k, &alpha, reinterpret_cast<const AVt* const*>(first_ptrs), first_ld,

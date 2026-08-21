@@ -22,10 +22,7 @@ template <class IdxT>
 inline constexpr bool uses_64bit_interface_v =
   std::is_same_v<IdxT, std::int64_t>;
 
-// Element types accepted by the BLAS operations. Centralized so widening the
-// set later (cf32_t/cf64_t once C/Z dispatch branches exist, then f16_t/bf16_t)
-// is a one-line change here. f32_t/f64_t are gcxx aliases for float/double, so
-// this matches exactly the set the per-op static_asserts gated before.
+// Centralized so widening the accepted element set is a one-line change.
 template <class ElemT>
 inline constexpr bool is_supported_blas_element_v =
   std::is_same_v<ElemT, gcxx::f32_t> || std::is_same_v<ElemT, gcxx::f64_t>;
@@ -33,8 +30,7 @@ inline constexpr bool is_supported_blas_element_v =
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
 
-// for version that have have no type-erased Ex extry point like cublasgemmex
-// cublasaxpyex etc etc
+// For ops with no type-erased Ex entry point (e.g. cublasGemmEx/AxpyEx).
 #define GCXX_BLAS_DISPATCH_INT64(OUT, IDX_TYPE, FN, ...)                    \
   do {                                                                      \
     if constexpr (gcxx::blas::details_::uses_64bit_interface_v<IDX_TYPE>) { \

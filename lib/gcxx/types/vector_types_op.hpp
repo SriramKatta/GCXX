@@ -15,7 +15,6 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 namespace impl {
   template <int N>
   struct vec_op_impl {
-    //  for vector ⊗ vector  where scalar is on the left
     template <typename V, typename Op>
     GCXX_FHDC static V apply_componentwise(const V& a, const V& b, Op op) {
       V result{};
@@ -32,7 +31,6 @@ namespace impl {
       return result;
     }
 
-    //  for vector ⊗ scalar  where scalar is on the left
     template <typename V, typename S, typename Op>
     GCXX_FHDC static V apply_scalar(const V& v, S scalar, Op op) {
       V result{};
@@ -49,7 +47,6 @@ namespace impl {
       return result;
     }
 
-    //  for scalar ⊗ vector  where scalar is on the left
     template <typename V, typename S, typename Op>
     GCXX_FHDC static V apply_scalar_left(S scalar, const V& v, Op op) {
       V result{};
@@ -81,7 +78,6 @@ namespace impl {
       return a;
     }
 
-    //  for vector ⊗ scalar  where scalar is on the left
     template <typename V, typename S, typename Op>
     GCXX_FHDC static V& apply_inplace_scalar(V& v, const S scalar, Op op) {
       v.x = op(v.x, scalar);
@@ -203,15 +199,6 @@ using binary_vec_result_t = std::conditional_t<is_vectype_v<LHS>, LHS, RHS>;
 
 GCXX_NAMESPACE_MAIN_DETAILS_END()
 
-/**
- * @brief
- * unary plus over load the vecdata type is always maintained
- * @tparam LHS
- * @tparam RHS
- * @param lhs
- * @param rhs
- * @return gcxx::details_::binary_vec_result_t<LHS, RHS>
- */
 GCXX_TEMPLATE(typename LHS, typename RHS)
 GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator+(const LHS& lhs, const RHS& rhs)
@@ -298,10 +285,7 @@ GCXX_FHDC auto operator%=(LHS& lhs, const RHS& rhs) -> LHS& {
   return apply_inplace_dispatch(lhs, rhs, remainder{});
 }
 
-// TODO : implement expression templates to prevent creation of temporary for
-// more complex refrence slides and talk
-// https://www.youtube.com/watch?v=4IUCBx5fIv0
-// https://github.com/CppCon/CppCon2019/blob/master/Presentations/expression_templatesfor_efficient_generic_finance_code/expression_templatesfor_efficient_generic_finance_code__bowie_owens__cppcon_2019.pdf
+// TODO: Use expression templates to avoid temporaries (CppCon 2019 talk).
 
 
 #endif

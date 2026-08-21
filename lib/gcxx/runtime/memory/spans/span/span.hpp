@@ -33,11 +33,8 @@ class restrict_span;
 
 GCXX_NAMESPACE_DETAILS_BEGIN()
 
-// ╔════════════════════════════════════════════════════════╗
-// ║               SpanLike detection traits                ║
-// ╚════════════════════════════════════════════════════════╝
+// SpanLike detection traits; primary template = not span-like.
 
-// Primary: not span-like.
 template <typename T, typename = void>
 struct is_span_like_impl : std::false_type {};
 
@@ -63,11 +60,7 @@ struct is_span_like_impl<T, std::void_t<decltype(std::declval<T&>().data()),
         std::is_pointer_v<decltype(std::declval<T&>().data())> &&
         std::is_integral_v<decltype(std::declval<T&>().size())>> {};
 
-// std::remove_pointer does not strip __restrict__: a restrict-qualified
-// pointer (e.g. restrict_span's data_handle_type = VT* __restrict__) is a
-// distinct type that libstdc++'s remove_pointer leaves untouched. Without
-// this, span_element_t<restrict_span<T>> would yield the *pointer* type and
-// sizeof(span_element_t<...>) would report pointer-size, not element-size.
+// std::remove_pointer keeps __restrict__-qualified pointers, so strip here.
 template <typename T>
 struct strip_pointer : std::remove_pointer<T> {};
 template <typename T>
@@ -77,9 +70,7 @@ struct strip_pointer<T * GCXX_RESTRICT_KEYWORD()> {
 template <typename T>
 using strip_pointer_t = typename strip_pointer<T>::type;
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                      Span Storage                      █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+// Span Storage.
 
 template <typename VT, std::size_t Extent>
 struct span_storage : size_holder<Extent> {
@@ -106,8 +97,7 @@ struct span_storage : size_holder<Extent> {
   data_handle_type start{nullptr};
 };
 
-// CAN'T US CRTP since it would discard the RESTRIC_KEYWORD
-// https://godbolt.org/z/qb5vq7sh9
+// CRTP would discard __restrict__; see godbolt.org/z/qb5vq7sh9.
 template <typename VT, std::size_t Extent>
 struct restrict_span_storage : size_holder<Extent> {
   using data_handle_type = VT* GCXX_RESTRICT_KEYWORD();
@@ -141,9 +131,7 @@ template <class VT, std::size_t Extent,
           template <typename, std::size_t> class span_view_base>
 class span_base {
  private:
-  // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-  // █                     Static Asserts                     █
-  // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+  // Static Asserts.
   static_assert(std::is_object_v<VT>,
                 "A reference is not supported,"
                 " need a fully declared type");
@@ -158,9 +146,7 @@ class span_base {
   using data_handle_type = typename storage_type::data_handle_type;
 
  public:
-  // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-  // █                      Nested Types                      █
-  // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+  // Nested Types.
   using element_type    = VT;
   using value_type      = std::remove_cv_t<element_type>;
   using size_type       = std::size_t;
@@ -170,22 +156,13 @@ class span_base {
   using reference       = element_type&;
   using const_reference = const element_type&;
 
-  // the span itself makes no accessibility claim (it can view host or device
-  // memory), so the iterator carries host_accessible + device_accessible —
-  // dereference is tagged for both spaces. Restricting further requires the
-  // underlying buffer's heterogeneous_iterator (buffer::first/last/subspan
-  // style).
+  // Iterator tags both spaces; the span itself makes no accessibility claim.
   using iterator =
     heterogeneous_iterator<element_type, host_accessible, device_accessible>;
   using reverse_iterator            = gcxx::reverse_iterator<iterator>;
   static constexpr size_type extent = Extent;
 
-  // █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-  // █                    Member Function                     █
-  // █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-  // ==========================================================
-  //                        Constructors
-  // ==========================================================
+  // Constructors.
   GCXX_TEMPLATE(std::size_t E = Extent)
   GCXX_REQUIRES(E == 0 || E == gcxx::dynamic_extent)
   GCXX_FHDC span_base() GCXX_NOEXCEPT {};  // NOLINT
@@ -329,21 +306,15 @@ class span_base {
       "span.ctor from a source span of diffrent storage type failed");
   }
 
-  // ==========================================================
-  //                         destructor
-  // ==========================================================
+  // Destructor.
 
   GCXX_FHD ~span_base() = default;
 
-  // ==========================================================
-  //                         operator =
-  // ==========================================================
+  // Operator =.
 
   GCXX_CXPR auto operator=(const Self&) GCXX_NOEXCEPT->Self& = default;
 
-  // ==========================================================
-  //                         Iterators
-  // ==========================================================
+  // Iterators.
 
   GCXX_FHDC auto begin() GCXX_CONST_NOEXCEPT -> iterator {
     return iterator(data());
@@ -361,9 +332,7 @@ class span_base {
     return reverse_iterator(begin());
   }
 
-  // ==========================================================
-  //                       Element access
-  // ==========================================================
+  // Element access.
 
   GCXX_FHDC auto front() const -> reference { return m_storage[0]; }
 
@@ -378,9 +347,7 @@ class span_base {
     return m_storage.data();
   }
 
-  // ==========================================================
-  //                         Observers
-  // ==========================================================
+  // Observers.
 
   GCXX_FHDC auto size() GCXX_CONST_NOEXCEPT -> size_type {
     return m_storage.size();
@@ -394,9 +361,7 @@ class span_base {
     return size() == 0;
   }
 
-  // ==========================================================
-  //                          subviews
-  // ==========================================================
+  // Subviews.
 
   using spanview_base_dext = span_view_base<element_type, gcxx::dynamic_extent>;
 
@@ -463,9 +428,6 @@ class span_base {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                          Span                          █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class span
     : public details_::span_base<VT, Extent, details_::span_storage, span> {
@@ -475,9 +437,6 @@ class span
  public:
   using Base::Base;
 };
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                 Span Deduction guides                  █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class It, class EndOrSize>
 span(It, EndOrSize)
   -> span<std::remove_reference_t<gcxx::details_::iter_reference_t<It>>>;
@@ -496,9 +455,6 @@ span(R&&)
   -> span<
     std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █                     Restrcit Span                      █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class restrict_span
     : public details_::span_base<VT, Extent, details_::restrict_span_storage,
@@ -510,9 +466,6 @@ class restrict_span
  public:
   using Base::Base;
 };
-// █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-// █             Restrcit Span Deduction guides             █
-// █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 template <class It, class EndOrSize>
 restrict_span(It, EndOrSize)
   -> restrict_span<
@@ -532,26 +485,20 @@ restrict_span(R&&)
   -> restrict_span<
     std::remove_pointer_t<decltype(gcxx::details_::data(std::declval<R&>()))>>;
 
-// ╔════════════════════════════════════════════════════════╗
-// ║           Public span-like concept and helpers         ║
-// ╚════════════════════════════════════════════════════════╝
+// Public span-like concept and helpers.
 
-/// Element type of any span-like type: the pointee of .data().
-/// Works with references and cv-qualified types.
+// Pointee of .data(); works with references and cv-qualified types.
 template <typename T>
 using span_element_t = details_::strip_pointer_t<decltype(details_::data(
   std::declval<details_::remove_cvref_t<T>&>()))>;
 
-/// True for any T that exposes .data() → pointer and .size() → integral.
-/// Satisfied by gcxx::span, gcxx::restrict_span, std::span, std::vector,
-/// std::array, and any user type with those two members.
+// True if T exposes .data() -> pointer and .size() -> integral.
 template <typename T>
 GCXX_CONCEPT is_span_like_v =
   details_::is_gcxx_span_specialization_v<T> ||
   details_::is_span_like_impl<details_::remove_cvref_t<T>>::value;
 
-/// True when T is span-like and its element type is array-convertible to ET.
-/// Use this to constrain Copy, kernel launch, or other generic range APIs.
+// Span-like T whose element type converts to ET (Copy/launch constraint).
 template <typename T, typename ET>
 GCXX_CONCEPT is_compatible_span_v =
   is_span_like_v<T> &&

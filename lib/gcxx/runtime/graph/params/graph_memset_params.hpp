@@ -64,7 +64,7 @@ class MemsetParams : public MemsetParamsView {
     m_params.height      = height;
   }
 
-  // Disable move/copy to ensure params_ remains stable
+  // Disable move/copy to ensure params_ remains stable.
   MemsetParams(const MemsetParams&)           = delete;
   MemsetParams operator=(const MemsetParams&) = delete;
 
@@ -125,7 +125,7 @@ class MemsetParamsBuilder {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-// helper to simplify usage
+// Helper to simplify usage.
 GCXX_FH auto MemsetParamsBuilder() -> details_::MemsetParamsBuilder {
   return details_::MemsetParamsBuilder::create();
 }

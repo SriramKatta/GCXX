@@ -11,11 +11,7 @@
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
-// ScalingFactor * Reference when that expression is well-formed, else the
-// nested reference unchanged. The fallback keeps
-// scaled_accessor<DeviceFactor, ...> instantiable when the factor is not
-// host-multipliable (e.g. a device-resident scalar, whose value cannot be
-// read on the host).
+// Falls back to Reference when factor*ref is ill-formed (device scalars).
 template <class ScalingFactor, class Reference, class = void>
 struct scaled_reference {
   using type = Reference;
@@ -29,8 +25,6 @@ struct scaled_reference<ScalingFactor, Reference,
     decltype(std::declval<ScalingFactor>() * std::declval<Reference>());
 };
 
-// Whether ScalingFactor * Reference is a well-formed expression (i.e.
-// scaled_reference did NOT fall back).
 template <class ScalingFactor, class Reference, class = void>
 struct is_host_multiplicable : std::false_type {};
 
@@ -48,24 +42,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// scaled_accessor<ScalingFactor, NestedAccessor> wraps an mdspan accessor and
-// scales every element it hands out, implementing P1673R13's scaled(alpha, x)
-// view. Consumers that hand operands to element-wise backends (the gcxx::blas
-// operations) unwrap the factor at dispatch time instead of reading elements
-// through it, so no extra pass is launched.
-//
-// Differences from the P1673 spec, both forced by gcxx::mdspan (the vendored
-// Kokkos reference implementation static-asserts that the mdspan's element
-// type equals accessor::element_type):
-//   - element_type stays the NESTED accessor's element type instead of the
-//     alpha*element product type; the factor is only virtual.
-//   - reference falls back to the nested reference when ScalingFactor *
-//     nested-reference is ill-formed (e.g. a device-resident factor that
-//     cannot be applied on the host). Element access through such a view is
-//     static_asserted away in access().
-//
-// It composes with the memory-space accessors: wrapping a device view keeps
-// it a device view (via the gcxx::is_device_view_v specializations below).
+// P1673-style scaled(alpha,x) view; blas unwraps the factor at dispatch.
 template <class ScalingFactor, class NestedAccessor>
 struct scaled_accessor : public NestedAccessor {
   static_assert(std::is_object_v<typename NestedAccessor::element_type>,
@@ -120,15 +97,7 @@ template <class ScalingFactor, class NestedAccessor>
 GCXX_CXPR inline bool
   is_scaled_accessor_v<scaled_accessor<ScalingFactor, NestedAccessor>> = true;
 
-// scaled(alpha, x) returns a view of x whose elements read as alpha * x_i.
-// The mapping and the underlying data handle are forwarded unchanged, so the
-// view has the same problem geometry as x and consumers simply recover alpha
-// from the accessor. alpha may be any host-multipliable scalar, or a
-// non-host-multipliable factor type (e.g. a device-resident scalar) when the
-// consumer resolves it itself — see the accessor notes above.
-//
-// Example:
-//   gcxx::blas::matrix_vector_product(h, gcxx::scaled(2.0, A), x, y);
+// Elements read as alpha*x_i; mapping/handle unchanged, alpha in accessor.
 GCXX_TEMPLATE(class ScalingFactor, class T, class Extents, class Layout,
               class Accessor)
 GCXX_REQUIRES(std::is_object_v<T>)
@@ -139,10 +108,7 @@ constexpr auto scaled(ScalingFactor alpha,
     scaled_accessor<ScalingFactor, Accessor>{alpha, x.accessor()});
 }
 
-// strip_scaled(x) removes ONE scaled_accessor layer, returning the unmodified
-// base view (identity for views that were never scaled). Consumers that
-// forward a scaled addend's factor as a separate scalar argument use this to
-// hand the base view to a second call.
+// Removes one scaled layer; identity for unscaled views.
 template <class T, class Extents, class Layout, class ScalingFactor,
           class Nested>
 constexpr auto strip_scaled(
@@ -161,12 +127,7 @@ constexpr auto strip_scaled(
 
 GCXX_NAMESPACE_MAIN_END()
 
-// is_device_view_v / is_host_view_v must see through the (two-parameter)
-// scaled_accessor wrapper: the generic propagation partial specialization in
-// host_device_accessor.hpp only matches single-parameter wrappers, so without
-// these specializations every device-view gate (e.g. the gcxx::blas operand
-// checks) would reject scaled views. Declared at gcxx scope, the nearest
-// enclosing namespace of the primary templates.
+// Generic trait propagation only fits 1-param wrappers, hence these.
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 template <class ScalingFactor, class NestedAccessor>

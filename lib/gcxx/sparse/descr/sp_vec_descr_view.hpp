@@ -26,9 +26,7 @@ class SpVecDescrView {
 
   GCXX_FHC explicit SpVecDescrView(deviceSpVecDescr_t descr) noexcept;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Introspection                      ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Introspection.
 
   GCXX_FH auto getValues() const -> void*;
 
@@ -36,9 +34,7 @@ class SpVecDescrView {
 
   GCXX_FHC auto getRawHandle() const noexcept -> deviceSpVecDescr_t;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                      Comparison                        ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Comparison.
   GCXX_FHC auto operator==(const SpVecDescrView& rhs) const noexcept -> bool;
   GCXX_FHC auto operator!=(const SpVecDescrView& rhs) const noexcept -> bool;
 };

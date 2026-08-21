@@ -19,40 +19,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Dot product result = x . y, in the P1673R13 dot shapes.
-//
-// Three overloads:
-//   dot(h, x, y)                    -> result, synchronizes the handle's
-//                                      stream before returning
-//   dot(h, x, y, init)              -> init + x . y (host-side accumulation,
-//                                      also synchronizes)
-//   dot(h, x, y, device_scalar<R>)  -> void; writes the result to the wrapped
-//                                      device pointer asynchronously (device
-//                                      pointer mode), no synchronization
-//
-// The returning forms are P1673R13's interface; a GPU backend cannot return
-// an asynchronously computed scalar, so they block on the stream first. The
-// device_scalar form is gcxx's asynchronous counterpart (P1673R13 explicitly
-// excludes asynchronous scalar results); unlike the raw-pointer form it once
-// replaced, the storage space is carried by the argument type instead of
-// depending on the handle's ambient pointer mode.
-//
-// x and y are rank-1 mdspans; the length n and the increments (incx, incy)
-// are inferred from the mdspan metadata. The type-erased cu/hipblasDotEx
-// entry point is used, with the data-type and execution-type enums derived
-// from the element type. Each operand is typed as a gcxx::mdspan in the
-// signature, so wrong-rank (or non-mdspan) arguments fail overload
-// resolution.
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasDotEx_64 entry point,
-// while all other index_types use the standard 32-bit interface.
-//
-// x and y must be device views: mdspans carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
-// rejected at compile time; in check builds the data handles are
-// additionally probed at run time so a mislabeled host pointer fails here,
-// not inside the GPU kernel.
+// dot: returning forms sync the stream; the device_scalar form is async.
 namespace dot_impl_ {
   GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
                 class TY, class ExtentsY, class LayoutY, class AccessorY,
@@ -132,9 +99,7 @@ auto dot(BlasHandleView h,
   return result;
 }
 
-// Returning form with accumulation: dot(h, x, y, init) -> init + x . y
-// (synchronizes; the accumulation happens on the host, matching P1673R13's
-// init semantics).
+// Returning form with host-side accumulation (synchronizes): init + x . y.
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY,
               class R = TX)
@@ -147,9 +112,7 @@ auto dot(BlasHandleView h,
   return init + result;
 }
 
-// Asynchronous form: dot(h, x, y, device_scalar<R>) writes the result to the
-// wrapped device pointer on the handle's stream (device pointer mode; the
-// handle's prior mode is restored on return).
+// Async form: writes the result to the device_scalar pointer (device mode).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY,
               class R = TX)

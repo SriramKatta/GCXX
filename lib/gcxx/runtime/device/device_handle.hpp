@@ -28,15 +28,15 @@ class DeviceHandle {
 
   GCXX_FH auto getDeviceProp() const -> driver::deviceProp_t;
 
-  /// Read a typed device attribute scoped to this handle's device.
+  // Read a typed device attribute scoped to this handle's device.
   template <typename Attr>
   GCXX_FH auto attribute(Attr attr) const -> typename Attr::type;
 
-  /// Read a typed device limit (makes this handle's device current first).
+  // Read a typed device limit (makes this handle's device current first).
   template <typename Lim>
   GCXX_FH auto limit(Lim lim) const -> typename Lim::type;
 
-  /// Write a typed device limit (makes this handle's device current first).
+  // Write a typed device limit (makes this handle's device current first).
   template <typename Lim>
   GCXX_FH auto set_limit(Lim lim, typename Lim::type value) const -> void;
 

@@ -5,8 +5,10 @@ set(SRC_BASE_NAMES
     test_blas_gemv
     test_blas_pointer_mode
     test_blas_l1
+    test_blas_l2
     test_blas_geam_dgmm
     test_blas_gemm_batched
+    test_blas_l3_symmetric_triangular
 )
 
 foreach(SRC_BASE_NAME IN LISTS SRC_BASE_NAMES)

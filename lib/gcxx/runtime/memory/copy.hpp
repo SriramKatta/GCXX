@@ -14,9 +14,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ╔════════════════════════════════════════════════════════╗
-// ║    smart / raw pointer version based on element type   ║
-// ╚════════════════════════════════════════════════════════╝
+// Copy via smart/raw pointers.
 GCXX_TEMPLATE(typename Ptr1, typename Ptr2)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr1> GCXX_AND
                 details_::is_pointer_or_has_get_v<Ptr2>)
@@ -45,9 +43,7 @@ GCXX_FH auto Copy(const StreamView& stream, Ptr1&& destination, Ptr2&& source,
                           numElements * sizeof(VT1), stream.getRawHandle());
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║  works on any type that can be converted into a span   ║
-// ╚════════════════════════════════════════════════════════╝
+// Copy between span-like types.
 GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
 GCXX_REQUIRES(is_span_like_v<DSTTY> GCXX_AND is_span_like_v<SRCTY>)
 GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source) -> void {

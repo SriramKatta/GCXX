@@ -19,40 +19,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Matrix-matrix addition / transpose-copy C = alpha * op(A) + beta * op(B).
-//
-// NOT part of P1673R13 (matrix addition is element-wise and left to
-// std::ranges there); kept as a cu/hipBLAS extension with its BLAS-style
-// alpha/beta parameters. It also serves as the accumulate step of
-// matrix_product's 5-argument form.
-//
-// A, B, and C are rank-2 mdspan objects. The effective dimensions, the
-// leading dimensions, and the transpose state of each operand are inferred
-// from the mdspan metadata and any view wrappers (gcxx::transposed), so the
-// API takes no separate shape or operation arguments. The mathematical
-// result C = alpha * op(A) + beta * op(B) holds for ANY mix of operand
-// layouts: when C's storage is row-major-like, the dispatch presents the
-// transposed problem (flipped op flags, swapped m/n) to the column-major
-// backend.
-//
-// Example:
-//   gcxx::blas::geam(h, 1.0, A, 0.0, B, C);    // computes C = A
-//   gcxx::blas::geam(h, 1.0, gcxx::transposed(A), 0.0, B, C);  // C = A^T
-//
-// alpha/beta may be passed either as host scalars (host pointer mode) or as
-// gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer
-// mode). The mode is selected per call from the argument type; the handle's
-// prior pointer mode is restored when the call returns.
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasSgeam_64 (Dgeam_64) entry
-// point, while all other index_types use the standard 32-bit interface.
-//
-// A, B, and C must be device views: mdspans carrying
-// gcxx::device_accessor / gcxx::managed_accessor (e.g. gcxx::device_mdspan).
-// Host views are rejected at compile time; in check builds the data handles
-// are additionally probed at run time so a mislabeled host pointer fails
-// here, not inside the GPU kernel.
+// C = alpha*op(A) + beta*op(B); cu/hipBLAS extension, not in P1673R13.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TC, class ExtentsC, class LayoutC, class AccessorC,
@@ -90,11 +57,7 @@ auto geam(BlasHandleView h, S alpha,
                 "geam alpha/beta value type must match the operands' element "
                 "type");
 
-  // TODO: support complex element types via cublasCgeam / cublasZgeam
-  //       (hipBLAS uses them natively). The dispatch macro below only handles
-  //       float and double; a std::complex<T> element type hits this assert
-  //       and must be wired up (add Cgeam/Zgeam branches to
-  //       GCXX_BLAS_DISPATCH_TYPED).
+  // TODO: Wire complex Cgeam/Zgeam into GCXX_BLAS_DISPATCH_TYPED.
   static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
                 "geam currently supports only float/double element types "
                 "(complex support is a TODO)");
@@ -132,10 +95,7 @@ auto geam(BlasHandleView h, S alpha,
                              a.data_handle(), ld_a, beta_ptr, b.data_handle(),
                              ld_b, c.data_handle(), out.leading_dimension);
   } else {
-    // C's storage is row-major-like: compute its transpose instead,
-    // C^T = alpha * op(A)^T + beta * op(B)^T (reading the same storage with
-    // a flipped op flag yields the transpose, so only the flags and m/n
-    // change).
+    // C row-major-like: compute C^T = alpha*op(A)^T + beta*op(B)^T instead.
     GCXX_BLAS_DISPATCH_TYPED(
       status, AIt, AVt, geam, h.getRawHandle(), details_::flip_blas_op(op_a),
       details_::flip_blas_op(op_b), out.cols, out.rows, alpha_ptr,

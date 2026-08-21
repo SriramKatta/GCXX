@@ -17,13 +17,8 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 
-// Debug-mode companion to the is_device_view_v compile-time gate: verifies at
-// run time (via cuda/hipPointerGetAttributes) that the operand's data handle
-// really points at device or managed memory, so a host pointer mislabeled as
-// a device view fails loudly at the BLAS call site instead of faulting
-// asynchronously inside the backend kernel. Compiles to nothing under
-// GCXX_DISABLE_RUNTIME_CHECKS.
-#ifndef GCXX_DISABLE_RUNTIME_CHECKS
+// Runtime check that operand pointers are truly device memory (opt-in).
+#ifdef GCXX_ENABLE_RUNTIME_CHECKS
 template <class MD>
 GCXX_FH auto validate_device_view(const MD& v, const char* name) -> void {
   if (!driver::isDeviceUsableMemory(v.data_handle())) {
@@ -78,8 +73,7 @@ struct blas_batched_matrix_view {
                     // blas_output_view)
 };
 
-// Resolve the BLAS view (leading dimension + op) based on unit stride on row or
-// coloum
+// Resolve ld+op from which axis has unit stride (row -> N, col -> T).
 template <class IdxT>
 constexpr auto infer_blas_op_view(IdxT s0, IdxT s1) -> blas_op_view<IdxT> {
   if (s0 == 1) {
@@ -92,10 +86,7 @@ constexpr auto infer_blas_op_view(IdxT s0, IdxT s1) -> blas_op_view<IdxT> {
                  "BLAS matrix operand must have a unit stride on one axis");
 }
 
-// Flip an op flag (N <-> T). Reading the same storage with the flipped flag
-// yields the transpose of reading it with the original flag; this is how the
-// transposed-output dispatches below present the transposed problem to the
-// column-major backend.
+// Flip N<->T; reading storage with the flipped flag yields the transpose.
 constexpr auto flip_blas_op(driver::deviceBlasOp_t op)
   -> driver::deviceBlasOp_t {
   return op == driver::deviceBlasOpN ? driver::deviceBlasOpT
@@ -117,7 +108,6 @@ constexpr auto infer_blas_matrix_view(const MD& v)
   return {v.extent(0), v.extent(1), ld, op};
 }
 
-// Infer the BLAS view (length + increment) of a rank-1 mdspan operand.
 template <class VD>
 constexpr auto infer_blas_vector_view(const VD& v)
   -> blas_vector_view<typename VD::index_type> {
@@ -132,20 +122,7 @@ constexpr auto infer_blas_vector_view(const VD& v)
   return {v.extent(0), v.stride(0)};
 }
 
-// Infer the BLAS view of a rank-3 batched-matrix mdspan operand whose batch
-// dimension is the FIRST one, i.e. extents (batch, rows, cols) — the
-// leftmost-batch convention of P1673R13's batched future work (P2901). The
-// inner rank-2 view of batch element 0 is resolved from the strides of axes
-// 1 and 2: a layout_right operand yields row-major matrices (op = T, plus
-// transposed = true for an OUTPUT operand) and a layout_stride packing the
-// matrices contiguously (batch outermost) column-major ones (op = N); the
-// batch stride is stride(0) either way. This matches how a single
-// cublasXgemmStridedBatchedEx pointer + stride covers the whole batch.
-//
-// A layout_left operand only works for batch <= 1: for batch > 1 the batch
-// axis is the unit-stride one (strides (1, batch, batch*rows)), interleaving
-// the inner matrices so neither matrix axis is dense — no (base, stride)
-// pair expresses that, so it is rejected below with a dedicated error.
+// Batch-first (batch, rows, cols); layout_left only works for batch <= 1.
 template <class MD>
 constexpr auto infer_blas_batched_matrix_view(const MD& v)
   -> blas_batched_matrix_view<typename MD::index_type> {
@@ -176,12 +153,9 @@ constexpr auto infer_blas_batched_matrix_view(const MD& v)
           v.stride(0), op,          transposed};
 }
 
-// ── scaled()-view factor resolution ────────────────────────────────────────
+// Scaled()-view factor resolution.
 
-// A resolved scalar multiplier for a BLAS call: either a host value or a
-// single device-side factor pointer. The P1673R13-shaped calls express alpha
-// via scaled(alpha, x) views; this is what the operations unwrap them into so
-// the backend's single alpha argument can be fed.
+// A resolved scalar multiplier: host value or one device-side factor pointer.
 template <class Sv>
 struct alpha_resolution {
   Sv host_value{1};
@@ -190,8 +164,7 @@ struct alpha_resolution {
   GCXX_CXPR bool from_device() const noexcept { return device_ptr != nullptr; }
 };
 
-// Resolve the scaling factor carried by an operand's accessor (none by
-// default, i.e. the identity factor 1).
+// Unwraps a scaled() factor into an alpha_resolution (identity by default).
 template <class Sv, class Accessor>
 constexpr auto resolve_scaled_alpha(const Accessor&) -> alpha_resolution<Sv> {
   return {};
@@ -212,9 +185,7 @@ constexpr auto resolve_scaled_alpha(
   }
 }
 
-// Fold one operand's factor into an accumulated resolution. Host factors
-// multiply freely; a device-resident factor must be the only non-unit factor
-// (it cannot be multiplied on the host, and the backend takes one scalar).
+// A device factor must be the sole non-unit factor (one backend alpha).
 template <class Sv>
 auto combine_scaled_alpha(alpha_resolution<Sv> total,
                           const alpha_resolution<Sv>& extra,
@@ -241,10 +212,7 @@ auto combine_scaled_alpha(alpha_resolution<Sv> total,
   return total;
 }
 
-// Whether two views cover exactly the same elements (same data handle and
-// same mapping) — used by the accumulate overloads to decide between the
-// backend's in-place beta path and a separate accumulation step. Views with
-// different mapping types never alias.
+// Same handle+mapping; picks in-place beta vs separate accumulation.
 template <class MD1, class MD2>
 constexpr auto views_alias(const MD1& e, const MD2& c) -> bool {
   if constexpr (std::is_same_v<typename MD1::mapping_type,
@@ -266,13 +234,7 @@ struct blas_output_view {
   bool transposed;         // unit stride on axis 1 (row-major-like storage)
 };
 
-// Orientation of a rank-2 BLAS OUTPUT. cu/hipBLAS write results in
-// column-major order, so an output whose unit stride is on axis 1 (a
-// row-major-like mapping, e.g. layout_right) would receive the TRANSPOSE of
-// the mathematical result. `transposed` flags that case; gemm-style callers
-// react by presenting the transposed problem to the backend (swapped operand
-// slots and m/n) so the mathematical contract C = A * B holds for every
-// operand layout, per P1673R13.
+// Flags row-major-like OUTPUTs that would store the column-major transpose.
 template <class MD>
 constexpr auto infer_blas_output_view(const MD& v)
   -> blas_output_view<typename MD::index_type> {

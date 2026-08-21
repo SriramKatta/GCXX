@@ -15,8 +15,7 @@
 #include <gcxx/macros/namespace_macros.hpp>
 #include <gcxx/macros/preprocessor_macros.hpp>
 
-// GCC < 14 cannot mangle noexcept expressions. See
-// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70790.
+// GCC < 14 cannot mangle noexcept expressions (gcc.gnu.org/bugzilla 70790).
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 14
 #define GCXX_HAS_NOEXCEPT_MANGLING() 0
 #else
@@ -34,15 +33,10 @@
 #include <concepts>
 #endif
 
-////////////////////////////////////////////////////////////////////////////////
-// Helper types backing the concept DSL (pre-C++20 SFINAE emulation in
-// particular). Mirrors CCCL's global __cccl_* helpers, placed in
-// gcxx::details_:: to match the existing requires_t alias.
-////////////////////////////////////////////////////////////////////////////////
-
+// Helper types for the concept DSL (SFINAE), mirroring CCCL __cccl_* helpers.
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
-// enable_if-style selection
+// enable_if-style selection.
 template <bool>
 struct select {};
 template <>
@@ -55,7 +49,7 @@ using enable_if_t = typename select<_Bp>::template type<_Tp>;
 template <class _Tp, bool _Bp>
 using requires_t = typename select<_Bp>::template type<_Tp>;
 
-// A lightweight type-list used to thread parameter packs through SFINAE probes.
+// Lightweight type-list threading parameter packs through SFINAE probes.
 template <class...>
 struct tag;
 
@@ -74,8 +68,7 @@ template <bool _Bp, enable_if_t<_Bp, int> = 0>
 inline constexpr int requires_ = 0;
 #endif
 
-// Never defined; only used in unevaluated decltype to manufacture a dependent
-// type. extern keeps the variable template from being defined.
+// Never defined; unevaluated decltype use; extern prevents a definition.
 template <class _Tp, class... _Args>
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 extern _Tp make_dependent;
@@ -84,43 +77,20 @@ template <class _Impl, class... _Args>
 using requires_expr_impl = decltype(make_dependent<_Impl, _Args...>);
 
 
-// Deliberate sink consumes a forwarding-ref to suppress unused-value warnings;
-// intentionally never forwarded.
+// Deliberate sink for forwarding refs; suppresses unused-value warnings.
 template <typename _Tp>
 // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 GCXX_FHDC void unused(_Tp&&) noexcept {}
 
 #if !GCXX_HAS_CONCEPTS()
-// In the pre-C++20 emulation path the _Same_as(TYPE) EXPR requirement form
-// needs a same_as<T, U> bool variable template (std::same_as is C++20-only).
-// The C++20 path uses ::std::same_as directly (see GCXX_CONCEPT_VSTD).
+// Pre-C++20 _Same_as needs bool same_as<T, U>; C++20 uses ::std (VSTD).
 template <class _Tp, class _Up>
 inline constexpr bool same_as = std::is_same_v<_Tp, _Up>;
 #endif
 
 GCXX_NAMESPACE_MAIN_DETAILS_END()
 
-////////////////////////////////////////////////////////////////////////////////
-// GCXX_TEMPLATE / GCXX_REQUIRES
-//
-// Usage (Template Constraints):
-//   GCXX_TEMPLATE(typename A, typename B)
-//     GCXX_REQUIRES( Concept1<A> GCXX_AND Concept2<B> )
-//   void foo(A a, B b)
-//   {}
-//
-// Usage (Trailing Return Type Constraints):
-//   template<typename T>
-//   auto bar(T x)
-//     GCXX_TRAILING_REQUIRES(<return_type>)( Concept<T> ){}
-//
-// Notes:
-// - Use GCXX_AND instead of && inside GCXX_REQUIRES.
-// - Works with C++20 concepts and pre-C++20 SFINAE.
-// - Trailing requires is useful when constraints depend on the return type.
-//
-////////////////////////////////////////////////////////////////////////////////
-
+// GCXX_TEMPLATE/GCXX_REQUIRES: portable constraints; use GCXX_AND not &&.
 #if GCXX_HAS_CONCEPTS()
 #define GCXX_TEMPLATE(...) template <__VA_ARGS__>
 #define GCXX_REQUIRES(...) \
@@ -142,59 +112,20 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT constexpr inline bool
 #endif
 
-////////////////////////////////////////////////////////////////////////////////
-// Concept-definition DSL
-//
-// GCXX_REQUIRES_EXPR / GCXX_CONCEPT_FRAGMENT / GCXX_FRAGMENT let a concept with
-// a requires-body be authored once and work on both C++20 and pre-C++20.
-//
-//   GCXX_CONCEPT equality_comparable =
-//     GCXX_REQUIRES_EXPR((T), T const& lhs, T const& rhs) (
-//       lhs == rhs,
-//       lhs != rhs
-//     );
-//
-// Permissible requirement forms (where ... may contain commas):
-//   EXPR
-//   (EXPR...)
-//   noexcept(EXPR...)
-//   requires(BOOL-EXPR...)
-//   typename(TYPE...)
-//   _Same_as(TYPE...) EXPR...
-//   _Satisfies(CONCEPT...) EXPR...
-//
-// _Same_as / _Satisfies are bare DSL keywords consumed by the macros below;
-// they are never defined as identifiers, so they do not pollute any namespace.
-////////////////////////////////////////////////////////////////////////////////
-
+// Concept DSL: authors a requires-body once for C++20 and pre-C++20.
 #if GCXX_HAS_CONCEPTS()
-// In the C++20 path, {EXPR} -> Concept<T> requires a real concept, so point at
-// ::std (std::same_as). CCCL additionally has an nvcc<12.2 workaround using an
-// unqualified namespace alias; GCXX's toolchain floor (CUDA 12.8) does not need
-// it.
+// {EXPR} -> Concept<T> needs a concept: point at ::std (CUDA 12.8 floor).
 #define GCXX_CONCEPT_VSTD ::std
 #endif
 
-// gcc < 10 complains about ignored [[nodiscard]] expressions when emulating
-// concepts; this macro discards the result of a required expression there.
+// gcc < 10 warns on ignored [[nodiscard]] required expressions; discard.
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 10
 #define GCXX_CONCEPT_IGNORE_RESULT_(...) static_cast<void>(__VA_ARGS__)
 #else
 #define GCXX_CONCEPT_IGNORE_RESULT_(...) __VA_ARGS__
 #endif
 
-// TL;D(W)R to prevent warning in test and consumer codes
-// The pre-C++20 SFINAE-emulation path generates probe functions referenced
-// only in unevaluated decltype; the NVIDIA compilers flag them #177-D
-// ("declared but never referenced"). They are silenced two ways, each used
-// where nvcc honors it:
-//   * CONCEPT_FRAGMENT's probe is a free function -> [[maybe_unused]] works.
-//   * REQUIRES_EXPR's probe (well_formed) is a static member template, for
-//     which nvcc ignores [[maybe_unused]] / __attribute__((unused)); it is
-//     wrapped with the _Pragma pair below. _Pragma is deliberately NOT used
-//     around CONCEPT_FRAGMENT -- that triggers an nvcc internal compiler error
-//     on non-trivial requirement lists. gcc/clang/hipcc never warn, so these
-//     expand to nothing there.
+// Silences nvcc #177-D on SFINAE probes; [[maybe_unused]]/_Pragma split.
 #if defined(__CUDACC__)
 #define GCXX_DIAG_SUPPRESS_177_ _Pragma("nv_diag_suppress 177")
 #define GCXX_DIAG_RESTORE_177_ _Pragma("nv_diag_default 177")
@@ -211,9 +142,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
   GCXX_PP_SWITCH(GCXX_CONCEPT_REQUIREMENT, _REQ)
 #define GCXX_CONCEPT_REQUIREMENT_1(_REQ) GCXX_CONCEPT_IGNORE_RESULT_ _REQ
 
-// Dispatch table for the special requirement forms. The tokens on the left of
-// CASE are recovered by GCXX_PP_SWITCH; the GCXX_SWITCH_* tokens are bare
-// discriminators, never defined as macros.
+// Dispatch table for special requirement forms; SWITCH tokens are bare.
 #define GCXX_CONCEPT_REQUIREMENT_SWITCH_requires \
   GCXX_PP_CASE(GCXX_SWITCH_REQUIRES)
 #define GCXX_CONCEPT_REQUIREMENT_SWITCH_noexcept \
@@ -225,22 +154,22 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_REQUIREMENT_SWITCH__Satisfies \
   GCXX_PP_CASE(GCXX_SWITCH_SATISFIES)
 
-// Converts "requires(ARGS...)" to "ARGS..."
+// Converts "requires(ARGS...)" to "ARGS...".
 #define GCXX_CONCEPT_EAT_REQUIRES_(...) \
   GCXX_PP_CAT(GCXX_CONCEPT_EAT_REQUIRES_, __VA_ARGS__)
 #define GCXX_CONCEPT_EAT_REQUIRES_requires(...) __VA_ARGS__
 
-// Converts "noexcept(ARGS...)" to "ARGS..."
+// Converts "noexcept(ARGS...)" to "ARGS...".
 #define GCXX_CONCEPT_EAT_NOEXCEPT_(...) \
   GCXX_PP_CAT(GCXX_CONCEPT_EAT_NOEXCEPT_, __VA_ARGS__)
 #define GCXX_CONCEPT_EAT_NOEXCEPT_noexcept(...) __VA_ARGS__
 
-// Converts "typename(TYPE...)" to "TYPE..."
+// Converts "typename(TYPE...)" to "TYPE...".
 #define GCXX_CONCEPT_EAT_TYPENAME_(_REQ) \
   GCXX_PP_CAT2(GCXX_CONCEPT_EAT_TYPENAME_, _REQ)
 #define GCXX_CONCEPT_EAT_TYPENAME_typename(...) __VA_ARGS__
 
-// Converts "[typename]opt TYPE..." to "typename TYPE..."
+// Converts "[typename]opt TYPE..." to "typename TYPE...".
 #define GCXX_CONCEPT_TRY_ADD_TYPENAME_(...) \
   GCXX_PP_SWITCH2(GCXX_CONCEPT_TRY_ADD_TYPENAME, __VA_ARGS__)
 #define GCXX_CONCEPT_TRY_ADD_TYPENAME_SWITCH_typename \
@@ -249,14 +178,12 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
   typename __VA_ARGS__
 #define GCXX_CONCEPT_TRY_ADD_TYPENAME_CASE_GCXX_SWITCH_TYPENAME(...) __VA_ARGS__
 
-// Converts "_Same_as(TYPE) EXPR..." to "EXPR..."
+// Converts "_Same_as(TYPE) EXPR..." to "EXPR...".
 #define GCXX_CONCEPT_EAT_SAME_AS_(...) \
   GCXX_PP_CAT(GCXX_CONCEPT_EAT_SAME_AS_, __VA_ARGS__)
 #define GCXX_CONCEPT_EAT_SAME_AS__Same_as(...)
 
-// Converts "_Same_as(TYPE) EXPR..." to "TYPE". (The concatenation with the
-// empty GCXX_PP_PLACEMARKER token — mirroring CCCL's empty _CCCL — forces a
-// macro rescan that MSVC's traditional preprocessor would otherwise skip.)
+// Converts "_Same_as(TYPE) EXPR..." to "TYPE" (placemarker rescan, MSVC).
 #define GCXX_CONCEPT_GET_TYPE_FROM_SAME_AS_(...)                            \
   GCXX_PP_CAT(GCXX_PP_PLACEMARKER,                                          \
               GCXX_PP_EVAL(GCXX_PP_FIRST,                                   \
@@ -265,12 +192,12 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_GET_TYPE_FROM_SAME_AS__Same_as(...) \
   GCXX_PP_EXPAND(__VA_ARGS__),
 
-// Converts "_Satisfies(TYPE) EXPR..." to "EXPR..."
+// Converts "_Satisfies(TYPE) EXPR..." to "EXPR...".
 #define GCXX_CONCEPT_EAT_SATISFIES_(...) \
   GCXX_PP_CAT(GCXX_CONCEPT_EAT_SATISFIES_, __VA_ARGS__)
 #define GCXX_CONCEPT_EAT_SATISFIES__Satisfies(...)
 
-// Converts "_Satisfies(TYPE) EXPR..." to "TYPE"
+// Converts "_Satisfies(TYPE) EXPR..." to "TYPE".
 #define GCXX_CONCEPT_GET_CONCEPT_FROM_SATISFIES_(...) \
   GCXX_PP_CAT(                                        \
     GCXX_PP_PLACEMARKER,                              \
@@ -280,14 +207,10 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_GET_CONCEPT_FROM_SATISFIES__Satisfies(...) \
   GCXX_PP_EXPAND(__VA_ARGS__),
 
-////////////////////////////////////////////////////////////////////////////////
-// C++20 concept path
-////////////////////////////////////////////////////////////////////////////////
-
+// C++20 concept path.
 #if GCXX_HAS_CONCEPTS()
 
-// "GCXX_CONCEPT_FRAGMENT(NAME, requires(ARGS)(REQS))" expands into
-// "concept NAME = requires(ARGS) { <requirements> }".
+// GCXX_CONCEPT_FRAGMENT(NAME, requires(ARGS)(REQS)) -> concept NAME = ...
 #define GCXX_CONCEPT_FRAGMENT(_NAME, ...) \
   concept _NAME = GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_##__VA_ARGS__
 #define GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_requires(...) \
@@ -295,8 +218,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_(...) \
   { GCXX_PP_FOR_EACH(GCXX_CONCEPT_REQUIREMENT_, __VA_ARGS__) }
 
-// Converts "EXPR" to "GCXX_CONCEPT_REQUIREMENT_0(EXPR)", and "(EXPR)" to
-// "GCXX_CONCEPT_REQUIREMENT_1((EXPR))".
+// Converts "EXPR" and "(EXPR)" to REQUIREMENT_0/REQUIREMENT_1 forms.
 #define GCXX_CONCEPT_REQUIREMENT_(_REQ)                          \
   GCXX_PP_CAT(GCXX_CONCEPT_REQUIREMENT_, GCXX_PP_IS_PAREN(_REQ)) \
   (_REQ);
@@ -322,10 +244,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 #else  // ^^^ GCXX_HAS_CONCEPTS() ^^^ / vvv !GCXX_HAS_CONCEPTS() vvv
 
-// "GCXX_CONCEPT_FRAGMENT(NAME, requires(ARGS)(REQS))" expands into a probe
-// function template plus two overloads of a sizeof-discriminated selector, so
-// that GCXX_CONCEPT NAME = GCXX_FRAGMENT(NAME, Args...) yields true iff every
-// requirement is well-formed for Args.
+// GCXX_CONCEPT_FRAGMENT = sizeof probe; true iff all reqs well-formed.
 #define GCXX_CONCEPT_FRAGMENT(_NAME, ...)                                  \
   [[maybe_unused]] GCXX_HD inline auto _NAME##_GCXX_CONCEPT_FRAGMENT_impl_ \
       GCXX_CONCEPT_FRAGMENT_REQUIREMENTS_##__VA_ARGS__ > {}                \
@@ -363,25 +282,22 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
     GCXX_CONCEPT_GET_CONCEPT_FROM_SATISFIES_(_REQ) <              \
     decltype(GCXX_CONCEPT_EAT_SATISFIES_(_REQ)) >>
 
-// Converts "_Same_as(TYPE) EXPR..." to "TYPE, decltype(EXPR...)"
+// Converts "_Same_as(TYPE) EXPR..." to "TYPE, decltype(EXPR...)".
 #define GCXX_CONCEPT_SAME_AS_REQUIREMENT_(_REQ) \
   GCXX_CONCEPT_GET_TYPE_FROM_SAME_AS_(_REQ),    \
     decltype(GCXX_CONCEPT_EAT_SAME_AS_(_REQ))
 
 #if GCXX_HAS_NOEXCEPT_MANGLING()
-// Converts "noexcept(EXPR)" to "::gcxx::details_::requires_<noexcept(EXPR)>"
+// Converts "noexcept(EXPR)" to "::gcxx::details_::requires_<noexcept(EXPR)>".
 #define GCXX_CONCEPT_NOEXCEPT_REQUIREMENT_(_REQ) \
   ::gcxx::details_::requires_<_REQ>
 #else
-// If the compiler cannot mangle noexcept expressions, just check that the
-// expression is well-formed. Converts "noexcept(EXPR)" to
-// "static_cast<void>(EXPR)".
+// No noexcept mangling: check well-formedness via IGNORE_RESULT only.
 #define GCXX_CONCEPT_NOEXCEPT_REQUIREMENT_(_REQ) \
   GCXX_CONCEPT_IGNORE_RESULT_(GCXX_CONCEPT_EAT_NOEXCEPT_(_REQ))
 #endif
 
-// "GCXX_FRAGMENT(NAME, Args...)" expands to
-// "(1 == sizeof(NAME_GCXX_CONCEPT_FRAGMENT_(tag<Args...>*, nullptr)))"
+// GCXX_FRAGMENT(NAME, Args...) -> "(1 == sizeof(probe(tag<Args...>*)))".
 #define GCXX_FRAGMENT(_NAME, ...)         \
   (1 ==                                   \
    sizeof(_NAME##_GCXX_CONCEPT_FRAGMENT_( \
@@ -389,17 +305,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 #endif  // ^^^ !GCXX_HAS_CONCEPTS() ^^^
 
-////////////////////////////////////////////////////////////////////////////////
-// GCXX_REQUIRES_EXPR
-// Usage:
-//   template <typename T>
-//   GCXX_CONCEPT equality_comparable =
-//     GCXX_REQUIRES_EXPR((T), T const& lhs, T const& rhs) (
-//       lhs == rhs,
-//       lhs != rhs
-//     );
-//
-// Can only be used as the last requirement in a concept definition.
+// GCXX_REQUIRES_EXPR((T), args...)(reqs...) — last requirement only.
 #if GCXX_HAS_CONCEPTS()
 
 #define GCXX_REQUIRES_EXPR(_TY, ...) \
@@ -426,11 +332,11 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
     GCXX_HD inline static auto well_formed(__VA_ARGS__)                    \
       GCXX_REQUIRES_EXPR_REQUIREMENTS_
 
-// Expands "T1, T2, variadic T3" to ", class T1, class T2, class... T3"
+// Expands "T1, T2, variadic T3" to ", class T1, class T2, class... T3".
 #define GCXX_REQUIRES_EXPR_TPARAM_DEFNS(...) \
   GCXX_PP_FOR_EACH(GCXX_REQUIRES_EXPR_TPARAM_DEFN, __VA_ARGS__)
 
-// Expands "TY" to ", class TY" and "variadic TY" to ", class... TY"
+// Expands "TY" to ", class TY" and "variadic TY" to ", class... TY".
 #define GCXX_REQUIRES_EXPR_TPARAM_DEFN(_TY) \
   , GCXX_PP_SWITCH2(GCXX_REQUIRES_EXPR_TPARAM_DEFN, _TY)
 #define GCXX_REQUIRES_EXPR_TPARAM_DEFN_SWITCH_variadic \
@@ -439,11 +345,11 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_REQUIRES_EXPR_TPARAM_DEFN_CASE_GCXX_SWITCH_VARIADIC(_TY) \
   class... GCXX_PP_CAT(GCXX_REQUIRES_EXPR_EAT_VARIADIC_, _TY)
 
-// Expands "T1, T2, variadic T3" to ", T1, T2, T3..."
+// Expands "T1, T2, variadic T3" to ", T1, T2, T3...".
 #define GCXX_REQUIRES_EXPR_TPARAM_REFS(...) \
   GCXX_PP_FOR_EACH(GCXX_REQUIRES_EXPR_TPARAM_REF, __VA_ARGS__)
 
-// Expands "TY" to ", TY" and "variadic TY" to ", TY..."
+// Expands "TY" to ", TY" and "variadic TY" to ", TY...".
 #define GCXX_REQUIRES_EXPR_TPARAM_REF(_TY) \
   , GCXX_PP_SWITCH2(GCXX_REQUIRES_EXPR_TPARAM_REF, _TY)
 #define GCXX_REQUIRES_EXPR_TPARAM_REF_SWITCH_variadic \
@@ -452,19 +358,19 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_REQUIRES_EXPR_TPARAM_REF_CASE_GCXX_SWITCH_VARIADIC(_TY) \
   GCXX_PP_CAT(GCXX_REQUIRES_EXPR_EAT_VARIADIC_, _TY)...
 
-// NVRTC has no __COUNTER__; synthesize a unique id from the type params + line.
+// NVRTC has no __COUNTER__; synthesize an id from type params + line.
 #if defined(__CUDACC_RTC__)
 
-// Expands ((Ty...), Ty...) into GCXX_REQUIRES_EXPR_ID_NO_PAREN(Ty...)
+// Expands ((Ty...), Ty...) into GCXX_REQUIRES_EXPR_ID_NO_PAREN(Ty...).
 #define GCXX_REQUIRES_EXPR_ID(_TY, ...) GCXX_REQUIRES_EXPR_ID_NO_PAREN _TY
 
-// Expands "T1, T2, variadic T3" to "T1T2T3_##GCXX_PP_COUNTER()"
+// Expands "T1, T2, variadic T3" to "T1T2T3_##GCXX_PP_COUNTER()".
 #define GCXX_REQUIRES_EXPR_ID_NO_PAREN(...)                    \
   GCXX_REQUIRES_EXPR_ID_CONCAT_ALL(                            \
     GCXX_PP_FOR_EACH(GCXX_REQUIRES_EXPR_ID_IMPL, __VA_ARGS__), \
     GCXX_PP_COUNTER())
 
-// Expands "T1, T2, T3" to "T1T2T3"
+// Expands "T1, T2, T3" to "T1T2T3".
 #define GCXX_REQUIRES_EXPR_ID_CONCAT_ALL_IMPL(_0, _1, _2, _3, _4, _5, _6, _7, \
                                               _8, _9, ...)                    \
   _0##_1##_2##_3##_4##_5##_6##_7##_8##_9
@@ -472,7 +378,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
   GCXX_PP_EVAL(GCXX_REQUIRES_EXPR_ID_CONCAT_ALL_IMPL, __VA_ARGS__, , , , , , , \
                , , )
 
-// Expands "TY" to "TY" and "variadic TY" to "TY"
+// Expands "TY" to "TY" and "variadic TY" to "TY".
 #define GCXX_REQUIRES_EXPR_ID_IMPL(_TY) \
   , GCXX_PP_SWITCH2(GCXX_REQUIRES_EXPR_ID_IMPL, _TY)
 #define GCXX_REQUIRES_EXPR_ID_IMPL_SWITCH_variadic \

@@ -29,10 +29,7 @@ struct transposed_extents<gcxx::extents<IndexType, E0, E1>> {
 template <class Extents>
 using transposed_extents_t = typename transposed_extents<Extents>::type;
 
-// transposed(v) returns a non-owning view of v with extents and strides
-// swapped (P1673R13's transposed). Consumers that infer a transpose state
-// from the mapping (the gcxx::blas operations) pick it up for free, so
-// passing transposed(A) to a product computes with A^T at zero cost.
+// Zero-cost A^T view; blas infers transpose from the swapped mapping.
 GCXX_TEMPLATE(class T, class Extents, class Layout, class Accessor)
 GCXX_REQUIRES(Extents::rank() == 2)
 constexpr auto transposed(const gcxx::mdspan<T, Extents, Layout, Accessor>& v) {

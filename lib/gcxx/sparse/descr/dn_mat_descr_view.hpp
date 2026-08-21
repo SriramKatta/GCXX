@@ -27,9 +27,7 @@ class DnMatDescrView {
 
   GCXX_FHC explicit DnMatDescrView(deviceDnMatDescr_t descr) noexcept;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Introspection                      ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Introspection.
 
   GCXX_FH auto getValues() const -> void*;
 
@@ -37,9 +35,7 @@ class DnMatDescrView {
 
   GCXX_FHC auto getRawHandle() const noexcept -> deviceDnMatDescr_t;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                      Comparison                        ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Comparison.
   GCXX_FHC auto operator==(const DnMatDescrView& rhs) const noexcept -> bool;
   GCXX_FHC auto operator!=(const DnMatDescrView& rhs) const noexcept -> bool;
 };

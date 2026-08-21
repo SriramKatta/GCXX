@@ -49,7 +49,7 @@ class HostNodeParams : public HostNodeParamsView {
     m_params.userData = Udata;
   }
 
-  // Disable move/copy to ensure m_params remains stable
+  // Disable move/copy to ensure m_params remains stable.
   HostNodeParams(const HostNodeParams&) = delete;
   HostNodeParams(HostNodeParams&&)      = delete;
 
@@ -86,7 +86,7 @@ class HostNodeParamsBuilder {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-// helper to simplify usage
+// Helper to simplify usage.
 GCXX_FH auto HostNodeParamsBuilder() -> details_::HostNodeParamsBuilder {
   return details_::HostNodeParamsBuilder::create();
 }

@@ -68,7 +68,7 @@ class Memcpy3DParams : public Memcpy3DParamsView {
     m_params.kind   = GCXX_RUNTIME_BACKEND(MemcpyDefault);
   }
 
-  // Disable move/copy to ensure params_ remains stable
+  // Disable move/copy to ensure params_ remains stable.
   Memcpy3DParams(const Memcpy3DParams&) = delete;
   Memcpy3DParams(Memcpy3DParams&&)      = delete;
 
@@ -127,7 +127,7 @@ class Memcpy3DParamsBuilder {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-// helper to simplify usage
+// Helper to simplify usage.
 GCXX_FH auto Memcpy3DParamsBuilder() -> details_::Memcpy3DParamsBuilder {
   return details_::Memcpy3DParamsBuilder::create();
 }

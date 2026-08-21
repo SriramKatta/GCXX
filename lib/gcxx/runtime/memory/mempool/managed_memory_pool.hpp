@@ -29,7 +29,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class ManagedMemPoolView : public MemPoolView {
  public:
-  /// Managed memory is always host- and device-visible.
+  // Managed memory is always host- and device-visible.
   using properties = TypeSet<device_accessible, host_accessible>;
 
   GCXX_FH explicit ManagedMemPoolView(driver::deviceMemPool_t pool) noexcept
@@ -42,7 +42,6 @@ class ManagedMemPoolView : public MemPoolView {
 struct ManagedMemPool : ManagedMemPoolView {
   using reference_type = ManagedMemPoolView;
 
-  /// Construct an empty pool with no underlying handle.
   GCXX_FH explicit ManagedMemPool(no_init_t) noexcept
       : ManagedMemPoolView(driver::deviceMemPool_t{}) {}
 
@@ -56,21 +55,18 @@ struct ManagedMemPool : ManagedMemPoolView {
     }
   }
 
-  /// Adopt an existing cudaMemPool_t without creating a new one.
   GCXX_FH static auto from_native_handle(driver::deviceMemPool_t pool) noexcept
     -> ManagedMemPool {
     return ManagedMemPool(pool);
   }
 
-  /// Relinquish ownership of the handle and return it (pool left empty).
-  // std::exchange is not constexpr until C++20;
+  // Hand-rolled instead of std::exchange: not constexpr until C++20.
   GCXX_FH constexpr auto release() noexcept -> driver::deviceMemPool_t {
     auto old = m_pool_;
     m_pool_  = nullptr;
     return old;
   }
 
-  /// A non-owning ref to this pool (the buffer-compatible view).
   GCXX_FH auto as_ref() noexcept -> ManagedMemPoolView& {
     return static_cast<ManagedMemPoolView&>(*this);
   }

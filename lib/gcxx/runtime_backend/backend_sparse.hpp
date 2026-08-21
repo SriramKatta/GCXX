@@ -13,9 +13,7 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                  Library handle lifecycle               ║
-// ╚════════════════════════════════════════════════════════╝
+// Library handle lifecycle.
 
 GCXX_FH auto sparseCreate() -> deviceSparseHandle_t {
   deviceSparseHandle_t handle{};
@@ -47,9 +45,7 @@ GCXX_FH auto sparseGetVersion(deviceSparseHandle_t handle) -> int {
   return version;
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║            Generic API: sparse matrix (SpMat)           ║
-// ╚════════════════════════════════════════════════════════╝
+// Generic API: sparse matrix (SpMat).
 
 GCXX_FH auto sparseCreateCsr(deviceSpMatDescr_t* descr, std::int64_t rows,
                              std::int64_t cols, std::int64_t nnz,
@@ -108,7 +104,7 @@ GCXX_FH auto sparseSpMatSetValues(deviceSpMatDescr_t descr,
                         values);
 }
 
-// SpMatGetFormat / SpMatGetIndexBase are status-returning with an out-pointer.
+// Raw getters return status through out-pointers; these return the value.
 GCXX_FH auto sparseSpMatGetFormat(deviceSpMatDescr_t descr)
   -> deviceSparseFormat_t {
   deviceSparseFormat_t format{};
@@ -125,9 +121,7 @@ GCXX_FH auto sparseSpMatGetIndexBase(deviceSpMatDescr_t descr)
   return indexBase;
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║             Generic API: dense matrix (DnMat)           ║
-// ╚════════════════════════════════════════════════════════╝
+// Generic API: dense matrix (DnMat).
 
 GCXX_FH auto sparseCreateDnMat(deviceDnMatDescr_t* descr, std::int64_t rows,
                                std::int64_t cols, std::int64_t ld, void* values,
@@ -155,9 +149,7 @@ GCXX_FH auto sparseDnMatSetValues(deviceDnMatDescr_t descr,
                         values);
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║             Generic API: sparse vector (SpVec)          ║
-// ╚════════════════════════════════════════════════════════╝
+// Generic API: sparse vector (SpVec).
 
 GCXX_FH auto sparseCreateSpVec(deviceSpVecDescr_t* descr, std::int64_t size,
                                std::int64_t nnz, void* indices, void* values,
@@ -187,9 +179,7 @@ GCXX_FH auto sparseSpVecSetValues(deviceSpVecDescr_t descr,
                         values);
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║              Generic API: dense vector (DnVec)          ║
-// ╚════════════════════════════════════════════════════════╝
+// Generic API: dense vector (DnVec).
 
 GCXX_FH auto sparseCreateDnVec(deviceDnVecDescr_t* descr, std::int64_t size,
                                void* values,

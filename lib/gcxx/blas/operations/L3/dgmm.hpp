@@ -18,37 +18,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Diagonal matrix-matrix product C = diag(x) * A (left) or C = A * diag(x)
-// (right).
-//
-// A and C are rank-2 mdspans, x is a rank-1 mdspan. The matrix dimensions and
-// leading dimensions are inferred from the mdspan metadata; the side is given
-// by the gcxx::blas::left / gcxx::blas::right tag, keeping the raw backend
-// side-mode enum out of the public API. With the left tag x scales rows of A
-// (x has length m); with the right tag x scales columns of A (x has length
-// n). Each operand is typed as a gcxx::mdspan in the signature, so wrong-rank
-// (or non-mdspan) arguments fail overload resolution.
-//
-// A and C must share storage orientation (both column-major-like or both
-// row-major-like): the backend's dgmm entry point takes no transpose flags,
-// so it cannot pair, say, a row-major A with a column-major C. Both
-// same-orientation cases work — a row-major-like pair is dispatched as the
-// transposed problem with the side mode flipped — and mixed orientations are
-// rejected with a clear error.
-//
-// Example:
-//   gcxx::blas::dgmm(h, gcxx::blas::left, A, x, C);    // C = diag(x) * A
-//   gcxx::blas::dgmm(h, gcxx::blas::right, A, x, C);   // C = A * diag(x)
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasSdgmm_64 (Ddgmm_64) entry
-// point, while all other index_types use the standard 32-bit interface.
-//
-// A, x, and C must be device views: mdspans carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::device_mdspan, gcxx::make_device_vector).
-// Host views are rejected at compile time; in check builds the data handles
-// are additionally probed at run time so a mislabeled host pointer fails
-// here, not inside the GPU kernel.
+// C = diag(x)*A or A*diag(x); A and C must share storage orientation.
 GCXX_TEMPLATE(class Side, class TA, class ExtentsA, class LayoutA,
               class AccessorA, class TX, class ExtentsX, class LayoutX,
               class AccessorX, class TC, class ExtentsC, class LayoutC,
@@ -79,10 +49,7 @@ auto dgmm(BlasHandleView h, Side side,
   static_assert(gcxx::details_::all_same_v<AVt, XVt, CVt>,
                 "dgmm operands A, x, C must share a single element type");
 
-  // TODO: support complex element types via cublasCdgmm / cublasZdgmm. The
-  //       dispatch macro below only handles float and double; a
-  //       std::complex<T> element type hits this assert and must be wired up
-  //       (add Cdgmm/Zdgmm branches to GCXX_BLAS_DISPATCH_TYPED).
+  // TODO: Wire complex Cdgmm/Zdgmm into GCXX_BLAS_DISPATCH_TYPED.
   static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
                 "dgmm currently supports only f32_t/f64_t element types "
                 "(complex support is a TODO)");
@@ -100,7 +67,7 @@ auto dgmm(BlasHandleView h, Side side,
   // the tag object itself is unused (the mode comes from its type)
   (void)side;
 
-  // the diagonal vector must match the scaled extent for the chosen side
+  // The diagonal vector must match the scaled extent for the chosen side.
   constexpr driver::deviceBlasSideMode_t mode = details_::side_mode_v<Side>;
   if (mode == driver::deviceBlasSideLeft && len_x != m) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
@@ -132,11 +99,7 @@ auto dgmm(BlasHandleView h, Side side,
                              n, a.data_handle(), ld_a, x.data_handle(), inc_x,
                              c.data_handle(), out.leading_dimension);
   } else {
-    // A and C row-major-like: present the transposed problem to the
-    // column-major backend. (diag(x) * A)^T = A^T * diag(x) and
-    // (A * diag(x))^T = diag(x) * A^T, so the side mode flips along with the
-    // swapped m/n; reading the same storage column-major yields the
-    // transposes, and the leading dimensions carry over unchanged.
+    // A and C row-major-like: transposed problem; side flips with m/n swap.
     constexpr driver::deviceBlasSideMode_t flipped_mode =
       mode == driver::deviceBlasSideLeft ? driver::deviceBlasSideRight
                                          : driver::deviceBlasSideLeft;

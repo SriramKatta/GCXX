@@ -20,49 +20,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Matrix-matrix product, the P1673R13 matrix_product shape.
-//
-//   matrix_product(h, A, B, C)      ->  C = A * B      (write-only)
-//   matrix_product(h, A, B, E, C)   ->  C = A * B + E  (accumulate)
-//
-// A, B, C (and the addend E) are rank-2 mdspans. The effective dimensions,
-// layouts, and transpose state are inferred from the mdspan metadata and view
-// wrappers, and the mathematical result C = A * B holds for ANY mix of
-// operand layouts (column-major, row-major, or transposed views): when C's
-// storage is row-major-like the dispatch presents the transposed problem
-// (swapped operand slots, flipped op flags, swapped m/n) to the column-major
-// backend. There is no alpha/beta parameter; per P1673R13 10.3, scaling is
-// expressed with scaled(alpha, x) views, whose factors are unwrapped and
-// folded into the backend's single alpha:
-//
-//   matrix_product(h, scaled(2.0, A), B, C);         // C = 2*A*B
-//   matrix_product(h, A, B, scaled(0.5, C), C);      // C = A*B + 0.5*C
-//
-// The 3-argument form never reads C (the backend's beta is a host zero), so
-// C may hold uninitialized or NaN data. The 5-argument accumulate form reads
-// E: when E aliases C exactly (the canonical scaled(beta, C), C form) the
-// backend's in-place beta path computes everything in one call; otherwise
-// the product is written first and E is accumulated with a second, in-place
-// geam call (the documented C = alpha*op(A) + beta*C mode), the two steps
-// staying ordered on the handle's stream.
-//
-// At most one non-unit scaled() factor may be a gcxx::blas::device_scalar,
-// and a device_scalar factor is only supported where it can pair with the
-// call's other scalars under one pointer mode: the ALIASED accumulate form
-// (all factors device-resident) — not the write-only form (implicit zero
-// beta) and not a device factor on a NON-aliased addend (the in-place geam
-// step needs a host beta). Violations throw with a message naming the
-// supported alternative.
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasGemmEx_64 entry point,
-// while all other index_types use the standard 32-bit interface.
-//
-// A, B, C, and E must be device views: mdspans carrying
-// gcxx::device_accessor / gcxx::managed_accessor (e.g. gcxx::device_mdspan).
-// Host views are rejected at compile time; in check builds the data handles
-// are additionally probed at run time so a mislabeled host pointer fails
-// here, not inside the GPU kernel.
+// C = A*B; scaling via scaled() input views, any mix of operand layouts.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TC, class ExtentsC, class LayoutC, class AccessorC)
@@ -103,8 +61,7 @@ auto matrix_product(
                 "matrix_product currently supports only float/double element "
                 "types (complex support is a TODO)");
 
-  // alpha comes only from scaled() views on the inputs; beta is a host zero
-  // in this write-only form, so C is never read.
+  // Alpha comes only from scaled() views on the inputs; beta is host zero.
   auto alpha_res = details_::combine_scaled_alpha(
     details_::resolve_scaled_alpha<Sv>(a.accessor()),
     details_::resolve_scaled_alpha<Sv>(b.accessor()), "matrix_product");
@@ -134,8 +91,7 @@ auto matrix_product(
   const auto [k_b, n, ld_b, op_b] = details_::infer_blas_matrix_view(b);
   const auto out                  = details_::infer_blas_output_view(c);
 
-  // extent compatibility (mandated by P1673R13; fail here rather than inside
-  // the backend with a confusing status)
+  // Extent compatibility (P1673R13); fail here rather than in the backend.
   if (k != k_b) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
                              "matrix_product requires A.extent(1) == "
@@ -156,8 +112,7 @@ auto matrix_product(
       cuda_datatype_v<CVt>, out.leading_dimension, blas_compute_type_v<CVt>,
       GCXX_BLAS_GEMM(DEFAULT));
   } else {
-    // C's storage is row-major-like: present the transposed problem
-    // C^T = B^T * A^T to the column-major backend.
+    // C row-major-like: present the transposed problem C^T = B^T * A^T.
     GCXX_BLAS_DISPATCH_INT64(
       status, AIt, GemmEx, h.getRawHandle(), details_::flip_blas_op(op_b),
       details_::flip_blas_op(op_a), n, m, k, alpha_ptr, b.data_handle(),
@@ -171,12 +126,7 @@ auto matrix_product(
   }
 }
 
-// Accumulate form: C = A * B + E (P1673R13's read-and-write version). E may
-// carry a scaled() factor. When E aliases C exactly the backend's in-place
-// beta path computes everything in one call; otherwise the product is
-// written to C first and E is accumulated with an in-place geam (which also
-// applies E's factor). E must either alias C exactly or not overlap it at
-// all.
+// Accumulate form: E aliases C -> in-place beta path, else split via geam.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
               class TE, class ExtentsE, class LayoutE, class AccessorE,
@@ -227,8 +177,7 @@ auto matrix_product(
       "matrix_product addend E must have the same extents as C");
   }
 
-  // The addend's factor (identity 1 for a plain E) doubles as the backend's
-  // beta in the aliased case, and as geam's alpha in the split case.
+  // The addend's factor doubles as beta (aliased) or geam alpha (split).
   auto beta_res = details_::resolve_scaled_alpha<Sv>(e.accessor());
 
   if (!details_::views_alias(e, c)) {

@@ -19,31 +19,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Vector update y = alpha * x + y.
-//
-// x and y are rank-1 mdspans; the length n and the increments (incx, incy) are
-// inferred from the mdspan metadata. The type-erased cu/hipblasAxpyEx entry
-// point is used, with the data-type and execution-type enums derived from the
-// element type. Each operand is typed as a gcxx::mdspan in the signature, so
-// wrong-rank (or non-mdspan) arguments fail overload resolution.
-//
-// Example:
-//   gcxx::blas::axpy(h, 2.0, x, y);    // computes y = 2 * x + y
-//
-// alpha may be passed either as a host scalar (host pointer mode) or as a
-// gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer
-// mode). The mode is selected per call from the argument type; the handle's
-// prior pointer mode is restored when the call returns.
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasAxpyEx_64 entry point,
-// while all other index_types use the standard 32-bit interface.
-//
-// x and y must be device views: mdspans carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
-// rejected at compile time; in check builds the data handles are
-// additionally probed at run time so a mislabeled host pointer fails here,
-// not inside the GPU kernel.
+// y = alpha*x + y; alpha may be a host scalar or device_scalar.
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY,
               class S = TX)

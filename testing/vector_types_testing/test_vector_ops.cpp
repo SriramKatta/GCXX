@@ -7,19 +7,10 @@
 #include <gcxx/types/vector_types.hpp>
 #include <gcxx/types/vector_types_op.hpp>
 
-// ========================================
-// Test Vector Operations
-// ========================================
-
-// Test helper for comparing floating point vectors
 template <typename T>
 bool almost_equal(T a, T b, T epsilon = 1e-5) {
   return std::abs(a - b) < epsilon;
 }
-
-// ========================================
-// Test Addition Operations
-// ========================================
 
 TEST(VectorOps, AddInt2) {
   int2 a      = {1, 2};
@@ -92,10 +83,6 @@ TEST(VectorOps, AddDouble3) {
   EXPECT_TRUE(almost_equal(result.z, 9.0));
 }
 
-// ========================================
-// Test Subtraction Operations
-// ========================================
-
 TEST(VectorOps, SubtractInt2) {
   int2 a      = {5, 8};
   int2 b      = {3, 4};
@@ -131,10 +118,6 @@ TEST(VectorOps, SubtractFloat3) {
   EXPECT_TRUE(almost_equal(result.y, 15.0f));
   EXPECT_TRUE(almost_equal(result.z, 24.0f));
 }
-
-// ========================================
-// Test Multiplication Operations
-// ========================================
 
 TEST(VectorOps, MultiplyInt2) {
   int2 a      = {2, 3};
@@ -181,10 +164,6 @@ TEST(VectorOps, MultiplyFloat4) {
   EXPECT_TRUE(almost_equal(result.w, 22.5f));
 }
 
-// ========================================
-// Test Division Operations
-// ========================================
-
 TEST(VectorOps, DivideInt2) {
   int2 a      = {8, 15};
   int2 b      = {2, 3};
@@ -229,10 +208,6 @@ TEST(VectorOps, DivideFloat4) {
   EXPECT_TRUE(almost_equal(result.w, 5.0f));
 }
 
-// ========================================
-// Test Modulo Operations (integers only)
-// ========================================
-
 TEST(VectorOps, ModuloInt2) {
   int2 a      = {10, 15};
   int2 b      = {3, 4};
@@ -259,10 +234,6 @@ TEST(VectorOps, ModuloInt4) {
   EXPECT_EQ(result.z, 2);
   EXPECT_EQ(result.w, 4);
 }
-
-// ========================================
-// Test Vector-Scalar Operations
-// ========================================
 
 TEST(VectorOps, AddVectorScalarInt2) {
   int2 a      = {1, 2};
@@ -350,10 +321,6 @@ TEST(VectorOps, ModuloScalarVectorInt3) {
   EXPECT_EQ(result.y, 2);
   EXPECT_EQ(result.z, 6);
 }
-
-// ========================================
-// Test In-Place Operations (+=, -=, *=, /=, %=)
-// ========================================
 
 TEST(VectorOps, AddAssignInt2) {
   int2 a = {1, 2};
@@ -452,10 +419,6 @@ TEST(VectorOps, ModuloAssignInt4) {
   EXPECT_EQ(a.w, 4);
 }
 
-// ========================================
-// Test In-Place Operations with Scalars
-// ========================================
-
 TEST(VectorOps, AddAssignScalarInt2) {
   int2 a     = {1, 2};
   int scalar = 5;
@@ -527,10 +490,6 @@ TEST(VectorOps, ModuloAssignScalarInt3) {
   EXPECT_EQ(a.z, 2);
 }
 
-// ========================================
-// Test Mixed Type Operations
-// ========================================
-
 TEST(VectorOps, MixedTypeAddShortInt2) {
   short2 a      = {1, 2};
   short2 b      = {3, 4};
@@ -565,10 +524,6 @@ TEST(VectorOps, MixedTypeUChar2) {
   EXPECT_EQ(result.x, 1);
   EXPECT_EQ(result.y, 3);
 }
-
-// ========================================
-// Test Complex Expressions
-// ========================================
 
 TEST(VectorOps, ComplexExpressionInt2) {
   int2 a      = {2, 3};
@@ -611,10 +566,6 @@ TEST(VectorOps, ChainedInPlaceOps) {
   EXPECT_EQ(a.y, 40);
   EXPECT_EQ(a.z, 60);
 }
-
-// ========================================
-// Test Edge Cases
-// ========================================
 
 TEST(VectorOps, ZeroVectorAddition) {
   int2 a      = {5, 10};

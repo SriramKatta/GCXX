@@ -16,23 +16,12 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::any_resource
-//
-// A non-templated, type-erased, owning, copyable holder for ANY resource
-// matching the concept:
-//   void* allocate(gcxx::StreamView, std::size_t num_bytes)
-//   void  deallocate(gcxx::StreamView, void* ptr)
-// ─────────────────────────────────────────────────────────────────────────────
+// Type-erased, owning, copyable holder for any gcxx resource.
 class any_resource {
  public:
-  /// Empty (no resource). allocate/deallocate on an empty any_resource assert.
   any_resource() noexcept = default;
 
-  /// Type-erase a concrete resource. The resource must be copy constructible
-  /// (any_resource owns a copy, cloned on copy/resize). Property validation is
-  /// the caller's responsibility (the buffer ctor enforces it via
-  /// resource_has_all_v before erasure).
+  // Requires copy-constructible Resource; caller validates properties.
   GCXX_TEMPLATE(typename Resource)
   GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, any_resource>)
   any_resource(Resource&& r) {

@@ -10,13 +10,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// restrict_accessor wraps any mdspan accessor and overrides data_handle_type to
-// carry the backend restrict qualifier (__restrict / __restrict__), enabling
-// restrict-qualified loads/stores without changing the access/offset logic.
-//
-// It composes with the memory-space accessors: wrapping a device view keeps it
-// a device view (gcxx::is_device_view_v propagates through any
-// single-parameter accessor wrapper).
+// Overrides data_handle_type with a __restrict-qualified pointer.
 template <class Accessor>
 struct restrict_accessor : public Accessor {
   static_assert(std::is_object_v<typename Accessor::element_type>,

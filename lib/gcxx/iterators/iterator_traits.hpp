@@ -11,11 +11,11 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// std::iterator_traits, so gcxx iterators never name std:: directly;
+// std::iterator_traits, so gcxx iterators never name std:: directly.
 template <typename Iterator_t>
 using iterator_traits = std::iterator_traits<Iterator_t>;
 
-// Aliases of the std tags so gcxx iterators never name std:: directly;
+// Aliases of the std tags so gcxx iterators never name std:: directly.
 using input_iterator_tag         = std::input_iterator_tag;
 using output_iterator_tag        = std::output_iterator_tag;
 using forward_iterator_tag       = std::forward_iterator_tag;

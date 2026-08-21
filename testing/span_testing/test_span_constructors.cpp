@@ -247,8 +247,7 @@ TEST(SpanSubviews, StaticSubviewsReturnPublicWrapperTypes) {
 TEST(SpanConstructors, CrossStorageConversions) {
   int values[]{1, 2, 3, 4, 5};
 
-  // Converting between span and restrict_span should be allowed when
-  // element types and extents are compatible.
+  // Conversions allowed when element types and extents are compatible.
   static_assert(
     std::is_constructible_v<gcxx::span<int>, gcxx::restrict_span<int, 5>&>);
   static_assert(std::is_constructible_v<gcxx::span<const int>,
@@ -271,11 +270,7 @@ TEST(SpanConstructors, CrossStorageConversions) {
   EXPECT_EQ(rs_from_s.size(), std::size(values));
 }
 
-// Span iteration uses the space-aware iterators (resolves the old
-// "iterator that can be used on device" TODO): iterator is a
-// host+device heterogeneous_iterator and reverse_iterator wraps it in the
-// generic gcxx::reverse_iterator adapter — never a raw T* /
-// std::reverse_iterator.
+// Span iterators are space-aware heterogeneous iterators, never raw T*.
 TEST(SpanConstructors, IteratorsAreSpaceAwareNotRawPointers) {
   static_assert(
     std::is_same_v<gcxx::span<int>::iterator,

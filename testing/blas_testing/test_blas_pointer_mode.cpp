@@ -6,7 +6,6 @@
 #include <gcxx/blas/handle/blas_pointer_mode_guard.hpp>
 #include <gcxx/blas_api.hpp>
 
-// Default mode is host (the cu/hipBLAS handle default).
 TEST(BlasPointerMode, DefaultIsHost) {
   if (!gcxx::testing::haveCudaDevice()) {
     GTEST_SKIP() << "No CUDA device available";
@@ -15,7 +14,6 @@ TEST(BlasPointerMode, DefaultIsHost) {
   EXPECT_EQ(handle.getPointerMode(), gcxx::blas::host_pointer_mode);
 }
 
-// set/get round-trips both modes.
 TEST(BlasPointerMode, SetGetRoundTrip) {
   if (!gcxx::testing::haveCudaDevice()) {
     GTEST_SKIP() << "No CUDA device available";
@@ -27,7 +25,6 @@ TEST(BlasPointerMode, SetGetRoundTrip) {
   EXPECT_EQ(handle.getPointerMode(), gcxx::blas::host_pointer_mode);
 }
 
-// Guard switches the mode and restores the saved value on destruction.
 TEST(BlasPointerMode, GuardRestoresOnDestruction) {
   if (!gcxx::testing::haveCudaDevice()) {
     GTEST_SKIP() << "No CUDA device available";
@@ -43,8 +40,7 @@ TEST(BlasPointerMode, GuardRestoresOnDestruction) {
   EXPECT_EQ(handle.getPointerMode(), gcxx::blas::host_pointer_mode);
 }
 
-// Guard restores the *prior* mode, not a hard-coded host default: if the handle
-// was in device mode when the guard was entered, it returns to device mode.
+// Restores the *prior* mode, not a hard-coded host default.
 TEST(BlasPointerMode, GuardRestoresPriorDeviceMode) {
   if (!gcxx::testing::haveCudaDevice()) {
     GTEST_SKIP() << "No CUDA device available";

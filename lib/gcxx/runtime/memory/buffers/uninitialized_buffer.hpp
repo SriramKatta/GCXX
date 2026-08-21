@@ -21,27 +21,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::uninit_buffer<VT, Properties...>
-//
-// Everything buffer<VT, Properties...> does — stream-ordered allocation,
-// deallocation, stream/resource bookkeeping, RAII — except filling the data:
-// elements are never written or initialized, so users must construct them
-// themselves.
-//
-// Properties check execution-space constraints at compile time and gate the
-// launch integration; the resource itself is taken type-erased (any_resource),
-// so property validation of a concrete resource happens in the composing
-// buffer's ctors (resource_has_all_v before erasure).
-//
-// Splitting raw ownership from typed initialization guarantees that if a
-// composing object's constructor throws after storage is allocated, the
-// storage destructor runs and returns the memory — no leak.
-//
-// Resource concept (the any_resource interface):
-//   void* allocate(gcxx::StreamView, std::size_t num_bytes)
-//   void  deallocate(gcxx::StreamView, void* ptr)
-// ─────────────────────────────────────────────────────────────────────────────
+// Raw RAII storage; never initializes elements (exception-safe ownership).
 template <typename VT, typename... Properties>
 class uninit_buffer {
   static_assert(contains_execution_space_property<Properties...>,
@@ -52,7 +32,7 @@ class uninit_buffer {
   friend class uninit_buffer;
 
  public:
-  /// The buffer's accessibility contract (uniform with resources/buffer).
+  // The buffer's accessibility contract (uniform with resources/buffer).
   using properties      = TypeSet<Properties...>;
   using value_type      = VT;
   using reference       = VT&;
@@ -60,22 +40,19 @@ class uninit_buffer {
   using size_type       = std::size_t;
   using pointer         = VT*;
   using const_pointer   = const VT*;
-  /// Space-restricted iterators
+  // Space-restricted iterators.
   using iterator         = heterogeneous_iterator<VT, Properties...>;
   using const_iterator   = heterogeneous_iterator<const VT, Properties...>;
   using reverse_iterator = gcxx::reverse_iterator<iterator>;
   using const_reverse_iterator = gcxx::reverse_iterator<const_iterator>;
   using resource_type          = any_resource;
 
-  /// Empty storage (no allocation, no resource).
   uninit_buffer() noexcept = default;
 
-  /// Empty storage bound to a stream + type-erased resource (no allocation).
   uninit_buffer(gcxx::StreamView stream, resource_type res) noexcept
       : m_resource(std::move(res)), m_stream(stream) {}
 
-  /// Allocate num_elems elements from the type-erased resource on stream.
-  /// Storage is uninitialized. A zero-size request allocates nothing.
+  // A zero-size request allocates nothing.
   uninit_buffer(gcxx::StreamView stream, resource_type res, size_type num_elems)
       : m_resource(std::move(res)),
         m_stream(stream),
@@ -103,8 +80,6 @@ class uninit_buffer {
     other.m_num_elems = 0;
   }
 
-  /// Cross-properties move ctor (CCCL __properties_match: other's Properties
-  /// ⊇ this buffer's). Steals the source's allocation.
   GCXX_TEMPLATE(typename... OtherProperties)
   GCXX_REQUIRES((TypeSet<OtherProperties...>::template contains<Properties> &&
                  ...))
@@ -134,9 +109,8 @@ class uninit_buffer {
     return *this;
   }
 
-  // ───────────────────────────── raw access ─────────────────────────────────
-  /// Pointer to the first element. The storage is uninitialized — reading
-  /// through this pointer before writing is undefined behavior.
+  // Raw access.
+  // Reading before writing through data() is undefined behavior.
   GCXX_FHDC auto data() noexcept -> pointer {
     return static_cast<pointer>(m_ptr);
   }
@@ -155,8 +129,6 @@ class uninit_buffer {
     return const_iterator(data() + size());
   }
 
-  /// Reverse iteration: rbegin references the last element, rend the slot
-  /// before the first (std::reverse_iterator semantics).
   GCXX_FHDC auto rbegin() noexcept -> reverse_iterator {
     return reverse_iterator(end());
   }
@@ -170,49 +142,40 @@ class uninit_buffer {
     return const_reverse_iterator(begin());
   }
 
-  // ─────────────────────────────── observers ────────────────────────────────
-  /// Number of elements the storage was allocated for.
+  // Observers.
   GCXX_FHDC auto size() const noexcept -> size_type { return m_num_elems; }
 
   GCXX_FHDC auto empty() const noexcept -> bool { return m_num_elems == 0; }
 
-  /// Size of the allocated block in bytes (0 for empty storage).
   GCXX_FHDC auto size_bytes() const noexcept -> size_type {
     return m_num_elems * sizeof(VT);
   }
 
-  /// The type-erased memory resource the storage was allocated from.
   GCXX_FH auto memory_resource() const noexcept -> const resource_type& {
     return m_resource;
   }
 
-  /// Clone the stored resource (for resize / cross-properties copy). Each call
-  /// heap-allocates a copy of the erased resource.
+  // Despite the name, each call heap-copies the erased resource.
   GCXX_FH auto borrow_resource() const -> resource_type { return m_resource; }
 
-  /// The stream associated with this storage (used for deallocation).
   GCXX_FHDC auto stream() const noexcept -> gcxx::StreamView {
     return m_stream;
   }
 
-  /// Rebind the storage to a new stream (synchronizes the old stream first).
   GCXX_FH auto set_stream(gcxx::StreamView new_stream) -> void {
     m_stream.Synchronize();
     m_stream = new_stream;
   }
 
-  /// Rebind the storage to a new stream without synchronizing. It is the
-  /// user's responsibility to ensure proper stream order going forward.
+  // Caller must ensure proper stream order going forward.
   GCXX_FH auto set_stream_unsynchronized(gcxx::StreamView new_stream) noexcept
     -> void {
     m_stream = new_stream;
   }
 
-  // ─────────────────────────────── operations ───────────────────────────────
-  /// Deallocate using the stored stream; storage becomes empty.
+  // Operations.
   GCXX_FH auto destroy() -> void { release(); }
 
-  /// Deallocate using an explicit stream; storage becomes empty.
   GCXX_FH auto destroy(gcxx::StreamView s) -> void {
     if (m_ptr != nullptr) {
       m_resource.deallocate(s, m_ptr);
@@ -222,11 +185,7 @@ class uninit_buffer {
     }
   }
 
-  /// Reallocate to num_elems elements, discarding the current contents and
-  /// reusing the stored resource. The old block is deallocated on the OLD
-  /// stream (its allocation order), then the new one is allocated on
-  /// new_stream. (CCCL __replace_allocation_discard parity; used by
-  /// buffer::resize.)
+  // Old block freed on old stream, new one on new_stream (CCCL parity).
   GCXX_FH auto replace_allocation_discard(gcxx::StreamView new_stream,
                                           size_type num_elems) -> void {
     if (m_ptr != nullptr) {
@@ -240,9 +199,7 @@ class uninit_buffer {
     }
   }
 
-  // ──────────────────── launch integration (device-gated) ────────────────────
-  // Lets a device_accessible uninit_buffer be treated as a span when
-  // passed to a launch customization point (CCCL cuda::launch parity).
+  // Launch integration: device buffers adapt to spans (CCCL parity).
   GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
   GCXX_REQUIRES(D)
   GCXX_FH friend auto transform_launch_argument(
@@ -274,9 +231,6 @@ class uninit_buffer {
 };
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Convenience aliases.
-// ─────────────────────────────────────────────────────────────────────────────
 template <typename VT>
 using uninit_device_buffer = uninit_buffer<VT, device_accessible>;
 

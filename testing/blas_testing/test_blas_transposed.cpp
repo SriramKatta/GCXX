@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Host-only tests for the BLAS view helpers: transposed(), scaled(), and the
-// stride-based op/leading-dim/output-orientation inference
-// (details/op_inference.hpp). These run without a GPU — they exercise pure
-// mdspan-metadata logic.
+// Host-only tests for the BLAS view helpers (transposed/scaled) and
+// stride-based op/leading-dim/output inference. Pure metadata; no GPU.
 
 #include "tests_common.hpp"
 
@@ -24,24 +21,16 @@ namespace {
   template <class Layout>
   using mat2d = gcxx::mdspan<double, dextents2d, Layout, def_acc_d>;
 
-  // The device-view counterpart the BLAS inference helpers require. The
-  // inference tests are metadata-only, so the underlying pointer never needs
-  // to be real device memory here.
+  // Device-view counterpart required by the BLAS inference helpers.
   template <class Layout>
   using dmat2d = gcxx::mdspan<double, dextents2d, Layout, dev_acc_d>;
 
-  // Infer the (op, ld) descriptor for a view — under test via the details
-  // helper.
   template <class V>
   auto infer(const V& v) {
     return gcxx::blas::details_::infer_blas_matrix_view(v);
   }
 
 }  // namespace
-
-// ─────────────────────────────────────────────────────────────────────────────
-// transposed(): extents and strides swap, round-trips.
-// ─────────────────────────────────────────────────────────────────────────────
 
 TEST(BlasTransposed, SwapsExtentsAndStrides_LayoutLeft) {
   std::vector<double> buf(3 * 4);
@@ -76,10 +65,7 @@ TEST(BlasTransposed, RoundTrips_LayoutLeft) {
   EXPECT_EQ(att.mapping().stride(1), a.mapping().stride(1));
 }
 
-// Static extents must be preserved at the type level (extents<int,3,4> ->
-// extents<int,4,3>), the layout must flip, and transposed(transposed(v)) must
-// restore the exact original type. This is the property the dextents-only
-// version could not provide.
+// Type-level guarantee the dextents-only version could not provide.
 TEST(BlasTransposed, PreservesStaticExtentsAndType) {
   double buf[12] = {};
   gcxx::mdspan<double, gcxx::extents<int, 3, 4>, gcxx::layout_left,
@@ -102,10 +88,6 @@ TEST(BlasTransposed, PreservesStaticExtentsAndType) {
   static_assert(std::is_same_v<decltype(att)::layout_type, gcxx::layout_left>,
                 "round-trip restores original layout");
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// scaled(): factor plumbing, element access, device-view propagation.
-// ─────────────────────────────────────────────────────────────────────────────
 
 TEST(BlasScaled, ElementAccessIsScaled) {
   std::vector<double> buf{1.0, -2.0, 3.0, -4.0};
@@ -200,11 +182,7 @@ TEST(BlasScaled, AlphaResolutionCombinesHostFactors) {
   EXPECT_FALSE(both.from_device());
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// op / leading-dim inference: op depends only on which axis is unit-stride;
-// dims are always the view's extents.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Op inference keys on which axis is unit-stride; dims are the extents.
 TEST(BlasOpInference, ColumnContiguous_IsOpN) {
   std::vector<double> buf(3 * 4);
   dmat2d<gcxx::layout_left> a(buf.data(), 3, 4);  // strides (1, 3)
@@ -249,8 +227,7 @@ TEST(BlasOpInference, TransposedLayoutRight_IsOpN) {
   EXPECT_EQ(info.leading_dimension, 4);
 }
 
-// A 1xN matrix has strides (1,1) — both unit. The tie-break must yield op=N
-// (not reject it).
+// Strides (1,1) tie-break must yield op=N, not reject.
 TEST(BlasOpInference, DegenerateUnitStrides_TieBreaksToOpN) {
   std::vector<double> buf(4);
   dmat2d<gcxx::layout_left> a(buf.data(), 1, 4);  // strides (1, 1)
@@ -262,9 +239,7 @@ TEST(BlasOpInference, DegenerateUnitStrides_TieBreaksToOpN) {
   EXPECT_EQ(info.leading_dimension, 1);
 }
 
-// A genuinely strided subview (no unit stride on either axis) is rejected
-// through the throwBlasError mechanism: a thrown BlasException in exception
-// builds, a logged message + abort in no-exception builds.
+// Strided subview rejected: throws in exception builds, aborts otherwise.
 TEST(BlasOpInference, NeitherAxisUnit_Rejected) {
   std::vector<double> buf(100);
   dextents2d ext{4, 5};
@@ -279,11 +254,7 @@ TEST(BlasOpInference, NeitherAxisUnit_Rejected) {
 #endif
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Output-orientation inference (details_::infer_blas_output_view): what the
-// transposed-output dispatch keys on.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Output-orientation inference: keys the transposed-output dispatch.
 TEST(BlasOutputInference, ColumnMajorOutput_IsNotTransposed) {
   std::vector<double> buf(3 * 4);
   dmat2d<gcxx::layout_left> c(buf.data(), 3, 4);
@@ -322,12 +293,7 @@ TEST(BlasOutputInference, NeitherAxisUnit_Rejected) {
 #endif
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Device-view gating (host_device_accessor.hpp): trait polarity, transposed
-// preservation, and the deleted cross-memory-space conversions. All
-// compile-time checks.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// device-view gating traits; every check below is compile-time.
 TEST(BlasDeviceView, AccessorTraitPolarity) {
   static_assert(gcxx::is_device_view_v<gcxx::device_accessor<def_acc_d>>,
                 "device accessor is a device view");

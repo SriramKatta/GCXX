@@ -19,44 +19,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Strided batched matrix-matrix product C_i = alpha * op(A_i) * op(B_i) +
-// beta * C_i, where batch element i lives at base + i * stride.
-//
-// NOT part of P1673R13 proper (batching is the P2901 follow-up); kept as a
-// cu/hipBLAS extension with its BLAS-style alpha/beta parameters, but with
-// P2901's leftmost-batch convention:
-//
-// A, B, and C are rank-3 mdspans whose batch dimension is the FIRST one,
-// i.e. extents (batch, rows, cols): a layout_right operand yields row-major
-// matrices with a uniform batch stride, and a layout_stride packing the
-// matrices contiguously (batch outermost) yields column-major ones — both
-// exactly the (base pointer, stride) pair the cu/hipblasGemmStridedBatchedEx
-// entry point takes. A layout_left operand only works for batch <= 1: for
-// batch > 1 the batch axis is the unit-stride one, interleaving the inner
-// matrices so neither matrix axis is dense — not expressible by a single
-// (base, stride) pair (rejected with a dedicated error). The per-batch
-// dimensions, leading dimensions, transpose state, batch count, and batch
-// strides are all inferred from the mdspan metadata. As with matrix_product,
-// the mathematical result C_i = A_i * B_i holds for ANY mix of operand
-// layouts: when C's inner matrices are row-major-like the dispatch presents
-// the transposed problem (swapped operand slots, flipped op flags, swapped
-// m/n) to the column-major backend.
-//
-// Example:
-//   gcxx::blas::gemm_strided_batched(h, 1.0, A3, B3, 0.0, C3);
-//
-// alpha/beta are host scalars only: the wrapper pins host pointer mode for
-// the call, so device_scalar arguments are rejected at compile time.
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasGemmStridedBatchedEx_64
-// entry point, while all other index_types use the standard 32-bit interface.
-//
-// A, B, and C must be device views: rank-3 mdspans carrying
-// gcxx::device_accessor / gcxx::managed_accessor. Host views are rejected at
-// compile time; in check builds the base data handles are additionally probed
-// at run time so a mislabeled host pointer fails here, not inside the GPU
-// kernel.
+// Strided batched C_i = A_i*B_i; rank-3 operands with batch-first extents.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
 auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
@@ -140,8 +103,7 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
       c.data_handle(), cuda_datatype_v<CVt>, ld_c, stride_c, batch_a,
       blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
   } else {
-    // C's inner matrices are row-major-like: present the transposed problem
-    // C_i^T = B_i^T * A_i^T to the column-major backend.
+    // C row-major-like: present the transposed problem C_i^T = B_i^T * A_i^T.
     GCXX_BLAS_DISPATCH_INT64(
       status, AIt, GemmStridedBatchedEx, h.getRawHandle(),
       details_::flip_blas_op(op_b), details_::flip_blas_op(op_a), n, m, k,

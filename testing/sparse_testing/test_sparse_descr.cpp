@@ -18,10 +18,7 @@ GCXX_ASSERT_RAW_HANDLE(SpMatDescrView, gcxx::driver::deviceSpMatDescr_t);
 GCXX_ASSERT_RAW_HANDLE(SpMatDescr, gcxx::driver::deviceSpMatDescr_t);
 
 namespace {
-  // Minimal backend-agnostic device-buffer guard for descriptor wiring tests.
-  // cuSPARSE/hipSPARSE only *store* these pointers at creation; they are not
-  // dereferenced, so the contents are irrelevant — we just need valid device
-  // addresses.
+  // Backend only stores these pointers at creation (never derefs them).
   struct DeviceBuf {
     void* p{nullptr};
 
@@ -47,10 +44,6 @@ static_assert(std::is_base_of_v<gcxx::SpMatDescrView, gcxx::SpMatDescr>, "");
 static_assert(std::is_base_of_v<gcxx::DnMatDescrView, gcxx::DnMatDescr>, "");
 static_assert(std::is_base_of_v<gcxx::DnVecDescrView, gcxx::DnVecDescr>, "");
 static_assert(std::is_base_of_v<gcxx::SpVecDescrView, gcxx::SpVecDescr>, "");
-
-// ╔══════════════════════════════════════════════════════════════════════════╗
-// ║                          Sparse matrix (SpMat)                           ║
-// ╚══════════════════════════════════════════════════════════════════════════╝
 
 TEST(SpMatDescr, CreateCsrAndIntrospect) {
   if (!gcxx::testing::haveCudaDevice()) {
@@ -106,10 +99,6 @@ TEST(SpMatDescr, ReleaseYieldsView) {
   [[maybe_unused]] auto adopted = gcxx::SpMatDescr::from_native_descriptor(raw);
 }
 
-// ╔══════════════════════════════════════════════════════════════════════════╗
-// ║                           Dense matrix (DnMat)                           ║
-// ╚══════════════════════════════════════════════════════════════════════════╝
-
 TEST(DnMatDescr, CreateAndDestroy) {
   if (!gcxx::testing::haveCudaDevice()) {
     GTEST_SKIP() << "No CUDA device available";
@@ -120,10 +109,6 @@ TEST(DnMatDescr, CreateAndDestroy) {
                                           gcxx::driver::deviceSparseOrderCol);
   EXPECT_NE(mat.getRawHandle(), nullptr);
 }
-
-// ╔══════════════════════════════════════════════════════════════════════════╗
-// ║                          Sparse vector (SpVec)                           ║
-// ╚══════════════════════════════════════════════════════════════════════════╝
 
 TEST(SpVecDescr, CreateAndMove) {
   if (!gcxx::testing::haveCudaDevice()) {
@@ -141,10 +126,6 @@ TEST(SpVecDescr, CreateAndMove) {
   EXPECT_EQ(moved.getRawHandle(), raw);
   EXPECT_EQ(vec.getRawHandle(), nullptr);  // NOLINT(bugprone-use-after-move)
 }
-
-// ╔══════════════════════════════════════════════════════════════════════════╗
-// ║                           Dense vector (DnVec)                           ║
-// ╚══════════════════════════════════════════════════════════════════════════╝
 
 TEST(DnVecDescr, CreateAndDestroy) {
   if (!gcxx::testing::haveCudaDevice()) {

@@ -9,9 +9,7 @@
 
 namespace {
 
-  // Host-only resource (malloc/free) so buffer size logic can be exercised
-  // without a GPU or the CUDA runtime. T3: must advertise host_accessible
-  // to satisfy buffer's static_assert on execution-space properties.
+  // Host-only malloc/free mock; properties satisfy buffer's static_assert.
   struct host_mock_resource {
     void* allocate(gcxx::StreamView, std::size_t num_bytes) {
       return std::malloc(num_bytes);
@@ -27,9 +25,7 @@ namespace {
 
 }  // namespace
 
-// Regression: uninit_buffer::size_bytes() previously returned the
-// element count instead of the byte count, so buffer::size() reported
-// N/sizeof(VT) elements for an allocation of N.
+// Regression: size_bytes() once returned the element count.
 TEST(BufferSizeTest, ReportsElementCountAndByteCountForInt) {
   constexpr std::size_t N = 1000;
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, N);
@@ -55,9 +51,7 @@ TEST(BufferSizeTest, SpanFromBufferPreservesElementCount) {
   EXPECT_EQ(s.size_bytes(), N * sizeof(int));
 }
 
-// Regression for the vector_add_overlap crash: a span built from the buffer
-// previously had size N/sizeof(VT), so offsets in [N/sizeof(VT), N) tripped
-// the subspan contract. With the fix these offsets are valid.
+// Regression: span size N/sizeof(VT) broke subspan offsets in [N/2, N).
 TEST(BufferSizeTest, SpanFromBufferAcceptsFullRangeSubspanOffsets) {
   constexpr std::size_t N = 1000;
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, N);
@@ -72,8 +66,6 @@ TEST(BufferSizeTest, SpanFromBufferAcceptsFullRangeSubspanOffsets) {
   EXPECT_EQ(second_half.data(), s.data() + N / 2);
 }
 
-// resize delegates to uninit_buffer::replace_allocation_discard: it
-// reallocates through the stored resource and discards contents.
 TEST(BufferSizeTest, ResizeReallocatesThroughStoredResource) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, 10);
   ASSERT_EQ(buf.size(), 10);
@@ -94,9 +86,7 @@ TEST(BufferSizeTest, ResizeReallocatesThroughStoredResource) {
   EXPECT_TRUE(buf.empty());
 }
 
-// Regression: the value-init ctor always routed through the driver Fill
-// (memset / fill kernel), which fails on host (malloc) memory. Host-accessible
-// buffers now take the std::fill_n path (CCCL __fill_n host dispatch).
+// Regression: driver Fill failed on host memory; now the std::fill_n path.
 TEST(BufferSizeTest, ValueInitOnHostMemoryUsesHostFill) {
   constexpr std::size_t N = 100;
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, N, 42);

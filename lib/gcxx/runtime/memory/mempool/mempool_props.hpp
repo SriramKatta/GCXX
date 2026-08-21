@@ -45,9 +45,7 @@ struct MemPoolProps {
   }
 };
 
-// Descriptor describing how a pool may be accessed from a memory location.
-// Used by MemPoolView's peer-access API (enable/disable_access_from,
-// is_accessible_from) and the default-pool accessors.
+// Pool peer-access descriptor (used by MemPoolView's access API).
 struct MemAccessDesc {
   flags::MemLocation locationType{flags::MemLocation::Device};
   int locationId{0};

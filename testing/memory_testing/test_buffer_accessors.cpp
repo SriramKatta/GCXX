@@ -12,10 +12,7 @@
 
 namespace {
 
-  // Host-only resource (malloc/free) so accessor logic can be exercised
-  // without a GPU or the CUDA runtime. Advertises host_accessible via
-  // `using properties` so the buffer's SFINAE-gated element accessors
-  // (operator[], at, front, back) are visible.
+  // Host-only malloc/free mock; `properties` gates the SFINAE accessors.
   struct host_mock_resource {
     using properties = gcxx::TypeSet<gcxx::host_accessible>;
 
@@ -31,10 +28,7 @@ namespace {
 
 }  // namespace
 
-// =============================================================================
-// Reference: a buffer freshly allocated with no_init has uninitialized storage.
-// We hand-fill it before reading back so the assertions are deterministic.
-// =============================================================================
+// Fresh no_init storage is uninitialized; tests hand-fill for determinism.
 namespace {
 
   void fill_buffer(mock_buffer<int>& buf, int start) {
@@ -44,9 +38,7 @@ namespace {
 
 }  // namespace
 
-// =============================================================================
-// operator[] — bounds-checked (debug-build assert) element access.
-// =============================================================================
+// operator[] asserts on out-of-range in debug builds.
 TEST(BufferAccessorsTest, SubscriptReturnsNthElement) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{8}, gcxx::no_init);
@@ -76,9 +68,6 @@ TEST(BufferAccessorsTest, SubscriptIsMutable) {
   EXPECT_EQ(buf[2], 999);
 }
 
-// =============================================================================
-// at() — throws std::out_of_range on bad index.
-// =============================================================================
 TEST(BufferAccessorsTest, AtReturnsNthElement) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{8}, gcxx::no_init);
@@ -104,9 +93,7 @@ TEST(BufferAccessorsTest, AtConstThrowsOutOfRange) {
   EXPECT_THROW({ (void)cbuf.at(4); }, std::out_of_range);
 }
 
-// =============================================================================
-// front() / back() — assert-guarded (empty buffer is UB).
-// =============================================================================
+// front()/back() assert on empty (otherwise UB).
 TEST(BufferAccessorsTest, FrontBackOnSingleElement) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{1}, gcxx::no_init);
@@ -135,9 +122,6 @@ TEST(BufferAccessorsTest, FrontBackConst) {
   EXPECT_EQ(cbuf.back(), 13);
 }
 
-// =============================================================================
-// first(n) / last(n) — span views.
-// =============================================================================
 TEST(BufferAccessorsTest, FirstReturnsPrefixSpan) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{8}, gcxx::no_init);
@@ -189,9 +173,6 @@ TEST(BufferAccessorsTest, LastFullSizeIsWholeBuffer) {
   EXPECT_EQ(s.data(), buf.data());
 }
 
-// =============================================================================
-// subspan(offset, count) — middle-window views.
-// =============================================================================
 TEST(BufferAccessorsTest, SubspanWithCount) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{8}, gcxx::no_init);
@@ -244,9 +225,6 @@ TEST(BufferAccessorsTest, SubspanConstReturnsConstSpan) {
   EXPECT_EQ(s[0], 2);
 }
 
-// =============================================================================
-// Typedef sanity: reference / const_reference must be exposed.
-// =============================================================================
 TEST(BufferAccessorsTest, ExposesReferenceTypedefs) {
   static_assert(std::is_same_v<mock_buffer<int>::reference, int&>);
   static_assert(std::is_same_v<mock_buffer<int>::const_reference, const int&>);

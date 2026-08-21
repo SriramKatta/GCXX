@@ -27,25 +27,19 @@ class SparseHandleView {
 
   GCXX_FHC explicit SparseHandleView(deviceSparseHandle_t handle) noexcept;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Stream binding                      ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Stream binding.
 
   GCXX_FH auto setStream(gcxx::StreamView stream) -> void;
 
   GCXX_FH auto getStream() const -> gcxx::StreamView;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                     Introspection                      ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Introspection.
 
   GCXX_FH auto getVersion() const -> int;
 
   GCXX_FHC auto getRawHandle() const noexcept -> deviceSparseHandle_t;
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                      Comparison                        ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Comparison.
   GCXX_FHC auto operator==(const SparseHandleView& rhs) const noexcept -> bool;
   GCXX_FHC auto operator!=(const SparseHandleView& rhs) const noexcept -> bool;
 };

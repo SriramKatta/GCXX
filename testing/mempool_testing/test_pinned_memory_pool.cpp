@@ -1,17 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Tests for PinnedMemPool. On CUDA the pool is a real cudaMemPool_t at a host
-// (or host-NUMA) location; on HIP/ROCm there is no host memory pool, so the
-// pinned pool is a hipMallocHost-backed shim (see PinnedMemPoolView). The shim
-// intentionally carries NO pool handle — get() is null by design — and routes
-// (de)allocation through hipMallocHost/hipFreeHost. Pool-management ops
-// (trim_to / attribute) are unsupported on the shim (there is no pool to
-// manage), so those cases are compiled in only for the CUDA backend.
-//
-// The default ctor is used so the same ctor is exercised on every toolkit (on
-// CUDA it builds a real Host-location pool, available from the 12.8 minimum; on
-// HIP it builds the shim). Pinned pools always use the generic Host location.
+// Tests for PinnedMemPool: a real cudaMemPool_t on CUDA, a hipMallocHost-
+// backed shim on HIP (no handle); pool-management ops are CUDA-only.
 #include "tests_common.hpp"
 
 #include <cstddef>
@@ -23,7 +13,7 @@ namespace {
   struct not_a_resource {};  // for negative concept checks
 }  // namespace
 
-// ── Compile-time concept checks (run on every build) ─────────────────────────
+// Compile-time concept checks (run on every build).
 static_assert(gcxx::resource_with<gcxx::PinnedMemPool, gcxx::device_accessible,
                                   gcxx::host_accessible>,
               "");
@@ -44,9 +34,7 @@ class PinnedMemoryPoolTest : public ::testing::Test {
   }
 };
 
-// On HIP the shim deliberately holds no handle; on CUDA the default ctor
-// creates a real host pool. Either way the pool must be constructible and
-// usable.
+// HIP shim deliberately holds no handle; CUDA default ctor is a real pool.
 TEST_F(PinnedMemoryPoolTest, ConstructAndAllocate) {
   gcxx::PinnedMemPool pool{};  // default ctor on every backend
 #if GCXX_HIP_MODE()
@@ -125,8 +113,7 @@ TEST_F(PinnedMemoryPoolTest, DefaultPinnedPoolRef) {
   ref.deallocate(gcxx::StreamView::Null(), ptr);
 }
 
-// Pool-management ops only exist for a real pool (CUDA). On the HIP shim they
-// would touch a null handle, so they are compiled out entirely.
+// Pool-management ops need a real pool; on the HIP shim they'd touch null.
 #if GCXX_CUDA_MODE()
 TEST_F(PinnedMemoryPoolTest, TypedAttributeRoundTrip) {
   using gcxx::memory_pool_attributes::release_threshold;

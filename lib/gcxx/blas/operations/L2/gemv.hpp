@@ -20,48 +20,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Matrix-vector product, the P1673R13 matrix_vector_product shape.
-//
-//   matrix_vector_product(h, A, x, y)     ->  y = A * x     (write-only)
-//   matrix_vector_product(h, A, x, b, y)  ->  y = A * x + b (accumulate)
-//
-// A is a rank-2 mdspan; x, y (and the addend b) are rank-1 mdspans. The
-// operation state, the matrix dimensions, the leading dimension, and the
-// vector increments are all inferred from the mdspan metadata, so the API
-// takes no separate shape or operation arguments. The mathematical result
-// holds for ANY operand layout (column-major, row-major, or transposed
-// views).
-//
-// There is no alpha/beta parameter; per P1673R13 10.3, scaling is expressed
-// with scaled(alpha, x) views on the INPUTS (A or x), whose factors are
-// unwrapped and folded into the backend's single alpha:
-//
-//   matrix_vector_product(h, scaled(2.0, A), x, y);       // y = 2*A*x
-//   matrix_vector_product(h, A, x, scaled(0.5, y), y);    // y = A*x + 0.5*y
-//
-// The 3-argument form never reads y (the backend's beta is a host zero), so
-// y may hold uninitialized or NaN data. The 4-argument accumulate form reads
-// b: when b aliases y exactly the backend's in-place beta path computes
-// everything in one call; otherwise the product is written first and b is
-// accumulated with a follow-up axpy (which also applies b's factor).
-//
-// A device_scalar scaled() factor is subject to the same rules as
-// matrix_product: at most one non-unit factor, and never in the write-only
-// form (implicit zero beta). In the accumulate form, the aliased path needs
-// the alpha and addend factors to be either both host values or both
-// device_scalars (one pointer mode); the split path handles any mix, since
-// its follow-up axpy carries the addend factor as its single scalar.
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cublas*gemv_64 entry point
-// (int64_t dimensions), while all other index_types use the standard 32-bit
-// interface.
-//
-// A, x, y (and b) must be device views: mdspans carrying
-// gcxx::device_accessor / gcxx::managed_accessor (e.g. gcxx::device_mdspan,
-// gcxx::make_device_vector). Host views are rejected at compile time; in
-// check builds the data handles are additionally probed at run time so a
-// mislabeled host pointer fails here, not inside the GPU kernel.
+// y = A*x; scaling via scaled() views on the inputs (P1673 10.3).
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY)
@@ -99,17 +58,12 @@ auto matrix_vector_product(
                 "matrix_vector_product operands A, x, y must share a single "
                 "element type");
 
-  // TODO: support complex element types via cublasCgemv / cublasZgemv
-  //       (cublas_v2.h aliases these to the *_v2 forms; hipBLAS uses them
-  //       natively). The dispatch macro below only handles float and double; a
-  //       std::complex<T> element type hits this assert and must be wired up
-  //       (add Cgemv/Zgemv branches to GCXX_BLAS_DISPATCH_TYPED).
+  // TODO: Wire complex Cgemv/Zgemv into GCXX_BLAS_DISPATCH_TYPED.
   static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
                 "matrix_vector_product currently supports only float/double "
                 "element types (complex support is a TODO)");
 
-  // alpha comes only from scaled() views on the inputs; beta is a host zero
-  // in this write-only form, so y is never read.
+  // Alpha comes only from scaled() views on the inputs; beta is host zero.
   auto alpha_res = details_::combine_scaled_alpha(
     details_::resolve_scaled_alpha<Sv>(a.accessor()),
     details_::resolve_scaled_alpha<Sv>(x.accessor()), "matrix_vector_product");
@@ -166,12 +120,7 @@ auto matrix_vector_product(
   }
 }
 
-// Accumulate form: y = A * x + b (P1673R13's read-and-write version). b may
-// carry a scaled() factor. When b aliases y exactly the backend's in-place
-// beta path computes everything in one call; otherwise the product is
-// written to y first and b is accumulated with a follow-up axpy (which also
-// applies b's factor). b must either alias y exactly or not overlap it at
-// all.
+// Accumulate form: b aliases y -> in-place beta path, else split via axpy.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
@@ -221,8 +170,7 @@ auto matrix_vector_product(
       "matrix_vector_product addend b must have the same extent as y");
   }
 
-  // The addend's factor (identity 1 for a plain b) doubles as the backend's
-  // beta in the aliased case, and as axpy's alpha in the split case.
+  // The addend's factor doubles as beta (aliased) or axpy alpha (split).
   auto beta_res = details_::resolve_scaled_alpha<Sv>(b.accessor());
 
   if (!details_::views_alias(b, y)) {

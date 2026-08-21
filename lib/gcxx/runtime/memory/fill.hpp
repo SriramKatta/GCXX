@@ -19,13 +19,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// fill_kernel: writes value into every element of ptr[0..n). Only invoked for
-// non-zero values; the zero case is handled by the (much faster) byte-level
-// memset path in fill_dispatch below. Defined flat in the memory namespace
-// (matching memset.hpp / copy.hpp) — a nested details_ namespace here would
-// shadow gcxx::v1::details_ for the rest of the memory namespace.
-// ─────────────────────────────────────────────────────────────────────────────
+// Only invoked for non-zero values; zero goes through the fast memset path.
 template <typename VT>
 __global__ void fill_kernel(VT* ptr, VT value, std::size_t n) {
   const std::size_t idx =
@@ -35,11 +29,7 @@ __global__ void fill_kernel(VT* ptr, VT value, std::size_t n) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// fill_dispatch: the single point that decides memset vs kernel.
-//   value == VT{}  -> memset (byte fill, driver fast path)
-//   value != VT{}  -> fill_kernel (typed write per element)
-// ─────────────────────────────────────────────────────────────────────────────
+// Single decision point: VT{} values use byte memset, others use kernel.
 template <typename VT>
 GCXX_FH auto fill_dispatch(const StreamView& stream, VT* ptr, const VT& value,
                            std::size_t n) -> void {
@@ -57,9 +47,7 @@ GCXX_FH auto fill_dispatch(const StreamView& stream, VT* ptr, const VT& value,
   }
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║   smart / raw pointer version based on element type    ║
-// ╚════════════════════════════════════════════════════════╝
+// Fill via smart/raw pointers.
 GCXX_TEMPLATE(typename Ptr, typename Val)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
 GCXX_FH auto Fill(Ptr& handle, const Val& value,
@@ -76,9 +64,7 @@ GCXX_FH auto Fill(const StreamView& stream, Ptr& handle, const Val& value,
                 static_cast<element_t>(value), numElements);
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║  works on any type that can be converted into a span   ║
-// ╚════════════════════════════════════════════════════════╝
+// Fill of span-like destinations.
 GCXX_TEMPLATE(typename DSTTY, typename Val)
 GCXX_REQUIRES(is_span_like_v<DSTTY>)
 GCXX_FH auto Fill(DSTTY&& destination, const Val& value) -> void {

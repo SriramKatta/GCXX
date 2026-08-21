@@ -31,15 +31,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * This file demonstrates the usage of conditional graph nodes with
- * a series of *simple* example graphs.
- *
- * For more information on conditional nodes, see the programming guide:
- *
- *   https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#conditional-graph-nodes
- *
- */
+// Demonstrates conditional graph nodes with a series of simple example
+// graphs; see the CUDA programming guide on conditional graph nodes.
 
 // System includes
 #include <cassert>
@@ -56,15 +49,14 @@ __global__ void ifGraphKernelA(
   printf("GPU: Handle set to %d\n", value);
 }
 
-// This kernel will only be executed if the condition is true
+// This kernel will only be executed if the condition is true.
 __global__ void ifGraphKernelC() {
   printf("GPU: Hello from the GPU! The condition was true.\n");
 }
 
-// Setup and launch the graph
 void simpleIfGraph() {
 
-  // Allocate a byte of device memory to use as input
+  // Allocate a byte of device memory to use as input.
   auto dPtr_raii = gcxx::make_device_unique_ptr<char>(1);
   char* dPtr     = dPtr_raii.get();
 
@@ -106,19 +98,7 @@ void simpleIfGraph() {
   printf("simpleIfGraph: Complete\n\n");
 }
 
-/*
- * Create a graph containing a single conditional while node.
- * The default value of the conditional variable is set to true, so this
- * effectively becomes a do-while loop as the conditional body will always
- * execute at least once. The body of the conditional contains 3 kernel nodes:
- * A [ B -> C -> D ]
- * Nodes B and C are just dummy nodes for demonstrative purposes. Node D
- * will decrement a device memory location and set the condition value to false
- * when the value reaches zero, terminating the loop.
- * In this example, stream capture is used to populate the conditional body.
- */
-
-// This kernel will only be executed if the condition is true
+// Do-while while-node (default-true cond); body filled via stream capture.
 __global__ void doWhileEmptyKernel() {
   printf("GPU: doWhileEmptyKernel()\n");
   return;
@@ -165,25 +145,7 @@ void simpleDoWhileGraph() {
   printf("simpleDoWhileGraph: Complete\n\n");
 }
 
-/*
- * Create a graph containing a conditional while loop using stream capture.
- * This demonstrates how to insert a conditional node into a stream which is
- * being captured. The graph consists of a kernel node, A, followed by a
- * conditional while node, B, followed by a kernel node, D. The conditional
- * body is populated by a single kernel node, C:
- *
- * A -> B [ C ] -> D
- *
- * The same kernel will be used for both nodes A and C. This kernel will test
- * a device memory location and set the condition when the location is non-zero.
- * We must run the kernel before the loop as well as inside the loop in order
- * to behave like a while loop as opposed to a do-while loop. We need to
- * evaluate the device memory location before the conditional node is evaluated
- * in order to set the condition variable properly. Because we're using a kernel
- * upstream of the conditional node, there is no need to use the handle default
- * value to initialize the conditional value.
- */
-
+// While node via capture: pre-loop kernel A sets cond, body C, then D.
 __global__ void capturedWhileKernel(
   char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   printf("GPU: counter = %d\n", *dPtr);
@@ -222,12 +184,12 @@ void capturedWhileGraph() {
 
   // Insert kernel node A
 
-  // Obtain the handle for node A (get updated dependencies after kernel launch)
+  // Obtain the handle for node A (get updated dependencies after launch).
   auto captureInfo2    = captureStream.GetCaptureInfo();
   auto dependencies    = captureInfo2.pDependencies;
   auto numDependencies = captureInfo2.pDependenciescount;
 
-  // Insert conditional node B
+  // Insert conditional node B.
   auto [conditionalNode, bodyGraph] =
     captureInfo2.graph.AddWhileNode(handle, dependencies, numDependencies);
 
@@ -268,27 +230,11 @@ void capturedWhileGraph() {
   printf("capturedWhileGraph: Complete\n\n");
 }
 
-/*
- * Create a graph containing two nodes.
- * The first node, A, is a kernel and the second node, B, is a conditional IF
- * node containing two graphs. The first graph within the conditional will be
- * executed when the condition is true, while the second graph will be executed
- * when the conditional is false. The kernel sets the condition variable to true
- * if a device memory location contains an odd number. Otherwise the condition
- * variable is set to false. There is a single kernel(C & D) within each
- * conditional body which prints a message.
- *
- * A -> B [ C | D ]
- *
- * This example requires CUDA >= 12.8.
- */
-
-// This kernel will only be executed if the condition is false
+// If/else conditional node: two body graphs, true and false; CUDA >= 12.8.
 __global__ void ifGraphKernelD() {
   printf("GPU: Hello from the GPU! The condition was false.\n");
 }
 
-// Setup and launch the graph
 void simpleIfElseGraph() {
   gcxx::Graph graph;
 
@@ -300,7 +246,7 @@ void simpleIfElseGraph() {
   // Create conditional handle.
   auto handle = graph.CreateConditionalHandle(0);
 
-  // Use a kernel upstream of the conditional to set the handle value
+  // Use a kernel upstream of the conditional to set the handle value.
   auto kernparam = gcxx::KernelParamsBuilder()
                      .setKernel(ifGraphKernelA)
                      .setArgs(dPtr, handle)
@@ -310,7 +256,7 @@ void simpleIfElseGraph() {
   auto [ifelsenode, IfGraphBody, Elsegraphbody] =
     graph.AddIfElseNode(handle, &kernnode, 1);
 
-  // Populate the body of the first graph in the conditional node, executed if
+  // Populate the if-branch body (executed when the condition is true).
   auto kern2 = gcxx::KernelParamsBuilder().setKernel(ifGraphKernelC).build<0>();
   auto truenode = IfGraphBody.AddKernelNode(kern2);
 
@@ -336,21 +282,7 @@ void simpleIfElseGraph() {
   printf("simpleIfElseGraph: Complete\n\n");
 }
 
-/*
- * Create a graph containing two nodes.
- * The first node, A, is a kernel and the second node, B, is a conditional
- * SWITCH node containing four graphs. The nth graph within the conditional will
- * be executed when the condition is n. If conditional >= n, no graph will be
- * executed. Kernel A sets the condition variable to the value stored in a
- * device memory location. This device location is updated from the host with
- * each launch to demonstrate the behavior. There is a single kernel(nodes C, D,
- * E and F) within each conditional body which prints a message.
- *
- * A -> B [ C | D | E | F ]
- *
- * This example requires CUDA >= 12.8.
- */
-
+// Switch conditional node with four case bodies; requires CUDA >= 12.8.
 __global__ void switchGraphKernelA(
   char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   unsigned int value = *dPtr;
@@ -374,7 +306,6 @@ __global__ void switchGraphKernelF() {
   printf("GPU: Hello from switchGraphKernelF(), running on the GPU!\n");
 }
 
-// Setup and launch the graph
 void simpleSwitchGraph() {
   gcxx::Graph graph;
 
@@ -386,7 +317,7 @@ void simpleSwitchGraph() {
   auto handle = graph.CreateConditionalHandle(
     0, gcxx::flags::graphConditionalHandle::Default);
 
-  // Use a kernel upstream of the conditional to set the handle value
+  // Use a kernel upstream of the conditional to set the handle value.
   auto kern1 = gcxx::KernelParamsBuilder()
                  .setKernel(switchGraphKernelA)
                  .setArgs(dPtr, handle)
@@ -395,7 +326,7 @@ void simpleSwitchGraph() {
 
   auto [condNode, casevector] = graph.AddSwitchNode(handle, 4);
 
-  // Populate the four graph bodies within the SWITCH conditional graph
+  // Populate the four graph bodies within the SWITCH conditional graph.
   auto kernswitchC =
     gcxx::KernelParamsBuilder().setKernel(switchGraphKernelC).build<0>();
   std::ignore = casevector[0].AddKernelNode(kernswitchC);

@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Tests for gcxx::MemPool — the owning cudaMemPool_t handle. Mirrors the
-// Stream/StreamView relationship: MemPool : public MemPoolView, creates the
-// pool in its ctor and destroys it in its dtor. GPU-dependent; skipped on hosts
-// without a usable device.
+// Tests for gcxx::MemPool, the owning cudaMemPool_t handle (view/owner
+// split like Stream); GPU-dependent cases skip without a device.
 #include "tests_common.hpp"
 
 #include <gcxx/api.hpp>
@@ -41,8 +38,7 @@ TEST_F(MemPoolTest, MoveConstructorTransfersOwnership) {
 }
 
 TEST_F(MemPoolTest, MoveAssignmentTransfersOwnership) {
-  // pool1 is moved-from below; move-assignment needs a non-const source (copy
-  // is deleted), so it stays non-const despite the const-correctness nudge.
+  // Moved-from below; move-assign needs non-const (copy ctor is deleted).
   gcxx::MemPool pool1;  // NOLINT(misc-const-correctness)
   gcxx::MemPool pool2;
   const auto raw1 = pool1.getRawHandle();

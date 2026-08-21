@@ -14,24 +14,11 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-/**
- * @brief Duration type aliases for time measurements.
- *
- */
 using nanoSec  = std::chrono::duration<float, std::nano>;
 using microSec = std::chrono::duration<float, std::micro>;
 using milliSec = std::chrono::duration<float, std::milli>;
 using sec      = std::chrono::duration<float>;
 
-/**
- * @brief Converts a time value in milliseconds to the specified duration
- * type.
- *
- * @tparam DurationT The target duration type (e.g., nanoSec, microSec,
- * milliSec, sec)
- * @param ms Time value in milliseconds to convert
- * @return The converted duration in the specified type
- */
 template <typename DurationT>
 GCXX_FH auto ConvertDuration(float ms) -> DurationT {
   return std::chrono::duration_cast<DurationT>(milliSec(ms));
@@ -39,109 +26,55 @@ GCXX_FH auto ConvertDuration(float ms) -> DurationT {
 
 class StreamView;
 
-/**
- * @brief a non-owning wrapper for gpu events user is responsible for creating
- * and destroying the event object
- *
- */
+// Non-owning view of a GPU event; user creates and destroys it.
 class EventView {
 
  public:
   using deviceEvent_t   = driver::deviceEvent_t;
   using raw_handle_type = driver::deviceEvent_t;
 
-  /** @brief Default constructor - creates an EventView with an invalid/null
-   * event */
   EventView() = default;
 
 
-  /** @brief Constructor from raw device event - wraps an existing GPU event
-   * handle */
   GCXX_CXPR EventView(deviceEvent_t rawEvent) GCXX_NOEXCEPT;
 
-  /** @brief Copy constructor - creates a shallow copy sharing the same
-   * underlying event */
   GCXX_CXPR EventView(const EventView& eventRef) GCXX_NOEXCEPT;
 
   GCXX_CXPR
   auto operator=(const EventView& eventRef) GCXX_NOEXCEPT->EventView&;
 
-  /** @brief Returns the underlying raw GPU event handle */
   GCXX_FHC auto getRawHandle() GCXX_CONST_NOEXCEPT -> deviceEvent_t;
 
-  /** @brief Boolean conversion - returns true if the event is valid (not
-   * null/invalid) */
   GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT;
 
-  /** @brief Equality comparison - checks if two EventViews reference the same
-   * event */
   GCXX_CXPR
   friend auto operator==(const EventView lhs,
                          const EventView rhs) GCXX_NOEXCEPT->bool;
 
-  /** @brief Inequality comparison - checks if two EventViews reference
-   * different events */
   GCXX_CXPR
   friend auto operator!=(const EventView& lhs,
                          const EventView& rhs) GCXX_NOEXCEPT->bool;
 
-  /** @brief Deleted constructor from int - prevents accidental implicit
-   * conversions */
   EventView(int) = delete;
 
-  /** @brief Deleted constructor from nullptr - prevents null initialization
-   * ambiguity */
   EventView(std::nullptr_t) = delete;
 
-  /**
-   * @brief Queries whether the event has been recorded and all preceding work
-   * completed
-   * @return true if the event has occurred, false if still pending
-   */
   GCXX_FH auto HasOccurred() const -> bool;
 
-  /** @brief Blocks the calling CPU thread until the event has been recorded and
-   * completed */
   GCXX_FH auto Synchronize() const -> void;
 
-  /**
-   * @brief Records the event in the default/null stream with optional recording
-   * flags
-   * @param recordFlag Optional flags to control event recording behavior
-   */
   GCXX_FH auto RecordInStream(
     flags::eventRecord recordFlag = flags::eventRecord::None) -> void;
 
-  /**
-   * @brief Records the event in the specified stream with optional recording
-   * flags
-   * @param stream The stream in which to record this event
-   * @param recordFlag Optional flags to control event recording behavior
-   */
   GCXX_FH auto RecordInStream(
     const StreamView& stream,
     flags::eventRecord recordFlag = flags::eventRecord::None) -> void;
 
-  /**
-   * @brief Computes the elapsed time from startEvent to this event
-   *
-   * Both events must have been recorded before calling this method
-   * @tparam DurationT The duration type for the result (default: milliseconds)
-   * @param startEvent The earlier event to measure from
-   * @return Elapsed time between startEvent and this event
-   */
+  // Both events must have been recorded before this call.
   template <typename DurationT = milliSec>
   GCXX_FH auto ElapsedTimeSince(const EventView& startEvent) const -> DurationT;
 
-  /**
-   * @brief Computes the elapsed time between two events (static version)
-   *
-   * Both events must have been recorded before calling this method
-   * @tparam DurationT The duration type for the result (default: milliseconds)
-   * @param startEvent The earlier event
-   * @param endEvent The later event
-   * @return Elapsed time between startEvent and endEvent
-   */
+  // Both events must have been recorded before this call.
   template <typename DurationT = milliSec>
   GCXX_FH static auto ElapsedTimeBetween(
     const EventView& startEvent, const EventView& endEvent) -> DurationT;

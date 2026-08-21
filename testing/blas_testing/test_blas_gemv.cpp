@@ -1,14 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// End-to-end matrix_vector_product tests (P1673R13's gemv shape): y = A * x
-// and y = A * x + b via cuBLAS, with scaling expressed through scaled()
-// views. Includes the layout-independence gates: the same call must produce
-// the mathematical A * x for column-major, row-major, and transposed(A)
-// operands. GPU-gated — skipped when no device is present, but the template
-// must still compile (it instantiates gemv and its cublasSgemv_v2 / Dgemv
-// dispatch, plus the *_v2_64 64-bit-integer dispatch for the int64_t
-// index_type variant).
+// End-to-end matrix_vector_product (P1673 gemv) tests via cuBLAS with
+// scaled() views and layout gates; GPU-gated, must still compile everywhere.
 
 #include "tests_common.hpp"
 
@@ -47,7 +40,6 @@ namespace {
   using vec = gcxx::mdspan<T, dextents1d<IndexT>, gcxx::layout_left,
                            gcxx::default_accessor<T>>;
 
-  // Layout-agnostic host reference: out = alpha * a * x + beta * yref.
   template <class MatT, class VecT, class T, class S>
   void host_gemv(const MatT& a, const VecT& x, const VecT& yref,
                  std::vector<T>& out, S alpha, S beta) {
@@ -62,10 +54,7 @@ namespace {
     }
   }
 
-  // Runs y = A * x for column-major double operands whose device mdspan
-  // index_type is IndexT — this is what selects the cu/hipblas integer
-  // interface (Sgemv_v2/Dgemv_v2 for int, the *_v2_64 entry for a 64-bit
-  // index_type).
+  // index_type picks the cu/hipblas entry: Sgemv_v2/Dgemv_v2 vs *_v2_64.
   template <class IndexT>
   void run_colmajor_double_ax() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -116,10 +105,7 @@ namespace {
     }
   }
 
-  // Layout-independence gate: the SAME buffer contents interpreted as a
-  // row-major (layout_right) matrix must give the same mathematical
-  // A * x as the column-major case, and y = A * x + 0.5 * y (accumulate
-  // form, scaled() views) must hold as well.
+  // Layout gate: row-major buffer must give same A*x and scaled accumulate.
   template <class IndexT>
   void run_rowmajor_and_scaled() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -169,8 +155,7 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
-    // Stage 1: write-only y = A * x (verifies the row-major dispatch on its
-    // own, without any accumulate masking).
+    // Stage 1: write-only y = A*x (row-major dispatch, no accumulate mask).
     gcxx::blas::matrix_vector_product(handle, A, X, Y);
     str.Synchronize();
     std::vector<double> hY_stage1(M);
@@ -181,8 +166,7 @@ namespace {
         << "row-major write-only mismatch at index " << i;
     }
 
-    // Restore the original y so stage 2's beta applies to it (the accumulate
-    // form reads its aliased addend).
+    // Restore the original y so stage 2's beta reads the right addend.
     gcxx::Copy(str, dY.get(), hY.data(), static_cast<std::size_t>(M));
 
     // Stage 2: accumulate y = 2*A*x + 0.5*y via scaled() views.
@@ -200,8 +184,7 @@ namespace {
     }
   }
 
-  // transposed(A) as an operand: y = A^T * x must hold with the same zero-
-  // cost view (no data movement).
+  // transposed(A): y = A^T*x with no data movement.
   template <class IndexT>
   void run_transposed_operand() {
     if (!gcxx::testing::haveCudaDevice()) {
@@ -252,10 +235,7 @@ namespace {
     }
   }
 
-  // Device-pointer-mode variant: the scaled() factors live in device memory
-  // and are passed via gcxx::blas::device_scalar, selecting device pointer
-  // mode (both factors must be device-resident). Uses non-trivial alpha and
-  // a non-zero y so both scalars are actually read.
+  // device_scalar selects device pointer mode; both factors device-resident.
   template <class IndexT>
   void run_colmajor_double_ax_device_scalar() {
     if (!gcxx::testing::haveCudaDevice()) {

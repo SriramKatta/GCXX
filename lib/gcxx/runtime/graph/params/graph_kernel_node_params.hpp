@@ -16,14 +16,11 @@
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
 
-// TODO : use type safe builder patter to make this robust
-// https://github.com/CppCon/CppCon2025/blob/main/Lightning%20Talks/The_Type_Safe_Builder_Design_Pattern.pdf
+// TODO: Use a type-safe builder pattern (CppCon 2025) to make this robust.
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// KernelNodeParamsView is a non-owning view. It assumes that
-// params_.kernelParams (and any memory it points to) remains valid for the
-// lifetime of the view. No mutation is allowed through this interface.
+// Non-owning view; kernelParams memory must outlive the view.
 class KernelNodeParamsView {
  public:
   using deviceKernelNodeParams_t = driver::deviceKernelNodeParams_t;
@@ -71,7 +68,7 @@ class KernelNodeParams : public KernelNodeParamsView {
     m_params.extra          = nullptr;
   }
 
-  // Constructor from pre-built array of void* pointers (used by builder)
+  // Constructor from pre-built array of void* pointers (used by builder).
   GCXX_FHC
   KernelNodeParams(void* func, dim3 grid, dim3 block, unsigned int shmem,
                    std::array<void*, NumParams> arg_ptrs)
@@ -84,8 +81,7 @@ class KernelNodeParams : public KernelNodeParamsView {
     m_params.extra          = nullptr;
   }
 
-  // Disable move/copy to ensure params_.kernelParams never points to an old
-  // stack location
+  // Disable move/copy so kernelParams cannot dangle to an old object.
   KernelNodeParams(const KernelNodeParams&) = delete;
   KernelNodeParams(KernelNodeParams&&)      = delete;
 
@@ -207,7 +203,7 @@ class KernelParamsBuilder {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-// an helper to simply while using it
+// An helper to simply while using it.
 GCXX_FH auto KernelParamsBuilder() -> details_::KernelParamsBuilder {
   return details_::KernelParamsBuilder::create();
 }

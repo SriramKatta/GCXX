@@ -6,17 +6,14 @@
 
 #include <gcxx/internal/prologue.hpp>
 
-// BLAS type map (typed-op dispatch) + data-type trait, shared across all
-// levels.
+// BLAS type map (typed-op dispatch) + data-type trait shared by all levels.
 #include <gcxx/blas/datatypes/datatypes.hpp>
 #include <gcxx/blas/type_map.hpp>
 
-// Shared (non-level-specific) helpers. scaled()/transposed() live in the
-// mdspan layer (gcxx/runtime/memory/spans/mdspan/) and arrive via
-// details/op_inference.hpp and the mdspan barrel; side/symmetric tags are
-// BLAS-specific and stay here.
+// Shared (non-level-specific) helpers: scaled()/transposed() views + tags.
 #include <gcxx/blas/operations/side.hpp>
 #include <gcxx/blas/operations/symmetric.hpp>
+#include <gcxx/blas/operations/diagonal.hpp>
 
 // Per-level barrels.
 #include <gcxx/blas/operations/L1/L1.hpp>

@@ -8,18 +8,14 @@
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                     Memory Handles                     ║
-// ╚════════════════════════════════════════════════════════╝
+// Memory handles.
 using devicePitchedPtr          = GCXX_RUNTIME_BACKEND(PitchedPtr);
 using devicePos                 = GCXX_RUNTIME_BACKEND(Pos);
 using deviceExtent              = GCXX_RUNTIME_BACKEND(Extent);
 using devicePointerAttributes_t = GCXX_RUNTIME_BACKEND_ALT(PointerAttributes,
                                                            PointerAttribute_t);
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                     Device Handles                     ║
-// ╚════════════════════════════════════════════════════════╝
+// Device handles.
 using deviceProp_t         = GCXX_RUNTIME_BACKEND_ALT(DeviceProp, DeviceProp_t);
 using deviceAttribute_t    = GCXX_RUNTIME_BACKEND_ALT(DeviceAttr,
                                                       DeviceAttribute_t);
@@ -39,22 +35,16 @@ using deviceP2PAttr_t        = GCXX_RUNTIME_BACKEND(DeviceP2PAttr);
 using deviceIpcEventHandle_t = GCXX_RUNTIME_BACKEND(IpcEventHandle_t);
 using deviceIpcMemHandle_t   = GCXX_RUNTIME_BACKEND(IpcMemHandle_t);
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                   Execution Handles                    ║
-// ╚════════════════════════════════════════════════════════╝
+// Execution handles.
 using deviceLaunchConfig_t = GCXX_RUNTIME_BACKEND(LaunchConfig_t);
 using deviceKenel_t        = GCXX_RUNTIME_BACKEND(Kernel_t);
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                     Error Handles                      ║
-// ╚════════════════════════════════════════════════════════╝
+// Error handles.
 using deviceError_t                     = GCXX_RUNTIME_BACKEND(Error_t);
 GCXX_CXPR inline auto deviceErrSuccess  = GCXX_RUNTIME_BACKEND(Success);
 GCXX_CXPR inline auto deviceErrNotReady = GCXX_RUNTIME_BACKEND(ErrorNotReady);
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                     Stream Handles                      ║
-// ╚════════════════════════════════════════════════════════╝
+// Stream handles.
 using deviceStream_t              = GCXX_RUNTIME_BACKEND(Stream_t);
 using deviceStreamCallback_t      = GCXX_RUNTIME_BACKEND(StreamCallback_t);
 using deviceStreamCaptureMode_t   = GCXX_RUNTIME_BACKEND(StreamCaptureMode);
@@ -70,16 +60,12 @@ using deviceStreamAttrID_t    = GCXX_RUNTIME_BACKEND(StreamAttrID);
 using deviceStreamAttrValue_t = GCXX_RUNTIME_BACKEND(StreamAttrValue);
 #endif
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                     Event Handles                      ║
-// ╚════════════════════════════════════════════════════════╝
+// Event handles.
 using deviceEvent_t = GCXX_RUNTIME_BACKEND(Event_t);
 inline static constexpr deviceEvent_t INVALID_EVENT{nullptr};  // NOLINT
 
 
-// ╔════════════════════════════════════════════════════════╗
-// ║                     Graph Handles                      ║
-// ╚════════════════════════════════════════════════════════╝
+// Graph handles.
 using deviceGraph_t           = GCXX_RUNTIME_BACKEND(Graph_t);
 using deviceGraphNode_t       = GCXX_RUNTIME_BACKEND(GraphNode_t);
 using deviceGraphExec_t       = GCXX_RUNTIME_BACKEND(GraphExec_t);

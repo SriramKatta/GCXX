@@ -19,38 +19,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Apply a Givens rotation to (x, y), P1673R13's apply_givens_rotation (the
-// BLAS rot with the data operands first and the coefficients after, per the
-// r13 argument order):
-//   x_i = c * x_i + s * y_i
-//   y_i = c * y_i - s * x_i   (with the pre-rotation x_i)
-//
-// (P1673R13 pairs this with a host-side setup_givens_rotation(a, b) that
-// computes c, s, r without a handle; that half is deferred here.)
-//
-// x and y are rank-1 mdspans; the length n and the increments (incx, incy) are
-// inferred from the mdspan metadata. The type-erased cu/hipblasRotEx entry
-// point is used, with the data-type and execution-type enums derived from the
-// element type. Each operand is typed as a gcxx::mdspan in the signature, so
-// wrong-rank (or non-mdspan) arguments fail overload resolution.
-//
-// Example:
-//   gcxx::blas::apply_givens_rotation(h, x, y, 0.8, 0.6);
-//
-// c/s may be passed either as host scalars (host pointer mode) or as
-// gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer
-// mode). The mode is selected per call from the argument type; the handle's
-// prior pointer mode is restored when the call returns.
-//
-// The integer interface is selected from the operands' mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasRotEx_64 entry point,
-// while all other index_types use the standard 32-bit interface.
-//
-// x and y must be device views: mdspans carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
-// rejected at compile time; in check builds the data handles are
-// additionally probed at run time so a mislabeled host pointer fails here,
-// not inside the GPU kernel.
+// Givens rotation on (x, y); c/s may be host scalars or device_scalar.
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY,
               class S = TX)

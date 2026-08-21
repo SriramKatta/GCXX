@@ -40,11 +40,7 @@ GCXX_FH auto deviceFreeHost(void* ptr) -> void {
                          "Failed to free pinned host memory", ptr);
 }
 
-// Whether p points to memory the device can dereference (device or managed
-// memory). A failed probe — plain malloc'd host memory is unregistered —
-// clears the sticky last-error and returns false. Used by the BLAS layer's
-// debug validation of operand data handles; expect it on the hot path only
-// in check builds.
+// Failed probes clear the sticky last-error and return false.
 GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
   if (ptr == nullptr) {
     return true;
@@ -64,14 +60,7 @@ GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
          attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged);
 }
 
-// Whether p points to memory a BLAS-style backend call may consume: device
-// or managed memory, or page-locked host memory with a device mapping. The
-// latter is how the pinned pools' allocations behave — host-typed (so
-// isDeviceOrManagedMemory rejects them) but lawfully dereferenceable from
-// the device: cudaMallocHost / hipMallocHost memory carries the device-side
-// address of its UVA mapping, and host-location pool allocations do once
-// cudaMemPoolSetAccess has granted access. Plain malloc'd host memory has no
-// mapping (devicePointer stays null) and is still rejected.
+// Also accepts pinned host memory that has a device (UVA) mapping.
 GCXX_FH auto isDeviceUsableMemory(const void* ptr) -> bool {
   if (ptr == nullptr) {
     return true;

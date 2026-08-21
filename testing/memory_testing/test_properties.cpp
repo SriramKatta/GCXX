@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Phase 1 coverage: the property-system foundation added in properties.hpp —
-// TypeSet, properties_list (rebind + has_property), memory_accessibility,
-// accessibility_from_static_properties, dynamic_accessibility_property, the
-// pack-keyed traits, and resource_has_all_v. All static_assert (compile-time);
-// the TEST bodies just give gtest something to register so the file links.
+// Phase 1 coverage: property-system foundation (TypeSet, properties_list,
+// accessibility traits, pack traits). Compile-time only; no GPU needed.
 #include "tests_common.hpp"
 
 #include <type_traits>
@@ -14,7 +10,6 @@
 
 namespace {
 
-  // Mock resource advertising host_accessible only.
   struct host_only_resource {
     using properties = gcxx::TypeSet<gcxx::host_accessible>;
   };
@@ -23,15 +18,11 @@ namespace {
       gcxx::TypeSet<gcxx::host_accessible, gcxx::device_accessible>;
   };
 
-  // Dummy template used to exercise properties_list::rebind.
   template <typename... Ts>
   struct rebind_target {};
 
 }  // namespace
 
-// =============================================================================
-// TypeSet: uniqueness, contains, size, empty set.
-// =============================================================================
 TEST(TypeSetTest, ContainsAndSize) {
   using gcxx::TypeSet;
   using S = TypeSet<int, float, double>;
@@ -57,10 +48,6 @@ TEST(TypeSetTest, AllUniqueTrait) {
   static_assert(!all_unique_v<int, float, int>);
 }
 
-// =============================================================================
-// properties_list: rebind appends Properties after ExtraArgs; has_property
-// query.
-// =============================================================================
 TEST(PropertiesListTest, RebindAppendsPropertiesAfterExtraArgs) {
   using gcxx::device_accessible;
   using gcxx::host_accessible;
@@ -80,9 +67,6 @@ TEST(PropertiesListTest, HasPropertyQuery) {
   static_assert(!L::has_property(host_accessible{}));
 }
 
-// =============================================================================
-// memory_accessibility + accessibility_from_static_properties.
-// =============================================================================
 TEST(MemoryAccessibilityTest, ReducesStaticFlags) {
   using gcxx::accessibility_from_static_properties;
   using gcxx::memory_accessibility;
@@ -101,9 +85,6 @@ TEST(MemoryAccessibilityTest, DynamicPropertyValueType) {
                                gcxx::memory_accessibility>);
 }
 
-// =============================================================================
-// Pack-keyed traits (over a property pack).
-// =============================================================================
 TEST(PackTraitsTest, IsHostAccessible) {
   using gcxx::device_accessible;
   using gcxx::host_accessible;
@@ -135,10 +116,7 @@ TEST(PackTraitsTest, ContainsExecutionSpaceProperty) {
   static_assert(!contains_execution_space_property<>);
 }
 
-// =============================================================================
-// resource_has_all_v<R, Ps...>: R's properties ⊇ {Ps...} (the ctor contract).
-// Reads R's `using properties` member (TypeSet).
-// =============================================================================
+// resource_has_all_v: R's properties must be a superset of {Ps...}.
 TEST(ResourceHasKeyAllTest, MatchesAdvertisedProperties) {
   using gcxx::device_accessible;
   using gcxx::host_accessible;

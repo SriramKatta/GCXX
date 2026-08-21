@@ -25,7 +25,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// The alignment guarantee CUDA makes for pool allocations
+// The alignment guarantee CUDA makes for pool allocations.
 inline constexpr std::size_t default_cuda_malloc_alignment = 256;
 
 class MemPoolView {
@@ -49,12 +49,9 @@ class MemPoolView {
 
   GCXX_FH explicit MemPoolView(deviceMemPool_t pool) noexcept : m_pool_(pool) {}
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║               Stream-ordered (de)allocation            ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Stream-ordered allocation.
 
-  // Allocate at least `bytes` from the pool, ordered on `stream`, with the
-  // requested alignment (validated; must be a power of two <= the default).
+  // Alignment must be a nonzero power of two <= default_cuda_malloc_alignment.
   GCXX_FH auto allocate(gcxx::StreamView stream, std::size_t bytes,
                         [[maybe_unused]] std::size_t alignment =
                           default_cuda_malloc_alignment) -> void* {
@@ -64,7 +61,6 @@ class MemPoolView {
                                              stream.getRawHandle());
   }
 
-  // Return `ptr` to the pool, ordered on `stream`.
   GCXX_FH void deallocate(gcxx::StreamView stream, void* ptr,
                           [[maybe_unused]] std::size_t bytes = 0,
                           [[maybe_unused]] std::size_t alignment =
@@ -75,9 +71,7 @@ class MemPoolView {
   }
 
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║        Synchronous (de)allocation (default stream)     ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Synchronous (de)allocation on the null stream.
   GCXX_FH auto allocate_sync(
     std::size_t bytes,
     std::size_t alignment = default_cuda_malloc_alignment) -> void* {
@@ -97,16 +91,12 @@ class MemPoolView {
     StreamView::Null().Synchronize();
   }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Pool management                     ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Pool management.
 
-  // Release pool memory down to at least `min_bytes_to_keep` reserved bytes.
   GCXX_FH auto trim_to(std::size_t min_bytes_to_keep) -> void {
     driver::deviceMemPoolTrimTo(m_pool_, min_bytes_to_keep);
   }
 
-  // Read a typed attribute (see memory_pool_attributes).
   template <typename Attr>
   GCXX_FH auto attribute(Attr attr) const -> typename Attr::type {
     return attr(m_pool_);
@@ -121,12 +111,9 @@ class MemPoolView {
     return m_pool_;
   }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                Peer / cross-device access              ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Peer / cross-device access.
 
-  // Grant `device_id` read/write access to this pool's allocations. A no-op
-  // on a view with no underlying pool handle (e.g. the HIP pinned shim).
+  // No-op with no underlying pool handle (e.g. HIP pinned shim).
   GCXX_FH auto enable_access_from(int device_id) -> void {
     if (m_pool_ == nullptr) {
       return;
@@ -137,7 +124,6 @@ class MemPoolView {
     driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
   }
 
-  // Revoke `device_id`'s access to this pool's allocations.
   GCXX_FH auto disable_access_from(int device_id) -> void {
     if (m_pool_ == nullptr) {
       return;
@@ -148,8 +134,7 @@ class MemPoolView {
     driver::deviceMemPoolSetAccess(m_pool_, &raw, /*count=*/1);
   }
 
-  // Enable read/write access from every device in the system. A no-op on a
-  // view with no underlying pool handle (e.g. the HIP pinned shim).
+  // No-op with no underlying pool handle (e.g. HIP pinned shim).
   GCXX_FH auto enable_access_from_all() -> void {
     if (m_pool_ == nullptr) {
       return;
@@ -167,7 +152,6 @@ class MemPoolView {
     }
   }
 
-  // true iff `device_id` has read/write access to this pool's allocations.
   GCXX_FH auto is_accessible_from(int device_id) -> bool {
     if (m_pool_ == nullptr) {
       return false;
@@ -180,9 +164,7 @@ class MemPoolView {
                             flags::MemAccessFlags::ReadWrite);
   }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                       Comparison                       ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Comparison.
   GCXX_FH auto operator==(const MemPoolView& rhs) const noexcept -> bool {
     return m_pool_ == rhs.m_pool_;
   }

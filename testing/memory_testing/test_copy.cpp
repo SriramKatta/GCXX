@@ -9,8 +9,7 @@
 
 #include <gcxx/api.hpp>
 
-// raw_handle_type contract (see tests_common.hpp). No dedicated stream test
-// exists; this stream-ordered copy test already constructs gcxx::Stream.
+// Raw-handle contract (see tests_common.hpp); no dedicated stream test yet.
 GCXX_ASSERT_RAW_HANDLE(StreamView, gcxx::driver::deviceStream_t);
 GCXX_ASSERT_RAW_HANDLE(Stream, gcxx::driver::deviceStream_t);
 
@@ -20,16 +19,10 @@ namespace {
   using device_ptr = gcxx::device_ptr<u32>;
   using device_buf = gcxx::device_buffer<u32>;
 
-  // Satisfies neither is_pointer_or_has_get_v nor is_span_like_v — the
-  // universal negative case for every overload's SFINAE constraint.
+  // Satisfies no handle/span trait: universal negative case.
   struct NotAHandle {};
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Detection traits per overload shape. Args... is the pack of candidate
-  // types; the rest of the call (stream, count) is concrete. Positive asserts
-  // check each accepted shape; negative asserts check rejection — something
-  // the old decltype(...) type check could not do at all.
-  // ─────────────────────────────────────────────────────────────────────────────
+  // Args... is the candidate pack; stream/count are concrete.
 
   // Copy(dst, src, count) — sync, pointer/smart-pointer.
   GCXX_DEFINE_IS_CALLABLE(is_copy_ptrs_sync_callable,
@@ -47,13 +40,7 @@ namespace {
 
 }  // namespace
 
-// =============================================================================
-// Positive: every overload resolves for the argument shapes it accepts.
-// Passing lvalue pointers (u32*&) is the regression net for the
-// forwarding-reference trait fix — lvalue pointers used to deduce Ptr = T*&
-// and fail is_pointer_or_has_get_v before the uncvref fix.
-// =============================================================================
-
+// Lvalue pointers (u32*&) are the regression net for the uncvref fix.
 TEST(CopySfinaeTest, AcceptsValidArgumentShapes) {
   static_assert(is_copy_ptrs_sync_callable_v<u32*&, u32*&>);
   static_assert(is_copy_ptrs_sync_callable_v<u32*, u32*>);
@@ -67,11 +54,7 @@ TEST(CopySfinaeTest, AcceptsValidArgumentShapes) {
   static_assert(is_copy_spans_async_callable_v<device_buf&, device_buf&>);
 }
 
-// =============================================================================
-// Negative: each overload rejects the wrong argument shape. This is the part
-// the old decltype(...) type check could not do at all.
-// =============================================================================
-
+// Negative asserts impossible with the old decltype type check.
 TEST(CopySfinaeTest, RejectsInvalidArgumentShapes) {
   // Pointer overloads reject spans (no .get()), NotAHandle, and plain values.
   static_assert(
@@ -80,16 +63,10 @@ TEST(CopySfinaeTest, RejectsInvalidArgumentShapes) {
   static_assert(
     !is_copy_ptrs_async_callable_v<gcxx::span<u32>&, gcxx::span<u32>&>);
 
-  // Span overloads reject raw pointers (no .data()/.size() members),
-  // NotAHandle.
+  // Span overloads reject raw pointers and NotAHandle.
   static_assert(!is_copy_spans_async_callable_v<u32*, u32*>);
   static_assert(!is_copy_spans_async_callable_v<NotAHandle, NotAHandle>);
 }
-
-// =============================================================================
-// Runtime round-trips: real H2D / D2H copies, verified on the host. Skipped on
-// GPU-less hosts so the suite stays green in GPU-free CI.
-// =============================================================================
 
 TEST(CopyTest, RawPointerSyncRoundTrip) {
   if (!gcxx::testing::haveCudaDevice())

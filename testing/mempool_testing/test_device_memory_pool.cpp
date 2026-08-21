@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
-//
-// Tests for the CCCL-parity DeviceMemPool (+ the MemPoolView API it inherits)
-// and the resource_with concept integration. GPU-dependent cases are skipped on
-// hosts without a usable device; the compile-time concept checks run
-// unconditionally.
+// Tests for the CCCL-parity DeviceMemPool (+ inherited MemPoolView API) and
+// resource_with integration; GPU-dependent cases skip without a device.
 #include "tests_common.hpp"
 
 #include <gcxx/api.hpp>
@@ -13,7 +10,7 @@ namespace {
   struct not_a_resource {};  // for negative concept checks
 }  // namespace
 
-// ── Compile-time concept checks (run on every build) ─────────────────────────
+// Compile-time concept checks (run on every build).
 static_assert(gcxx::resource_with<gcxx::DeviceMemPool, gcxx::device_accessible>,
               "");
 static_assert(
@@ -65,8 +62,7 @@ TEST_F(DeviceMemoryPoolTest, TypedAttributeRoundTrip) {
   EXPECT_EQ(pool.attribute(release_threshold), std::size_t{4096});
 }
 
-// NOTE: peer/self-access checks (is_accessible_from) are omitted — the
-// MemPoolView peer-access API is still a TODO and not yet implemented.
+// Peer/self-access checks (is_accessible_from) omitted: API is still a TODO.
 TEST_F(DeviceMemoryPoolTest, TrimTo) {
   gcxx::DeviceMemPool pool(gcxx::DeviceHandle{0});
   EXPECT_NO_THROW(pool.trim_to(0));

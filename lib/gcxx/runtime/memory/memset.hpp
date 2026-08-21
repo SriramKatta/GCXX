@@ -16,9 +16,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// ╔════════════════════════════════════════════════════════╗
-// ║   smart / raw pointer version based on element type    ║
-// ╚════════════════════════════════════════════════════════╝
+// Memset via smart/raw pointers.
 GCXX_TEMPLATE(typename Ptr)
 GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
 GCXX_FH auto Memset(Ptr&& handle, const int value,
@@ -39,9 +37,7 @@ GCXX_FH auto Memset(const StreamView& stream, Ptr&& handle, const int value,
 }
 
 
-// ╔════════════════════════════════════════════════════════╗
-// ║  works on any type that can be converted into a span   ║
-// ╚════════════════════════════════════════════════════════╝
+// Memset of span-like destinations.
 GCXX_TEMPLATE(typename DSTTY)
 GCXX_REQUIRES(is_span_like_v<DSTTY>)
 GCXX_FH auto Memset(DSTTY&& destination, const int value) -> void {

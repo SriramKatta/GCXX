@@ -20,7 +20,7 @@ GCXX_FH auto chooseDevice(const deviceProp_t& prop) -> int {
 }
 
 GCXX_FH auto deviceFlushGPUDirectRDMAWrites() -> void {
-  // TODO : to be filed later
+  // TODO: To be filed later.
 }
 
 GCXX_FH auto deviceGetAttribute(deviceAttribute_t attr, int device) -> int {

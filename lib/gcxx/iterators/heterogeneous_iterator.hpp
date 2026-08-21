@@ -13,27 +13,13 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::heterogeneous_iterator<CvTp, Properties...>
-//
-// A contiguous (random-access) iterator whose dereference operators are
-// API-tagged by the element's memory accessibility (carried as Properties...):
-//   * host          → deref callable only from the host (GCXX_FHC)
-//   * device        → deref callable only from the device (GCXX_FDC)
-//   * host_device   → deref callable from both (GCXX_FHDC)  [managed memory]
-// So an iterator over device-only storage cannot be dereferenced from host
-// code (compile error), and vice versa. Mirrors CCCL's heterogeneous_iterator.
-//
-//  Only dereference is space-restricted. Requires at least one execution-space
-//  property
-// ─────────────────────────────────────────────────────────────────────────────
+// gcxx::heterogeneous_iterator: random-access iterator, space-tagged deref.
 namespace detail {
 
   template <bool IsConst, typename T>
   using maybe_const = std::conditional_t<IsConst, const T, T>;
 
-  // Primary (default): both host and device may deref. Reached only for
-  // host_device (managed) memory
+  // Primary: reached only for host_device (managed) memory.
   template <typename Tp, bool IsConst, memory_accessibility Space>
   class iter_access {
    private:
@@ -56,9 +42,7 @@ namespace detail {
   };
 
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                    Host-only deref                     ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Host-only deref.
   template <typename Tp, bool IsConst>
   class iter_access<Tp, IsConst, memory_accessibility::host> {
    private:
@@ -79,9 +63,7 @@ namespace detail {
     element_ptr_t ptr_{nullptr};
   };
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                   Device-only deref                    ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Device-only deref.
   template <typename Tp, bool IsConst>
   class iter_access<Tp, IsConst, memory_accessibility::device> {
    private:
@@ -131,9 +113,7 @@ class heterogeneous_iterator
   heterogeneous_iterator() noexcept = default;
   explicit GCXX_FHDC heterogeneous_iterator(pointer p) noexcept : base(p) {}
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                random-access mechanics                 ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Random-access mechanics.
 
   GCXX_FHDC auto operator++() noexcept -> heterogeneous_iterator& {
     ++this->ptr_;

@@ -16,7 +16,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class SpMatDescr : public SpMatDescrView {
  public:
-  // ── Format-specific factories ────────────────────────────────────────────
+  // Format-specific factories.
   GCXX_FH static auto from_csr(
     std::int64_t rows, std::int64_t cols, std::int64_t nnz, void* csrRowOffsets,
     void* csrColInd, void* csrValues,

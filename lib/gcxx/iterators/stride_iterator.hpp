@@ -14,12 +14,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// The delegating dereference members (GCXX_FHDC bodies calling the wrapped
-// iterator's space-tagged dereference) trip nvcc/NVHPC's deferred-device-pass
-// notes #20013-D/#20015-D whenever Iterator's deref is single-space. That
-// call is the intended restriction mechanism, and genuine cross-space misuse
-// is still a hard error at the actual call site, so the notes are silenced
-// for the class body only (same treatment as reverse_iterator).
+// Delegating derefs trip nvcc/NVHPC notes #20013-D/#20015-D; silence locally.
 #if defined(__NVCOMPILER)
 #pragma diag_suppress 20013
 #pragma diag_suppress 20015
@@ -28,18 +23,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 #pragma nv_diag_suppress 20015
 #endif
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::stride_iterator<Iterator, Stride>
-//
-// Wraps ANY randomly-traversable iterator — raw pointers,
-// heterogeneous_iterator, other adapters — and visits every Stride-th element.
-//
-// Every operation delegates to the wrapped iterator, so its memory-access
-// restrictions survive: wrapping a heterogeneous_iterator keeps dereference
-// space-tagged exactly as the forward iterator's.
-//
-// Stride is Also compile-time settable
-// ─────────────────────────────────────────────────────────────────────────────
+// gcxx::stride_iterator<I, S>: visits every S-th element via delegation.
 template <typename Iterator_t, std::size_t Stride = details_::dynamic_size>
 class stride_iterator {
   using traits_t = iterator_traits<Iterator_t>;
@@ -58,36 +42,30 @@ class stride_iterator {
   using pointer           = typename traits_t::pointer;
   using reference         = typename traits_t::reference;
 
-  /// The stride template parameter (details_::dynamic_size when runtime).
+  // The stride template parameter (details_::dynamic_size when runtime).
   static constexpr std::size_t stride_extent = Stride;
 
   stride_iterator() noexcept = default;
 
-  /// Runtime-stride ctor (only when Stride is the dynamic sentinel).
+  // Runtime-stride ctor (only when Stride is the dynamic sentinel).
   GCXX_TEMPLATE(std::size_t S = Stride)
   GCXX_REQUIRES(S == details_::dynamic_size)
   GCXX_FHDC stride_iterator(Iterator_t it, difference_type stride) noexcept
       : current_(it), m_stride(static_cast<std::size_t>(stride)) {}
 
-  /// Fixed-stride ctor: the stride comes from the template parameter.
   GCXX_TEMPLATE(std::size_t S = Stride)
   GCXX_REQUIRES(S != details_::dynamic_size)
   GCXX_FHDC explicit stride_iterator(Iterator_t it) noexcept : current_(it) {}
 
-  /// Converting ctor (e.g. iterator → const_iterator rewrapee).
   GCXX_TEMPLATE(typename Other)
   GCXX_REQUIRES(!std::is_same_v<Other, Iterator_t> GCXX_AND
                   std::is_convertible_v<const Other&, Iterator_t>)
   GCXX_FHDC stride_iterator(const stride_iterator<Other, Stride>& u) noexcept
       : current_(u.base()), m_stride(static_cast<std::size_t>(u.stride())) {}
 
-  /// The wrapped iterator at the same position.
   GCXX_FHDC auto base() const noexcept -> Iterator_t { return current_; }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║   dereference — delegated to the wrapped iterator       ║
-  // ║   (this is what preserves its space restrictions)       ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Dereference (delegated; preserves space restrictions).
   GCXX_FHDC auto operator*() const noexcept -> reference { return *current_; }
   GCXX_FHDC auto operator->() const noexcept -> pointer {
     if constexpr (std::is_pointer_v<Iterator_t>) {
@@ -100,9 +78,7 @@ class stride_iterator {
     return *(current_ + n * stride());
   }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║        stride-step movement (all delegated)            ║
-  // ╚════════════════════════════════════════════════════════╝
+  // Stride-step movement (all delegated).
   GCXX_FHDC auto operator++() noexcept -> stride_iterator& {
     current_ += stride();
     return *this;
@@ -130,10 +106,7 @@ class stride_iterator {
     return *this;
   }
 
-  // ╔════════════════════════════════════════════════════════╗
-  // ║                       observers                        ║
-  // ╚════════════════════════════════════════════════════════╝
-  /// The stride (in elements) between successive positions.
+  // Observers.
   GCXX_FHDC auto stride() const noexcept -> difference_type {
     return static_cast<difference_type>(m_stride.size());
   }
@@ -151,10 +124,7 @@ class stride_iterator {
 #pragma nv_diag_default 20015
 #endif
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Arithmetic + comparisons. Difference is measured in STRIDE STEPS so that
-// (end - begin) is the logical length of the strided range.
-// ─────────────────────────────────────────────────────────────────────────────
+// Difference is measured in stride steps: end - begin is logical length.
 template <typename Iterator_t, std::size_t Stride>
 GCXX_FHDC auto operator+(
   stride_iterator<Iterator_t, Stride> it,
@@ -223,13 +193,7 @@ GCXX_FHDC auto operator>=(const stride_iterator<Iterator_t, Stride>& a,
   return a.base() >= b.base();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// make_stride_iterator: factories. E.g. iterate every 3rd element of an array
-// a of 9: make_stride_iterator(a, 3) .. make_stride_iterator(a + 9, 3) → 3
-// steps.
-// For a compile-time stride: make_stride_iterator<4>(p); ctad determines the
-// type
-// ─────────────────────────────────────────────────────────────────────────────
+// Factories: make_stride_iterator(a, 3) steps by 3; <4> fixes the stride.
 template <typename Iterator_t>
 GCXX_FHDC auto make_stride_iterator(
   Iterator_t it,

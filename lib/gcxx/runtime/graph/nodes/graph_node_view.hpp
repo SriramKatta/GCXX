@@ -15,9 +15,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 class GraphView;
 class GraphExecView;
 
-// TODO : needs diffrent specilaization for memallocnode, memfreenode ..... and
-// have the set* and get* menber funtions that can be speciliazed to set the
-// appropriate params like
+// TODO: Specialize per node type with set*/get* param accessors.
 
 class GraphNodeView {
  public:

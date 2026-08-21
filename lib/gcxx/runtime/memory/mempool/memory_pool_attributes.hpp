@@ -20,15 +20,7 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// ── pool_attr: typed memory-pool attribute descriptor ───────────────────────
-// Attr        — the flags::MemPoolAttr this describes.
-// ValueType   — what the user sees (bool for the reuse flags, std::size_t for
-//               the thresholds/watermarks).
-// StorageType — the C type CUDA reads/writes through the void* get/set API
-//               (int for booleans, std::size_t for sizes).
-// Settable=false marks a read-only attribute: set() is a no-op (CCCL throws
-// std::invalid_argument; gcxx silently ignores to stay usable in builds with
-// exceptions disabled).
+// Typed attribute descriptor; Settable=false makes set() a silent no-op.
 template <flags::MemPoolAttr Attr, typename ValueType, typename StorageType,
           bool Settable>
 struct pool_attr_impl {
@@ -49,7 +41,6 @@ struct pool_attr_impl {
     return static_cast<type>(storage);
   }
 
-  // Write the attribute value for the given pool. No-op for read-only attrs.
   GCXX_FH static auto set(driver::deviceMemPool_t pool, type value) -> void {
     if constexpr (Settable) {
       StorageType storage = static_cast<StorageType>(value);
@@ -86,40 +77,37 @@ GCXX_POOL_ATTR_SPECIALIZATION(UsedMemCurrent, std::size_t, std::size_t, false);
 #undef GCXX_POOL_ATTR_SPECIALIZATION
 
 
-// memory_pool_attributes: the named, typed, constexpr attribute objects passed
-// to MemPoolView::attribute() / set_attribute(). Each is a constexpr instance
-// of its descriptor type — the pool analogue of dev_attr on the device surface
-// (see runtime/device/device_attributes.hpp).
+// Typed constexpr attribute descriptors; the pool analogue of dev_attr.
 namespace memory_pool_attributes {
 
 #define GCXX_POOL_ATTR_DEFINE(ATTR_MEMBER, NAME)               \
   using NAME##_t = pool_attr<flags::MemPoolAttr::ATTR_MEMBER>; \
   static inline constexpr NAME##_t NAME {}
 
-  /// Threshold at which the pool releases unused memory back to the driver.
+  // Threshold at which the pool releases unused memory back to the driver.
   GCXX_POOL_ATTR_DEFINE(ReleaseThreshold, release_threshold);
 
-  /// Reuse memory across streams linked by event dependencies.
+  // Reuse memory across streams linked by event dependencies.
   GCXX_POOL_ATTR_DEFINE(FollowEventDependencies,
                         reuse_follow_event_dependencies);
 
-  /// Reuse already-completed frees even without a stream dependency.
+  // Reuse already-completed frees even without a stream dependency.
   GCXX_POOL_ATTR_DEFINE(AllowOpportunistic, reuse_allow_opportunistic);
 
-  /// Insert internal stream dependencies to enable cross-stream reuse.
+  // Insert internal stream dependencies to enable cross-stream reuse.
   GCXX_POOL_ATTR_DEFINE(AllowInternalDependencies,
                         reuse_allow_internal_dependencies);
 
-  /// Current amount of memory reserved by the pool (read-only).
+  // Current amount of memory reserved by the pool (read-only).
   GCXX_POOL_ATTR_DEFINE(ReservedMemCurrent, reserved_mem_current);
 
-  /// High-water mark of reserved memory (settable only to 0, to reset).
+  // High-water mark of reserved memory (settable only to 0, to reset).
   GCXX_POOL_ATTR_DEFINE(ReservedMemHigh, reserved_mem_high);
 
-  /// Current amount of memory used by the pool (read-only).
+  // Current amount of memory used by the pool (read-only).
   GCXX_POOL_ATTR_DEFINE(UsedMemCurrent, used_mem_current);
 
-  /// High-water mark of used memory (settable only to 0, to reset).
+  // High-water mark of used memory (settable only to 0, to reset).
   GCXX_POOL_ATTR_DEFINE(UsedMemHigh, used_mem_high);
 
 #undef GCXX_POOL_ATTR_DEFINE

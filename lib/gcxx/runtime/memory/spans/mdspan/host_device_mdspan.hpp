@@ -13,29 +13,10 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ─────────────────────────────────────────────────────────────────────────────
-// host_mdspan / device_mdspan / managed_mdspan.
-//
-// Port of CCCL libcudacxx's cuda/__mdspan/host_device_mdspan.h: vocabulary
-// types for multi-dimensional views of the respective CUDA/HIP memory
-// spaces. Each derives gcxx::mdspan with the memory-space accessor
-// (host_device_accessor.hpp) substituted as the accessor policy; the data
-// handle stays a raw pointer, so they are constructed from ordinary
-// pointers exactly like gcxx::mdspan. The memory-space guarantee is
-// enforced where the view is consumed — e.g. every gcxx::blas operation
-// requires a device view at compile time — and by the accessors' deleted
-// cross-space conversions (host_mdspan -> device_mdspan does not compile).
-//
-// Deviation from CCCL: the (ptr, ints...) / array / span deduction guides
-// are omitted (they need the vendored mdspan's internal maybe-static-extent
-// helpers); construct from an extents object, a mapping, or with explicit
-// template arguments.
-// ─────────────────────────────────────────────────────────────────────────────
+// CCCL port; (ptr, ints...)/array/span deduction guides are omitted.
 
-// ─── device_mdspan ───────────────────────────────────────────────────────────
+// Device-memory view; usable by device libraries and in device code.
 
-// View of device memory: passable to device libraries (gcxx::blas) and
-// dereferenceable in device code.
 template <class ElementType, class Extents,
           class LayoutPolicy   = gcxx::layout_right,
           class AccessorPolicy = gcxx::default_accessor<ElementType>>
@@ -76,9 +57,8 @@ device_mdspan(
                    typename MappingType::extents_type,
                    typename MappingType::layout_type, AccessorPolicy>;
 
-// ─── host_mdspan ─────────────────────────────────────────────────────────────
+// Host-memory view; dereferenceable from host code only.
 
-// View of host memory: dereferenceable from host code only.
 template <class ElementType, class Extents,
           class LayoutPolicy   = gcxx::layout_right,
           class AccessorPolicy = gcxx::default_accessor<ElementType>>
@@ -117,9 +97,8 @@ host_mdspan(
                  typename MappingType::extents_type,
                  typename MappingType::layout_type, AccessorPolicy>;
 
-// ─── managed_mdspan ──────────────────────────────────────────────────────────
+// Managed-memory view; reachable from both host and device.
 
-// View of managed memory: reachable from both host and device.
 template <class ElementType, class Extents,
           class LayoutPolicy   = gcxx::layout_right,
           class AccessorPolicy = gcxx::default_accessor<ElementType>>

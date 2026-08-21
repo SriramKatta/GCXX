@@ -20,7 +20,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 
 class GraphView;
-/// Result struct for AddIfNode with named fields
+// Result struct for AddIfNode with named fields.
 struct IfNodeResult;
 struct IfElseNodeResult;
 struct WhileNodeResult;
@@ -73,9 +73,7 @@ class GraphView {
     const deviceGraphNode_t* pDependencies = nullptr,
     std::size_t numDependencies            = 0) -> SwitchNodeResult;
 #endif
-  // ════════════════════════════════════════════════════════════════════════
-  // Graph Node Addition Methods
-  // ════════════════════════════════════════════════════════════════════════
+  // Graph node addition (raw pointer/count overloads).
 
   GCXX_FH auto AddChildGraphNode(
     const GraphView& childGraph,
@@ -143,9 +141,7 @@ class GraphView {
   // // parameters
   // GCXX_FH auto AddNode() -> deviceGraphNode_t;
 
-  // ════════════════════════════════════════════════════════════════════════
-  // CPP style Graph Node Addition Methods
-  // ════════════════════════════════════════════════════════════════════════
+  // Graph node addition (span overloads).
 
   GCXX_FH auto AddChildGraphNode(const GraphView& childGraph,
                                  gcxx::span<const deviceGraphNode_t>

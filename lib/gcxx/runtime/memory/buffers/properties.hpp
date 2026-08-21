@@ -11,16 +11,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ─────────────────────────────────────────────────────────────────────────────
-// has_property<R, P>: std::true_type iff R exposes a `using properties =
-// TypeSet<...>` member containing P. This is the Option-B mechanism —
-// properties are carried as a template parameter (exposed via the `properties`
-// member), NOT via ADL get_property. A type with no `properties` member yields
-// false.
-//
-// Lives in gcxx::details_ (kept here for consistency with the rest of the
-// type-detection traits; no ADL concern remains).
-// ─────────────────────────────────────────────────────────────────────────────
+// has_property<R,P>: true iff R exposes a `properties` TypeSet containing P.
 GCXX_NAMESPACE_DETAILS_BEGIN()
 
 template <typename R, typename P, typename = void>
@@ -33,7 +24,7 @@ struct has_property<R, P, std::void_t<typename R::properties>>
 GCXX_NAMESPACE_DETAILS_END()
 
 template <typename... Ts>
-struct all_unique : std::true_type {};  // empty pack is trivially unique
+struct all_unique : std::true_type {};  // Empty pack is trivially unique.
 
 template <typename T, typename... Rest>
 struct all_unique<T, Rest...>
@@ -43,7 +34,6 @@ struct all_unique<T, Rest...>
 template <typename... Ts>
 inline constexpr bool all_unique_v = all_unique<Ts...>::value;
 
-// set of unique types
 template <typename... Ts>
 struct TypeSet {
   static_assert(all_unique_v<Ts...>, "TypeSet requires unique types");
@@ -54,16 +44,11 @@ struct TypeSet {
   static constexpr std::size_t size = sizeof...(Ts);
 };
 
-/// Tag signalling that the allocated memory is reachable from the device.
 struct device_accessible {};
 
-/// Tag signalling that the allocated memory is reachable from the host.
 struct host_accessible {};
 
-// ─────────────────────────────────────────────────────────────────────────────
-// memory_accessibility: the four accessibility states a property set can imply.
-// Mirrors CCCL's __memory_accessibility.
-// ─────────────────────────────────────────────────────────────────────────────
+// Four accessibility states; mirrors CCCL's __memory_accessibility.
 enum class memory_accessibility {
   unknown,
   host,
@@ -71,7 +56,6 @@ enum class memory_accessibility {
   host_device,
 };
 
-/// Reduce two static access flags to a single memory_accessibility value.
 template <bool HostAccessible, bool DeviceAccessible>
 constexpr memory_accessibility accessibility_from_static_properties() noexcept {
   return HostAccessible && DeviceAccessible ? memory_accessibility::host_device
@@ -80,21 +64,12 @@ constexpr memory_accessibility accessibility_from_static_properties() noexcept {
                                             : memory_accessibility::unknown;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// dynamic_accessibility_property: a runtime-queryable property whose value is
-// the resource's memory_accessibility. Carried for CCCL parity
-// (property_with_value); answered from a type's static `properties` set (Phase
-// 3, any_resource).
-// ─────────────────────────────────────────────────────────────────────────────
+// CCCL-parity runtime-queryable property; answered from static properties.
 struct dynamic_accessibility_property {
   using value_type = memory_accessibility;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// properties_list<Properties...>: a type-list of properties with a `rebind`
-// alias-template (appends Properties after ExtraArgs) and a static
-// `has_property(P)` query. Mirrors CCCL's properties_list; used by make_buffer.
-// ─────────────────────────────────────────────────────────────────────────────
+// Type-list of properties; mirrors CCCL's properties_list (make_buffer).
 template <typename... Properties>
 struct properties_list {
   template <template <typename...> class Fn, typename... ExtraArgs>
@@ -106,50 +81,36 @@ struct properties_list {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Resource-keyed traits (query a concrete resource/buffer TYPE's properties).
-// has_property_v reads `R::properties::contains<P>` (the `properties` member is
-// a TypeSet).
-// ─────────────────────────────────────────────────────────────────────────────
+// Resource-keyed traits: read R::properties (a TypeSet).
 template <typename Resource, typename Property>
 inline constexpr bool has_property_v =
   details_::has_property<Resource, Property>::value;
 
-/// True iff Resource advertises host_accessible.
 template <typename Resource>
 inline constexpr bool is_host_accessible_v =
   has_property_v<Resource, host_accessible>;
 
-/// True iff Resource advertises device_accessible.
 template <typename Resource>
 inline constexpr bool is_device_accessible_v =
   has_property_v<Resource, device_accessible>;
 
-/// True iff Resource advertises at least one execution-space property.
-/// Use as the body of buffer's static_assert.
+// At least one execution-space property; buffer's static_assert body.
 template <typename Resource>
 inline constexpr bool contains_execution_space_property_v =
   is_host_accessible_v<Resource> || is_device_accessible_v<Resource>;
 
-/// True iff Resource's properties ⊇ {Ps...} — the buffer ctor contract.
+// True iff Resource's properties ⊇ {Ps...} — the buffer ctor contract.
 template <typename Resource, typename... Ps>
 inline constexpr bool resource_has_all_v =
   (has_property_v<Resource, Ps> && ...);
 
-/// The memory_accessibility implied by a type's static `properties` set. The
-/// Option-B answer to CCCL's dynamic_accessibility_property query — under
-/// Option-B accessibility is always known at compile time from R::properties,
-/// so the "dynamic" query is a static fold.
+// Static answer to CCCL's "dynamic" accessibility query (from R::properties).
 template <typename R>
 inline constexpr memory_accessibility resource_accessibility_v =
   accessibility_from_static_properties<is_host_accessible_v<R>,
                                        is_device_accessible_v<R>>();
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Pack-keyed traits (over a property PACK, e.g. the buffer's own
-// Properties...). Drive accessor gating and cross-properties ctor SFINAE.
-// Constructing the TypeSet also enforces uniqueness of the pack.
-// ─────────────────────────────────────────────────────────────────────────────
+// Pack-keyed traits: drive accessor gating and cross-properties ctor SFINAE.
 template <typename... Ps>
 inline constexpr bool is_host_accessible =
   TypeSet<Ps...>::template contains<host_accessible>;

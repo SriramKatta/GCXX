@@ -28,8 +28,7 @@ struct native_scalar<gcxx::cf64_t> {
 template <class T>
 using native_scalar_t = typename native_scalar<T>::type;
 
-// Compile-time dispatch table: maps a C++ element type to the address of the
-// matching typed backend symbol (e.g. gemm_ptr_v<gcxx::f32_t> == &cublasSgemm).
+// Compile-time dispatch table: element type -> typed backend symbol address.
 #define GCXX_BLAS_REGISTER_OP(name, S, D, C, Z)               \
   template <class T>                                          \
   struct name##_ptr {                                         \
@@ -54,8 +53,6 @@ using native_scalar_t = typename native_scalar<T>::type;
   };                                                          \
   template <class T>                                          \
   inline constexpr auto name##_ptr_v = name##_ptr<T>::value
-
-GCXX_BLAS_REGISTER_OP(gemm, Sgemm, Dgemm, Cgemm, Zgemm);
 
 GCXX_NAMESPACE_MAIN_BLAS_END()
 

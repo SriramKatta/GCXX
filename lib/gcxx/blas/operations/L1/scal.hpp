@@ -18,32 +18,7 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Vector scaling x = alpha * x (P1673R13 keeps this BLAS-1 routine's scalar
-// parameter and renames it scal -> scale).
-//
-// x is a rank-1 mdspan; the length n and the increment (incx) are inferred
-// from the mdspan metadata. The type-erased cu/hipblasScalEx entry point is
-// used, with the data-type and execution-type enums derived from the element
-// type. The operand is typed as a gcxx::mdspan in the signature, so wrong-rank
-// (or non-mdspan) arguments fail overload resolution.
-//
-// Example:
-//   gcxx::blas::scale(h, 3.0, x);
-//
-// alpha may be passed either as a host scalar (host pointer mode) or as a
-// gcxx::blas::device_scalar<T> wrapping a device pointer (device pointer
-// mode). The mode is selected per call from the argument type; the handle's
-// prior pointer mode is restored when the call returns.
-//
-// The integer interface is selected from the operand's mdspan index_type: an
-// int64_t index_type routes to the 64-bit cu/hipblasScalEx_64 entry point,
-// while all other index_types use the standard 32-bit interface.
-//
-// x must be a device view: an mdspan carrying gcxx::device_accessor /
-// gcxx::managed_accessor (e.g. gcxx::make_device_vector). Host views are
-// rejected at compile time; in check builds the data handle is additionally
-// probed at run time so a mislabeled host pointer fails here, not inside the
-// GPU kernel.
+// x = alpha*x; alpha may be a host scalar or device_scalar.
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class S = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1)

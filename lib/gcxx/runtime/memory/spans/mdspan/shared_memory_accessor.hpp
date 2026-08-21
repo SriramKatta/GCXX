@@ -11,7 +11,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// ─────────────────────────────────────────────────────────────────────────────
 // shared_memory_accessor
 //
 // Port of CCCL libcudacxx's cuda/__mdspan/shared_memory_accessor.h: an
@@ -32,7 +31,6 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 //     of CCCL's always-on _CCCL_VERIFY
 //   - the max-shared-memory-allocation bounds check (PTX sreg based) is not
 //     ported
-// ─────────────────────────────────────────────────────────────────────────────
 
 // Fire on host usage; a no-op in device compilation passes.
 #if GCXX_DEVICE_COMPILE
@@ -94,8 +92,6 @@ class shared_memory_accessor : public Accessor {
     GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY();
   }
 
-  // Verifies (where the backend can) that the handle points into shared
-  // memory before forwarding to the base accessor.
   constexpr reference access(data_handle_type p, std::size_t i) const {
 #if GCXX_CUDA_MODE() && GCXX_DEVICE_COMPILE
     assert(__isShared(p) && "data handle is not a shared memory pointer");
