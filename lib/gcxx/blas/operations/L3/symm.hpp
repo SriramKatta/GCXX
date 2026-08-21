@@ -25,27 +25,28 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // C = A*B | B*A with only the tagged triangle of symmetric A read.
 namespace symm_impl_ {
 
-// Flip a fill mode (Upper <-> Lower): the mirror of a stored triangle.
-constexpr auto flip_fill_mode(driver::deviceBlasFillMode_t f)
-  -> driver::deviceBlasFillMode_t {
-  return f == driver::deviceBlasFillModeUpper ? driver::deviceBlasFillModeLower
-                                              : driver::deviceBlasFillModeUpper;
-}
+  // Flip a fill mode (Upper <-> Lower): the mirror of a stored triangle.
+  constexpr auto flip_fill_mode(driver::deviceBlasFillMode_t f)
+    -> driver::deviceBlasFillMode_t {
+    return f == driver::deviceBlasFillModeUpper
+             ? driver::deviceBlasFillModeLower
+             : driver::deviceBlasFillModeUpper;
+  }
 
-// Flips Left <-> Right when presenting the transposed problem.
-constexpr auto flip_side_mode(driver::deviceBlasSideMode_t s)
-  -> driver::deviceBlasSideMode_t {
-  return s == driver::deviceBlasSideLeft ? driver::deviceBlasSideRight
-                                         : driver::deviceBlasSideLeft;
-}
+  // Flips Left <-> Right when presenting the transposed problem.
+  constexpr auto flip_side_mode(driver::deviceBlasSideMode_t s)
+    -> driver::deviceBlasSideMode_t {
+    return s == driver::deviceBlasSideLeft ? driver::deviceBlasSideRight
+                                           : driver::deviceBlasSideLeft;
+  }
 
 }  // namespace symm_impl_
 
 // Write-only form: C = A*B (left) or C = B*A (right).
 GCXX_TEMPLATE(class Side, class TA, class ExtentsA, class LayoutA,
-              class AccessorA, class Tri, class TB, class ExtentsB, class LayoutB,
-              class AccessorB, class TC, class ExtentsC, class LayoutC,
-              class AccessorC)
+              class AccessorA, class Tri, class TB, class ExtentsB,
+              class LayoutB, class AccessorB, class TC, class ExtentsC,
+              class LayoutC, class AccessorC)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
               2 GCXX_AND ExtentsC::rank() == 2)
 auto symmetric_matrix_product(
@@ -151,8 +152,7 @@ auto symmetric_matrix_product(
       "row-major-like B with a row-major-like C");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   // a row-major-like A is read as its transpose, whose stored triangle is
   // the mirror of the tagged one
   const auto uplo = op_a == driver::deviceBlasOpN
@@ -162,17 +162,17 @@ auto symmetric_matrix_product(
   driver::deviceBlasStatus_t status{};
   if (!out.transposed) {
     // Column-major-like B and C: the problem passes through as declared.
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, symm, h.getRawHandle(), side, uplo, out.rows,
-      out.cols, alpha_ptr, a.data_handle(), ld_a, b.data_handle(), ld_b,
-      beta_ptr, c.data_handle(), out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, symm, h.getRawHandle(), side,
+                             uplo, out.rows, out.cols, alpha_ptr,
+                             a.data_handle(), ld_a, b.data_handle(), ld_b,
+                             beta_ptr, c.data_handle(), out.leading_dimension);
   } else {
     // Row-major-like B and C: transposed problem; side flips, lds carry over.
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, symm, h.getRawHandle(),
-      symm_impl_::flip_side_mode(side), uplo, out.cols, out.rows, alpha_ptr,
-      a.data_handle(), ld_a, b.data_handle(), ld_b, beta_ptr,
-      c.data_handle(), out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, symm, h.getRawHandle(),
+                             symm_impl_::flip_side_mode(side), uplo, out.cols,
+                             out.rows, alpha_ptr, a.data_handle(), ld_a,
+                             b.data_handle(), ld_b, beta_ptr, c.data_handle(),
+                             out.leading_dimension);
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
@@ -182,10 +182,10 @@ auto symmetric_matrix_product(
 
 // Accumulate form: E aliases C -> in-place beta path, else split via geam.
 GCXX_TEMPLATE(class Side, class TA, class ExtentsA, class LayoutA,
-              class AccessorA, class Tri, class TB, class ExtentsB, class LayoutB,
-              class AccessorB, class TE, class ExtentsE, class LayoutE,
-              class AccessorE, class TC, class ExtentsC, class LayoutC,
-              class AccessorC)
+              class AccessorA, class Tri, class TB, class ExtentsB,
+              class LayoutB, class AccessorB, class TE, class ExtentsE,
+              class LayoutE, class AccessorE, class TC, class ExtentsC,
+              class LayoutC, class AccessorC)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
               2 GCXX_AND ExtentsE::rank() == 2 GCXX_AND ExtentsC::rank() == 2)
 auto symmetric_matrix_product(
@@ -279,7 +279,8 @@ auto symmetric_matrix_product(
   const auto [rows_b, cols_b, ld_b, op_b] = details_::infer_blas_matrix_view(b);
   const auto out                          = details_::infer_blas_output_view(c);
 
-  constexpr driver::deviceBlasSideMode_t side_mode = details_::side_mode_v<Side>;
+  constexpr driver::deviceBlasSideMode_t side_mode =
+    details_::side_mode_v<Side>;
 
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
@@ -307,24 +308,23 @@ auto symmetric_matrix_product(
       "orientation (see the write-only form)");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   const auto uplo = op_a == driver::deviceBlasOpN
                       ? uplo_tag
                       : symm_impl_::flip_fill_mode(uplo_tag);
 
   driver::deviceBlasStatus_t status{};
   if (!out.transposed) {
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, symm, h.getRawHandle(), side_mode, uplo, out.rows,
-      out.cols, alpha_ptr, a.data_handle(), ld_a, b.data_handle(), ld_b,
-      beta_ptr, c.data_handle(), out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, symm, h.getRawHandle(),
+                             side_mode, uplo, out.rows, out.cols, alpha_ptr,
+                             a.data_handle(), ld_a, b.data_handle(), ld_b,
+                             beta_ptr, c.data_handle(), out.leading_dimension);
   } else {
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, symm, h.getRawHandle(),
-      symm_impl_::flip_side_mode(side_mode), uplo, out.cols, out.rows,
-      alpha_ptr, a.data_handle(), ld_a, b.data_handle(), ld_b, beta_ptr,
-      c.data_handle(), out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, symm, h.getRawHandle(),
+                             symm_impl_::flip_side_mode(side_mode), uplo,
+                             out.cols, out.rows, alpha_ptr, a.data_handle(),
+                             ld_a, b.data_handle(), ld_b, beta_ptr,
+                             c.data_handle(), out.leading_dimension);
   }
 
   if (status != driver::deviceBlasStatusSuccess) {

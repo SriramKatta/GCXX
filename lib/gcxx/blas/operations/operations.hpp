@@ -11,9 +11,9 @@
 #include <gcxx/blas/type_map.hpp>
 
 // Shared (non-level-specific) helpers: scaled()/transposed() views + tags.
+#include <gcxx/blas/operations/diagonal.hpp>
 #include <gcxx/blas/operations/side.hpp>
 #include <gcxx/blas/operations/symmetric.hpp>
-#include <gcxx/blas/operations/diagonal.hpp>
 
 // Per-level barrels.
 #include <gcxx/blas/operations/L1/L1.hpp>

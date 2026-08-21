@@ -27,8 +27,8 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsC::rank() == 2)
 auto symmetric_matrix_rank_k_update(
   BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-  Tri /*triangle*/, const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
-  -> void {
+  Tri /*triangle*/,
+  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   // local alias for easier refrence
   using AVt = TA;
@@ -96,8 +96,7 @@ auto symmetric_matrix_rank_k_update(
                              "have C.extent(0) rows");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   // A row-major-like C is updated as its transpose, whose stored triangle is
   // the mirror of the tagged one (A*A^T is symmetric, so the update is
   // unchanged by the transposition)
@@ -111,10 +110,9 @@ auto symmetric_matrix_rank_k_update(
   // operand is the backend's trans=N problem, a row-major-like operand the
   // trans=T one (reading the same buffer column-major yields A^T).
   driver::deviceBlasStatus_t status{};
-  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, syrk, h.getRawHandle(), uplo,
-                           op_a, out.rows, cols_a, alpha_ptr,
-                           a.data_handle(), ld_a, beta_ptr, c.data_handle(),
-                           out.leading_dimension);
+  GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, syrk, h.getRawHandle(), uplo, op_a,
+                           out.rows, cols_a, alpha_ptr, a.data_handle(), ld_a,
+                           beta_ptr, c.data_handle(), out.leading_dimension);
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "symmetric_matrix_rank_k_update failed");

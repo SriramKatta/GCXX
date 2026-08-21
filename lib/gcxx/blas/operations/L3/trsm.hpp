@@ -134,23 +134,20 @@ auto triangular_matrix_matrix_solve(
       "in-place solve's factor is the host constant 1; use host factors");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
-  constexpr driver::deviceBlasDiagType_t diag =
-    details_::diagonal_type_v<Diag>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasDiagType_t diag = details_::diagonal_type_v<Diag>;
 
   // Row-major-like A reads as its transpose; mirrored triangle, flipped op.
-  const auto uplo = op_a == driver::deviceBlasOpN
-                      ? uplo_tag
-                      : (uplo_tag == driver::deviceBlasFillModeUpper
-                           ? driver::deviceBlasFillModeLower
-                           : driver::deviceBlasFillModeUpper);
-  const auto trans = out.transposed ? details_::flip_blas_op(op_a) : op_a;
-  const auto side_mode =
-    out.transposed
-      ? (side == driver::deviceBlasSideLeft ? driver::deviceBlasSideRight
-                                            : driver::deviceBlasSideLeft)
-      : side;
+  const auto uplo      = op_a == driver::deviceBlasOpN
+                           ? uplo_tag
+                           : (uplo_tag == driver::deviceBlasFillModeUpper
+                                ? driver::deviceBlasFillModeLower
+                                : driver::deviceBlasFillModeUpper);
+  const auto trans     = out.transposed ? details_::flip_blas_op(op_a) : op_a;
+  const auto side_mode = out.transposed ? (side == driver::deviceBlasSideLeft
+                                             ? driver::deviceBlasSideRight
+                                             : driver::deviceBlasSideLeft)
+                                        : side;
 
   // The solve's scalar factor is host constant 1; pin host pointer mode.
   details_::BlasPointerModeGuard guard{h, false};
@@ -159,15 +156,15 @@ auto triangular_matrix_matrix_solve(
 
   driver::deviceBlasStatus_t status{};
   if (!out.transposed) {
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, trsm, h.getRawHandle(), side_mode, uplo, trans, diag,
-      out.rows, out.cols, alpha_ptr, a.data_handle(), ld_a, x.data_handle(),
-      out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, trsm, h.getRawHandle(),
+                             side_mode, uplo, trans, diag, out.rows, out.cols,
+                             alpha_ptr, a.data_handle(), ld_a, x.data_handle(),
+                             out.leading_dimension);
   } else {
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, trsm, h.getRawHandle(), side_mode, uplo, trans, diag,
-      out.cols, out.rows, alpha_ptr, a.data_handle(), ld_a, x.data_handle(),
-      out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, trsm, h.getRawHandle(),
+                             side_mode, uplo, trans, diag, out.cols, out.rows,
+                             alpha_ptr, a.data_handle(), ld_a, x.data_handle(),
+                             out.leading_dimension);
   }
 
   if (status != driver::deviceBlasStatusSuccess) {

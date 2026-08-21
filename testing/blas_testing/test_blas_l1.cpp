@@ -176,8 +176,8 @@ namespace {
     EXPECT_NEAR(asum_init, 1.5 + asum_ref, 1e-9);
 
     auto dAsum = gcxx::make_device_unique_ptr<double>(std::size_t{1});
-    gcxx::blas::vector_abs_sum(
-      handle, X, gcxx::blas::device_scalar<double>{dAsum.get()});
+    gcxx::blas::vector_abs_sum(handle, X,
+                               gcxx::blas::device_scalar<double>{dAsum.get()});
     str.Synchronize();
     double asum_d{};
     gcxx::Copy(str, &asum_d, dAsum.get(), std::size_t{1});
@@ -207,8 +207,8 @@ namespace {
 
   TEST(BlasL1, SetupGivensRotationHost) {
     const std::vector<std::pair<double, double>> cases{
-      {3.0, 4.0},   {0.0, 0.0},   {0.0, 5.0},   {5.0, 0.0},
-      {-3.0, 4.0},  {3.0, -4.0},  {-3.0, -4.0}, {1e150, 1e150},
+      {3.0, 4.0},       {0.0, 0.0},      {0.0, 5.0},   {5.0, 0.0},
+      {-3.0, 4.0},      {3.0, -4.0},     {-3.0, -4.0}, {1e150, 1e150},
       {1e-150, 1e-150}, {1e150, 1e-150}, {2.5, -0.75},
     };
     for (auto [a, b] : cases) {
@@ -272,11 +272,20 @@ namespace {
       // reconstruct H from the flag convention
       double h11, h12, h21, h22;
       if (param[0] == -1.0) {
-        h11 = param[1]; h21 = param[2]; h12 = param[3]; h22 = param[4];
+        h11 = param[1];
+        h21 = param[2];
+        h12 = param[3];
+        h22 = param[4];
       } else if (param[0] == 0.0) {
-        h11 = 1.0; h21 = param[2]; h12 = param[3]; h22 = 1.0;
+        h11 = 1.0;
+        h21 = param[2];
+        h12 = param[3];
+        h22 = 1.0;
       } else {
-        h11 = param[1]; h21 = -1.0; h12 = 1.0; h22 = param[4];
+        h11 = param[1];
+        h21 = -1.0;
+        h12 = 1.0;
+        h22 = param[4];
       }
 
       // energy preservation (scale-aware tolerance)
@@ -289,8 +298,8 @@ namespace {
 
       // Plain-pair annihilation for non-rescaled flag-0/1 outcomes.
       if (param[0] == 0.0 || param[0] == 1.0) {
-        const double u1 = h11 * x1_0 + h12 * y1;
-        const double u2 = h21 * x1_0 + h22 * y1;
+        const double u1     = h11 * x1_0 + h12 * y1;
+        const double u2     = h21 * x1_0 + h22 * y1;
         const double pscale = std::max({1.0, std::fabs(x1_0), std::fabs(y1)});
         EXPECT_NEAR(u2, 0.0, 1e-12 * pscale)
           << "H*(x1,y1) second component not zero for d1=" << d1_0;

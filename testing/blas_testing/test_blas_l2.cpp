@@ -21,7 +21,8 @@ namespace {
   using dextents2d = gcxx::dextents<IndexT, 2>;
 
   template <class T, class IndexT>
-  using dmat_left = gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_left>;
+  using dmat_left =
+    gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_left>;
   template <class T, class IndexT>
   using dmat_right =
     gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_right>;
@@ -37,8 +38,8 @@ namespace {
     std::vector<double> hFull(N * N);  // symmetric reference (column-major)
     for (int j = 0; j < N; ++j) {
       for (int i = 0; i < N; ++i) {
-        hFull[i + j * N] = (i == j) ? 2.0 + i
-                                    : 0.25 * static_cast<double>((i + 1) * (j + 1));
+        hFull[i + j * N] =
+          (i == j) ? 2.0 + i : 0.25 * static_cast<double>((i + 1) * (j + 1));
       }
     }
     // device buffer: upper triangle + diagonal from hFull, garbage below
@@ -86,14 +87,14 @@ namespace {
         }
       }
       gcxx::Copy(str, dA.get(), hRow.data(), std::size_t{N * N});
-      gcxx::blas::symmetric_matrix_vector_product(handle, A,
-                                                  gcxx::blas::upper, X, Y);
+      gcxx::blas::symmetric_matrix_vector_product(handle, A, gcxx::blas::upper,
+                                                  X, Y);
     } else {
       dmat_left<double, IndexT> A(dA.get(), N, N);
       auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
       auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
-      gcxx::blas::symmetric_matrix_vector_product(handle, A,
-                                                  gcxx::blas::upper, X, Y);
+      gcxx::blas::symmetric_matrix_vector_product(handle, A, gcxx::blas::upper,
+                                                  X, Y);
     }
     str.Synchronize();
 
@@ -309,8 +310,7 @@ namespace {
     str.Synchronize();
     for (int j = 0; j < N; ++j) {
       for (int i = 0; i <= j; ++i) {  // upper triangle + diagonal only
-        const double want =
-          hUpdated[i + j * N] + hX[i] * hY[j] + hY[i] * hX[j];
+        const double want = hUpdated[i + j * N] + hX[i] * hY[j] + hY[i] * hX[j];
         EXPECT_NEAR(hResult[i + j * N], want, 1e-9)
           << "syr2 mismatch at " << i << "," << j;
       }

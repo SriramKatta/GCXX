@@ -64,8 +64,7 @@ auto matrix_rank_1_update(
   // Alpha comes only from scaled() views on the inputs.
   auto alpha_res = details_::combine_scaled_alpha(
     details_::resolve_scaled_alpha<Sv>(x.accessor()),
-    details_::resolve_scaled_alpha<Sv>(y.accessor()),
-    "matrix_rank_1_update");
+    details_::resolve_scaled_alpha<Sv>(y.accessor()), "matrix_rank_1_update");
 
   const Sv alpha_host = alpha_res.host_value;
   const Sv* alpha_ptr =
@@ -81,8 +80,8 @@ auto matrix_rank_1_update(
   details_::validate_device_view(a, "A");
 
   // extract problem dimensions
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
-  const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
+  const auto [len_x, inc_x]               = details_::infer_blas_vector_view(x);
+  const auto [len_y, inc_y]               = details_::infer_blas_vector_view(y);
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
 
   if (len_x != rows_a || len_y != cols_a) {

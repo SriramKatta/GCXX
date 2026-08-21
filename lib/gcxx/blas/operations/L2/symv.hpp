@@ -24,19 +24,21 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // y = A*x with only the tagged triangle read; scaling via scaled() inputs.
 namespace symv_impl_ {
 
-// Flip a fill mode (Upper <-> Lower): the mirror of a stored triangle.
-constexpr auto flip_fill_mode(driver::deviceBlasFillMode_t f)
-  -> driver::deviceBlasFillMode_t {
-  return f == driver::deviceBlasFillModeUpper ? driver::deviceBlasFillModeLower
-                                              : driver::deviceBlasFillModeUpper;
-}
+  // Flip a fill mode (Upper <-> Lower): the mirror of a stored triangle.
+  constexpr auto flip_fill_mode(driver::deviceBlasFillMode_t f)
+    -> driver::deviceBlasFillMode_t {
+    return f == driver::deviceBlasFillModeUpper
+             ? driver::deviceBlasFillModeLower
+             : driver::deviceBlasFillModeUpper;
+  }
 
 }  // namespace symv_impl_
 
 // Write-only form: y = A * x.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
-              class Tri, class TX, class ExtentsX, class LayoutX, class AccessorX,
-              class TY, class ExtentsY, class LayoutY, class AccessorY)
+              class Tri, class TX, class ExtentsX, class LayoutX,
+              class AccessorX, class TY, class ExtentsY, class LayoutY,
+              class AccessorY)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() ==
               1 GCXX_AND ExtentsY::rank() == 1)
 auto symmetric_matrix_vector_product(
@@ -105,8 +107,8 @@ auto symmetric_matrix_vector_product(
 
   // extract problem dimensions
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
-  const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
+  const auto [len_x, inc_x]               = details_::infer_blas_vector_view(x);
+  const auto [len_y, inc_y]               = details_::infer_blas_vector_view(y);
 
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
@@ -121,8 +123,7 @@ auto symmetric_matrix_vector_product(
   }
 
   // The tag object itself is unused (the mode comes from its type).
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   // a row-major-like operand is read as its transpose, whose stored triangle
   // is the mirror of the tagged one
   const auto uplo = op_a == driver::deviceBlasOpN
@@ -142,9 +143,10 @@ auto symmetric_matrix_vector_product(
 
 // Accumulate form: b aliases y -> in-place beta path, else split via axpy.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
-              class Tri, class TX, class ExtentsX, class LayoutX, class AccessorX,
-              class TB, class ExtentsB, class LayoutB, class AccessorB,
-              class TY, class ExtentsY, class LayoutY, class AccessorY)
+              class Tri, class TX, class ExtentsX, class LayoutX,
+              class AccessorX, class TB, class ExtentsB, class LayoutB,
+              class AccessorB, class TY, class ExtentsY, class LayoutY,
+              class AccessorY)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsX::rank() ==
               1 GCXX_AND ExtentsB::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
 auto symmetric_matrix_vector_product(
@@ -229,8 +231,8 @@ auto symmetric_matrix_vector_product(
   details_::BlasPointerModeGuard guard{h, alpha_res.from_device()};
 
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
-  const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
+  const auto [len_x, inc_x]               = details_::infer_blas_vector_view(x);
+  const auto [len_y, inc_y]               = details_::infer_blas_vector_view(y);
 
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
@@ -244,8 +246,7 @@ auto symmetric_matrix_vector_product(
       "A.extent(0) elements");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   const auto uplo = op_a == driver::deviceBlasOpN
                       ? uplo_tag
                       : symv_impl_::flip_fill_mode(uplo_tag);

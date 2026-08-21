@@ -21,7 +21,8 @@ namespace {
   using dextents2d = gcxx::dextents<IndexT, 2>;
 
   template <class T, class IndexT>
-  using dmat_left = gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_left>;
+  using dmat_left =
+    gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_left>;
   template <class T, class IndexT>
   using dmat_right =
     gcxx::device_mdspan<T, dextents2d<IndexT>, gcxx::layout_right>;
@@ -148,8 +149,7 @@ namespace {
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
-    gcxx::blas::symmetric_matrix_rank_k_update(handle, A, gcxx::blas::upper,
-                                               C);
+    gcxx::blas::symmetric_matrix_rank_k_update(handle, A, gcxx::blas::upper, C);
     str.Synchronize();
 
     std::vector<double> hResult(N * N);
@@ -252,7 +252,8 @@ namespace {
     std::vector<double> hTri(K * K, 0.0);  // upper triangle
     for (int j = 0; j < K; ++j) {
       for (int i = 0; i <= j; ++i) {
-        hTri[i + j * K] = (i == j) ? 1.5 + j : 0.25 * static_cast<double>(i + j + 1);
+        hTri[i + j * K] =
+          (i == j) ? 1.5 + j : 0.25 * static_cast<double>(i + j + 1);
       }
     }
     std::vector<double> hTriBuf(hTri);

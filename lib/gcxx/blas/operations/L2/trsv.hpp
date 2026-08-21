@@ -77,8 +77,8 @@ auto triangular_matrix_vector_solve(
 
   // extract problem dimensions
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
-  const auto [len_b, inc_b] = details_::infer_blas_vector_view(b);
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
+  const auto [len_b, inc_b]               = details_::infer_blas_vector_view(b);
+  const auto [len_x, inc_x]               = details_::infer_blas_vector_view(x);
 
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
@@ -95,26 +95,23 @@ auto triangular_matrix_vector_solve(
   // stage b into x, apply b's scaled() factor to the staged copy (the solve
   // is linear, so the factor carries through), then solve in place
   copy(h, b, x);
-  auto alpha_res =
-    details_::resolve_scaled_alpha<Sv>(b.accessor());
+  auto alpha_res = details_::resolve_scaled_alpha<Sv>(b.accessor());
   if (alpha_res.from_device()) {
     scale(h, gcxx::blas::device_scalar<Sv>{alpha_res.device_ptr}, x);
   } else if (alpha_res.host_value != Sv(1)) {
     scale(h, alpha_res.host_value, x);
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
-  constexpr driver::deviceBlasDiagType_t diag =
-    details_::diagonal_type_v<Diag>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasDiagType_t diag = details_::diagonal_type_v<Diag>;
 
   // a row-major-like operand is read as its transpose: the mirrored triangle
   // plus the flipped op flag recover the mathematical A
-  const auto uplo = op_a == driver::deviceBlasOpN
-                      ? uplo_tag
-                      : (uplo_tag == driver::deviceBlasFillModeUpper
-                           ? driver::deviceBlasFillModeLower
-                           : driver::deviceBlasFillModeUpper);
+  const auto uplo  = op_a == driver::deviceBlasOpN
+                       ? uplo_tag
+                       : (uplo_tag == driver::deviceBlasFillModeUpper
+                            ? driver::deviceBlasFillModeLower
+                            : driver::deviceBlasFillModeUpper);
   const auto trans = op_a;  // N stays N (column-major-like); T flips it back
 
   driver::deviceBlasStatus_t status{};

@@ -75,8 +75,8 @@ auto triangular_matrix_vector_product(
 
   // extract problem dimensions
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
-  const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
+  const auto [len_x, inc_x]               = details_::infer_blas_vector_view(x);
+  const auto [len_y, inc_y]               = details_::infer_blas_vector_view(y);
 
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
@@ -103,18 +103,16 @@ auto triangular_matrix_vector_product(
     scale(h, alpha_res.host_value, y);
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
-  constexpr driver::deviceBlasDiagType_t diag =
-    details_::diagonal_type_v<Diag>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasDiagType_t diag = details_::diagonal_type_v<Diag>;
 
   // a row-major-like operand is read as its transpose: the mirrored triangle
   // plus the flipped op flag recover the mathematical A
-  const auto uplo = op_a == driver::deviceBlasOpN
-                      ? uplo_tag
-                      : (uplo_tag == driver::deviceBlasFillModeUpper
-                           ? driver::deviceBlasFillModeLower
-                           : driver::deviceBlasFillModeUpper);
+  const auto uplo  = op_a == driver::deviceBlasOpN
+                       ? uplo_tag
+                       : (uplo_tag == driver::deviceBlasFillModeUpper
+                            ? driver::deviceBlasFillModeLower
+                            : driver::deviceBlasFillModeUpper);
   const auto trans = op_a;  // N stays N (column-major-like); T flips it back
 
   driver::deviceBlasStatus_t status{};
@@ -123,8 +121,9 @@ auto triangular_matrix_vector_product(
                            y.data_handle(), inc_y);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "triangular_matrix_vector_product "
-                                     "failed");
+    details_::throwBlasError(status,
+                             "triangular_matrix_vector_product "
+                             "failed");
   }
 }
 
@@ -182,10 +181,10 @@ auto triangular_matrix_vector_product(
   }
   if (details_::views_alias(b, y)) {
     details_::throwBlasError(
-        GCXX_BLAS_STATUS(INVALID_VALUE),
-        "triangular_matrix_vector_product: the addend b must not alias y "
-        "(the in-place trmv staging would destroy it); pass a distinct "
-        "addend view");
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      "triangular_matrix_vector_product: the addend b must not alias y "
+      "(the in-place trmv staging would destroy it); pass a distinct "
+      "addend view");
   }
 
   triangular_matrix_vector_product(h, a, triangle, diagonal_storage, x, y);

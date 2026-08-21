@@ -120,8 +120,7 @@ auto symmetric_matrix_rank_2k_update(
       "column-major-like B and a row-major-like A with a row-major-like B");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   // A row-major-like C is updated as its transpose, whose stored triangle is
   // the mirror of the tagged one (A*B^T + B*A^T is symmetric, so the update
   // is unchanged by the transposition)
@@ -133,9 +132,9 @@ auto symmetric_matrix_rank_2k_update(
 
   driver::deviceBlasStatus_t status{};
   GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, syr2k, h.getRawHandle(), uplo,
-                           op_a, out.rows, cols_a, alpha_ptr,
-                           a.data_handle(), ld_a, b.data_handle(), ld_b,
-                           beta_ptr, c.data_handle(), out.leading_dimension);
+                           op_a, out.rows, cols_a, alpha_ptr, a.data_handle(),
+                           ld_a, b.data_handle(), ld_b, beta_ptr,
+                           c.data_handle(), out.leading_dimension);
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "symmetric_matrix_rank_2k_update failed");

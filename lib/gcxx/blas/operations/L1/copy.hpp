@@ -21,7 +21,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY)
 GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
-auto copy(BlasHandleView h, const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& from,
+auto copy(BlasHandleView h,
+          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& from,
           const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& to) -> void {
 
   // local alias for easier refrence

@@ -26,12 +26,12 @@ template <class>
 GCXX_CXPR inline bool is_diagonal_storage_tag_v = false;
 
 template <>
-GCXX_CXPR inline bool is_diagonal_storage_tag_v<gcxx::blas::implicit_diagonal_t> =
-  true;
+GCXX_CXPR inline bool
+  is_diagonal_storage_tag_v<gcxx::blas::implicit_diagonal_t> = true;
 
 template <>
-GCXX_CXPR inline bool is_diagonal_storage_tag_v<gcxx::blas::explicit_diagonal_t> =
-  true;
+GCXX_CXPR inline bool
+  is_diagonal_storage_tag_v<gcxx::blas::explicit_diagonal_t> = true;
 
 // Tag -> backend diag enum in one place; other tags fail at the call site.
 template <class Diag>

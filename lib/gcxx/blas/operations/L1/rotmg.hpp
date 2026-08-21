@@ -18,16 +18,17 @@ GCXX_TEMPLATE(class T)
 GCXX_REQUIRES(true)
 auto setup_modified_givens_rotation(T& d1, T& d2, T& x1, const T& y1,
                                     std::array<T, 5>& param) -> void {
-  static_assert(std::is_same_v<T, gcxx::f32_t> || std::is_same_v<T, gcxx::f64_t>,
-                "setup_modified_givens_rotation currently supports only "
-                "float/double element types");
+  static_assert(
+    std::is_same_v<T, gcxx::f32_t> || std::is_same_v<T, gcxx::f64_t>,
+    "setup_modified_givens_rotation currently supports only "
+    "float/double element types");
 
   using std::fabs;
 
   // Rescale guard band (reference values: GAM = 4096, GAM^2, 1/GAM^2).
-  constexpr T gam     = T(4096);
-  constexpr T gamsq   = gam * gam;
-  constexpr T rgamsq  = T(1) / gamsq;
+  constexpr T gam    = T(4096);
+  constexpr T gamsq  = gam * gam;
+  constexpr T rgamsq = T(1) / gamsq;
 
   T flag{};
   T h11{}, h12{}, h21{}, h22{};
@@ -36,9 +37,9 @@ auto setup_modified_givens_rotation(T& d1, T& d2, T& x1, const T& y1,
     // zero H, d, and x1
     flag = T(-1);
     h11 = h12 = h21 = h22 = T(0);
-    d1 = T(0);
-    d2 = T(0);
-    x1 = T(0);
+    d1                    = T(0);
+    d2                    = T(0);
+    x1                    = T(0);
   } else {
     const T dp2 = d2 * y1;
     if (dp2 == T(0)) {
@@ -68,27 +69,27 @@ auto setup_modified_givens_rotation(T& d1, T& d2, T& x1, const T& y1,
         // Hammarling's modified Givens): zero H, d, and x1
         flag = T(-1);
         h11 = h12 = h21 = h22 = T(0);
-        d1 = T(0);
-        d2 = T(0);
-        x1 = T(0);
+        d1                    = T(0);
+        d2                    = T(0);
+        x1                    = T(0);
       }
     } else {
       if (dq2 < T(0)) {
         // zero H, d, and x1
         flag = T(-1);
         h11 = h12 = h21 = h22 = T(0);
-        d1 = T(0);
-        d2 = T(0);
-        x1 = T(0);
+        d1                    = T(0);
+        d2                    = T(0);
+        x1                    = T(0);
       } else {
-        flag = T(1);
-        h11 = dp1 / dp2;
-        h22 = x1 / y1;
+        flag          = T(1);
+        h11           = dp1 / dp2;
+        h22           = x1 / y1;
         const T du    = T(1) + h11 * h22;
         const T dtemp = d2 / du;
-        d2 = d1 / du;
-        d1 = dtemp;
-        x1 = y1 * du;
+        d2            = d1 / du;
+        d1            = dtemp;
+        x1            = y1 * du;
       }
     }
 
@@ -96,12 +97,12 @@ auto setup_modified_givens_rotation(T& d1, T& d2, T& x1, const T& y1,
     if (d1 != T(0)) {
       while (d1 <= rgamsq || d1 >= gamsq) {
         if (flag == T(0)) {
-          h11 = T(1);
-          h22 = T(1);
+          h11  = T(1);
+          h22  = T(1);
           flag = T(-1);
         } else {
-          h21 = T(-1);
-          h12 = T(1);
+          h21  = T(-1);
+          h12  = T(1);
           flag = T(-1);
         }
         if (d1 <= rgamsq) {
@@ -121,12 +122,12 @@ auto setup_modified_givens_rotation(T& d1, T& d2, T& x1, const T& y1,
     if (d2 != T(0)) {
       while (fabs(d2) <= rgamsq || fabs(d2) >= gamsq) {
         if (flag == T(0)) {
-          h11 = T(1);
-          h22 = T(1);
+          h11  = T(1);
+          h22  = T(1);
           flag = T(-1);
         } else {
-          h21 = T(-1);
-          h12 = T(1);
+          h21  = T(-1);
+          h12  = T(1);
           flag = T(-1);
         }
         if (fabs(d2) <= rgamsq) {

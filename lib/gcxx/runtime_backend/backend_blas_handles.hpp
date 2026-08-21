@@ -40,8 +40,7 @@ inline constexpr deviceBlasFillMode_t deviceBlasFillModeLower =
 // Diag type: unit diagonal assumed vs stored diagonal (trsm/trsv family).
 inline constexpr deviceBlasDiagType_t deviceBlasDiagNonUnit =
   GCXX_BLAS_DIAG(NON_UNIT);
-inline constexpr deviceBlasDiagType_t deviceBlasDiagUnit =
-  GCXX_BLAS_DIAG(UNIT);
+inline constexpr deviceBlasDiagType_t deviceBlasDiagUnit = GCXX_BLAS_DIAG(UNIT);
 
 // Pointer mode: whether alpha/beta scalars are host- or device-resident.
 inline constexpr deviceBlasPointerMode_t deviceBlasPointerModeHost =

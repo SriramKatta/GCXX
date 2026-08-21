@@ -132,39 +132,36 @@ auto triangular_matrix_product(
       "in-place triangular products are unsupported by this entry point");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
-  constexpr driver::deviceBlasDiagType_t diag =
-    details_::diagonal_type_v<Diag>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasDiagType_t diag = details_::diagonal_type_v<Diag>;
 
   // a row-major-like A is read as its transpose: the mirrored triangle, plus
   // the op flag that recovers the mathematical A from the column-major read.
   // When the OUTPUT is row-major-like the whole problem is transposed and
   // the flag flips again (C^T = B^T*A^T needs op(A_cm) = A^T).
-  const auto uplo = op_a == driver::deviceBlasOpN
-                      ? uplo_tag
-                      : (uplo_tag == driver::deviceBlasFillModeUpper
-                           ? driver::deviceBlasFillModeLower
-                           : driver::deviceBlasFillModeUpper);
-  const auto trans = out.transposed ? details_::flip_blas_op(op_a) : op_a;
-  const auto side_mode =
-    out.transposed
-      ? (side == driver::deviceBlasSideLeft ? driver::deviceBlasSideRight
-                                            : driver::deviceBlasSideLeft)
-      : side;
+  const auto uplo      = op_a == driver::deviceBlasOpN
+                           ? uplo_tag
+                           : (uplo_tag == driver::deviceBlasFillModeUpper
+                                ? driver::deviceBlasFillModeLower
+                                : driver::deviceBlasFillModeUpper);
+  const auto trans     = out.transposed ? details_::flip_blas_op(op_a) : op_a;
+  const auto side_mode = out.transposed ? (side == driver::deviceBlasSideLeft
+                                             ? driver::deviceBlasSideRight
+                                             : driver::deviceBlasSideLeft)
+                                        : side;
 
   driver::deviceBlasStatus_t status{};
   if (!out.transposed) {
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, trmm, h.getRawHandle(), side_mode, uplo, trans, diag,
-      out.rows, out.cols, alpha_ptr, a.data_handle(), ld_a, b.data_handle(),
-      ld_b, c.data_handle(), out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, trmm, h.getRawHandle(),
+                             side_mode, uplo, trans, diag, out.rows, out.cols,
+                             alpha_ptr, a.data_handle(), ld_a, b.data_handle(),
+                             ld_b, c.data_handle(), out.leading_dimension);
   } else {
     // C row-major-like: transposed problem with swapped m/n; lds carry over.
-    GCXX_BLAS_DISPATCH_TYPED(
-      status, AIt, AVt, trmm, h.getRawHandle(), side_mode, uplo, trans, diag,
-      out.cols, out.rows, alpha_ptr, a.data_handle(), ld_a, b.data_handle(),
-      ld_b, c.data_handle(), out.leading_dimension);
+    GCXX_BLAS_DISPATCH_TYPED(status, AIt, AVt, trmm, h.getRawHandle(),
+                             side_mode, uplo, trans, diag, out.cols, out.rows,
+                             alpha_ptr, a.data_handle(), ld_a, b.data_handle(),
+                             ld_b, c.data_handle(), out.leading_dimension);
   }
 
   if (status != driver::deviceBlasStatusSuccess) {

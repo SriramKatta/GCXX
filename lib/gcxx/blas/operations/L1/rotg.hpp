@@ -17,9 +17,10 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 GCXX_TEMPLATE(class T)
 GCXX_REQUIRES(true)
 auto setup_givens_rotation(const T& a, const T& b, T& c, T& s, T& r) -> void {
-  static_assert(std::is_same_v<T, gcxx::f32_t> || std::is_same_v<T, gcxx::f64_t>,
-                "setup_givens_rotation currently supports only float/double "
-                "element types (complex support is a TODO)");
+  static_assert(
+    std::is_same_v<T, gcxx::f32_t> || std::is_same_v<T, gcxx::f64_t>,
+    "setup_givens_rotation currently supports only float/double "
+    "element types (complex support is a TODO)");
 
   // Scale by |a| + |b| (std::hypot's trick) so neither square overflows for
   // finite inputs and denormals underflow gracefully.
@@ -33,12 +34,11 @@ auto setup_givens_rotation(const T& a, const T& b, T& c, T& s, T& r) -> void {
 
   using std::copysign;
   using std::sqrt;
-  const T norm = scale * sqrt((a / scale) * (a / scale) +
-                              (b / scale) * (b / scale));
+  const T norm =
+    scale * sqrt((a / scale) * (a / scale) + (b / scale) * (b / scale));
 
   // sign(r) = sign(a) when |a| >= |b|, sign(b) otherwise (LAPACK convention)
-  r = (std::fabs(a) > std::fabs(b)) ? copysign(norm, a)
-                                    : copysign(norm, b);
+  r = (std::fabs(a) > std::fabs(b)) ? copysign(norm, a) : copysign(norm, b);
 
   c = a / r;
   s = b / r;

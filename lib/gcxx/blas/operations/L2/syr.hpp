@@ -60,8 +60,7 @@ auto symmetric_matrix_rank_1_update(
                 "f32_t/f64_t element types (complex support is a TODO)");
 
   // Alpha comes only from scaled() views on x.
-  auto alpha_res =
-    details_::resolve_scaled_alpha<Sv>(x.accessor());
+  auto alpha_res = details_::resolve_scaled_alpha<Sv>(x.accessor());
 
   const Sv alpha_host = alpha_res.host_value;
   const Sv* alpha_ptr =
@@ -76,7 +75,7 @@ auto symmetric_matrix_rank_1_update(
   details_::validate_device_view(a, "A");
 
   // extract problem dimensions
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
+  const auto [len_x, inc_x]               = details_::infer_blas_vector_view(x);
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
 
   if (rows_a != cols_a) {
@@ -90,8 +89,7 @@ auto symmetric_matrix_rank_1_update(
                              "have A.extent(0) elements");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   // a row-major-like operand is read as its transpose, whose stored triangle
   // is the mirror of the tagged one
   const auto uplo = op_a == driver::deviceBlasOpN

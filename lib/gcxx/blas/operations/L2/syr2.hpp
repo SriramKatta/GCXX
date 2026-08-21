@@ -84,8 +84,8 @@ auto symmetric_matrix_rank_2_update(
   details_::validate_device_view(a, "A");
 
   // extract problem dimensions
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
-  const auto [len_y, inc_y] = details_::infer_blas_vector_view(y);
+  const auto [len_x, inc_x]               = details_::infer_blas_vector_view(x);
+  const auto [len_y, inc_y]               = details_::infer_blas_vector_view(y);
   const auto [rows_a, cols_a, ld_a, op_a] = details_::infer_blas_matrix_view(a);
 
   if (rows_a != cols_a) {
@@ -99,8 +99,7 @@ auto symmetric_matrix_rank_2_update(
                              "y to have A.extent(0) elements");
   }
 
-  constexpr driver::deviceBlasFillMode_t uplo_tag =
-    details_::fill_mode_v<Tri>;
+  constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   // a row-major-like operand is read as its transpose, whose stored triangle
   // is the mirror of the tagged one
   const auto uplo = op_a == driver::deviceBlasOpN

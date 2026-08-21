@@ -22,8 +22,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX)
 GCXX_REQUIRES(ExtentsX::rank() == 1)
 auto idx_abs_max(BlasHandleView h,
-                 const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x)
-  -> typename ExtentsX::index_type {
+                 const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x) ->
+  typename ExtentsX::index_type {
 
   // local alias for easier refrence
   using XVt = TX;
