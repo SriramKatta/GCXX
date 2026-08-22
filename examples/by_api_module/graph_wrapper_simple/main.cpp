@@ -161,14 +161,46 @@ void manual_graph_build() {
   std::vector<gcxx::GraphView::deviceGraphNode_t> deps;
   deps.reserve(2);
 
-  auto KA = gcxx::KernelParamsBuilder().setKernel(kern_A).build<0>();
-  auto KB = gcxx::KernelParamsBuilder().setKernel(kern_B).build<0>();
-  auto KC = gcxx::KernelParamsBuilder().setKernel(kern_C).build<0>();
-  auto KD = gcxx::KernelParamsBuilder().setKernel(kern_D).build<0>();
-  auto KE = gcxx::KernelParamsBuilder().setKernel(kern_E).build<0>();
-  auto KF = gcxx::KernelParamsBuilder().setKernel(kern_F).build<0>();
-  auto KX = gcxx::KernelParamsBuilder().setKernel(kern_X).build<0>();
-  auto KY = gcxx::KernelParamsBuilder().setKernel(kern_Y).build<0>();
+  auto KA = gcxx::KernelParamsBuilder()
+              .setKernel(kern_A)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KB = gcxx::KernelParamsBuilder()
+              .setKernel(kern_B)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KC = gcxx::KernelParamsBuilder()
+              .setKernel(kern_C)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KD = gcxx::KernelParamsBuilder()
+              .setKernel(kern_D)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KE = gcxx::KernelParamsBuilder()
+              .setKernel(kern_E)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KF = gcxx::KernelParamsBuilder()
+              .setKernel(kern_F)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KX = gcxx::KernelParamsBuilder()
+              .setKernel(kern_X)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KY = gcxx::KernelParamsBuilder()
+              .setKernel(kern_Y)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
 
   auto KAnode = graph.AddKernelNode(&(KA.getRawParams()));
 

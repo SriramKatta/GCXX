@@ -1,22 +1,24 @@
-# gcxx_add_example
+# gcxx_add_benchmark
 # ─────────────────────────────────────────────────────────────────────────────
-# Convenience function for adding a single-executable GPU example.
+# Convenience function for adding a single-executable micro-benchmark.
 #
 # Usage:
-#   gcxx_add_example(
+#   gcxx_add_benchmark(
 #     NAME   <exe-name>
 #     [SOURCES  <src> ...]          # defaults to main.cpp
 #     [HEADERS  <hdr> ...]          # extra files tagged with GPU language
 #                                   # (improves IDE / intellisense support)
-#     [LINKS    <target> ...]       # additional link targets beyond gcxx::gcxx
+#     [LINKS    <target> ...]       # additional link targets beyond
+#                                   # gcxx::gcxx + benchmark::benchmark
 #     [SEPARABLE_COMPILATION]       # set CUDA_SEPARABLE_COMPILATION ON
 #   )
 #
-# Every example automatically:
+# Every benchmark automatically:
 #   • tags all SOURCES (and HEADERS) with LANGUAGE ${GCXX_GPU_LANG}
-#   • links gcxx::gcxx PRIVATE
+#   • links gcxx::gcxx and benchmark::benchmark PRIVATE
+#   • names the executable "bench_<NAME>"
 # ─────────────────────────────────────────────────────────────────────────────
-function(gcxx_add_example)
+function(gcxx_add_benchmark)
   # cmake-format: off
   cmake_parse_arguments(
     ARG                       # prefix
@@ -28,8 +30,10 @@ function(gcxx_add_example)
   # cmake-format: on
 
   if(NOT ARG_NAME)
-    message(FATAL_ERROR "gcxx_add_example: NAME is required")
+    message(FATAL_ERROR "gcxx_add_benchmark: NAME is required")
   endif()
+
+  set(_bench_target bench_${ARG_NAME})
 
   # Default source file
   if(NOT ARG_SOURCES)
@@ -48,19 +52,24 @@ function(gcxx_add_example)
 
   gcxx_tidy_add_target(
     TARGET
-    ${ARG_NAME}
+    ${_bench_target}
     SOURCES
     ${ARG_SOURCES}
   )
 
-  add_executable(${ARG_NAME} ${ARG_SOURCES})
+  add_executable(${_bench_target} ${ARG_SOURCES})
 
-  # Attach to the umbrella target so `--target examples` builds every example.
-  add_dependencies(examples ${ARG_NAME})
+  # Attach to the umbrella target so `--target benchmarks` builds every
+  # benchmark.
+  add_dependencies(benchmarks ${_bench_target})
 
-  target_link_libraries(${ARG_NAME} PRIVATE gcxx::gcxx ${ARG_LINKS})
+  target_link_libraries(
+    ${_bench_target} PRIVATE gcxx::gcxx benchmark::benchmark ${ARG_LINKS}
+  )
 
   if(ARG_SEPARABLE_COMPILATION)
-    set_target_properties(${ARG_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    set_target_properties(
+      ${_bench_target} PROPERTIES CUDA_SEPARABLE_COMPILATION ON
+    )
   endif()
 endfunction()

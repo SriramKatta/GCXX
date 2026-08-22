@@ -176,7 +176,8 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
 
   auto memset1 = gcxx::MemsetParamsBuilder()
                    .setPtr(outputVec_d)
-                   .setElemetSize(sizeof(float))
+                   .setValue(0)
+                   .setElementSize<float>()
                    .setWidth(numOfBlocks * 2)
                    .build();
 
@@ -190,7 +191,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                    .setBlockDim(numOfBlocks)
                    .setGridDim(THREADS_PER_BLOCK)
                    .setArgs(inputVec_d, outputVec_d, inputSize, numOfBlocks)
-                   .build<4>();
+                   .build();
 
   auto kernelNode = graph.AddKernelNode(k1build, nodeDependencies);
 
@@ -198,7 +199,8 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   nodeDependencies.push_back(kernelNode);
 
   auto memset2 = gcxx::MemsetParamsBuilder()
-                   .setElemetSize(sizeof(float))
+                   .setValue(0)
+                   .setElementSize<float>()
                    .setPtr(result_d)
                    .setWidth(2)
                    .build();
@@ -208,9 +210,10 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
 
   auto k2builder = gcxx::KernelParamsBuilder()
                      .setKernel(reduceFinal)
+                     .setGridDim(1)
                      .setBlockDim(THREADS_PER_BLOCK)
                      .setArgs(outputVec_d, result_d, numOfBlocks)
-                     .build<3>();
+                     .build();
   auto k2 = k2builder.getRawParams();
 
   kernelNode = graph.AddKernelNode(k2builder, nodeDependencies);

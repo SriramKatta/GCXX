@@ -68,15 +68,20 @@ void simpleIfGraph() {
 
   auto kernelparam = gcxx::KernelParamsBuilder()
                        .setKernel(ifGraphKernelA)
+                       .setGridDim(1)
+                       .setBlockDim(1)
                        .setArgs(dPtr, condHandle)
-                       .build<2>();
+                       .build();
   auto kernelNode = graph.AddKernelNode(kernelparam);
 
   auto [conditionalNode, bodyGraph] = graph.AddIfNode(condHandle);
 
 
-  auto kernel2 =
-    gcxx::KernelParamsBuilder().setKernel(ifGraphKernelC).build<0>();
+  auto kernel2 = gcxx::KernelParamsBuilder()
+                   .setKernel(ifGraphKernelC)
+                   .setGridDim(1)
+                   .setBlockDim(1)
+                   .build();
   auto kernelnode1 = bodyGraph.AddKernelNode(kernel2);
 
 
@@ -249,19 +254,28 @@ void simpleIfElseGraph() {
   // Use a kernel upstream of the conditional to set the handle value.
   auto kernparam = gcxx::KernelParamsBuilder()
                      .setKernel(ifGraphKernelA)
+                     .setGridDim(1)
+                     .setBlockDim(1)
                      .setArgs(dPtr, handle)
-                     .build<2>();
+                     .build();
   auto kernnode = graph.AddKernelNode(kernparam);
 
   auto [ifelsenode, IfGraphBody, Elsegraphbody] =
     graph.AddIfElseNode(handle, &kernnode, 1);
 
   // Populate the if-branch body (executed when the condition is true).
-  auto kern2 = gcxx::KernelParamsBuilder().setKernel(ifGraphKernelC).build<0>();
+  auto kern2 = gcxx::KernelParamsBuilder()
+                 .setKernel(ifGraphKernelC)
+                 .setGridDim(1)
+                 .setBlockDim(1)
+                 .build();
   auto truenode = IfGraphBody.AddKernelNode(kern2);
 
-  auto falsekern =
-    gcxx::KernelParamsBuilder().setKernel(ifGraphKernelD).build<0>();
+  auto falsekern = gcxx::KernelParamsBuilder()
+                     .setKernel(ifGraphKernelD)
+                     .setGridDim(1)
+                     .setBlockDim(1)
+                     .build();
   auto falsenode = Elsegraphbody.AddKernelNode(falsekern);
 
   auto graphExec = graph.Instantiate();
@@ -320,27 +334,41 @@ void simpleSwitchGraph() {
   // Use a kernel upstream of the conditional to set the handle value.
   auto kern1 = gcxx::KernelParamsBuilder()
                  .setKernel(switchGraphKernelA)
+                 .setGridDim(1)
+                 .setBlockDim(1)
                  .setArgs(dPtr, handle)
-                 .build<2>();
+                 .build();
   auto kernelNode = graph.AddKernelNode(kern1);
 
   auto [condNode, casevector] = graph.AddSwitchNode(handle, 4);
 
   // Populate the four graph bodies within the SWITCH conditional graph.
-  auto kernswitchC =
-    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelC).build<0>();
+  auto kernswitchC = gcxx::KernelParamsBuilder()
+                       .setKernel(switchGraphKernelC)
+                       .setGridDim(1)
+                       .setBlockDim(1)
+                       .build();
   std::ignore = casevector[0].AddKernelNode(kernswitchC);
 
-  auto kernswitchD =
-    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelD).build<0>();
+  auto kernswitchD = gcxx::KernelParamsBuilder()
+                       .setKernel(switchGraphKernelD)
+                       .setGridDim(1)
+                       .setBlockDim(1)
+                       .build();
   std::ignore = casevector[1].AddKernelNode(kernswitchD);
 
-  auto kernswitchE =
-    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelE).build<0>();
+  auto kernswitchE = gcxx::KernelParamsBuilder()
+                       .setKernel(switchGraphKernelE)
+                       .setGridDim(1)
+                       .setBlockDim(1)
+                       .build();
   std::ignore = casevector[2].AddKernelNode(kernswitchE);
 
-  auto kernswitchF =
-    gcxx::KernelParamsBuilder().setKernel(switchGraphKernelF).build<0>();
+  auto kernswitchF = gcxx::KernelParamsBuilder()
+                       .setKernel(switchGraphKernelF)
+                       .setGridDim(1)
+                       .setBlockDim(1)
+                       .build();
   std::ignore = casevector[3].AddKernelNode(kernswitchF);
 
   auto graphExec = graph.Instantiate();

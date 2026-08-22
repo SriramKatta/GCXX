@@ -33,6 +33,10 @@ struct all_same : std::bool_constant<(std::is_same_v<T, Ts> && ...)> {};
 template <typename T, typename... Ts>
 GCXX_CXPR inline bool all_same_v = all_same<T, Ts...>::value;
 
+// True when T matches any of Ts (empty pack is false).
+template <typename T, typename... Ts>
+inline constexpr bool contains_v = (std::is_same_v<T, Ts> || ...);
+
 // Primary template: not a void function pointer.
 template <typename VT>
 struct is_void_function_pointer : std::false_type {};

@@ -2,24 +2,19 @@ include(cmake/GTest.cmake)
 
 include(GoogleTest)
 
-function(add_gcxx_test SRC_BASE_NAME)
-  gcxx_tidy_add_target(
-    TARGET
-    ${SRC_BASE_NAME}
-    SOURCES
-    "${SRC_BASE_NAME}.cpp"
-  )
+# Umbrella target: `cmake --build . --target tests` builds every test
+# executable.
+add_custom_target(tests)
 
-  if(BUILD_TESTING)
-    add_executable(${SRC_BASE_NAME} ${SRC_BASE_NAME}.cpp)
-    set_source_files_properties(
-      ${SRC_BASE_NAME}.cpp PROPERTIES LANGUAGE ${GCXX_GPU_LANG}
-    )
-    target_link_libraries(${SRC_BASE_NAME} PRIVATE gcxx::gcxx)
-    target_link_libraries(${SRC_BASE_NAME} PRIVATE GTest::gtest_main)
-    gtest_discover_tests(${SRC_BASE_NAME})
-  endif()
-endfunction()
+include(cmake/gcxx_add_test.cmake)
+
+# All test executables go to <runtime-output>/tests, keeping them grouped
+# under the single runtime output folder defined by the presets.
+if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+  string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY "/tests")
+else()
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tests)
+endif()
 
 include_directories(common)
 add_subdirectory(event_testing)
