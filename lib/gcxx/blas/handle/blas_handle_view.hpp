@@ -33,12 +33,6 @@ class BlasHandleView {
 
   GCXX_FH auto getStream() const -> gcxx::StreamView;
 
-<<<<<<< HEAD
-  // Whether scalar args (alpha/beta) are read from host or device memory.
-  GCXX_FH auto setPointerMode(pointer_mode_type mode) -> void;
-
-  GCXX_FH auto getPointerMode() const -> pointer_mode_type;
-=======
   // ╔════════════════════════════════════════════════════════╗
   // ║                    Pointer mode                        ║
   // ╚════════════════════════════════════════════════════════╝
@@ -52,7 +46,6 @@ class BlasHandleView {
   // ╔════════════════════════════════════════════════════════╗
   // ║                     Introspection                      ║
   // ╚════════════════════════════════════════════════════════╝
->>>>>>> f6989c9 (Amending to new examples)
 
   GCXX_FH auto getVersion() const -> int;
 

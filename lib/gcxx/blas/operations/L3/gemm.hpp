@@ -10,35 +10,15 @@
 #include <gcxx/blas/error/blas_error.hpp>
 #include <gcxx/blas/handle/blas_handle_view.hpp>
 #include <gcxx/blas/handle/blas_pointer_mode_guard.hpp>
-<<<<<<< HEAD
-#include <gcxx/blas/operations/L3/geam.hpp>
-=======
->>>>>>> f6989c9 (Amending to new examples)
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
 #include <gcxx/blas/operations/details/scalar.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
-<<<<<<< HEAD
-#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
-=======
->>>>>>> f6989c9 (Amending to new examples)
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-<<<<<<< HEAD
-// C = A*B; scaling via scaled() input views, any mix of operand layouts.
-GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
-              class TB, class ExtentsB, class LayoutB, class AccessorB,
-              class TC, class ExtentsC, class LayoutC, class AccessorC)
-GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
-              2 GCXX_AND ExtentsC::rank() == 2)
-auto matrix_product(
-  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-  const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
-  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
-=======
 #define GCXX_BLAS_GEMM(name) \
   GCXX_DIRECT_BACKEND_ALT(CUBLAS_GEMM_##name, HIPBLAS_GEMM_##name)
 
@@ -70,7 +50,6 @@ template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
 auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
           C&& c) -> void {
->>>>>>> f6989c9 (Amending to new examples)
 
   // local alias for easier refrence
   using AVt = TA;
@@ -100,40 +79,6 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
                 "BLAS operands must use int32_t or int64_t as their "
                 "mdspan index_type");
 
-<<<<<<< HEAD
-  static_assert(gcxx::details_::all_same_v<AVt, BVt, CVt>,
-                "matrix_product operands A, B, C must share a single element "
-                "type");
-
-  static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
-                "matrix_product currently supports only float/double element "
-                "types (complex support is a TODO)");
-
-  // Alpha comes only from scaled() views on the inputs; beta is host zero.
-  auto alpha_res = details_::combine_scaled_alpha(
-    details_::resolve_scaled_alpha<Sv>(a.accessor()),
-    details_::resolve_scaled_alpha<Sv>(b.accessor()), "matrix_product");
-  if (alpha_res.from_device()) {
-    details_::throwBlasError(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      "matrix_product: the write-only form has no device-resident beta, so a "
-      "device_scalar scaled() factor is unsupported here; use the accumulate "
-      "form (with a device_scalar zero addend) or host factors");
-  }
-  const Sv alpha_host = alpha_res.host_value;
-  const Sv* alpha_ptr = &alpha_host;
-  const Sv beta_host  = Sv(0);
-  const Sv* beta_ptr  = &beta_host;
-
-  // Pin host pointer mode for the call (restored on scope exit); both
-  // scalars above are host values in this form.
-  details_::BlasPointerModeGuard guard{h, false};
-
-  // run-time device-memory probe (no-op unless checks are enabled)
-  details_::validate_device_view(a, "A");
-  details_::validate_device_view(b, "B");
-  details_::validate_device_view(c, "C");
-=======
   static_assert(gcxx::details_::all_same_v<Sv, AVt, BVt, CVt>,
                 "gemm alpha/beta value type must match the operands' element "
                 "type");
@@ -155,7 +100,6 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     alpha_ptr = &alpha;
     beta_ptr  = &beta;
   }
->>>>>>> f6989c9 (Amending to new examples)
 
   // extract problem dimensions
   const auto [m, k, ld_a, op_a]   = details_::infer_blas_matrix_view(a);
@@ -174,32 +118,12 @@ auto gemm(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
                              "B.extent(1)");
   }
 
-<<<<<<< HEAD
-  driver::deviceBlasStatus_t status{};
-  if (!out.transposed) {
-    GCXX_BLAS_DISPATCH_INT64(
-      status, AIt, GemmEx, h.getRawHandle(), op_a, op_b, m, n, k, alpha_ptr,
-      a.data_handle(), cuda_datatype_v<AVt>, ld_a, b.data_handle(),
-      cuda_datatype_v<BVt>, ld_b, beta_ptr, c.data_handle(),
-      cuda_datatype_v<CVt>, out.leading_dimension, blas_compute_type_v<CVt>,
-      GCXX_BLAS_GEMM(DEFAULT));
-  } else {
-    // C row-major-like: present the transposed problem C^T = B^T * A^T.
-    GCXX_BLAS_DISPATCH_INT64(
-      status, AIt, GemmEx, h.getRawHandle(), details_::flip_blas_op(op_b),
-      details_::flip_blas_op(op_a), n, m, k, alpha_ptr, b.data_handle(),
-      cuda_datatype_v<BVt>, ld_b, a.data_handle(), cuda_datatype_v<AVt>, ld_a,
-      beta_ptr, c.data_handle(), cuda_datatype_v<CVt>, out.leading_dimension,
-      blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
-  }
-=======
   driver::deviceBlasStatus_t status;
   GCXX_BLAS_DISPATCH_INT64(
     status, AIt, GemmEx, h.getRawHandle(), op_a, op_b, m, n, k, alpha_ptr,
     a.data_handle(), cuda_datatype_v<AVt>, ld_a, b.data_handle(),
     cuda_datatype_v<BVt>, ld_b, beta_ptr, c.data_handle(), cuda_datatype_v<CVt>,
     ld_c, blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
->>>>>>> f6989c9 (Amending to new examples)
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "matrix_product failed");

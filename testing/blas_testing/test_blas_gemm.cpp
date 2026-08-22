@@ -414,21 +414,6 @@ TEST(BlasGemm, ColMajorDouble_AB_64bitIndex) {
   run_colmajor_double_ab<std::int64_t>();
 }
 
-<<<<<<< HEAD
-TEST(BlasGemm, RowMajorDouble_ScaledAccumulate) {
-  run_rowmajor_and_scaled<int>();
-}
-
-TEST(BlasGemm, RowMajorDouble_ScaledAccumulate_64bitIndex) {
-  run_rowmajor_and_scaled<std::int64_t>();
-}
-
-TEST(BlasGemm, ColMajorDouble_AB_AccumulateUnaliased) {
-  run_colmajor_accumulate_unaliased<int>();
-}
-
-=======
->>>>>>> f6989c9 (Amending to new examples)
 TEST(BlasGemm, ColMajorDouble_AB_DeviceScalar) {
   run_colmajor_double_ab_device_scalar<int>();
 }

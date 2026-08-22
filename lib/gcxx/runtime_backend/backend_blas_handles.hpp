@@ -26,28 +26,8 @@ inline constexpr deviceBlasStatus_t deviceBlasStatusSuccess =
 inline constexpr deviceBlasOp_t deviceBlasOpN = GCXX_BLAS_OP(N);
 inline constexpr deviceBlasOp_t deviceBlasOpT = GCXX_BLAS_OP(T);
 
-<<<<<<< HEAD
-// Side mode: which side of the matrix the vector operand applies to (dgmm).
-inline constexpr deviceBlasSideMode_t deviceBlasSideLeft = GCXX_BLAS_SIDE(LEFT);
-inline constexpr deviceBlasSideMode_t deviceBlasSideRight =
-  GCXX_BLAS_SIDE(RIGHT);
-
-// Fill mode: which triangle of a symmetric/hermitian operand is stored.
-inline constexpr deviceBlasFillMode_t deviceBlasFillModeUpper =
-  GCXX_BLAS_FILL_MODE(UPPER);
-inline constexpr deviceBlasFillMode_t deviceBlasFillModeLower =
-  GCXX_BLAS_FILL_MODE(LOWER);
-
-// Diag type: unit diagonal assumed vs stored diagonal (trsm/trsv family).
-inline constexpr deviceBlasDiagType_t deviceBlasDiagNonUnit =
-  GCXX_BLAS_DIAG(NON_UNIT);
-inline constexpr deviceBlasDiagType_t deviceBlasDiagUnit = GCXX_BLAS_DIAG(UNIT);
-
-// Pointer mode: whether alpha/beta scalars are host- or device-resident.
-=======
 // Pointer-mode constants: whether scalar arguments (alpha/beta) are read from
 // host or device memory by the BLAS compute routines.
->>>>>>> f6989c9 (Amending to new examples)
 inline constexpr deviceBlasPointerMode_t deviceBlasPointerModeHost =
   GCXX_BLAS_POINTER_MODE(HOST);
 inline constexpr deviceBlasPointerMode_t deviceBlasPointerModeDevice =
