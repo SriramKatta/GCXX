@@ -19,7 +19,7 @@ float time_measure(const gcxx::Stream& str, const Args& arg,
   }
   auto kernelend = str.RecordEvent();
   str.Synchronize();
-  auto kerneltime = kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart).count();
+  auto kerneltime = kernelend.ElapsedTimeSince<gcxx::Sec>(kernelstart).count();
   return kerneltime;
 }
 

@@ -80,11 +80,28 @@ using deviceMemcpy3DParams_t   = GCXX_RUNTIME_BACKEND(Memcpy3DParms);
 using deviceMemsetParams_t     = GCXX_RUNTIME_BACKEND(MemsetParams);
 using deviceMemcpyKind_t       = GCXX_RUNTIME_BACKEND(MemcpyKind);
 
-#if GCXX_CUDA_MODE()
+// Node param payloads that exist on both backends (CUDA 12.8 / HIP 7.2 field
+// lists are identical for these kinds).
+using deviceEventRecordNodeParams_t =
+  GCXX_RUNTIME_BACKEND(EventRecordNodeParams);
+using deviceEventWaitNodeParams_t  = GCXX_RUNTIME_BACKEND(EventWaitNodeParams);
+using deviceMemFreeNodeParams_t    = GCXX_RUNTIME_BACKEND(MemFreeNodeParams);
+using deviceChildGraphNodeParams_t = GCXX_RUNTIME_BACKEND(ChildGraphNodeParams);
+using deviceMemAllocNodeParams_t   = GCXX_RUNTIME_BACKEND(MemAllocNodeParams);
+
+using deviceExternalSemaphore_t = GCXX_RUNTIME_BACKEND(ExternalSemaphore_t);
+using deviceExternalSemaphoreSignalParams_t =
+  GCXX_RUNTIME_BACKEND(ExternalSemaphoreSignalParams);
+using deviceExternalSemaphoreWaitParams_t =
+  GCXX_RUNTIME_BACKEND(ExternalSemaphoreWaitParams);
 using deviceExternalSemaphoreSignalNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreSignalNodeParams);
 using deviceExternalSemaphoreWaitNodeParams_t =
   GCXX_RUNTIME_BACKEND(ExternalSemaphoreWaitNodeParams);
+
+#if GCXX_CUDA_MODE()
+using deviceConditionalNodeParams_t =
+  GCXX_RUNTIME_BACKEND(ConditionalNodeParams);
 using deviceGraphExecUpdateResultInfo_t =
   GCXX_RUNTIME_BACKEND(GraphExecUpdateResultInfo);
 using deviceGraphInstantiateParams_t =
@@ -93,7 +110,6 @@ using deviceGraphMemAttributeType_t =
   GCXX_RUNTIME_BACKEND(GraphMemAttributeType);
 using deviceKernelNodeAttrID_t    = GCXX_RUNTIME_BACKEND(KernelNodeAttrID);
 using deviceKernelNodeAttrValue_t = GCXX_RUNTIME_BACKEND(KernelNodeAttrValue);
-using deviceMemAllocNodeParams_t  = GCXX_RUNTIME_BACKEND(MemAllocNodeParams);
 using deviceUserObject_t          = GCXX_RUNTIME_BACKEND(UserObject_t);
 using deviceGraphDeviceNode_t     = GCXX_RUNTIME_BACKEND(GraphDeviceNode_t);
 using deviceGraphKernelNodeUpdate_t =

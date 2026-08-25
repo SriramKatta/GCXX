@@ -125,17 +125,26 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 #define GCXX_CONCEPT_IGNORE_RESULT_(...) __VA_ARGS__
 #endif
 
-// Silences nvcc #177-D on SFINAE probes; [[maybe_unused]]/_Pragma split.
-#if defined(__CUDACC__)
-#define GCXX_DIAG_SUPPRESS_177_ _Pragma("nv_diag_suppress 177")
-#define GCXX_DIAG_RESTORE_177_ _Pragma("nv_diag_default 177")
-#elif defined(__NVCOMPILER)
-#define GCXX_DIAG_SUPPRESS_177_ _Pragma("diag_suppress 177")
-#define GCXX_DIAG_RESTORE_177_ _Pragma("diag_default 177")
-#else
-#define GCXX_DIAG_SUPPRESS_177_
-#define GCXX_DIAG_RESTORE_177_
+// _Pragma stringifier.
+#define GCXX_DO_PRAGMA_(...) _Pragma(#__VA_ARGS__)
+
+// Per-tag NVIDIA diag control, one tag per invocation.
+#if defined(__CUDACC__)  // nvcc / nvc++ CUDA pass
+#define GCXX_DIAG_SUPPRESS_(TAG) GCXX_DO_PRAGMA_(nv_diag_suppress TAG)
+#define GCXX_DIAG_RESTORE_(TAG) GCXX_DO_PRAGMA_(nv_diag_default TAG)
+#elif defined(__NVCOMPILER)  // nvc++, non-CUDA TUs
+#define GCXX_DIAG_SUPPRESS_(TAG) GCXX_DO_PRAGMA_(diag_suppress TAG)
+#define GCXX_DIAG_RESTORE_(TAG) GCXX_DO_PRAGMA_(diag_default TAG)
+#else  // gcc / clang / hipcc
+#define GCXX_DIAG_SUPPRESS_(TAG)
+#define GCXX_DIAG_RESTORE_(TAG)
 #endif
+
+// Exec-check family (#20011/13/14/15-D): __host__ fn called from __host__
+// __device__ code; lets an HD helper instantiate host-only members on the
+// device pass (cf. libcudacxx's _CCCL_EXEC_CHECK_DISABLE).
+#define GCXX_DIAG_SUPPRESS_EXEC_CHECK_(TAG) GCXX_DIAG_SUPPRESS_(TAG)
+#define GCXX_DIAG_RESTORE_EXEC_CHECK_(TAG) GCXX_DIAG_RESTORE_(TAG)
 
 // The "0" or "1" suffixes indicate whether _REQ is parenthesized or not.
 #define GCXX_CONCEPT_REQUIREMENT_0(_REQ) \
@@ -325,7 +334,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
         ::gcxx::details_::tag<void GCXX_REQUIRES_EXPR_TPARAM_REFS _TY>*>(  \
         nullptr),                                                          \
       0);                                                                  \
-  GCXX_DIAG_SUPPRESS_177_                                                  \
+  GCXX_DIAG_SUPPRESS_(177)                                                 \
   struct GCXX_PP_CAT(gcxx_requires_expr_detail_, _ID) {                    \
     using self_t = GCXX_PP_CAT(gcxx_requires_expr_detail_, _ID);           \
     template <class GCXX_REQUIRES_EXPR_TPARAM_DEFNS _TY>                   \
@@ -405,7 +414,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
     return false;                                                              \
   }                                                                            \
   }                                                                            \
-  GCXX_DIAG_RESTORE_177_
+  GCXX_DIAG_RESTORE_(177)
 #endif  // ^^^ !GCXX_HAS_CONCEPTS() ^^^
 
 #endif

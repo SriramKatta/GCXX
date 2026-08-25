@@ -32,7 +32,7 @@ float time_measure(const gcxx::Stream& str, const Args& arg,
   auto kernelend = str.RecordEvent();
   str.Synchronize();
   float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
+    (kernelend.ElapsedTimeSince<gcxx::Sec>(kernelstart)).count();
   return kerneltime;
 }
 

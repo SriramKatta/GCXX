@@ -53,6 +53,8 @@ class Memcpy3DParamsView {
   deviceMemcpy3DParams_t m_params{};  // NOLINT
 };
 
+// Adds no state over the View; kept only for uniformity with the params
+// kinds that do carry storage (kernel, mem-alloc, external-semaphore).
 class Memcpy3DParams : public Memcpy3DParamsView {
  public:
   GCXX_FHC Memcpy3DParams() = default;
@@ -178,7 +180,9 @@ class Memcpy3DParamsBuilder {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-GCXX_FH auto Memcpy3DParamsBuilder() -> details_::Memcpy3DParamsBuilder<> {
+using Memcpy3DParamsBuilder_t = details_::Memcpy3DParamsBuilder<>;
+
+GCXX_FH auto Memcpy3DParamsBuilder() -> Memcpy3DParamsBuilder_t {
   return {};
 }
 

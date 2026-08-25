@@ -52,6 +52,8 @@ class MemsetParamsView {
   const deviceMemsetParams_t m_params{};  // NOLINT
 };
 
+// Adds no state over the View; kept only for uniformity with the params
+// kinds that do carry storage (kernel, mem-alloc, external-semaphore).
 class MemsetParams : public MemsetParamsView {
  public:
   GCXX_FHC MemsetParams() = default;
@@ -202,7 +204,9 @@ class MemsetParamsBuilder {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-GCXX_FH auto MemsetParamsBuilder() -> details_::MemsetParamsBuilder<> {
+using MemsetParamsBuilder_t = details_::MemsetParamsBuilder<>;
+
+GCXX_FH auto MemsetParamsBuilder() -> MemsetParamsBuilder_t {
   return {};
 }
 

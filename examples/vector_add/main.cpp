@@ -32,7 +32,7 @@ float time_measure(const gcxx::Stream& str, const Args& arg,
   auto kernelend = str.RecordEvent();
   str.Synchronize();
   float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
+    (kernelend.ElapsedTimeSince<gcxx::Sec>(kernelstart)).count();
   return kerneltime;
 }
 
@@ -83,9 +83,9 @@ int main(int argc, char** argv) {
 
   checkdata(h_a_span, static_cast<datatype>(arg.rep * 3));
 
-  auto Dtohtime = (D2Hend.ElapsedTimeSince<gcxx::sec>(D2Hstart)).count();
+  auto Dtohtime = (D2Hend.ElapsedTimeSince<gcxx::Sec>(D2Hstart)).count();
 
-  auto HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
+  auto HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::Sec>(H2Dstart)).count();
 
   auto arraySizeinGbytes = static_cast<float>(arg.N * sizeof(datatype)) / kGiga;
   auto transfer_size =

@@ -44,6 +44,8 @@ class HostNodeParamsView {
   const deviceHostNodeParams_t m_params{};  // NOLINT
 };
 
+// Adds no state over the View; kept only for uniformity with the params
+// kinds that do carry storage (kernel, mem-alloc, external-semaphore).
 class HostNodeParams : public HostNodeParamsView {
  public:
   GCXX_FHC HostNodeParams() = default;
@@ -122,7 +124,9 @@ class HostNodeParamsBuilder {
 
 GCXX_NAMESPACE_DETAILS_END()
 
-GCXX_FH auto HostNodeParamsBuilder() -> details_::HostNodeParamsBuilder<> {
+using HostNodeParamsBuilder_t = details_::HostNodeParamsBuilder<>;
+
+GCXX_FH auto HostNodeParamsBuilder() -> HostNodeParamsBuilder_t {
   return {};
 }
 

@@ -6,6 +6,7 @@
 
 
 #include <array>
+#include <initializer_list>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -233,6 +234,18 @@ class span_base {
       details_::is_data_ptr_convertible_v<const std::array<U, N>, element_type>)
   GCXX_FHC span_base(const std::array<U, N>& arr) noexcept
       : m_storage(arr.data(), N) {}
+
+  // Braced-list construction: span<const T> s = {a, b, c}. Elements convert
+  // to value_type, so lists of derived classes slice in (dependency lists of
+  // node views). Const-elements-only: initializer_list yields const
+  // pointers, and the backing array is a temporary whose mutation would be
+  // discarded anyway. That array lives only for the full expression, so such
+  // a span must not be stored beyond its statement; passing {a, b} to a span
+  // parameter is always safe — the array outlives the call.
+  GCXX_TEMPLATE(typename ConstVT = VT)
+  GCXX_REQUIRES(std::is_const_v<ConstVT>)
+  GCXX_FHDC span_base(std::initializer_list<value_type> il) noexcept
+      : m_storage(il.begin(), il.size()) {}
 
   GCXX_TEMPLATE(typename R, std::size_t E = Extent)
   GCXX_REQUIRES(

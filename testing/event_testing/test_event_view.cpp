@@ -89,7 +89,7 @@ TEST(EventViewDurationTest, ConvertsMillisecondsToSupportedDurations) {
   EXPECT_FLOAT_EQ(ConvertDuration<milliSec>(1.5F).count(), 1.5F);
   EXPECT_FLOAT_EQ(ConvertDuration<microSec>(1.5F).count(), 1500.0F);
   EXPECT_FLOAT_EQ(ConvertDuration<nanoSec>(1.5F).count(), 1500000.0F);
-  EXPECT_FLOAT_EQ(ConvertDuration<sec>(1.5F).count(), 0.0015F);
+  EXPECT_FLOAT_EQ(ConvertDuration<Sec>(1.5F).count(), 0.0015F);
 }
 
 TEST_F(EventViewTest, EqualityOperatorSameEvent) {
@@ -238,7 +238,7 @@ TEST_F(EventViewTest, ElapsedTimeWithDifferentDurationTypes) {
   auto elapsedMs   = end.ElapsedTimeSince<milliSec>(start);
   auto elapsedUs   = end.ElapsedTimeSince<microSec>(start);
   auto elapsedNs   = end.ElapsedTimeSince<nanoSec>(start);
-  auto elapsedSecs = end.ElapsedTimeSince<sec>(start);
+  auto elapsedSecs = end.ElapsedTimeSince<Sec>(start);
 
   EXPECT_GE(elapsedMs.count(), 0.0f);
   EXPECT_GE(elapsedUs.count(), 0.0f);

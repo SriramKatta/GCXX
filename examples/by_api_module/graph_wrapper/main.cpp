@@ -33,8 +33,6 @@
 
 #include <cmath>
 #include <cstdio>
-#include <vector>
-
 
 #include <gcxx/api.hpp>
 #include <gcxx/cooperative_groups.hpp>
@@ -159,8 +157,6 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                         size_t numOfBlocks) {
   gcxx::Stream streamForGraph;
   gcxx::Graph graph;
-  std::vector<gcxx::GraphView::deviceGraphNode_t> nodeDependencies;
-  gcxx::GraphView::deviceGraphNode_t memcpyNode = nullptr, memsetNode = nullptr;
   double result_h = 0.0;
 
   auto memcpy3d1 = gcxx::Memcpy3DParamsBuilder()
@@ -172,7 +168,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                      .build();
 
 
-  memcpyNode = graph.AddMemcpyNode(memcpy3d1);
+  auto memcpyNode = graph.addNode(memcpy3d1);
 
   auto memset1 = gcxx::MemsetParamsBuilder()
                    .setPtr(outputVec_d)
@@ -181,10 +177,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                    .setWidth(numOfBlocks * 2)
                    .build();
 
-  memsetNode = graph.AddMemsetNode(memset1);
-
-  nodeDependencies.push_back(memsetNode);
-  nodeDependencies.push_back(memcpyNode);
+  auto memsetNode = graph.addNode(memset1);
 
   auto k1build = gcxx::KernelParamsBuilder()
                    .setKernel(reduce)
@@ -193,10 +186,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                    .setArgs(inputVec_d, outputVec_d, inputSize, numOfBlocks)
                    .build();
 
-  auto kernelNode = graph.AddKernelNode(k1build, nodeDependencies);
-
-  nodeDependencies.clear();
-  nodeDependencies.push_back(kernelNode);
+  auto kernelNode = graph.addNode(k1build, {memsetNode, memcpyNode});
 
   auto memset2 = gcxx::MemsetParamsBuilder()
                    .setValue(0)
@@ -205,8 +195,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                    .setWidth(2)
                    .build();
 
-  memsetNode = graph.AddMemsetNode(memset2);
-  nodeDependencies.push_back(memsetNode);
+  memsetNode = graph.addNode(memset2);
 
   auto k2builder = gcxx::KernelParamsBuilder()
                      .setKernel(reduceFinal)
@@ -216,9 +205,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                      .build();
   auto k2 = k2builder.getRawParams();
 
-  kernelNode = graph.AddKernelNode(k2builder, nodeDependencies);
-  nodeDependencies.clear();
-  nodeDependencies.push_back(kernelNode);
+  kernelNode = graph.addNode(k2builder, {kernelNode, memsetNode});
 
   auto memcpy3d2 =
     gcxx::Memcpy3DParamsBuilder()
@@ -227,9 +214,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
       .setExtent(gcxx::makeExtent<double>(1, 1, 1))
       .build();
 
-  memcpyNode = graph.AddMemcpyNode(memcpy3d2, nodeDependencies);
-  nodeDependencies.clear();
-  nodeDependencies.push_back(memcpyNode);
+  memcpyNode = graph.addNode(memcpy3d2, {kernelNode});
 
   callBackData_t hostFnData;
   hostFnData.data    = &result_h;
@@ -244,9 +229,9 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                             .build();
 
 
-  auto hostNode = graph.AddHostNode(hostparambuilder, nodeDependencies);
+  auto hostNode = graph.addNode(hostparambuilder, {memcpyNode});
 
-  size_t numNodes = graph.GetNumNodes();
+  size_t numNodes = graph.getNumNodes();
   printf("\nNum of nodes in the graph created manually = %zu\n", numNodes);
 
   auto graphExec       = graph.Instantiate();
@@ -264,7 +249,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   }
   streamForGraph.Synchronize();
 
-  // graph.SaveDotfile("./test_manual.dot",
+  // graph.saveDotfile("./test_manual.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
@@ -310,7 +295,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   auto graph = stream1.EndCapture();
 
 
-  size_t numNodes = graph.GetNumNodes();
+  size_t numNodes = graph.getNumNodes();
   printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
          numNodes);
 
@@ -330,7 +315,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   }
 
   streamForGraph.Synchronize();
-  // graph.SaveDotfile("./test_stream_capture.dot",
+  // graph.saveDotfile("./test_stream_capture.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
@@ -378,7 +363,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   stream1.EndCaptureToGraph(graph);
 
 
-  size_t numNodes = graph.GetNumNodes();
+  size_t numNodes = graph.getNumNodes();
   printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
          numNodes);
 
@@ -398,7 +383,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   }
 
   streamForGraph.Synchronize();
-  // graph.SaveDotfile("./test_stream_capture.dot",
+  // graph.saveDotfile("./test_stream_capture.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 

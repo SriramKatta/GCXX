@@ -15,8 +15,6 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 class GraphView;
 class GraphExecView;
 
-// TODO: Specialize per node type with set*/get* param accessors.
-
 class GraphNodeView {
  public:
   using deviceGraphNode_t = driver::deviceGraphNode_t;
@@ -24,7 +22,7 @@ class GraphNodeView {
 
   GCXX_FHC GraphNodeView(deviceGraphNode_t node) : m_node(node) {}
 
-  GCXX_FHC auto getRawHandle() -> deviceGraphNode_t { return m_node; }
+  GCXX_FHC auto getRawHandle() const -> deviceGraphNode_t { return m_node; }
 
   GCXX_FH auto getContainingGraph() -> GraphView;
 

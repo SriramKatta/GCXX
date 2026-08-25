@@ -38,6 +38,7 @@
 #include <cassert>
 #include <cstdio>
 #include <utility>
+#include <vector>
 
 #include <gcxx/api.hpp>
 
@@ -45,7 +46,7 @@ __global__ void ifGraphKernelA(
   char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   // In this example, condition is set if *dPtr is odd
   unsigned int value = *dPtr & 0x01;
-  gcxx::Graph::SetConditional(handle, value);
+  gcxx::Graph::setConditional(handle, value);
   printf("GPU: Handle set to %d\n", value);
 }
 
@@ -64,7 +65,7 @@ void simpleIfGraph() {
   gcxx::Graph graph;
 
   // Create conditional handle.
-  auto condHandle = graph.CreateConditionalHandle(0);
+  auto condHandle = graph.createConditionalHandle(0);
 
   auto kernelparam = gcxx::KernelParamsBuilder()
                        .setKernel(ifGraphKernelA)
@@ -72,9 +73,9 @@ void simpleIfGraph() {
                        .setBlockDim(1)
                        .setArgs(dPtr, condHandle)
                        .build();
-  auto kernelNode = graph.AddKernelNode(kernelparam);
+  auto kernelNode = graph.addNode(kernelparam);
 
-  auto [conditionalNode, bodyGraph] = graph.AddIfNode(condHandle);
+  auto [conditionalNode, bodyGraph] = graph.addIfNode(condHandle, {kernelNode});
 
 
   auto kernel2 = gcxx::KernelParamsBuilder()
@@ -82,7 +83,7 @@ void simpleIfGraph() {
                    .setGridDim(1)
                    .setBlockDim(1)
                    .build();
-  auto kernelnode1 = bodyGraph.AddKernelNode(kernel2);
+  auto kernelnode1 = bodyGraph.addNode(kernel2);
 
 
   auto graphExec = graph.Instantiate();
@@ -112,7 +113,7 @@ __global__ void doWhileEmptyKernel() {
 __global__ void doWhileLoopKernel(
   char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   if (--(*dPtr) == 0) {
-    gcxx::Graph::SetConditional(handle, 0);
+    gcxx::Graph::setConditional(handle, 0);
   }
   printf("GPU: counter = %d\n", *dPtr);
 }
@@ -124,10 +125,10 @@ void simpleDoWhileGraph() {
   printf("simpleDoWhileGraph: Building graph...\n");
   gcxx::Graph graph;
 
-  auto handle = graph.CreateConditionalHandle(
+  auto handle = graph.createConditionalHandle(
     1, gcxx::flags::graphConditionalHandle::Default);
 
-  auto [conditionalNode, bodyGraph] = graph.AddWhileNode(handle);
+  auto [conditionalNode, bodyGraph] = graph.addWhileNode(handle);
 
   gcxx::Stream captureStream;
 
@@ -157,7 +158,7 @@ __global__ void capturedWhileKernel(
   if (*dPtr) {
     (*dPtr)--;
   }
-  gcxx::Graph::SetConditional(handle, *dPtr);
+  gcxx::Graph::setConditional(handle, *dPtr);
 }
 
 __global__ void capturedWhileEmptyKernel() {
@@ -181,7 +182,7 @@ void capturedWhileGraph() {
       captureStream.GetCaptureInfo();
     [[maybe_unused]] auto _ = uniqueID;  // Suppress unused warning
 
-    handle = graph.CreateConditionalHandle(
+    handle = graph.createConditionalHandle(
       0, gcxx::flags::graphConditionalHandle::Default);
     gcxx::launch::Kernel(captureStream, {1}, {1}, 0, capturedWhileKernel, dPtr,
                          handle);
@@ -190,13 +191,15 @@ void capturedWhileGraph() {
   // Insert kernel node A
 
   // Obtain the handle for node A (get updated dependencies after launch).
-  auto captureInfo2    = captureStream.GetCaptureInfo();
-  auto dependencies    = captureInfo2.pDependencies;
-  auto numDependencies = captureInfo2.pDependenciescount;
+  auto captureInfo2 = captureStream.GetCaptureInfo();
 
-  // Insert conditional node B.
+  // Insert conditional node B; wrap the capture's raw dependency handles as
+  // node views.
+  std::vector<gcxx::GraphNodeView> dependencies(
+    captureInfo2.pDependencies,
+    captureInfo2.pDependencies + captureInfo2.pDependenciescount);
   auto [conditionalNode, bodyGraph] =
-    captureInfo2.graph.AddWhileNode(handle, dependencies, numDependencies);
+    captureInfo2.graph.addWhileNode(handle, dependencies);
 
   captureStream.UpdateCaptureDependencies(
     gcxx::flags::StreamUpdateCaptureDependencies::Set, &conditionalNode, 1);
@@ -249,7 +252,7 @@ void simpleIfElseGraph() {
   printf("simpleIfElseGraph: Building graph...\n");
 
   // Create conditional handle.
-  auto handle = graph.CreateConditionalHandle(0);
+  auto handle = graph.createConditionalHandle(0);
 
   // Use a kernel upstream of the conditional to set the handle value.
   auto kernparam = gcxx::KernelParamsBuilder()
@@ -258,10 +261,10 @@ void simpleIfElseGraph() {
                      .setBlockDim(1)
                      .setArgs(dPtr, handle)
                      .build();
-  auto kernnode = graph.AddKernelNode(kernparam);
+  auto kernNode = graph.addNode(kernparam);
 
   auto [ifelsenode, IfGraphBody, Elsegraphbody] =
-    graph.AddIfElseNode(handle, &kernnode, 1);
+    graph.addIfElseNode(handle, {kernNode});
 
   // Populate the if-branch body (executed when the condition is true).
   auto kern2 = gcxx::KernelParamsBuilder()
@@ -269,14 +272,14 @@ void simpleIfElseGraph() {
                  .setGridDim(1)
                  .setBlockDim(1)
                  .build();
-  auto truenode = IfGraphBody.AddKernelNode(kern2);
+  auto truenode = IfGraphBody.addNode(kern2);
 
   auto falsekern = gcxx::KernelParamsBuilder()
                      .setKernel(ifGraphKernelD)
                      .setGridDim(1)
                      .setBlockDim(1)
                      .build();
-  auto falsenode = Elsegraphbody.AddKernelNode(falsekern);
+  auto falsenode = Elsegraphbody.addNode(falsekern);
 
   auto graphExec = graph.Instantiate();
 
@@ -300,7 +303,7 @@ void simpleIfElseGraph() {
 __global__ void switchGraphKernelA(
   char* dPtr, gcxx::GraphView::deviceGraphConditionalHandle_t handle) {
   unsigned int value = *dPtr;
-  gcxx::Graph::SetConditional(handle, value);
+  gcxx::Graph::setConditional(handle, value);
   printf("GPU: Handle set to %d\n", value);
 }
 
@@ -328,7 +331,7 @@ void simpleSwitchGraph() {
 
   printf("simpleSwitchGraph: Building graph...\n");
 
-  auto handle = graph.CreateConditionalHandle(
+  auto handle = graph.createConditionalHandle(
     0, gcxx::flags::graphConditionalHandle::Default);
 
   // Use a kernel upstream of the conditional to set the handle value.
@@ -338,9 +341,9 @@ void simpleSwitchGraph() {
                  .setBlockDim(1)
                  .setArgs(dPtr, handle)
                  .build();
-  auto kernelNode = graph.AddKernelNode(kern1);
+  auto kernelNode = graph.addNode(kern1);
 
-  auto [condNode, casevector] = graph.AddSwitchNode(handle, 4);
+  auto [condNode, casevector] = graph.addSwitchNode(handle, 4);
 
   // Populate the four graph bodies within the SWITCH conditional graph.
   auto kernswitchC = gcxx::KernelParamsBuilder()
@@ -348,28 +351,28 @@ void simpleSwitchGraph() {
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[0].AddKernelNode(kernswitchC);
+  std::ignore = casevector[0].addNode(kernswitchC);
 
   auto kernswitchD = gcxx::KernelParamsBuilder()
                        .setKernel(switchGraphKernelD)
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[1].AddKernelNode(kernswitchD);
+  std::ignore = casevector[1].addNode(kernswitchD);
 
   auto kernswitchE = gcxx::KernelParamsBuilder()
                        .setKernel(switchGraphKernelE)
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[2].AddKernelNode(kernswitchE);
+  std::ignore = casevector[2].addNode(kernswitchE);
 
   auto kernswitchF = gcxx::KernelParamsBuilder()
                        .setKernel(switchGraphKernelF)
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[3].AddKernelNode(kernswitchF);
+  std::ignore = casevector[3].addNode(kernswitchF);
 
   auto graphExec = graph.Instantiate();
 

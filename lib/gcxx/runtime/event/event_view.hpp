@@ -17,7 +17,7 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 using nanoSec  = std::chrono::duration<float, std::nano>;
 using microSec = std::chrono::duration<float, std::micro>;
 using milliSec = std::chrono::duration<float, std::milli>;
-using sec      = std::chrono::duration<float>;
+using Sec      = std::chrono::duration<float>;
 
 template <typename DurationT>
 GCXX_FH auto ConvertDuration(float ms) -> DurationT {
@@ -43,7 +43,7 @@ class EventView {
   GCXX_CXPR
   auto operator=(const EventView& eventRef) GCXX_NOEXCEPT->EventView&;
 
-  GCXX_FHC auto getRawHandle() GCXX_CONST_NOEXCEPT -> deviceEvent_t;
+  GCXX_FHC auto getRawHandle() GCXX_CONST_NOEXCEPT -> raw_handle_type;
 
   GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT;
 
@@ -71,11 +71,11 @@ class EventView {
     flags::eventRecord recordFlag = flags::eventRecord::None) -> void;
 
   // Both events must have been recorded before this call.
-  template <typename DurationT = milliSec>
+  template <typename DurationT = Sec>
   GCXX_FH auto ElapsedTimeSince(const EventView& startEvent) const -> DurationT;
 
   // Both events must have been recorded before this call.
-  template <typename DurationT = milliSec>
+  template <typename DurationT = Sec>
   GCXX_FH static auto ElapsedTimeBetween(
     const EventView& startEvent, const EventView& endEvent) -> DurationT;
 

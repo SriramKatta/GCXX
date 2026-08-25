@@ -117,12 +117,16 @@ class KernelNodeParams : private details_::KernelArgPtrStore<NumParams>,
   GCXX_FHC static auto make_raw_params(void* func, dim3 grid, dim3 block,
                                        unsigned int shmem, void** kernelParams)
     -> deviceKernelNodeParams_t {
-    return deviceKernelNodeParams_t{/*func=*/func,
-                                    /*gridDim=*/grid,
-                                    /*blockDim=*/block,
-                                    /*sharedMemBytes=*/shmem,
-                                    /*kernelParams=*/kernelParams,
-                                    /*extra=*/nullptr};
+    // Field assignment, not positional aggregate init: the field order of
+    // hipKernelNodeParams differs from cudaKernelNodeParams.
+    deviceKernelNodeParams_t p{};
+    p.func           = func;
+    p.gridDim        = grid;
+    p.blockDim       = block;
+    p.sharedMemBytes = shmem;
+    p.kernelParams   = kernelParams;
+    p.extra          = nullptr;
+    return p;
   }
 };
 
@@ -288,6 +292,16 @@ class KernelParamsBuilder {
   template <typename...>
   friend class KernelParamsBuilder;  // states construct each other
 
+  // Field assignment, not positional aggregate init: the field order of
+  // hipKernelNodeParams differs from cudaKernelNodeParams.
+  GCXX_FHC static auto default_raw_params()
+    -> KernelNodeParamsView::deviceKernelNodeParams_t {
+    KernelNodeParamsView::deviceKernelNodeParams_t p{};
+    p.gridDim  = dim3{1, 1, 1};
+    p.blockDim = dim3{1, 1, 1};
+    return p;
+  }
+
   // State hand-off between builder states.
   template <typename... Other>
   KernelParamsBuilder(const KernelParamsBuilder<Other...>& other)
@@ -298,18 +312,15 @@ class KernelParamsBuilder {
   // intermediate builders would otherwise carry pointers into another
   // instance's vector.
   KernelNodeParamsView::deviceKernelNodeParams_t m_params{
-    /*func=*/nullptr,
-    /*gridDim=*/dim3{1, 1, 1},
-    /*blockDim=*/dim3{1, 1, 1},
-    /*sharedMemBytes=*/0,
-    /*kernelParams=*/nullptr,
-    /*extra=*/nullptr};             // NOLINT
+    default_raw_params()};          // NOLINT
   std::vector<void*> m_arg_ptrs{};  // NOLINT
 };
 
 GCXX_NAMESPACE_DETAILS_END()
 
-GCXX_FH auto KernelParamsBuilder() -> details_::KernelParamsBuilder<> {
+using KernelParamsBuilder_t = details_::KernelParamsBuilder<>;
+
+GCXX_FH auto KernelParamsBuilder() -> KernelParamsBuilder_t {
   return {};
 }
 

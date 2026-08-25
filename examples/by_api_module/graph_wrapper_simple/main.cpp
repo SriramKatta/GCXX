@@ -85,7 +85,7 @@ void stream_capture() {
 
   if constexpr (with_graph) {
     auto gp = stream1.EndCapture();
-    gp.SaveDotfile("./test_stream_capture.dot",
+    gp.saveDotfile("./test_stream_capture.dot",
                    gcxx::flags::graphDebugDot::Verbose);
     auto exec = gp.Instantiate();
     start.RecordInStream();
@@ -147,7 +147,7 @@ void stream_capture_tograph() {
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_F);
 
   stream1.EndCaptureToGraph(graph);
-  graph.SaveDotfile("./test_stream_capture_to.dot",
+  graph.saveDotfile("./test_stream_capture_to.dot",
                     gcxx::flags::graphDebugDot::KernelNodeParams);
   auto exec = graph.Instantiate();
   exec.Launch(StreamforGraph);
@@ -157,9 +157,6 @@ void manual_graph_build() {
   gcxx::Graph graph;
 
   gcxx::Stream StreamforGraph;
-
-  std::vector<gcxx::GraphView::deviceGraphNode_t> deps;
-  deps.reserve(2);
 
   auto KA = gcxx::KernelParamsBuilder()
               .setKernel(kern_A)
@@ -202,32 +199,16 @@ void manual_graph_build() {
               .setBlockDim(1)
               .build();
 
-  auto KAnode = graph.AddKernelNode(&(KA.getRawParams()));
+  auto KAnode = graph.addNode(KA);
+  auto KBnode = graph.addNode(KB, {KAnode});
+  auto KXnode = graph.addNode(KX, {KAnode});
+  auto KCnode = graph.addNode(KC, {KBnode});
+  auto KDnode = graph.addNode(KD, {KBnode});
+  auto KEnode = graph.addNode(KE, {KCnode, KDnode});
+  auto KYnode = graph.addNode(KY, {KXnode});
+  std::ignore = graph.addNode(KF, {KEnode, KYnode});
 
-  deps.push_back(KAnode);
-  auto KBnode = graph.AddKernelNode(KB, deps);
-  auto KXnode = graph.AddKernelNode(KX, deps);
-
-  deps.clear();
-  deps.push_back(KBnode);
-  auto KCnode = graph.AddKernelNode(KC, deps);
-  auto KDnode = graph.AddKernelNode(KD, deps);
-
-  deps.clear();
-  deps.push_back(KCnode);
-  deps.push_back(KDnode);
-  auto KEnode = graph.AddKernelNode(KE, deps);
-
-  deps.clear();
-  deps.push_back(KXnode);
-  auto KYnode = graph.AddKernelNode(KY, deps);
-
-  deps.clear();
-  deps.push_back(KEnode);
-  deps.push_back(KYnode);
-  auto KFnode = graph.AddKernelNode(KF, deps);
-
-  graph.SaveDotfile("./test_manual.dot", gcxx::flags::graphDebugDot::Verbose);
+  graph.saveDotfile("./test_manual.dot", gcxx::flags::graphDebugDot::Verbose);
   auto exec = graph.Instantiate();
   exec.Launch(StreamforGraph);
 }

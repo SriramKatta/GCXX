@@ -55,17 +55,6 @@ GCXX_FH auto graphClone(deviceGraph_t graph) -> deviceGraph_t {
   return clonedGraph;
 }
 
-GCXX_FH auto graphAddChildGraphNode(
-  deviceGraph_t graph, deviceGraph_t childGraph,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddChildGraphNode,
-                         "Failed to Add Child graph Node to Graph", &node,
-                         graph, dependencies, numDependencies, childGraph);
-  return node;
-}
-
 GCXX_FH auto graphAddDependencies(deviceGraph_t graph,
                                   const deviceGraphNode_t* from,
                                   const deviceGraphNode_t* to,
@@ -84,100 +73,23 @@ GCXX_FH auto graphAddDependencies(deviceGraph_t graph,
     numDependencies);
 }
 
-GCXX_FH auto graphAddEmptyNode(
-  deviceGraph_t graph, const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddEmptyNode, "Failed to Add Empty Node to Graph",
-                         &node, graph, dependencies, numDependencies);
-  return node;
-}
-
-GCXX_FH auto graphAddEventRecordNode(deviceGraph_t graph, deviceEvent_t event,
-                                     const deviceGraphNode_t* dependencies,
-                                     std::size_t numDependencies)
-  -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddEventRecordNode,
-                         "Failed to Add Event record Node to Graph", &node,
-                         graph, dependencies, numDependencies, event);
-  return node;
-}
-
-GCXX_FH auto graphAddEventWaitNode(deviceGraph_t graph, deviceEvent_t event,
-                                   const deviceGraphNode_t* dependencies,
-                                   std::size_t numDependencies)
-  -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddEventWaitNode,
-                         "Failed to Add Event Wait Node to Graph", &node, graph,
-                         dependencies, numDependencies, event);
-  return node;
-}
-
-GCXX_FH auto graphAddHostNode(
-  deviceGraph_t graph, const deviceHostNodeParams_t* params,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddHostNode, "Failed to Add Host Node to Graph",
-                         &node, graph, dependencies, numDependencies, params);
-  return node;
-}
-
-GCXX_FH auto graphAddKernelNode(
-  deviceGraph_t graph, const deviceKernelNodeParams_t* params,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddKernelNode,
-                         "Failed to Add Kernel Node to Graph", &node, graph,
-                         dependencies, numDependencies, params);
-  return node;
-}
-
-GCXX_FH auto graphAddMemFreeNode(
-  deviceGraph_t graph, void* dptr, const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddMemFreeNode,
-                         "Failed to Add Mem free Node to Graph", &node, graph,
-                         dependencies, numDependencies, dptr);
-  return node;
-}
-
-GCXX_FH auto graphAddMemcpyNode(
-  deviceGraph_t graph, const deviceMemcpy3DParams_t* params,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddMemcpyNode,
-                         "Failed to Add Memcpy Node to Graph", &node, graph,
-                         dependencies, numDependencies, params);
-  return node;
-}
-
-GCXX_FH auto graphAddMemcpyNode1D(
-  deviceGraph_t graph, void* dst, const void* src, std::size_t countBytes,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddMemcpyNode1D,
-                         "Failed to Add Memcpy1D Node to Graph", &node, graph,
-                         dependencies, numDependencies, dst, src, countBytes,
-                         GCXX_RUNTIME_BACKEND(MemcpyDefault));
-  return node;
-}
-
-GCXX_FH auto graphAddMemsetNode(
-  deviceGraph_t graph, const deviceMemsetParams_t* params,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddMemsetNode,
-                         "Failed to Add Memset Node to Graph", &node, graph,
-                         dependencies, numDependencies, params);
-  return node;
+// Generic node creation
+GCXX_FH auto graphAddNode(deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
+                          const deviceGraphNode_t* pDependencies,
+                          const deviceGraphEdgeData_t* dependencyData,
+                          size_t numDependencies,
+                          deviceGraphNodeParams_t* nodeParams) -> void {
+  GCXX_SAFE_RUNTIME_CALL(
+#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
+    GraphAddNode_v2,
+#else
+    GraphAddNode,
+#endif
+    "Failed to add node to graph", pGraphNode, graph, pDependencies,
+#if GCXX_CUDA_MODE()
+    dependencyData,
+#endif
+    numDependencies, nodeParams);
 }
 
 GCXX_FH auto graphNodeGetType(deviceGraphNode_t node) -> deviceGraphNodeType_t {
@@ -314,40 +226,6 @@ auto graphSetConditional(deviceGraphConditionalHandle_t handle,
   GCXX_RUNTIME_BACKEND(GraphSetConditional)(handle, value);
 }
 
-GCXX_FH auto graphAddExternalSemaphoresSignalNode(
-  deviceGraph_t graph, const deviceExternalSemaphoreSignalNodeParams_t* params,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(
-    GraphAddExternalSemaphoresSignalNode,
-    "Failed to add external semaphore signal node to graph", &node, graph,
-    dependencies, numDependencies, params);
-  return node;
-}
-
-GCXX_FH auto graphAddExternalSemaphoresWaitNode(
-  deviceGraph_t graph, const deviceExternalSemaphoreWaitNodeParams_t* params,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddExternalSemaphoresWaitNode,
-                         "Failed to add external semaphore wait node to graph",
-                         &node, graph, dependencies, numDependencies, params);
-  return node;
-}
-
-GCXX_FH auto graphAddMemAllocNode(
-  deviceGraph_t graph, deviceMemAllocNodeParams_t* params,
-  const deviceGraphNode_t* dependencies,
-  std::size_t numDependencies) -> deviceGraphNode_t {
-  deviceGraphNode_t node{INVALID_GRAPH_NODE};
-  GCXX_SAFE_RUNTIME_CALL(GraphAddMemAllocNode,
-                         "Failed to Add Mem alloc Node to Graph", &node, graph,
-                         dependencies, numDependencies, params);
-  return node;
-}
-
 GCXX_FH auto graphAddMemcpyNodeFromSymbol(
   deviceGraph_t graph, void* dst, const void* symbol, std::size_t count,
   std::size_t offset, deviceMemcpyKind_t kind,
@@ -433,12 +311,6 @@ GCXX_FH auto graphMemcpyNodeSetParamsToSymbol(
                          symbol, src, count, offset, kind);
 }
 
-GCXX_FH auto graphMemAllocNodeGetParams(
-  deviceGraphNode_t node, deviceMemAllocNodeParams_t* params) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphMemAllocNodeGetParams,
-                         "Failed to get mem alloc node params", node, params);
-}
-
 GCXX_FH auto graphInstantiateWithFlags(
   deviceGraph_t graph, unsigned long long flags) -> deviceGraphExec_t {
   deviceGraphExec_t exec{INVALID_GRAPH_EXEC};
@@ -472,18 +344,22 @@ GCXX_FH auto graphKernelNodeGetAttribute(
                          value);
 }
 
-GCXX_FH auto graphKernelNodeGetParams(
-  deviceGraphNode_t node, deviceKernelNodeParams_t* params) -> void {
-  GCXX_SAFE_RUNTIME_CALL(GraphKernelNodeGetParams,
-                         "Failed to get kernel node parameters", node, params);
-}
-
 GCXX_FH auto graphKernelNodeSetAttribute(
   deviceGraphNode_t node, deviceKernelNodeAttrID_t attr,
   const deviceKernelNodeAttrValue_t* value) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphKernelNodeSetAttribute,
                          "Failed to set kernel node attribute", node, attr,
                          value);
+}
+
+// The node-param query/update wrappers below exist on both backends
+// (cudaGraph*NodeGet/SetParams / hipGraph*NodeGet/SetParams).
+#endif  // GCXX_CUDA_MODE()
+
+GCXX_FH auto graphKernelNodeGetParams(
+  deviceGraphNode_t node, deviceKernelNodeParams_t* params) -> void {
+  GCXX_SAFE_RUNTIME_CALL(GraphKernelNodeGetParams,
+                         "Failed to get kernel node parameters", node, params);
 }
 
 GCXX_FH auto graphKernelNodeSetParams(
@@ -496,6 +372,12 @@ GCXX_FH auto graphMemFreeNodeGetParams(deviceGraphNode_t node,
                                        void* dptrOut) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphMemFreeNodeGetParams,
                          "Failed to get mem free node params", node, dptrOut);
+}
+
+GCXX_FH auto graphMemAllocNodeGetParams(
+  deviceGraphNode_t node, deviceMemAllocNodeParams_t* params) -> void {
+  GCXX_SAFE_RUNTIME_CALL(GraphMemAllocNodeGetParams,
+                         "Failed to get mem alloc node params", node, params);
 }
 
 GCXX_FH auto graphMemcpyNodeGetParams(deviceGraphNode_t node,
@@ -530,6 +412,7 @@ GCXX_FH auto graphMemsetNodeSetParams(
                          "Failed to set memset node params", node, params);
 }
 
+#if GCXX_CUDA_MODE()
 GCXX_FH auto graphNodeFindInClone(deviceGraphNode_t originalNode,
                                   deviceGraph_t clonedGraph)
   -> deviceGraphNode_t {
@@ -602,28 +485,13 @@ GCXX_FH auto graphRemoveDependencies(deviceGraph_t graph,
                          numDependencies);
 }
 
-GCXX_FH auto graphAddNode(deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
-                          const deviceGraphNode_t* pDependencies,
-                          const deviceGraphEdgeData_t* dependencyData,
-                          size_t numDependencies,
-                          deviceGraphNodeParams_t* nodeParams) -> void {
-  GCXX_SAFE_RUNTIME_CALL(
-#if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
-    GraphAddNode_v2,
-#else
-    GraphAddNode,
-#endif
-    "Failed to add node to graph", pGraphNode, graph, pDependencies,
-#if GCXX_CUDA_MODE()
-    dependencyData,
-#endif
-    numDependencies, nodeParams);
-}
-
 GCXX_FH auto graphDestroyNode(deviceGraphNode_t node) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphDestroyNode, "Failed to destroy graph node",
                          node);
 }
+
+// Event record/wait node query/update exist on both backends.
+#endif  // GCXX_CUDA_MODE()
 
 GCXX_FH auto graphEventRecordNodeGetEvent(deviceGraphNode_t node)
   -> deviceEvent_t {
@@ -652,7 +520,8 @@ GCXX_FH auto graphEventWaitNodeSetEvent(deviceGraphNode_t node,
   GCXX_SAFE_RUNTIME_CALL(GraphEventWaitNodeSetEvent,
                          "Failed to set event wait node event", node, event);
 }
-#if GCXX_CUDA_MODE()
+
+// External-semaphore node query/update exist on both backends.
 GCXX_FH auto graphExternalSemaphoresSignalNodeGetParams(
   deviceGraphNode_t node,
   deviceExternalSemaphoreSignalNodeParams_t* params) -> void {
@@ -684,8 +553,8 @@ GCXX_FH auto graphExternalSemaphoresWaitNodeSetParams(
                          "Failed to set external semaphore wait node params",
                          node, params);
 }
-#endif
 
+#if GCXX_CUDA_MODE()
 GCXX_FH auto graphGetNodes(deviceGraph_t graph, deviceGraphNode_t* nodes,
                            std::size_t* numNodes) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphGetNodes, "Failed to get graph nodes", graph,
@@ -716,6 +585,9 @@ GCXX_FH auto graphGetRootNodes(deviceGraph_t graph,
                          graph, rootNodes, numRootNodes);
 }
 
+// Host-node query/update exist on both backends.
+#endif  // GCXX_CUDA_MODE()
+
 GCXX_FH auto graphHostNodeGetParams(deviceGraphNode_t node,
                                     deviceHostNodeParams_t* params) -> void {
   GCXX_SAFE_RUNTIME_CALL(GraphHostNodeGetParams,
@@ -728,6 +600,7 @@ GCXX_FH auto graphHostNodeSetParams(
                          "Failed to set host node params", node, params);
 }
 
+#if GCXX_CUDA_MODE()
 GCXX_FH auto graphExecEventRecordNodeSetEvent(deviceGraphExec_t exec,
                                               deviceGraphNode_t node,
                                               deviceEvent_t event) -> void {

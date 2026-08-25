@@ -14,14 +14,10 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-// Delegating derefs trip nvcc/NVHPC notes #20013-D/#20015-D; silence locally.
-#if defined(__NVCOMPILER)
-#pragma diag_suppress 20013
-#pragma diag_suppress 20015
-#elif defined(__CUDACC__)
-#pragma nv_diag_suppress 20013
-#pragma nv_diag_suppress 20015
-#endif
+// Delegating derefs call constexpr host-only members: silence the
+// constexpr-callee exec-space pair locally.
+GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20013)
+GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20015)
 
 // gcxx::stride_iterator<I, S>: visits every S-th element via delegation.
 template <typename Iterator_t, std::size_t Stride = details_::dynamic_size>
@@ -116,13 +112,8 @@ class stride_iterator {
   [[no_unique_address]] details_::size_holder<Stride> m_stride{};
 };
 
-#if defined(__NVCOMPILER)
-#pragma diag_warning 20013
-#pragma diag_warning 20015
-#elif defined(__CUDACC__)
-#pragma nv_diag_default 20013
-#pragma nv_diag_default 20015
-#endif
+GCXX_DIAG_RESTORE_EXEC_CHECK_(20013)
+GCXX_DIAG_RESTORE_EXEC_CHECK_(20015)
 
 // Difference is measured in stride steps: end - begin is logical length.
 template <typename Iterator_t, std::size_t Stride>

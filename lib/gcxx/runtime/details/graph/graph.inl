@@ -57,7 +57,7 @@ GCXX_FH auto Graph::Instantiate() const -> GraphExec {
 }
 
 GCXX_FH auto Graph::Clone() const -> Graph {
-  return Graph::CreateFromRaw(GraphView::Clone().getRawHandle());
+  return Graph::CreateFromRaw(GraphView::clone().getRawHandle());
 }
 
 GCXX_NAMESPACE_MAIN_END()

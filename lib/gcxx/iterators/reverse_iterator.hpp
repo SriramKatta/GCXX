@@ -15,14 +15,10 @@
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
-// Notes #20013-D/#20015-D: calling a __host__ fn from __host__ __device__.
-#if defined(__NVCOMPILER)
-#pragma diag_suppress 20013
-#pragma diag_suppress 20015
-#elif defined(__CUDACC__)
-#pragma nv_diag_suppress 20013
-#pragma nv_diag_suppress 20015
-#endif
+// Delegating calls hit the constexpr-host-callee exec-space notes; silence
+// that pair locally.
+GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20013)
+GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20015)
 
 // gcxx::reverse_iterator<I>: adapts a random-access iterator to go backwards.
 
@@ -174,13 +170,8 @@ class reverse_iterator {
   Iterator_t current_{};
 };
 
-#if defined(__NVCOMPILER)
-#pragma diag_warning 20013
-#pragma diag_warning 20015
-#elif defined(__CUDACC__)
-#pragma nv_diag_default 20013
-#pragma nv_diag_default 20015
-#endif
+GCXX_DIAG_RESTORE_EXEC_CHECK_(20013)
+GCXX_DIAG_RESTORE_EXEC_CHECK_(20015)
 
 template <typename Iterator_t>
 GCXX_FH auto make_reverse_iterator(Iterator_t i) noexcept
