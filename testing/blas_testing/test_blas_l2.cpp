@@ -241,7 +241,6 @@ namespace {
         EXPECT_NEAR(hResult[i], href[i], 1e-9)
           << "ger mismatch at linear " << i;
       }
-
     }
   }
 

@@ -57,10 +57,17 @@ namespace asum_impl_ {
     const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
 
     driver::deviceBlasStatus_t status{};
+#if GCXX_CUDA_MODE()
     GCXX_BLAS_DISPATCH_INT64(status, XIt, AsumEx, h.getRawHandle(), len_x,
                              x.data_handle(), cuda_datatype_v<XVt>, inc_x,
                              static_cast<void*>(result), cuda_datatype_v<R>,
                              cuda_datatype_v<R>);
+#elif GCXX_HIP_MODE()
+    // hipBLAS has no AsumEx/_64 type-erased entry point; fall back to the
+    // plain typed routine (Sasum/Dasum, including their _64 forms).
+    GCXX_BLAS_DISPATCH_TYPED(status, XIt, XVt, asum, h.getRawHandle(), len_x,
+                             x.data_handle(), inc_x, result);
+#endif
 
     if (status != driver::deviceBlasStatusSuccess) {
       details_::throwBlasError(status, "vector_abs_sum failed");
@@ -132,10 +139,17 @@ auto vector_abs_sum(BlasHandleView h,
   const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
 
   driver::deviceBlasStatus_t status{};
+#if GCXX_CUDA_MODE()
   GCXX_BLAS_DISPATCH_INT64(status, XIt, AsumEx, h.getRawHandle(), len_x,
                            x.data_handle(), cuda_datatype_v<XVt>, inc_x,
                            static_cast<void*>(const_cast<R*>(result.ptr)),
                            cuda_datatype_v<R>, cuda_datatype_v<R>);
+#elif GCXX_HIP_MODE()
+  // hipBLAS has no AsumEx/_64 type-erased entry point; fall back to the
+  // plain typed routine (Sasum/Dasum, including their _64 forms).
+  GCXX_BLAS_DISPATCH_TYPED(status, XIt, XVt, asum, h.getRawHandle(), len_x,
+                           x.data_handle(), inc_x, const_cast<R*>(result.ptr));
+#endif
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status, "vector_abs_sum failed");

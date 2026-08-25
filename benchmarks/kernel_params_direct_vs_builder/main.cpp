@@ -64,12 +64,15 @@ namespace {
             static_cast<void*>(std::addressof(arg))...};
         },
         args);
-      RawParams raw{reinterpret_cast<void*>(bench_kernel_args),
-                    dim3{kGridX},
-                    dim3{kBlockX},
-                    kSharedMem,
-                    ptrs.data(),
-                    nullptr};
+      // Field assignment, not positional aggregate init: the field order of
+      // hipKernelNodeParams differs from cudaKernelNodeParams.
+      RawParams raw{};
+      raw.func           = reinterpret_cast<void*>(bench_kernel_args);
+      raw.gridDim        = dim3{kGridX};
+      raw.blockDim       = dim3{kBlockX};
+      raw.sharedMemBytes = kSharedMem;
+      raw.kernelParams   = ptrs.data();
+      raw.extra          = nullptr;
       benchmark::DoNotOptimize(raw);
       benchmark::ClobberMemory();
     }
