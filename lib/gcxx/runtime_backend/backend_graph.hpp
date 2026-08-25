@@ -73,12 +73,21 @@ GCXX_FH auto graphAddDependencies(deviceGraph_t graph,
     numDependencies);
 }
 
-// Generic node creation
+// Generic node creation. HIP's union-based hipGraphAddNode rejects Empty
+// nodes (hipErrorInvalidValue), so those go through the dedicated
+// hipGraphAddEmptyNode entry point; CUDA handles every kind through the union.
 GCXX_FH auto graphAddNode(deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
                           const deviceGraphNode_t* pDependencies,
                           const deviceGraphEdgeData_t* dependencyData,
                           size_t numDependencies,
                           deviceGraphNodeParams_t* nodeParams) -> void {
+#if GCXX_HIP_MODE()
+  if (nodeParams->type == GCXX_RUNTIME_BACKEND(GraphNodeTypeEmpty)) {
+    GCXX_SAFE_RUNTIME_CALL(GraphAddEmptyNode, "Failed to add node to graph",
+                           pGraphNode, graph, pDependencies, numDependencies);
+    return;
+  }
+#endif
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     GraphAddNode_v2,
