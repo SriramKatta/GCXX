@@ -6,7 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/macros/template_helper_macros.hpp>
-#include <gcxx/runtime/details/helper_function.hpp>
+#include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>

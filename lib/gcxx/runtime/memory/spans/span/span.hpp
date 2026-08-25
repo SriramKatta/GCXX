@@ -16,7 +16,6 @@
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/iterators/heterogeneous_iterator.hpp>
 #include <gcxx/iterators/reverse_iterator.hpp>
-#include <gcxx/runtime/details/helper_function.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/types/size_holder.hpp>
 
