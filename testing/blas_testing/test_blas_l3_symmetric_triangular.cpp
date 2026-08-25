@@ -86,9 +86,9 @@ namespace {
       dmat_right<double, IndexT> C(dC.get(), K, N);
       gcxx::blas::symmetric_matrix_product(handle, gcxx::blas::left, A,
                                            gcxx::blas::upper, B, C);
-      str.Synchronize();
+      str.sync();
       gcxx::Copy(str, hCRow.data(), dC.get(), std::size_t{K * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < K; ++i) {
         for (int j = 0; j < N; ++j) {
           EXPECT_NEAR(hCRow[i * N + j], href[i + j * K], 1e-9)
@@ -102,9 +102,9 @@ namespace {
       dmat_left<double, IndexT> C(dC.get(), K, N);
       gcxx::blas::symmetric_matrix_product(handle, gcxx::blas::left, A,
                                            gcxx::blas::upper, B, C);
-      str.Synchronize();
+      str.sync();
       gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{K * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < K * N; ++i) {
         EXPECT_NEAR(hResult[i], href[i], 1e-9)
           << "symm mismatch at linear " << i;
@@ -150,11 +150,11 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::symmetric_matrix_rank_k_update(handle, A, gcxx::blas::upper, C);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(N * N);
     gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{N * N});
-    str.Synchronize();
+    str.sync();
     for (int j = 0; j < N; ++j) {
       for (int i = 0; i <= j; ++i) {  // upper triangle + diagonal
         EXPECT_NEAR(hResult[i + j * N], href[i + j * N], 1e-9)
@@ -216,9 +216,9 @@ namespace {
       dmat_right<double, IndexT> C(dC.get(), N, N);
       gcxx::blas::symmetric_matrix_rank_2k_update(handle, A, B,
                                                   gcxx::blas::lower, C);
-      str.Synchronize();
+      str.sync();
       gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{N * N});
-      str.Synchronize();
+      str.sync();
       for (int j = 0; j < N; ++j) {
         for (int i = j; i < N; ++i) {  // lower triangle + diagonal (row-major)
           EXPECT_NEAR(hResult[i * N + j], href[i + j * N], 1e-9)
@@ -230,9 +230,9 @@ namespace {
       dmat_left<double, IndexT> C(dC.get(), N, N);
       gcxx::blas::symmetric_matrix_rank_2k_update(handle, A, B,
                                                   gcxx::blas::lower, C);
-      str.Synchronize();
+      str.sync();
       gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{N * N});
-      str.Synchronize();
+      str.sync();
       for (int j = 0; j < N; ++j) {
         for (int i = j; i < N; ++i) {
           EXPECT_NEAR(hResult[i + j * N], href[i + j * N], 1e-9)
@@ -318,11 +318,11 @@ namespace {
       gcxx::blas::triangular_matrix_matrix_solve(
         handle, gcxx::blas::left, A, gcxx::blas::upper,
         gcxx::blas::explicit_diagonal, B, X);
-      str.Synchronize();
+      str.sync();
 
       std::vector<double> hRow(K * N);
       gcxx::Copy(str, hRow.data(), dC.get(), std::size_t{K * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < K; ++i) {
         for (int j = 0; j < N; ++j) {
           EXPECT_NEAR(hRow[i * N + j], hCref[i + j * K], 1e-9)
@@ -330,7 +330,7 @@ namespace {
         }
       }
       gcxx::Copy(str, hRow.data(), dX.get(), std::size_t{K * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < K; ++i) {
         for (int j = 0; j < N; ++j) {
           EXPECT_NEAR(hRow[i * N + j], hXref[i + j * K], 1e-9)
@@ -348,17 +348,17 @@ namespace {
       gcxx::blas::triangular_matrix_matrix_solve(
         handle, gcxx::blas::left, A, gcxx::blas::upper,
         gcxx::blas::explicit_diagonal, B, X);
-      str.Synchronize();
+      str.sync();
 
       std::vector<double> hResult(K * N);
       gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{K * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < K * N; ++i) {
         EXPECT_NEAR(hResult[i], hCref[i], 1e-9)
           << "trmm mismatch at linear " << i;
       }
       gcxx::Copy(str, hResult.data(), dX.get(), std::size_t{K * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < K * N; ++i) {
         EXPECT_NEAR(hResult[i], hXref[i], 1e-9)
           << "trsm mismatch at linear " << i;

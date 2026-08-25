@@ -107,13 +107,13 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::gemm_batched(handle, 1.0, aViews, bViews, 0.0, cViews);
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < B; ++i) {
       std::vector<double> hResult(M * N);
       gcxx::Copy(str, hResult.data(), dCs[static_cast<std::size_t>(i)].get(),
                  std::size_t{M * N});
-      str.Synchronize();
+      str.sync();
       for (int j = 0; j < M * N; ++j) {
         EXPECT_NEAR(hResult[static_cast<std::size_t>(j)],
                     href[static_cast<std::size_t>(i * M * N + j)], 1e-9)
@@ -179,11 +179,11 @@ namespace {
         dC.get(), map_cm(ext3{B, M, N}, strides3{M * N, 1, M}));
       gcxx::blas::gemm_strided_batched(handle, 1.0, A, Bv, 0.0, C);
     }
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(M * N * B);
     gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N * B});
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < M * N * B; ++i) {
       EXPECT_NEAR(hResult[static_cast<std::size_t>(i)],

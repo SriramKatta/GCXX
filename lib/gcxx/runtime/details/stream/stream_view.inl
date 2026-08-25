@@ -16,16 +16,16 @@ GCXX_FHC auto StreamView::getRawHandle() GCXX_CONST_NOEXCEPT -> deviceStream_t {
   return m_stream;
 }
 
-GCXX_FH auto StreamView::HasPendingWork() -> bool {
+GCXX_FH auto StreamView::hasPendingWork() -> bool {
   const auto err = driver::streamQueryNothrow(m_stream);
   return !details_::nonFatalErrorQuery(err);
 }
 
-GCXX_FH auto StreamView::Synchronize() const -> void {
+GCXX_FH auto StreamView::sync() const -> void {
   driver::streamSynchronize(m_stream);
 }
 
-GCXX_FH auto StreamView::WaitOnEvent(const EventView& event,
+GCXX_FH auto StreamView::waitOnEvent(const EventView& event,
                                      flags::eventWait waitFlag) const -> void {
   driver::StreamWaitEvent(this->m_stream, event.getRawHandle(),
                           static_cast<details_::flag_t>(waitFlag));

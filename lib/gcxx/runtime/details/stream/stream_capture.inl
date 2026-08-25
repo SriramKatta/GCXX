@@ -19,13 +19,13 @@ struct CaptureInfo {
   std::size_t pDependenciescount{};
 };
 
-GCXX_FH auto StreamView::BeginCapture(
+GCXX_FH auto StreamView::beginCapture(
   const flags::streamCaptureMode createflag) const -> void {
   driver::streamBeginCapture(
     m_stream, static_cast<driver::deviceStreamCaptureMode_t>(createflag));
 }
 
-GCXX_FH auto StreamView::BeginCaptureToGraph(
+GCXX_FH auto StreamView::beginCaptureToGraph(
   GraphView& graph_view,
   const flags::streamCaptureMode createflag) const -> void {
   driver::streamBeginCaptureToGraph(
@@ -33,29 +33,29 @@ GCXX_FH auto StreamView::BeginCaptureToGraph(
     static_cast<driver::deviceStreamCaptureMode_t>(createflag));
 }
 
-GCXX_FH auto StreamView::EndCapture() const -> Graph {
+GCXX_FH auto StreamView::endCapture() const -> Graph {
   const auto pgraph = driver::streamEndCapture(m_stream);
   return Graph::CreateFromRaw(pgraph);
 }
 
-GCXX_FH auto StreamView::EndCaptureToGraph(const GraphView& graph = {}) const
+GCXX_FH auto StreamView::endCaptureToGraph(const GraphView& graph = {}) const
   -> void {
   const auto pgraph = driver::streamEndCapture(m_stream);
   // Assert that the returned graph is indeed the same as the one we passed in
   assert(pgraph == graph.getRawHandle() &&
-         "EndCapture returned unexpected graph handle");
+         "endCapture returned unexpected graph handle");
   (void)pgraph;  // Silence unused variable warning in release builds
 }
 
 #if GCXX_CUDA_MODE()
-GCXX_FH auto StreamView::IsCapturing() const
+GCXX_FH auto StreamView::isCapturing() const
   -> gcxx::flags::streamCaptureStatus {
   driver::deviceStreamCaptureStatus_t status{};
   driver::streamIsCapturing(m_stream, &status);
   return flags::to_streamCaptureStatus(status);
 }
 
-GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
+GCXX_FH auto StreamView::getCaptureInfo() const -> CaptureInfo {
   driver::deviceStreamCaptureStatus_t status{};
   unsigned long long id{};
   GraphView::deviceGraph_t graph{};
@@ -69,7 +69,7 @@ GCXX_FH auto StreamView::GetCaptureInfo() const -> CaptureInfo {
           pDependencies, numdeps};
 }
 
-GCXX_FH auto StreamView::UpdateCaptureDependencies(
+GCXX_FH auto StreamView::updateCaptureDependencies(
   flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
   std::size_t numdeps) const -> void {
   driver::streamUpdateCaptureDependencies(m_stream, nodes, nullptr, numdeps,

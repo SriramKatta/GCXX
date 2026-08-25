@@ -41,11 +41,11 @@ GCXX_FH auto Event::operator=(Event&& other) noexcept -> Event& {
 }
 
 // Implementation of recordEvent to break circular dependency
-GCXX_FH auto StreamView::RecordEvent(const flags::eventCreate createflag,
+GCXX_FH auto StreamView::recordEvent(const flags::eventCreate createflag,
                                      const flags::eventRecord recordFlag) const
   -> Event {
   Event event(createflag);
-  event.RecordInStream(*this, recordFlag);
+  event.recordInStream(*this, recordFlag);
   return event;
 }
 

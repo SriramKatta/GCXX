@@ -104,7 +104,7 @@ TEST(CopyTest, RawPointerAsyncRoundTrip) {
   u32* dst_raw = h_dst.data();
   gcxx::Copy(str, d_raw, src_raw, N);  // H2D async
   gcxx::Copy(str, dst_raw, d_raw, N);  // D2H async
-  str.Synchronize();
+  str.sync();
 
   EXPECT_EQ(h_src, h_dst);
 }
@@ -125,7 +125,7 @@ TEST(CopyTest, SpanAsyncRoundTrip) {
   gcxx::span<u32> dst_span(h_dst.data(), N);
   gcxx::Copy(str, d_span, src_span);  // H2D async
   gcxx::Copy(str, dst_span, d_span);  // D2H async
-  str.Synchronize();
+  str.sync();
 
   EXPECT_EQ(h_src, h_dst);
 }

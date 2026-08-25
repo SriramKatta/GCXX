@@ -132,42 +132,42 @@ TEST_F(EventViewTest, RecordInStreamWithView) {
   EventView view(m_event);
   StreamView s(m_stream);
 
-  view.RecordInStream(s);
+  view.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  EXPECT_TRUE(view.HasOccurred());
+  EXPECT_TRUE(view.hasOccurred());
 }
 
 TEST_F(EventViewTest, RecordInDefaultStream) {
   EventView view(m_event);
 
-  view.RecordInStream();
-  view.Synchronize();
+  view.recordInStream();
+  view.sync();
 
-  EXPECT_TRUE(view.HasOccurred());
+  EXPECT_TRUE(view.hasOccurred());
 }
 
-TEST_F(EventViewTest, Synchronize) {
+TEST_F(EventViewTest, sync) {
   EventView view(m_event);
   StreamView s(m_stream);
 
-  view.RecordInStream(s);
-  view.Synchronize();
+  view.recordInStream(s);
+  view.sync();
 
-  EXPECT_TRUE(view.HasOccurred());
+  EXPECT_TRUE(view.hasOccurred());
 }
 
 TEST_F(EventViewTest, HasOccurredAfterRecord) {
   EventView view(m_event);
   StreamView s(m_stream);
 
-  view.RecordInStream(s);
+  view.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  EXPECT_TRUE(view.HasOccurred());
+  EXPECT_TRUE(view.hasOccurred());
 }
 
-TEST_F(EventViewTest, ElapsedTimeSince) {
+TEST_F(EventViewTest, elapsedTimeSince) {
   driver::deviceEvent_t startEvent{driver::INVALID_EVENT};
   driver::deviceEvent_t endEvent{driver::INVALID_EVENT};
   startEvent = driver::eventCreateWithFlags(
@@ -179,20 +179,20 @@ TEST_F(EventViewTest, ElapsedTimeSince) {
   EventView end(endEvent);
   StreamView s(m_stream);
 
-  start.RecordInStream(s);
+  start.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  end.RecordInStream(s);
+  end.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  auto elapsed = end.ElapsedTimeSince(start);
+  auto elapsed = end.elapsedTimeSince(start);
   EXPECT_GE(elapsed.count(), 0.0f);
 
   driver::eventDestroy(startEvent);
   driver::eventDestroy(endEvent);
 }
 
-TEST_F(EventViewTest, ElapsedTimeBetween) {
+TEST_F(EventViewTest, elapsedTimeBetween) {
   driver::deviceEvent_t startEvent{driver::INVALID_EVENT};
   driver::deviceEvent_t endEvent{driver::INVALID_EVENT};
   startEvent = driver::eventCreateWithFlags(
@@ -204,13 +204,13 @@ TEST_F(EventViewTest, ElapsedTimeBetween) {
   EventView end(endEvent);
   StreamView s(m_stream);
 
-  start.RecordInStream(s);
+  start.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  end.RecordInStream(s);
+  end.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  auto elapsed = EventView::ElapsedTimeBetween(start, end);
+  auto elapsed = EventView::elapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);
 
   driver::eventDestroy(startEvent);
@@ -229,16 +229,16 @@ TEST_F(EventViewTest, ElapsedTimeWithDifferentDurationTypes) {
   EventView end(endEvent);
   StreamView s(m_stream);
 
-  start.RecordInStream(s);
+  start.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  end.RecordInStream(s);
+  end.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  auto elapsedMs   = end.ElapsedTimeSince<milliSec>(start);
-  auto elapsedUs   = end.ElapsedTimeSince<microSec>(start);
-  auto elapsedNs   = end.ElapsedTimeSince<nanoSec>(start);
-  auto elapsedSecs = end.ElapsedTimeSince<Sec>(start);
+  auto elapsedMs   = end.elapsedTimeSince<milliSec>(start);
+  auto elapsedUs   = end.elapsedTimeSince<microSec>(start);
+  auto elapsedNs   = end.elapsedTimeSince<nanoSec>(start);
+  auto elapsedSecs = end.elapsedTimeSince<Sec>(start);
 
   EXPECT_GE(elapsedMs.count(), 0.0f);
   EXPECT_GE(elapsedUs.count(), 0.0f);

@@ -12,14 +12,14 @@ using datatype       = float;
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
-  str.Synchronize();
-  auto kernelstart = str.RecordEvent();
+  str.sync();
+  auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.RecordEvent();
-  str.Synchronize();
-  auto kerneltime = kernelend.ElapsedTimeSince<gcxx::Sec>(kernelstart).count();
+  auto kernelend = str.recordEvent();
+  str.sync();
+  auto kerneltime = kernelend.elapsedTimeSince<gcxx::Sec>(kernelstart).count();
   return kerneltime;
 }
 
@@ -42,12 +42,12 @@ int main(int argc, char** argv) {
 
   gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
-  auto H2Dstart = str.RecordEvent();
+  auto H2Dstart = str.recordEvent();
   gcxx::Copy(str, d_a, h_a);
-  auto H2Dend = str.RecordEvent();
+  auto H2Dend = str.recordEvent();
 
   auto res = launch_reduction_kernel<datatype>(arg, str, d_a_span);
-  str.Synchronize();
+  str.sync();
 
   if ((res - static_cast<datatype>(arg.N) > keps)) {
     fmt::print("CHECK FAILED res {} and check val{}\n", res, arg.N);

@@ -163,7 +163,7 @@ class uninit_buffer {
   }
 
   GCXX_FH auto set_stream(gcxx::StreamView new_stream) -> void {
-    m_stream.Synchronize();
+    m_stream.sync();
     m_stream = new_stream;
   }
 

@@ -40,22 +40,22 @@ class StreamView {
 
   GCXX_FH constexpr auto getRawHandle() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
-  GCXX_FH auto HasPendingWork() -> bool;
+  GCXX_FH auto hasPendingWork() -> bool;
 
-  GCXX_FH auto Synchronize() const -> void;
+  GCXX_FH auto sync() const -> void;
 
-  GCXX_FH auto WaitOnEvent(
+  GCXX_FH auto waitOnEvent(
     const EventView& event,
     flags::eventWait waitFlag = flags::eventWait::None) const -> void;
 
-  GCXX_FH auto RecordEvent(
+  GCXX_FH auto recordEvent(
     flags::eventCreate createflag = flags::eventCreate::None,
     flags::eventRecord recordFlag = flags::eventRecord::None) const -> Event;
 
   // TODO: No op in HIP.
   GCXX_TEMPLATE(typename Span)
   GCXX_REQUIRES(is_span_like_v<Span>)
-  GCXX_FH auto AttachMemAsync(
+  GCXX_FH auto attachMemAsync(
     Span&& mem,
     flags::memAttach flag = flags::memAttach::Single) const -> void {
     driver::streamAttachMemAsync(
@@ -72,22 +72,22 @@ class StreamView {
     return m_stream == driver::INVALID_STREAM;
   }
 
-  GCXX_FH auto BeginCapture(flags::streamCaptureMode createflag) const -> void;
+  GCXX_FH auto beginCapture(flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH auto BeginCaptureToGraph(
+  GCXX_FH auto beginCaptureToGraph(
     GraphView& graph_view, flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH auto EndCapture() const -> Graph;
+  GCXX_FH auto endCapture() const -> Graph;
 
-  // Updates the graph passed to BeginCaptureToGraph; avoids ownership issues.
-  GCXX_FH auto EndCaptureToGraph(const GraphView& graph) const -> void;
+  // Updates the graph passed to beginCaptureToGraph; avoids ownership issues.
+  GCXX_FH auto endCaptureToGraph(const GraphView& graph) const -> void;
 
 #if GCXX_CUDA_MODE()
-  GCXX_FH auto IsCapturing() const -> gcxx::flags::streamCaptureStatus;
+  GCXX_FH auto isCapturing() const -> gcxx::flags::streamCaptureStatus;
 
-  GCXX_FH auto GetCaptureInfo() const -> CaptureInfo;
+  GCXX_FH auto getCaptureInfo() const -> CaptureInfo;
 
-  GCXX_FH auto UpdateCaptureDependencies(
+  GCXX_FH auto updateCaptureDependencies(
     flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
     std::size_t numdeps) const -> void;
 #endif

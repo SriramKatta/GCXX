@@ -46,11 +46,11 @@ namespace {
 
     gcxx::blas::scale(handle, scale, X);
     gcxx::blas::axpy(handle, alpha, X, Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(N);
     gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < N; ++i) {
       const double want = alpha * scale * hX[i] + hY[i];
@@ -82,7 +82,7 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
-    // returning forms (synchronize before returning) + init accumulation
+    // returning forms (sync before returning) + init accumulation
     const double dot_r     = gcxx::blas::dot(handle, X, Y);
     const double dot_init  = gcxx::blas::dot(handle, X, Y, 10.0);
     const double nrm2_r    = gcxx::blas::vector_two_norm(handle, X);
@@ -106,22 +106,22 @@ namespace {
                     gcxx::blas::device_scalar<double>{dDot.get()});
     gcxx::blas::vector_two_norm(handle, X,
                                 gcxx::blas::device_scalar<double>{dNrm.get()});
-    str.Synchronize();
+    str.sync();
 
     double dot_d{}, nrm2_d{};
     gcxx::Copy(str, &dot_d, dDot.get(), std::size_t{1});
     gcxx::Copy(str, &nrm2_d, dNrm.get(), std::size_t{1});
-    str.Synchronize();
+    str.sync();
     EXPECT_NEAR(dot_d, dot_ref, 1e-9);
     EXPECT_NEAR(nrm2_d, nrm2_ref, 1e-9);
 
     gcxx::blas::apply_givens_rotation(handle, X, Y, c, s);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hXr(N), hYr(N);
     gcxx::Copy(str, hXr.data(), dX.get(), std::size_t{N});
     gcxx::Copy(str, hYr.data(), dY.get(), std::size_t{N});
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hXr[i], c * hX[i] + s * hY[i], 1e-9)
@@ -156,11 +156,11 @@ namespace {
 
     // copy: Y = X
     gcxx::blas::copy(handle, X, Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(N);
     gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
-    str.Synchronize();
+    str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_DOUBLE_EQ(hResult[i], hX[i]) << "copy mismatch at " << i;
     }
@@ -178,10 +178,10 @@ namespace {
     auto dAsum = gcxx::make_device_unique_ptr<double>(std::size_t{1});
     gcxx::blas::vector_abs_sum(handle, X,
                                gcxx::blas::device_scalar<double>{dAsum.get()});
-    str.Synchronize();
+    str.sync();
     double asum_d{};
     gcxx::Copy(str, &asum_d, dAsum.get(), std::size_t{1});
-    str.Synchronize();
+    str.sync();
     EXPECT_NEAR(asum_d, asum_ref, 1e-9);
 
     // zero-based index-of-extreme forms (ties broken by FIRST occurrence)
@@ -193,12 +193,12 @@ namespace {
 
     // swap_elements: X <-> Y (Y holds X's values from the copy above)
     gcxx::blas::swap_elements(handle, X, Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hXs(N), hYs(N);
     gcxx::Copy(str, hXs.data(), dX.get(), std::size_t{N});
     gcxx::Copy(str, hYs.data(), dY.get(), std::size_t{N});
-    str.Synchronize();
+    str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_DOUBLE_EQ(hXs[i], hX[i]) << "swap x mismatch at " << i;
       EXPECT_DOUBLE_EQ(hYs[i], hY[i]) << "swap y mismatch at " << i;

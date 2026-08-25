@@ -53,50 +53,50 @@ void stream_capture() {
   gcxx::Stream StreamforGraph;
 
   if constexpr (with_graph) {
-    stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+    stream1.beginCapture(gcxx::flags::streamCaptureMode::Global);
   } else {
-    start.RecordInStream();
+    start.recordInStream();
   }
 
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_A);
-  eve_after_A.RecordInStream(stream1);
+  eve_after_A.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_B);
-  eve_after_B.RecordInStream(stream1);
+  eve_after_B.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_C);
 
 
-  stream2.WaitOnEvent(eve_after_B);
+  stream2.waitOnEvent(eve_after_B);
   gcxx::launch::Kernel(stream2, {1}, {1}, 0, kern_D);
-  eve_after_D.RecordInStream(stream2);
+  eve_after_D.recordInStream(stream2);
 
-  stream1.WaitOnEvent(eve_after_D);
+  stream1.waitOnEvent(eve_after_D);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_E);
-  // eve_after_E.RecordInStream(stream1);
+  // eve_after_E.recordInStream(stream1);
 
-  stream3.WaitOnEvent(eve_after_A);
+  stream3.waitOnEvent(eve_after_A);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_X);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_Y);
-  eve_after_Y.RecordInStream(stream3);
+  eve_after_Y.recordInStream(stream3);
 
-  // stream1.WaitOnEvent(eve_after_E);
-  stream1.WaitOnEvent(eve_after_Y);
+  // stream1.waitOnEvent(eve_after_E);
+  stream1.waitOnEvent(eve_after_Y);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_F);
 
 
   if constexpr (with_graph) {
-    auto gp = stream1.EndCapture();
+    auto gp = stream1.endCapture();
     gp.saveDotfile("./test_stream_capture.dot",
                    gcxx::flags::graphDebugDot::Verbose);
     auto exec = gp.Instantiate();
-    start.RecordInStream();
+    start.recordInStream();
     exec.Launch(StreamforGraph);
-    stop.RecordInStream();
+    stop.recordInStream();
   } else {
-    stop.RecordInStream();
+    stop.recordInStream();
     gcxx::Device::Synchronize();
   }
 
-  auto dur = stop.ElapsedTimeSince(start);
+  auto dur = stop.elapsedTimeSince(start);
 
   if constexpr (with_graph) {
     fmt::print("in graph mode elapsed time  : {}\n", dur);
@@ -119,34 +119,34 @@ void stream_capture_tograph() {
 
   gcxx::Graph graph;
 
-  stream1.BeginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
+  stream1.beginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
 
 
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_A);
-  eve_after_A.RecordInStream(stream1);
+  eve_after_A.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_B);
-  eve_after_B.RecordInStream(stream1);
+  eve_after_B.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_C);
 
 
-  stream2.WaitOnEvent(eve_after_B);
+  stream2.waitOnEvent(eve_after_B);
   gcxx::launch::Kernel(stream2, {1}, {1}, 0, kern_D);
-  eve_after_D.RecordInStream(stream2);
+  eve_after_D.recordInStream(stream2);
 
-  stream1.WaitOnEvent(eve_after_D);
+  stream1.waitOnEvent(eve_after_D);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_E);
-  // eve_after_E.RecordInStream(stream1);
+  // eve_after_E.recordInStream(stream1);
 
-  stream3.WaitOnEvent(eve_after_A);
+  stream3.waitOnEvent(eve_after_A);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_X);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_Y);
-  eve_after_Y.RecordInStream(stream3);
+  eve_after_Y.recordInStream(stream3);
 
-  // stream1.WaitOnEvent(eve_after_E);
-  stream1.WaitOnEvent(eve_after_Y);
+  // stream1.waitOnEvent(eve_after_E);
+  stream1.waitOnEvent(eve_after_Y);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_F);
 
-  stream1.EndCaptureToGraph(graph);
+  stream1.endCaptureToGraph(graph);
   graph.saveDotfile("./test_stream_capture_to.dot",
                     gcxx::flags::graphDebugDot::KernelNodeParams);
   auto exec = graph.Instantiate();

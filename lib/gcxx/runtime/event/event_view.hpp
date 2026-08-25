@@ -59,24 +59,24 @@ class EventView {
 
   EventView(std::nullptr_t) = delete;
 
-  GCXX_FH auto HasOccurred() const -> bool;
+  GCXX_FH auto hasOccurred() const -> bool;
 
-  GCXX_FH auto Synchronize() const -> void;
+  GCXX_FH auto sync() const -> void;
 
-  GCXX_FH auto RecordInStream(
+  GCXX_FH auto recordInStream(
     flags::eventRecord recordFlag = flags::eventRecord::None) -> void;
 
-  GCXX_FH auto RecordInStream(
+  GCXX_FH auto recordInStream(
     const StreamView& stream,
     flags::eventRecord recordFlag = flags::eventRecord::None) -> void;
 
   // Both events must have been recorded before this call.
   template <typename DurationT = Sec>
-  GCXX_FH auto ElapsedTimeSince(const EventView& startEvent) const -> DurationT;
+  GCXX_FH auto elapsedTimeSince(const EventView& startEvent) const -> DurationT;
 
   // Both events must have been recorded before this call.
   template <typename DurationT = Sec>
-  GCXX_FH static auto ElapsedTimeBetween(
+  GCXX_FH static auto elapsedTimeBetween(
     const EventView& startEvent, const EventView& endEvent) -> DurationT;
 
  protected:

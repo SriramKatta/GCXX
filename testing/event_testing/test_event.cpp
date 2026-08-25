@@ -40,10 +40,10 @@ TEST_F(EventTest, CreateWithFlagsProducesUsableEvent) {
   auto e = Event(flags::eventCreate::blockingSync);
   EXPECT_NE(e.getRawHandle(), driver::INVALID_EVENT);
 
-  e.RecordInStream();
-  e.Synchronize();
+  e.recordInStream();
+  e.sync();
 
-  EXPECT_TRUE(e.HasOccurred());
+  EXPECT_TRUE(e.hasOccurred());
 }
 
 TEST_F(EventTest, MoveConstructorTransfersOwnership) {
@@ -82,10 +82,10 @@ TEST_F(EventTest, ReleasedHandleRemainsUsableThroughView) {
   auto raw      = e.getRawHandle();
   EventView ref = e.Release();
 
-  ref.RecordInStream();
-  ref.Synchronize();
+  ref.recordInStream();
+  ref.sync();
 
-  EXPECT_TRUE(ref.HasOccurred());
+  EXPECT_TRUE(ref.hasOccurred());
   driver::eventDestroy(raw);
 }
 
@@ -94,23 +94,23 @@ TEST_F(EventTest, RecordAndElapsedTime) {
   Event end;
   StreamView s(m_stream);
 
-  start.RecordInStream(s);
+  start.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  end.RecordInStream(s);
+  end.recordInStream(s);
   driver::streamSynchronize(m_stream);
 
-  auto elapsed = Event::ElapsedTimeBetween(start, end);
+  auto elapsed = Event::elapsedTimeBetween(start, end);
   EXPECT_GE(elapsed.count(), 0.0f);
 }
 
 TEST_F(EventTest, StreamViewRecordEventReturnsRecordedEvent) {
   StreamView s(m_stream);
 
-  auto event = s.RecordEvent();
-  s.Synchronize();
+  auto event = s.recordEvent();
+  s.sync();
 
-  EXPECT_TRUE(event.HasOccurred());
+  EXPECT_TRUE(event.hasOccurred());
 }
 
 TEST_F(EventTest, MoveAssignmentSelfMoveKeepsOwnership) {

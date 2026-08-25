@@ -24,15 +24,15 @@ void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
-  str.Synchronize();
-  auto kernelstart = str.RecordEvent();
+  str.sync();
+  auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.RecordEvent();
-  str.Synchronize();
+  auto kernelend = str.recordEvent();
+  str.sync();
   float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::Sec>(kernelstart)).count();
+    (kernelend.elapsedTimeSince<gcxx::Sec>(kernelstart)).count();
   return kerneltime;
 }
 

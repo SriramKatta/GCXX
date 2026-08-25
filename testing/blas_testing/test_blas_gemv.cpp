@@ -94,11 +94,11 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::matrix_vector_product(handle, A, X, Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hY_result(M);
     gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(M));
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < M; ++i) {
       EXPECT_NEAR(hY_result[i], href[i], 1e-9) << "mismatch at index " << i;
@@ -157,10 +157,10 @@ namespace {
 
     // Stage 1: write-only y = A*x (row-major dispatch, no accumulate mask).
     gcxx::blas::matrix_vector_product(handle, A, X, Y);
-    str.Synchronize();
+    str.sync();
     std::vector<double> hY_stage1(M);
     gcxx::Copy(str, hY_stage1.data(), dY.get(), static_cast<std::size_t>(M));
-    str.Synchronize();
+    str.sync();
     for (int i = 0; i < M; ++i) {
       EXPECT_NEAR(hY_stage1[i], href[i], 1e-9)
         << "row-major write-only mismatch at index " << i;
@@ -172,11 +172,11 @@ namespace {
     // Stage 2: accumulate y = 2*A*x + 0.5*y via scaled() views.
     gcxx::blas::matrix_vector_product(handle, gcxx::scaled(2.0, A), X,
                                       gcxx::scaled(0.5, Y), Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hY_result(M);
     gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(M));
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < M; ++i) {
       EXPECT_NEAR(hY_result[i], href_acc[i], 1e-9)
@@ -224,11 +224,11 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::matrix_vector_product(handle, gcxx::transposed(A), X, Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hY_result(K);
     gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(K));
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < K; ++i) {
       EXPECT_NEAR(hY_result[i], href[i], 1e-9) << "mismatch at index " << i;
@@ -287,11 +287,11 @@ namespace {
     gcxx::blas::matrix_vector_product(
       handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()}, A),
       X, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, Y), Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hY_result(M);
     gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(M));
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < M; ++i) {
       EXPECT_NEAR(hY_result[i], href[i], 1e-9) << "mismatch at index " << i;

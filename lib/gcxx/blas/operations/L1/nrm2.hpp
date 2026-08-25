@@ -67,7 +67,7 @@ namespace nrm2_impl_ {
 
     // The backend's host-mode write may lag the host thread; make the returned
     // value observable before this function returns.
-    h.getStream().Synchronize();
+    h.getStream().sync();
   }
 }  // namespace nrm2_impl_
 

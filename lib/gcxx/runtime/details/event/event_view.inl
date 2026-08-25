@@ -49,39 +49,39 @@ auto operator!=(const EventView& lhs,
   return !(lhs == rhs);
 }
 
-GCXX_FH auto EventView::HasOccurred() const -> bool {
+GCXX_FH auto EventView::hasOccurred() const -> bool {
   const auto err = driver::eventQueryNoThrow(m_event);
   return details_::nonFatalErrorQuery(err);
 }
 
-GCXX_FH auto EventView::RecordInStream(const flags::eventRecord recordFlag)
+GCXX_FH auto EventView::recordInStream(const flags::eventRecord recordFlag)
   -> void {
-  RecordInStream(StreamView::Null(), recordFlag);
+  recordInStream(StreamView::Null(), recordFlag);
 }
 
-GCXX_FH auto EventView::RecordInStream(
+GCXX_FH auto EventView::recordInStream(
   const StreamView& stream, const flags::eventRecord recordFlag) -> void {
   driver::eventRecordWithFlags(m_event, stream.getRawHandle(),
                                static_cast<details_::flag_t>(recordFlag));
 }
 
-GCXX_FH auto EventView::Synchronize() const -> void {
+GCXX_FH auto EventView::sync() const -> void {
   driver::eventSynchronize(m_event);
 }
 
 template <typename DurationT>
-GCXX_FH auto EventView::ElapsedTimeSince(const EventView& startEvent) const
+GCXX_FH auto EventView::elapsedTimeSince(const EventView& startEvent) const
   -> DurationT {
-  this->Synchronize();
+  this->sync();
   const auto ms =
     driver::eventElapsedTime(startEvent.getRawHandle(), getRawHandle());
   return ConvertDuration<DurationT>(ms);
 }
 
 template <typename DurationT>
-GCXX_FH auto EventView::ElapsedTimeBetween(
+GCXX_FH auto EventView::elapsedTimeBetween(
   const EventView& startEvent, const EventView& endEvent) -> DurationT {
-  return endEvent.ElapsedTimeSince<DurationT>(startEvent);
+  return endEvent.elapsedTimeSince<DurationT>(startEvent);
 }
 
 GCXX_NAMESPACE_MAIN_END()

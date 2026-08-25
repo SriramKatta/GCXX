@@ -33,7 +33,7 @@ GCXX_FH auto Stream::destroy() -> void {
   // similar behaviour
 #if GCXX_HIP_MODE()
   if (!isInvalidStream()) {
-    Synchronize();
+    sync();
   }
 #endif
 

@@ -94,7 +94,7 @@ TEST(SpanInitList, DeviceSideConstruction) {
 
   gcxx::Stream stream;
   gcxx::launch::Kernel(stream, {1}, {1}, 0, initListKernel, dOut);
-  stream.Synchronize();
+  stream.sync();
 
   int host = 0;
   gcxx::Copy(&host, dOut, 1);

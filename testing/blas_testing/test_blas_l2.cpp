@@ -96,11 +96,11 @@ namespace {
       gcxx::blas::symmetric_matrix_vector_product(handle, A, gcxx::blas::upper,
                                                   X, Y);
     }
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(N);
     gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
-    str.Synchronize();
+    str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hResult[i], href[i], 1e-9) << "symv mismatch at " << i;
     }
@@ -156,21 +156,21 @@ namespace {
 
     gcxx::blas::triangular_matrix_vector_product(
       handle, A, gcxx::blas::upper, gcxx::blas::explicit_diagonal, X, Y);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(N);
     gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
-    str.Synchronize();
+    str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hResult[i], hYref[i], 1e-9) << "trmv mismatch at " << i;
     }
 
     gcxx::blas::triangular_matrix_vector_solve(
       handle, A, gcxx::blas::upper, gcxx::blas::explicit_diagonal, B, Y);
-    str.Synchronize();
+    str.sync();
 
     gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
-    str.Synchronize();
+    str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hResult[i], hX[i], 1e-9) << "trsv mismatch at " << i;
     }
@@ -219,9 +219,9 @@ namespace {
       gcxx::Copy(str, dA.get(), hRow.data(), std::size_t{M * N});
       dmat_right<double, IndexT> A(dA.get(), M, N);
       gcxx::blas::matrix_rank_1_update(handle, X, Y, A);
-      str.Synchronize();
+      str.sync();
       gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{M * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < M; ++i) {
         for (int j = 0; j < N; ++j) {
           EXPECT_NEAR(hResult[i * N + j], href[i + j * M], 1e-9)
@@ -232,9 +232,9 @@ namespace {
       gcxx::Copy(str, dA.get(), hA0.data(), std::size_t{M * N});
       dmat_left<double, IndexT> A(dA.get(), M, N);
       gcxx::blas::matrix_rank_1_update(handle, X, Y, A);
-      str.Synchronize();
+      str.sync();
       gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{M * N});
-      str.Synchronize();
+      str.sync();
       for (int i = 0; i < M * N; ++i) {
         EXPECT_NEAR(hResult[i], href[i], 1e-9)
           << "ger mismatch at linear " << i;
@@ -283,11 +283,11 @@ namespace {
     }
     gcxx::Copy(str, dA.get(), hLower.data(), std::size_t{N * N});
     gcxx::blas::symmetric_matrix_rank_1_update(handle, X, A, gcxx::blas::lower);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(N * N);
     gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{N * N});
-    str.Synchronize();
+    str.sync();
     for (int j = 0; j < N; ++j) {
       for (int i = j; i < N; ++i) {  // lower triangle + diagonal only
         const double want = hA0[i + j * N] + hX[i] * hX[j];
@@ -305,9 +305,9 @@ namespace {
     }
     gcxx::blas::symmetric_matrix_rank_2_update(handle, X, Y, A,
                                                gcxx::blas::upper);
-    str.Synchronize();
+    str.sync();
     gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{N * N});
-    str.Synchronize();
+    str.sync();
     for (int j = 0; j < N; ++j) {
       for (int i = 0; i <= j; ++i) {  // upper triangle + diagonal only
         const double want = hUpdated[i + j * N] + hX[i] * hY[j] + hY[i] * hX[j];

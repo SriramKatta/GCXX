@@ -132,14 +132,14 @@ void simpleDoWhileGraph() {
 
   gcxx::Stream captureStream;
 
-  captureStream.BeginCaptureToGraph(bodyGraph,
+  captureStream.beginCaptureToGraph(bodyGraph,
                                     gcxx::flags::streamCaptureMode::Global);
   gcxx::launch::Kernel(captureStream, {1}, {1}, 0, doWhileEmptyKernel);
   gcxx::launch::Kernel(captureStream, {1}, {1}, 0, doWhileEmptyKernel);
   gcxx::launch::Kernel(captureStream, {1}, {1}, 0, doWhileLoopKernel, dPtr,
                        handle);
 
-  captureStream.EndCaptureToGraph(bodyGraph);
+  captureStream.endCaptureToGraph(bodyGraph);
   auto graphExec = graph.Instantiate();
 
   // Initialize device memory and launch the graph
@@ -175,11 +175,11 @@ void capturedWhileGraph() {
   printf("capturedWhileGraph: Building graph...\n");
   gcxx::Stream captureStream;
 
-  captureStream.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+  captureStream.beginCapture(gcxx::flags::streamCaptureMode::Global);
 
   {
     auto [status, uniqueID, graph, dependencies, numDependencies] =
-      captureStream.GetCaptureInfo();
+      captureStream.getCaptureInfo();
     [[maybe_unused]] auto _ = uniqueID;  // Suppress unused warning
 
     handle = graph.createConditionalHandle(
@@ -191,7 +191,7 @@ void capturedWhileGraph() {
   // Insert kernel node A
 
   // Obtain the handle for node A (get updated dependencies after launch).
-  auto captureInfo2 = captureStream.GetCaptureInfo();
+  auto captureInfo2 = captureStream.getCaptureInfo();
 
   // Insert conditional node B; wrap the capture's raw dependency handles as
   // node views.
@@ -201,18 +201,18 @@ void capturedWhileGraph() {
   auto [conditionalNode, bodyGraph] =
     captureInfo2.graph.addWhileNode(handle, dependencies);
 
-  captureStream.UpdateCaptureDependencies(
+  captureStream.updateCaptureDependencies(
     gcxx::flags::StreamUpdateCaptureDependencies::Set, &conditionalNode, 1);
 
   // Insert kernel node D
   gcxx::launch::Kernel(captureStream, {1}, {1}, 0, capturedWhileEmptyKernel);
 
-  auto graph = captureStream.EndCapture();
+  auto graph = captureStream.endCapture();
 
   // Populate conditional body graph using stream capture
   gcxx::Stream bodyStream;
 
-  bodyStream.BeginCaptureToGraph(bodyGraph,
+  bodyStream.beginCaptureToGraph(bodyGraph,
                                  gcxx::flags::streamCaptureMode::Global);
 
   // Insert kernel node C
@@ -220,7 +220,7 @@ void capturedWhileGraph() {
                        handle);
 
 
-  bodyStream.EndCaptureToGraph(bodyGraph);
+  bodyStream.endCaptureToGraph(bodyGraph);
 
   auto graphExec = graph.Instantiate();
 

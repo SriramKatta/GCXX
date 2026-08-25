@@ -241,13 +241,13 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
     graphExec.Launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
     clonedGraphExec.Launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
   // graph.saveDotfile("./test_manual.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
@@ -260,25 +260,25 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
 
-  stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+  stream1.beginCapture(gcxx::flags::streamCaptureMode::Global);
 
-  forkStreamEvent.RecordInStream(stream1);
-  stream2.WaitOnEvent(forkStreamEvent);
-  stream3.WaitOnEvent(forkStreamEvent);
+  forkStreamEvent.recordInStream(stream1);
+  stream2.waitOnEvent(forkStreamEvent);
+  stream3.waitOnEvent(forkStreamEvent);
   gcxx::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
   gcxx::Memset(stream2, outputVec_d, 0, numOfBlocks);
-  memsetEvent1.RecordInStream(stream2);
+  memsetEvent1.recordInStream(stream2);
 
   gcxx::Memset(stream3, result_d, 0, 1);
-  memsetEvent2.RecordInStream(stream3);
+  memsetEvent2.recordInStream(stream3);
 
-  stream1.WaitOnEvent(memsetEvent1);
+  stream1.waitOnEvent(memsetEvent1);
 
   gcxx::launch::Kernel(stream1, numOfBlocks, THREADS_PER_BLOCK, 0, reduce,
                        inputVec_d, outputVec_d, inputSize, numOfBlocks);
 
-  stream1.WaitOnEvent(memsetEvent2);
+  stream1.waitOnEvent(memsetEvent2);
 
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
@@ -292,7 +292,7 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
 
   gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
 
-  auto graph = stream1.EndCapture();
+  auto graph = stream1.endCapture();
 
 
   size_t numNodes = graph.getNumNodes();
@@ -307,14 +307,14 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
     graphExec.Launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
     clonedGraphExec.Launch(streamForGraph);
   }
 
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
   // graph.saveDotfile("./test_stream_capture.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
@@ -328,25 +328,25 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   double result_h = 0.0;
   gcxx::Graph graph;
 
-  stream1.BeginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
+  stream1.beginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
 
-  forkStreamEvent.RecordInStream(stream1);
-  stream2.WaitOnEvent(forkStreamEvent);
-  stream3.WaitOnEvent(forkStreamEvent);
+  forkStreamEvent.recordInStream(stream1);
+  stream2.waitOnEvent(forkStreamEvent);
+  stream3.waitOnEvent(forkStreamEvent);
   gcxx::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
   gcxx::Memset(stream2, outputVec_d, 0, numOfBlocks);
-  memsetEvent1.RecordInStream(stream2);
+  memsetEvent1.recordInStream(stream2);
 
   gcxx::Memset(stream3, result_d, 0, 1);
-  memsetEvent2.RecordInStream(stream3);
+  memsetEvent2.recordInStream(stream3);
 
-  stream1.WaitOnEvent(memsetEvent1);
+  stream1.waitOnEvent(memsetEvent1);
 
   gcxx::launch::Kernel(stream1, numOfBlocks, THREADS_PER_BLOCK, 0, reduce,
                        inputVec_d, outputVec_d, inputSize, numOfBlocks);
 
-  stream1.WaitOnEvent(memsetEvent2);
+  stream1.waitOnEvent(memsetEvent2);
 
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
@@ -360,7 +360,7 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
 
   gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
 
-  stream1.EndCaptureToGraph(graph);
+  stream1.endCaptureToGraph(graph);
 
 
   size_t numNodes = graph.getNumNodes();
@@ -375,14 +375,14 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
     graphExec.Launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
     clonedGraphExec.Launch(streamForGraph);
   }
 
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
   // graph.saveDotfile("./test_stream_capture.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }

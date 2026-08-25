@@ -78,7 +78,7 @@ class MemPoolView {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::allocate_sync.");
     void* ptr = allocate(StreamView::Null(), bytes, alignment);
-    StreamView::Null().Synchronize();
+    StreamView::Null().sync();
     return ptr;
   }
 
@@ -88,7 +88,7 @@ class MemPoolView {
     assert(is_valid_alignment(alignment) &&
            "Invalid alignment passed to MemPoolView::deallocate_sync.");
     deallocate(StreamView::Null(), ptr, bytes, alignment);
-    StreamView::Null().Synchronize();
+    StreamView::Null().sync();
   }
 
   // Pool management.

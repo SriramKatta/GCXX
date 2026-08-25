@@ -68,7 +68,7 @@ auto idx_abs_max(BlasHandleView h,
 
   // The backend's host-mode write may lag the host thread; make the returned
   // value observable before this function returns.
-  h.getStream().Synchronize();
+  h.getStream().sync();
 
   // translate the backend's one-based convention (0 = not found) to
   // P1673R13's zero-based indexing

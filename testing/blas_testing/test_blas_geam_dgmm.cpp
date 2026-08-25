@@ -58,11 +58,11 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::geam(handle, alpha, A, beta, B, C);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(M * N);
     gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < M * N; ++i) {
       EXPECT_NEAR(hResult[i], alpha * hA[i] + beta * hB[i], 1e-9)
@@ -105,11 +105,11 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::dgmm(handle, Side{}, A, X, C);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(M * N);
     gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
-    str.Synchronize();
+    str.sync();
 
     for (int j = 0; j < N; ++j) {
       for (int i = 0; i < M; ++i) {
@@ -160,11 +160,11 @@ namespace {
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
     gcxx::blas::geam(handle, alpha, A, beta, B, C);
-    str.Synchronize();
+    str.sync();
 
     std::vector<double> hResult(M * N);
     gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
-    str.Synchronize();
+    str.sync();
 
     for (int i = 0; i < M; ++i) {
       for (int j = 0; j < N; ++j) {

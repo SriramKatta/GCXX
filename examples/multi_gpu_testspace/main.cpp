@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     std::array<gcxx::Graph, 2> graphs;
     nvtxRangePushA("Graph_create");
     for (int g = 0; g < 2; ++g) {
-      edge_stream.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+      edge_stream.beginCapture(gcxx::flags::streamCaptureMode::Global);
 
       // Launch edge-row Jacobi on edge_stream
       launch_jacobi_kernel(a_new, a, iy_start, iy_start + 1, N, edge_stream);
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
       // Inner Jacobi on inner_stream
       launch_jacobi_kernel(a_new, a, iy_start + 1, iy_end - 1, N, inner_stream);
 
-      graphs[g] = edge_stream.EndCapture();
+      graphs[g] = edge_stream.endCapture();
       std::swap(a, a_new);
     }
     nvtxRangePop();
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
       graph_exec[0].Launch(inner_stream);
       graph_exec[1].Launch(inner_stream);
     }
-    inner_stream.Synchronize();
+    inner_stream.sync();
     nvtxRangePop();
 
     // Initialize boundaries
@@ -283,5 +283,5 @@ void Halo_exchange(real* a_new, real* a, int N, const int top, int iy_end,
   // clang-format on
   NCCL_CALL(ncclGroupEnd());
   // CUDA_CALL(cudaStreamSynchronize(edge_stream));
-  edge_stream.Synchronize();
+  edge_stream.sync();
 }

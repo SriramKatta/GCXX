@@ -7,7 +7,7 @@
 
 // Takes an EventView by value; Event's copy ctor is deleted.
 void eve_ref_check(const gcxx::EventView event) {
-  if (event.HasOccurred()) {
+  if (event.hasOccurred()) {
     fmt::print("Event has occurred.\n");
   } else {
     fmt::print("Event has not occurred.\n");
@@ -26,7 +26,7 @@ int main() {
   // auto res = cudaEventQuery(end_event); // an error because Event is a owning
   // reference and cannot be cast to raw event
   gcxx::EventView end_event_ref = end_event;
-  auto res                      = end_event_ref.HasOccurred();
+  auto res                      = end_event_ref.hasOccurred();
 
   if (res) {
     fmt::print("Event query successful.\n");
@@ -36,10 +36,10 @@ int main() {
 
   gcxx::Event end_event2;
 
-  start_event.RecordInStream();
-  end_event2.RecordInStream();
+  start_event.recordInStream();
+  end_event2.recordInStream();
 
-  auto dur = gcxx::Event::ElapsedTimeBetween(start_event, end_event2);
+  auto dur = gcxx::Event::elapsedTimeBetween(start_event, end_event2);
 
   fmt::print("Elapsed time between events: {}\n", dur);
 

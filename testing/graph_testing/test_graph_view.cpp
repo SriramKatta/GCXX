@@ -125,7 +125,7 @@ TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
   auto graphExec = graph.Instantiate();
   gcxx::Stream stream;
   graphExec.Launch(stream);
-  stream.Synchronize();
+  stream.sync();
 
   int host = 42;
   gcxx::Copy(&host, dPtr, 1);
