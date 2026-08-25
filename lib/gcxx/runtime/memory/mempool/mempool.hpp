@@ -57,7 +57,7 @@ class MemPool : public MemPoolView {
     return MemPool(pool);
   }
 
-  GCXX_FH auto Release() noexcept -> MemPoolView {
+  GCXX_FH auto release() noexcept -> MemPoolView {
     auto pool = m_pool_;
     m_pool_   = nullptr;
     return MemPoolView{pool};

@@ -54,7 +54,7 @@ TEST_F(MemPoolTest, ReleaseTransfersHandle) {
   gcxx::MemPool pool;
   const auto raw = pool.getRawHandle();
 
-  const gcxx::MemPoolView view = pool.Release();
+  const gcxx::MemPoolView view = pool.release();
 
   EXPECT_EQ(pool.getRawHandle(), nullptr);
   EXPECT_EQ(view.getRawHandle(), raw);
@@ -66,7 +66,7 @@ TEST_F(MemPoolTest, ReleaseTransfersHandle) {
 TEST_F(MemPoolTest, FromNativeHandleAdoptsAndDestroys) {
   gcxx::MemPool pool;
   const auto raw = pool.getRawHandle();  // the handle, while pool still owns it
-  pool.Release();  // relinquish ownership (view discarded)
+  pool.release();  // relinquish ownership (view discarded)
 
   gcxx::MemPool adopted = gcxx::MemPool::from_native_handle(raw);
   EXPECT_EQ(adopted.getRawHandle(),

@@ -69,7 +69,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
   Event e;
   auto raw = e.getRawHandle();
 
-  EventView ref = e.Release();
+  EventView ref = e.release();
   EXPECT_EQ(e.getRawHandle(), gcxx::driver::INVALID_EVENT);
   EXPECT_EQ(ref.getRawHandle(), raw);
 
@@ -80,7 +80,7 @@ TEST_F(EventTest, ReleaseTransfersHandle) {
 TEST_F(EventTest, ReleasedHandleRemainsUsableThroughView) {
   Event e;
   auto raw      = e.getRawHandle();
-  EventView ref = e.Release();
+  EventView ref = e.release();
 
   ref.recordInStream();
   ref.sync();

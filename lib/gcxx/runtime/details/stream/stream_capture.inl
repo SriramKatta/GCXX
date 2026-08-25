@@ -35,7 +35,7 @@ GCXX_FH auto StreamView::beginCaptureToGraph(
 
 GCXX_FH auto StreamView::endCapture() const -> Graph {
   const auto pgraph = driver::streamEndCapture(m_stream);
-  return Graph::CreateFromRaw(pgraph);
+  return Graph::createFromRaw(pgraph);
 }
 
 GCXX_FH auto StreamView::endCaptureToGraph(const GraphView& graph = {}) const

@@ -28,9 +28,9 @@ GCXX_FH auto DeviceHandle::makeCurrent() const -> void {
   driver::deviceSet(m_deviceId);
 }
 
-GCXX_FH auto DeviceHandle::Synchronize() const -> void {
+GCXX_FH auto DeviceHandle::sync() const -> void {
   [[maybe_unused]] details_::EnsureCurrentDevice hand(m_deviceId);
-  gcxx::Device::Synchronize();
+  gcxx::Device::sync();
 }
 
 template <typename Attr>

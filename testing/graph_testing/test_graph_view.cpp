@@ -122,9 +122,9 @@ TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
   EXPECT_EQ(eventRecordNode.getType(), flags::graphNodeType::EventRecord);
   EXPECT_EQ(eventWaitNode.getType(), flags::graphNodeType::EventWait);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
   gcxx::Stream stream;
-  graphExec.Launch(stream);
+  graphExec.launch(stream);
   stream.sync();
 
   int host = 42;

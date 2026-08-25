@@ -22,7 +22,7 @@ namespace Device {
 
   GCXX_FH auto count() -> int;
 
-  GCXX_FH auto Synchronize() -> void;
+  GCXX_FH auto sync() -> void;
 
   GCXX_FH auto getDeviceProp() -> driver::deviceProp_t;
 

@@ -86,19 +86,19 @@ void simpleIfGraph() {
   auto kernelnode1 = bodyGraph.addNode(kernel2);
 
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
   // Initialize device memory and launch the graph
   gcxx::Memset(dPtr, 0, 1);
   printf("Host: Launching graph with device memory set to 0\n");
-  graphExec.Launch();
-  gcxx::Device::Synchronize();
+  graphExec.launch();
+  gcxx::Device::sync();
 
   // Initialize device memory and launch the graph
   gcxx::Memset(dPtr, 1, 1);
   printf("Host: Launching graph with device memory set to 1\n");
-  graphExec.Launch();
-  gcxx::Device::Synchronize();
+  graphExec.launch();
+  gcxx::Device::sync();
 
 
   printf("simpleIfGraph: Complete\n\n");
@@ -140,13 +140,13 @@ void simpleDoWhileGraph() {
                        handle);
 
   captureStream.endCaptureToGraph(bodyGraph);
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
   // Initialize device memory and launch the graph
   gcxx::Memset(dPtr, 10, 1);
   printf("Host: Launching graph with loop counter set to 10\n");
-  graphExec.Launch();
-  gcxx::Device::Synchronize();
+  graphExec.launch();
+  gcxx::Device::sync();
 
   printf("simpleDoWhileGraph: Complete\n\n");
 }
@@ -222,18 +222,18 @@ void capturedWhileGraph() {
 
   bodyStream.endCaptureToGraph(bodyGraph);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
   gcxx::Memset(dPtr, 0, 1);
   printf("Host: Launching graph with loop counter set to 0\n");
-  graphExec.Launch();
-  gcxx::Device::Synchronize();
+  graphExec.launch();
+  gcxx::Device::sync();
 
   int n = 6;
   gcxx::Memset(dPtr, n, 1);
   printf("Host: Launching graph with loop counter set to %d\n", n);
-  graphExec.Launch();
-  gcxx::Device::Synchronize();
+  graphExec.launch();
+  gcxx::Device::sync();
 
   printf("capturedWhileGraph: Complete\n\n");
 }
@@ -281,19 +281,19 @@ void simpleIfElseGraph() {
                      .build();
   auto falsenode = Elsegraphbody.addNode(falsekern);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
   // // Initialize device memory and launch the graph
   gcxx::Memset(dPtr, 0, 1);
   printf("Host: Launching graph with loop counter set to 0\n");
-  graphExec.Launch();
-  gcxx::Device::Synchronize();
+  graphExec.launch();
+  gcxx::Device::sync();
 
   int n = 1;
   gcxx::Memset(dPtr, n, 1);
   printf("Host: Launching graph with loop counter set to %d\n", n);
-  graphExec.Launch();
-  gcxx::Device::Synchronize();
+  graphExec.launch();
+  gcxx::Device::sync();
 
 
   printf("simpleIfElseGraph: Complete\n\n");
@@ -374,13 +374,13 @@ void simpleSwitchGraph() {
                        .build();
   std::ignore = casevector[3].addNode(kernswitchF);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
   for (char i = 0; i < 5; i++) {
     gcxx::Memset(dPtr, i, 1);
     printf("Host: Launching graph with device memory set to %d\n", i);
-    graphExec.Launch();
-    gcxx::Device::Synchronize();
+    graphExec.launch();
+    gcxx::Device::sync();
   }
 
   printf("simpleSwitchGraph: Complete\n\n");

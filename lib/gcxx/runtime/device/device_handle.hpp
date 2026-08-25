@@ -24,7 +24,7 @@ class DeviceHandle {
 
   GCXX_FH auto makeCurrent() const -> void;
 
-  GCXX_FH auto Synchronize() const -> void;
+  GCXX_FH auto sync() const -> void;
 
   GCXX_FH auto getDeviceProp() const -> driver::deviceProp_t;
 

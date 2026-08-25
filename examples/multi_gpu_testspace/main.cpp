@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
       std::swap(a, a_new);
     }
     worldcomm.ibarrier();
-    locdev.Synchronize();
+    locdev.sync();
     nvtxRangePop();
 
     // cudaGraph_t graphs[2];
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     std::array<gcxx::GraphExec, 2> graph_exec;
     nvtxRangePushA("Graph_init");
     for (int g = 0; g < 2; ++g) {
-      graph_exec[g] = graphs[g].Instantiate();
+      graph_exec[g] = graphs[g].instantiate();
       graphs[g].destroy();
     }
     nvtxRangePop();
@@ -178,8 +178,8 @@ int main(int argc, char* argv[]) {
     // Warmup graph launches
     nvtxRangePushA("Graph_Warmup");
     for (int i = 0; i < 10; ++i) {
-      graph_exec[0].Launch(inner_stream);
-      graph_exec[1].Launch(inner_stream);
+      graph_exec[0].launch(inner_stream);
+      graph_exec[1].launch(inner_stream);
     }
     inner_stream.sync();
     nvtxRangePop();
@@ -189,17 +189,17 @@ int main(int argc, char* argv[]) {
     gcxx::Memset(a_new_raii, 0, N * (chunk_size + 2));
     launch_initialize_boundaries(a, a_new, M_PI, iy_start_global - 1, N,
                                  chunk_size + 2);
-    locdev.Synchronize();
+    locdev.sync();
 
     // Solve
     double start = MPI_Wtime();
     nvtxRangePushA("Jacobistep");
     for (int it = 0; it < maxIt; ++it) {
-      graph_exec[it % 2].Launch(inner_stream);
+      graph_exec[it % 2].launch(inner_stream);
     }
     nvtxRangePop();
     // CUDA_CALL(cudaDeviceSynchronize());
-    locdev.Synchronize();
+    locdev.sync();
     double dur    = (MPI_Wtime() - start) / maxIt;
     double maxdur = 0;
     worldcomm.iallreduce(&dur, &maxdur, 1, mpicxx::op::max());

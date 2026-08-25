@@ -20,8 +20,8 @@ class GraphExecView {
   GCXX_FHC GraphExecView(deviceGraphExec_t rawExec);
   GCXX_FHC auto getRawHandle() const -> deviceGraphExec_t;
 
-  GCXX_FH auto Launch(const StreamView& stream) const -> void;
-  GCXX_FH auto Upload(const StreamView& stream) const -> void;
+  GCXX_FH auto launch(const StreamView& stream) const -> void;
+  GCXX_FH auto upload(const StreamView& stream) const -> void;
 
 
  protected:

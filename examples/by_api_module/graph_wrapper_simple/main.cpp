@@ -87,13 +87,13 @@ void stream_capture() {
     auto gp = stream1.endCapture();
     gp.saveDotfile("./test_stream_capture.dot",
                    gcxx::flags::graphDebugDot::Verbose);
-    auto exec = gp.Instantiate();
+    auto exec = gp.instantiate();
     start.recordInStream();
-    exec.Launch(StreamforGraph);
+    exec.launch(StreamforGraph);
     stop.recordInStream();
   } else {
     stop.recordInStream();
-    gcxx::Device::Synchronize();
+    gcxx::Device::sync();
   }
 
   auto dur = stop.elapsedTimeSince(start);
@@ -149,8 +149,8 @@ void stream_capture_tograph() {
   stream1.endCaptureToGraph(graph);
   graph.saveDotfile("./test_stream_capture_to.dot",
                     gcxx::flags::graphDebugDot::KernelNodeParams);
-  auto exec = graph.Instantiate();
-  exec.Launch(StreamforGraph);
+  auto exec = graph.instantiate();
+  exec.launch(StreamforGraph);
 }
 
 void manual_graph_build() {
@@ -209,8 +209,8 @@ void manual_graph_build() {
   std::ignore = graph.addNode(KF, {KEnode, KYnode});
 
   graph.saveDotfile("./test_manual.dot", gcxx::flags::graphDebugDot::Verbose);
-  auto exec = graph.Instantiate();
-  exec.Launch(StreamforGraph);
+  auto exec = graph.instantiate();
+  exec.launch(StreamforGraph);
 }
 
 int main(int argc, char const* argv[]) {

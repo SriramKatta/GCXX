@@ -234,18 +234,18 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
   size_t numNodes = graph.getNumNodes();
   printf("\nNum of nodes in the graph created manually = %zu\n", numNodes);
 
-  auto graphExec       = graph.Instantiate();
-  auto clonesGraph     = graph.Clone();
-  auto clonedGraphExec = graph.Instantiate();
+  auto graphExec       = graph.instantiate();
+  auto clonesGraph     = graph.clone();
+  auto clonedGraphExec = graph.instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    graphExec.Launch(streamForGraph);
+    graphExec.launch(streamForGraph);
   }
   streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    clonedGraphExec.Launch(streamForGraph);
+    clonedGraphExec.launch(streamForGraph);
   }
   streamForGraph.sync();
 
@@ -299,19 +299,19 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
          numNodes);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
-  auto clonedGraph     = graph.Clone();
-  auto clonedGraphExec = clonedGraph.Instantiate();
+  auto clonedGraph     = graph.clone();
+  auto clonedGraphExec = clonedGraph.instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    graphExec.Launch(streamForGraph);
+    graphExec.launch(streamForGraph);
   }
   streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    clonedGraphExec.Launch(streamForGraph);
+    clonedGraphExec.launch(streamForGraph);
   }
 
   streamForGraph.sync();
@@ -367,19 +367,19 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
          numNodes);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
-  auto clonedGraph     = graph.Clone();
-  auto clonedGraphExec = clonedGraph.Instantiate();
+  auto clonedGraph     = graph.clone();
+  auto clonedGraphExec = clonedGraph.instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    graphExec.Launch(streamForGraph);
+    graphExec.launch(streamForGraph);
   }
   streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    clonedGraphExec.Launch(streamForGraph);
+    clonedGraphExec.launch(streamForGraph);
   }
 
   streamForGraph.sync();

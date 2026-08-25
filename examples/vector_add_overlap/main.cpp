@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  dev.Synchronize();
+  dev.sync();
 
 
   checkdata(h_a_span, static_cast<datatype>(3 * arg.rep));

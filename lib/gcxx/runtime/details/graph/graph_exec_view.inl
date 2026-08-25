@@ -17,12 +17,12 @@ GCXX_FHC auto GraphExecView::getRawHandle() const -> deviceGraphExec_t {
   return m_exec;
 }
 
-GCXX_FH auto GraphExecView::Launch(
+GCXX_FH auto GraphExecView::launch(
   const StreamView& stream = StreamView::Null()) const -> void {
   driver::graphLaunch(m_exec, stream.getRawHandle());
 }
 
-GCXX_FH auto GraphExecView::Upload(const StreamView& stream) const -> void {
+GCXX_FH auto GraphExecView::upload(const StreamView& stream) const -> void {
   driver::graphUpload(m_exec, stream.getRawHandle());
 }
 
