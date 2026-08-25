@@ -191,7 +191,9 @@ namespace {
                                  // the backend reports the first
     EXPECT_EQ(imin, IndexT{0});  // |0.5| ties |−0.5|; the first wins
 
-    // swap_elements: X <-> Y (Y holds X's values from the copy above)
+    // swap_elements: restore Y's own values first so the exchange is visible
+    // (the copy above left Y holding X's values)
+    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
     gcxx::blas::swap_elements(handle, X, Y);
     str.sync();
 
@@ -200,8 +202,8 @@ namespace {
     gcxx::Copy(str, hYs.data(), dY.get(), std::size_t{N});
     str.sync();
     for (int i = 0; i < N; ++i) {
-      EXPECT_DOUBLE_EQ(hXs[i], hX[i]) << "swap x mismatch at " << i;
-      EXPECT_DOUBLE_EQ(hYs[i], hY[i]) << "swap y mismatch at " << i;
+      EXPECT_DOUBLE_EQ(hXs[i], hY[i]) << "swap x mismatch at " << i;
+      EXPECT_DOUBLE_EQ(hYs[i], hX[i]) << "swap y mismatch at " << i;
     }
   }
 

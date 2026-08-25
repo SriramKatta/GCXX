@@ -201,6 +201,8 @@ namespace {
     auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
     auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{M});
     auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
+    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{M});
+    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
 
     auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), M));
     auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
@@ -239,6 +241,7 @@ namespace {
         EXPECT_NEAR(hResult[i], href[i], 1e-9)
           << "ger mismatch at linear " << i;
       }
+
     }
   }
 
@@ -296,13 +299,16 @@ namespace {
       }
     }
 
-    // syr2 into the upper triangle of the updated buffer
+    // syr2 into the upper triangle of the updated buffer; seed that triangle
+    // with the symmetric update (syr only touched the lower one above)
     std::vector<double> hUpdated(N * N);
     for (int j = 0; j < N; ++j) {
-      for (int i = j; i < N; ++i) {
+      for (int i = 0; i <= j; ++i) {  // upper triangle + diagonal
         hUpdated[i + j * N] = hA0[i + j * N] + hX[i] * hX[j];
       }
     }
+    gcxx::Copy(str, dA.get(), hUpdated.data(), std::size_t{N * N});
+    str.sync();
     gcxx::blas::symmetric_matrix_rank_2_update(handle, X, Y, A,
                                                gcxx::blas::upper);
     str.sync();

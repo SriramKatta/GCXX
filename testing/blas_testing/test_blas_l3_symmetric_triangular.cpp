@@ -278,11 +278,11 @@ namespace {
         hCref[i + j * K] = acc;
       }
     }
-    std::vector<double> hXref(K * N);  // forward substitution per column
+    std::vector<double> hXref(K * N);  // back substitution per column
     for (int j = 0; j < N; ++j) {
-      for (int i = 0; i < K; ++i) {
+      for (int i = K - 1; i >= 0; --i) {
         double acc = hB[i + j * K];
-        for (int p = 0; p < i; ++p) {
+        for (int p = i + 1; p < K; ++p) {
           acc -= hTri[i + p * K] * hXref[p + j * K];
         }
         hXref[i + j * K] = acc / hTri[i + i * K];
