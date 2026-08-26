@@ -269,13 +269,19 @@
     {
       "name": "tidy_cuda",
       "displayName": "CUDA Debug (clang-tidy)",
-      "inherits": ["debug_cuda_full", "config_tidy"],
+      "inherits": [
+        "debug_cuda_full",
+        "config_tidy"
+      ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-tidy"
     },
     {
       "name": "tidy_hip",
       "displayName": "HIP Debug (clang-tidy)",
-      "inherits": ["debug_hip_full", "config_tidy"],
+      "inherits": [
+        "debug_hip_full",
+        "config_tidy"
+      ],
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-tidy"
     }
   ],
