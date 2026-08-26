@@ -56,11 +56,33 @@
       ]
     },
     {
+      "name": "config_debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "GCXX_ENABLE_RUNTIME_CHECKS": "ON"
+      }
+    },
+    {
+      "name": "config_release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "config_tidy",
+      "hidden": true,
+      "cacheVariables": {
+        "GCXX_ENABLE_CLANG_TIDY": "ON"
+      }
+    },
+    {
       "name": "env_cuda_release",
       "hidden": true,
+      "inherits": "config_release",
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
           "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-release"
       }
@@ -68,9 +90,9 @@
     {
       "name": "env_cuda_debug",
       "hidden": true,
+      "inherits": "config_debug",
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
           "${sourceDir}/build/$env{CONTAINER_NAME}/cudabin-debug"
       }
@@ -78,9 +100,9 @@
     {
       "name": "env_hip_release",
       "hidden": true,
+      "inherits": "config_release",
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
           "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-release"
       }
@@ -88,9 +110,9 @@
     {
       "name": "env_hip_debug",
       "hidden": true,
+      "inherits": "config_debug",
       "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY":
           "${sourceDir}/build/$env{CONTAINER_NAME}/hipbin-debug"
       }
@@ -247,20 +269,14 @@
     {
       "name": "tidy_cuda",
       "displayName": "CUDA Debug (clang-tidy)",
-      "inherits": "debug_cuda_full",
-      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-tidy",
-      "cacheVariables": {
-        "GCXX_ENABLE_CLANG_TIDY": "ON"
-      }
+      "inherits": ["debug_cuda_full", "config_tidy"],
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/cuda-tidy"
     },
     {
       "name": "tidy_hip",
       "displayName": "HIP Debug (clang-tidy)",
-      "inherits": "debug_hip_full",
-      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-tidy",
-      "cacheVariables": {
-        "GCXX_ENABLE_CLANG_TIDY": "ON"
-      }
+      "inherits": ["debug_hip_full", "config_tidy"],
+      "binaryDir": "${sourceDir}/build/$env{CONTAINER_NAME}/hip-tidy"
     }
   ],
 
@@ -269,6 +285,14 @@
       "name": "build_base",
       "hidden": true,
       "jobs": 0
+    },
+    {
+      "name": "build_tidy_base",
+      "hidden": true,
+      "inherits": "build_base",
+      "targets": [
+        "gcxx.tidy"
+      ]
     },
 
     {
@@ -375,19 +399,13 @@
       "name": "build_tidy_cuda",
       "displayName": "clang-tidy (CUDA)",
       "configurePreset": "tidy_cuda",
-      "inherits": "build_base",
-      "targets": [
-        "gcxx.tidy"
-      ]
+      "inherits": "build_tidy_base"
     },
     {
       "name": "build_tidy_hip",
       "displayName": "clang-tidy (HIP)",
       "configurePreset": "tidy_hip",
-      "inherits": "build_base",
-      "targets": [
-        "gcxx.tidy"
-      ]
+      "inherits": "build_tidy_base"
     }
   ],
 
