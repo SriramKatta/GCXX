@@ -608,3 +608,96 @@ TEST(VectorOps, SelfAssignment) {
   EXPECT_EQ(a.x, 10);
   EXPECT_EQ(a.y, 20);
 }
+
+TEST(VectorOps, AddVectorScalarFloat2) {
+  float2 a      = {1.5f, 2.5f};
+  float scalar  = 1.0f;
+  float2 result = a + scalar;
+  EXPECT_TRUE(almost_equal(result.x, 2.5f));
+  EXPECT_TRUE(almost_equal(result.y, 3.5f));
+}
+
+TEST(VectorOps, MultiplyScalarVectorFloat4) {
+  float scalar  = 0.5f;
+  float4 b      = {2.0f, 4.0f, 6.0f, 8.0f};
+  float4 result = scalar * b;
+  EXPECT_TRUE(almost_equal(result.x, 1.0f));
+  EXPECT_TRUE(almost_equal(result.y, 2.0f));
+  EXPECT_TRUE(almost_equal(result.z, 3.0f));
+  EXPECT_TRUE(almost_equal(result.w, 4.0f));
+}
+
+TEST(VectorOps, SubtractAssignScalarFloat2) {
+  float2 a     = {10.0f, 20.0f};
+  float scalar = 5.0f;
+  a -= scalar;
+  EXPECT_TRUE(almost_equal(a.x, 5.0f));
+  EXPECT_TRUE(almost_equal(a.y, 15.0f));
+}
+
+// Matching component counts suffice even when the element types differ: the
+// operation computes in the vector side's base type, so the double
+// components narrow to float. Skipped under HIP because AMD's builtin
+// HIP_vector_type also declares mixed-type binary operators, which makes any
+// cross-element-type vector-vector op ambiguous before this layer runs.
+#if !GCXX_HIP_MODE()
+TEST(VectorOps, MixedTypeAddFloat3Double3) {
+  float3 a      = {1.5f, 2.5f, 3.5f};
+  double3 b     = {1.0, 2.0, 3.0};
+  float3 result = a + b;
+  static_assert(std::is_same_v<decltype(result), float3>,
+                "result follows the vector operand's element type");
+  EXPECT_TRUE(almost_equal(result.x, 2.5f));
+  EXPECT_TRUE(almost_equal(result.y, 4.5f));
+  EXPECT_TRUE(almost_equal(result.z, 6.5f));
+}
+#endif
+
+TEST(VectorOps, MixedTypeAddAssignDouble2Int2) {
+  double2 a = {1.5, 2.5};
+  int2 b    = {1, -2};
+  a += b;
+  EXPECT_TRUE(almost_equal(a.x, 2.5));
+  EXPECT_TRUE(almost_equal(a.y, 0.5));
+}
+
+// The scalar operand is materialized once per operation, so aliasing one of
+// lhs's own components must not feed earlier component writes into later
+// ones: every component sees the original value.
+TEST(VectorOps, AddAssignAliasedScalarFloat3) {
+  float3 f = {1.0f, 2.0f, 3.0f};
+  float& s = f.x;
+  f += s;
+  EXPECT_TRUE(almost_equal(f.x, 2.0f));
+  EXPECT_TRUE(almost_equal(f.y, 3.0f));
+  EXPECT_TRUE(almost_equal(f.z, 4.0f));
+}
+
+TEST(VectorOps, ModuloAssignInt3) {
+  int3 a = {10, 17, 23};
+  int3 b = {3, 5, 7};
+  a %= b;
+  EXPECT_EQ(a.x, 1);
+  EXPECT_EQ(a.y, 2);
+  EXPECT_EQ(a.z, 2);
+}
+
+// C++ remainder semantics truncate toward zero, so the sign of the result
+// follows the dividend: these expectations pin that against modulo-style
+// regressions.
+TEST(VectorOps, ModuloNegativeInt3) {
+  int3 a      = {-7, -10, 7};
+  int3 b      = {3, 3, -3};
+  int3 result = a % b;
+  EXPECT_EQ(result.x, -1);
+  EXPECT_EQ(result.y, -1);
+  EXPECT_EQ(result.z, 1);
+}
+
+TEST(VectorOps, ModuloAssignNegativeInt2) {
+  int2 a = {-13, 22};
+  int2 b = {5, -4};
+  a %= b;
+  EXPECT_EQ(a.x, -3);
+  EXPECT_EQ(a.y, 2);
+}
