@@ -4,12 +4,17 @@
 #ifndef GCXX_INTERNAL_PROLOGUE_HPP_
 #define GCXX_INTERNAL_PROLOGUE_HPP_
 
+#include <cstddef>
+
 #include <gcxx/backend/backend.hpp>
 #include <gcxx/macros/function_decorator_macros.hpp>
 #include <gcxx/macros/namespace_macros.hpp>
 #include <gcxx/macros/template_helper_macros.hpp>
 #include <gcxx/macros/version_macros.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
+
+// Reserved headroom for the status text appended
+constexpr std::size_t additional_message_size = 32;
 
 
 GCXX_NAMESPACE_MAIN_BEGIN()
