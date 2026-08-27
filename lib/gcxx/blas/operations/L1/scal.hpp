@@ -61,13 +61,17 @@ auto scale(BlasHandleView h, S alpha,
   // extract problem dimensions
   const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
 
-  driver::deviceBlasStatus_t status{};
+  driver::deviceBlasStatus_t
+    status{};  // NOLINT(misc-const-correctness) assigned by the dispatch below
+  // The macro's two branches spell distinct entry points (ScalEx_64 vs
+  // ScalEx); the checker cannot tell them apart in uninstantiated code.
+  // NOLINTNEXTLINE(bugprone-branch-clone)
   GCXX_BLAS_DISPATCH_INT64(status, XIt, ScalEx, h.getRawHandle(), len_x,
                            alpha_ptr, cuda_datatype_v<Sv>, x.data_handle(),
                            cuda_datatype_v<XVt>, inc_x, cuda_datatype_v<Sv>);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "scale failed");
+    details_::throwBlasError(status, /*msg*/ "scale failed");
   }
 }
 

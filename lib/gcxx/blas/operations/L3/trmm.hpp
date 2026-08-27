@@ -96,6 +96,7 @@ auto triangular_matrix_product(
   // dimension gates per side (fail here rather than inside the backend)
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "triangular_matrix_product requires A to be "
                              "square");
   }
@@ -103,6 +104,7 @@ auto triangular_matrix_product(
       (rows_b != rows_a || out.rows != rows_a || out.cols != cols_b)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_product (left) requires B to be A.extent(0) x N and "
       "C to be A.extent(0) x B.extent(1)");
   }
@@ -110,6 +112,7 @@ auto triangular_matrix_product(
       (cols_b != rows_a || out.rows != rows_b || out.cols != rows_a)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_product (right) requires B to be M x A.extent(0) and "
       "C to be B.extent(0) x A.extent(0)");
   }
@@ -118,6 +121,7 @@ auto triangular_matrix_product(
   if ((op_b == driver::deviceBlasOpN) == out.transposed) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_product requires B and C to share storage "
       "orientation: the backend entry point takes no transpose flag for B, "
       "so a column-major-like B must pair with a column-major-like C and a "
@@ -127,6 +131,7 @@ auto triangular_matrix_product(
   if (details_::views_alias(b, c)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_product requires B and C to be distinct buffers "
       "(the backend entry point reads B and writes C in one call); "
       "in-place triangular products are unsupported by this entry point");
@@ -139,16 +144,10 @@ auto triangular_matrix_product(
   // the op flag that recovers the mathematical A from the column-major read.
   // When the OUTPUT is row-major-like the whole problem is transposed and
   // the flag flips again (C^T = B^T*A^T needs op(A_cm) = A^T).
-  const auto uplo      = op_a == driver::deviceBlasOpN
-                           ? uplo_tag
-                           : (uplo_tag == driver::deviceBlasFillModeUpper
-                                ? driver::deviceBlasFillModeLower
-                                : driver::deviceBlasFillModeUpper);
+  const auto uplo =
+    details_::mirrored_fill_mode(op_a != driver::deviceBlasOpN, uplo_tag);
   const auto trans     = out.transposed ? details_::flip_blas_op(op_a) : op_a;
-  const auto side_mode = out.transposed ? (side == driver::deviceBlasSideLeft
-                                             ? driver::deviceBlasSideRight
-                                             : driver::deviceBlasSideLeft)
-                                        : side;
+  const auto side_mode = details_::flipped_blas_side(out.transposed, side);
 
   driver::deviceBlasStatus_t status{};
   if (!out.transposed) {
@@ -165,7 +164,8 @@ auto triangular_matrix_product(
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "triangular_matrix_product failed");
+    details_::throwBlasError(status,
+                             /*msg*/ "triangular_matrix_product failed");
   }
 }
 

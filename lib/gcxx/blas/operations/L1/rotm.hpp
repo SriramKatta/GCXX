@@ -69,12 +69,14 @@ auto apply_modified_givens_rotation(
   if (len_x != len_y) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "apply_modified_givens_rotation requires x and y to have the same "
       "length");
   }
   if (len_p != 5) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "apply_modified_givens_rotation requires param to have exactly 5 "
       "elements (flag + four stored H entries)");
   }
@@ -83,6 +85,7 @@ auto apply_modified_givens_rotation(
   if (inc_p != 1) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "apply_modified_givens_rotation requires param to have unit stride");
   }
 
@@ -92,7 +95,8 @@ auto apply_modified_givens_rotation(
                            param.data_handle());
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "apply_modified_givens_rotation failed");
+    details_::throwBlasError(status,
+                             /*msg*/ "apply_modified_givens_rotation failed");
   }
 }
 

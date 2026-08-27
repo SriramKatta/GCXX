@@ -28,7 +28,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::value_type::element_type>
 auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
-                  C&& c) -> void {
+                  C&& c)
+  -> void {  // NOLINT(cppcoreguidelines-missing-std-forward)
 
   // local alias for easier refrence
   using A_t  = std::decay_t<A>;
@@ -71,7 +72,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   if (a.size() != b.size() || a.size() != c.size()) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      "gemm_batched operands must hold the same number of matrices");
+      /*msg*/ "gemm_batched operands must hold the same number of matrices");
   }
 
   // an empty batch has nothing to compute
@@ -81,7 +82,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
 
   // Pin host pointer mode for the call (restored on scope exit): the pointer
   // arrays materialised below and the alpha/beta scalars are host memory.
-  details_::BlasPointerModeGuard guard{h, false};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
   // Extract dims from array[0]; all elements must agree (one m/n/k/ld/op).
   const auto [m, k, ld_a, op_a]   = details_::infer_blas_matrix_view(a[0]);
@@ -91,6 +92,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   if (k != k_b || out.rows != m || out.cols != n) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "gemm_batched requires A_i to be (m x k), B_i to be (k x n), and C_i "
       "to be (m x n)");
   }
@@ -106,6 +108,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
         vc.transposed != out.transposed) {
       details_::throwBlasError(
         GCXX_BLAS_STATUS(INVALID_VALUE),
+        /*msg*/
         "gemm_batched requires all matrices in an array to share extents, "
         "leading dimension, and layout");
     }
@@ -170,7 +173,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
 #endif
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "gemm_batched failed");
+    details_::throwBlasError(status, /*msg*/ "gemm_batched failed");
   }
 }
 

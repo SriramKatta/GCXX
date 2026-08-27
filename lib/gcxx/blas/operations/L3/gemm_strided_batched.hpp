@@ -22,8 +22,10 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 // Strided batched C_i = A_i*B_i; rank-3 operands with batch-first extents.
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
+// c is only indexed (never moved); forwarding an rvalue would change nothing.
 auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
-                          S beta, C&& c) -> void {
+                          S beta, C&& c)
+  -> void {  // NOLINT(cppcoreguidelines-missing-std-forward)
 
   // local alias for easier refrence
   using A_t = std::decay_t<A>;
@@ -63,7 +65,7 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
 
   // Pin host pointer mode for the call (restored on scope exit); alpha/beta
   // below are host scalars.
-  details_::BlasPointerModeGuard guard{h, false};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
@@ -90,12 +92,18 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
       batch_a != batch_c) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "gemm_strided_batched requires A_i to be (m x k), B_i to be (k x n), "
       "C_i to be (m x n), and all batches to have the same count");
   }
 
-  driver::deviceBlasStatus_t status{};
+  driver::deviceBlasStatus_t status{};  // NOLINT(misc-const-correctness)
+                                        // assigned by the dispatches below
   if (!trans_c) {
+    // The macro's two branches spell distinct entry points
+    // (GemmStridedBatchedEx_64 vs GemmStridedBatchedEx), which the checker
+    // cannot tell apart in uninstantiated code.
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     GCXX_BLAS_DISPATCH_INT64(
       status, AIt, GemmStridedBatchedEx, h.getRawHandle(), op_a, op_b, m, n, k,
       &alpha, a.data_handle(), cuda_datatype_v<AVt>, ld_a, stride_a,
@@ -104,6 +112,7 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
       blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
   } else {
     // C row-major-like: present the transposed problem C_i^T = B_i^T * A_i^T.
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     GCXX_BLAS_DISPATCH_INT64(
       status, AIt, GemmStridedBatchedEx, h.getRawHandle(),
       details_::flip_blas_op(op_b), details_::flip_blas_op(op_a), n, m, k,
@@ -114,7 +123,7 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "gemm_strided_batched failed");
+    details_::throwBlasError(status, /*msg*/ "gemm_strided_batched failed");
   }
 }
 

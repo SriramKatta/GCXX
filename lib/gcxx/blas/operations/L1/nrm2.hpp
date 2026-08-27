@@ -47,7 +47,7 @@ namespace nrm2_impl_ {
 
     // Pin host pointer mode for the call (restored on scope exit) so the result
     // lands in the host storage below.
-    details_::BlasPointerModeGuard guard{h, false};
+    const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
     // run-time device-memory probe (no-op unless checks are enabled)
     details_::validate_device_view(x, "x");
@@ -62,7 +62,7 @@ namespace nrm2_impl_ {
                              cuda_datatype_v<R>);
 
     if (status != driver::deviceBlasStatusSuccess) {
-      details_::throwBlasError(status, "vector_two_norm failed");
+      details_::throwBlasError(status, /*msg*/ "vector_two_norm failed");
     }
 
     // The backend's host-mode write may lag the host thread; make the returned
@@ -122,7 +122,7 @@ auto vector_two_norm(BlasHandleView h,
 
   // Select device pointer mode for this call; the result is written to the
   // wrapped device pointer asynchronously.
-  details_::BlasPointerModeGuard guard{h, true};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ true};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(x, "x");
@@ -137,7 +137,7 @@ auto vector_two_norm(BlasHandleView h,
                            cuda_datatype_v<R>, cuda_datatype_v<R>);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "vector_two_norm failed");
+    details_::throwBlasError(status, /*msg*/ "vector_two_norm failed");
   }
 }
 

@@ -68,6 +68,7 @@ auto matrix_product(
   if (alpha_res.from_device()) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "matrix_product: the write-only form has no device-resident beta, so a "
       "device_scalar scaled() factor is unsupported here; use the accumulate "
       "form (with a device_scalar zero addend) or host factors");
@@ -79,7 +80,7 @@ auto matrix_product(
 
   // Pin host pointer mode for the call (restored on scope exit); both
   // scalars above are host values in this form.
-  details_::BlasPointerModeGuard guard{h, false};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
@@ -94,11 +95,13 @@ auto matrix_product(
   // Extent compatibility (P1673R13); fail here rather than in the backend.
   if (k != k_b) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "matrix_product requires A.extent(1) == "
                              "B.extent(0)");
   }
   if (out.rows != m || out.cols != n) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "matrix_product requires C to be A.extent(0) x "
                              "B.extent(1)");
   }
@@ -122,7 +125,7 @@ auto matrix_product(
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "matrix_product failed");
+    details_::throwBlasError(status, /*msg*/ "matrix_product failed");
   }
 }
 
@@ -174,7 +177,7 @@ auto matrix_product(
   if (e.extent(0) != c.extent(0) || e.extent(1) != c.extent(1)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      "matrix_product addend E must have the same extents as C");
+      /*msg*/ "matrix_product addend E must have the same extents as C");
   }
 
   // The addend's factor doubles as beta (aliased) or geam alpha (split).
@@ -186,6 +189,7 @@ auto matrix_product(
     if (beta_res.from_device()) {
       details_::throwBlasError(
         GCXX_BLAS_STATUS(INVALID_VALUE),
+        /*msg*/
         "matrix_product: a non-aliased addend with a device_scalar scaled() "
         "factor is unsupported: the in-place geam accumulation would have to "
         "read a device-resident alpha and a host beta through one pointer "
@@ -204,6 +208,7 @@ auto matrix_product(
   if (alpha_res.from_device() != beta_res.from_device()) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "matrix_product: the backend reads alpha and beta through one pointer "
       "mode, so host and device_scalar factors cannot be mixed in one call");
   }
@@ -223,11 +228,13 @@ auto matrix_product(
 
   if (k != k_b) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "matrix_product requires A.extent(1) == "
                              "B.extent(0)");
   }
   if (out.rows != m || out.cols != n) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "matrix_product requires C to be A.extent(0) x "
                              "B.extent(1)");
   }
@@ -250,7 +257,7 @@ auto matrix_product(
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "matrix_product failed");
+    details_::throwBlasError(status, /*msg*/ "matrix_product failed");
   }
 }
 

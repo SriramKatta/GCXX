@@ -86,6 +86,7 @@ auto matrix_rank_1_update(
 
   if (len_x != rows_a || len_y != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "matrix_rank_1_update requires x to have "
                              "A.extent(0) elements and y to have "
                              "A.extent(1) elements");
@@ -105,7 +106,7 @@ auto matrix_rank_1_update(
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "matrix_rank_1_update failed");
+    details_::throwBlasError(status, /*msg*/ "matrix_rank_1_update failed");
   }
 }
 

@@ -85,7 +85,7 @@ auto geam(BlasHandleView h, S alpha,
       cols_b != out.cols) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      "geam requires A, B, and C to share the same extents");
+      /*msg*/ "geam requires A, B, and C to share the same extents");
   }
 
   driver::deviceBlasStatus_t status{};
@@ -104,7 +104,7 @@ auto geam(BlasHandleView h, S alpha,
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "geam failed");
+    details_::throwBlasError(status, /*msg*/ "geam failed");
   }
 }
 

@@ -90,11 +90,13 @@ auto symmetric_matrix_rank_2_update(
 
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "symmetric_matrix_rank_2_update requires A to "
                              "be square");
   }
   if (len_x != rows_a || len_y != rows_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "symmetric_matrix_rank_2_update requires x and "
                              "y to have A.extent(0) elements");
   }
@@ -102,11 +104,8 @@ auto symmetric_matrix_rank_2_update(
   constexpr driver::deviceBlasFillMode_t uplo_tag = details_::fill_mode_v<Tri>;
   // a row-major-like operand is read as its transpose, whose stored triangle
   // is the mirror of the tagged one
-  const auto uplo = op_a == driver::deviceBlasOpN
-                      ? uplo_tag
-                      : (uplo_tag == driver::deviceBlasFillModeUpper
-                           ? driver::deviceBlasFillModeLower
-                           : driver::deviceBlasFillModeUpper);
+  const auto uplo =
+    details_::mirrored_fill_mode(op_a != driver::deviceBlasOpN, uplo_tag);
 
   driver::deviceBlasStatus_t status{};
   GCXX_BLAS_DISPATCH_TYPED(status, XIt, XVt, syr2, h.getRawHandle(), uplo,
@@ -114,7 +113,8 @@ auto symmetric_matrix_rank_2_update(
                            y.data_handle(), inc_y, a.data_handle(), ld_a);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "symmetric_matrix_rank_2_update failed");
+    details_::throwBlasError(status,
+                             /*msg*/ "symmetric_matrix_rank_2_update failed");
   }
 }
 

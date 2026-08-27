@@ -89,6 +89,7 @@ auto triangular_matrix_matrix_solve(
   // dimension gates per side (fail here rather than inside the backend)
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "triangular_matrix_matrix_solve requires A to "
                              "be square");
   }
@@ -96,6 +97,7 @@ auto triangular_matrix_matrix_solve(
       (rows_b != rows_a || out.rows != rows_a || out.cols != cols_b)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_matrix_solve (left) requires B to be A.extent(0) x N "
       "and X to be A.extent(0) x B.extent(1)");
   }
@@ -103,6 +105,7 @@ auto triangular_matrix_matrix_solve(
       (cols_b != rows_a || out.rows != rows_b || out.cols != rows_a)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_matrix_solve (right) requires B to be M x "
       "A.extent(0) and X to be B.extent(0) x A.extent(0)");
   }
@@ -110,6 +113,7 @@ auto triangular_matrix_matrix_solve(
   if ((op_b == driver::deviceBlasOpN) == out.transposed) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_matrix_solve requires B and X to share storage "
       "orientation: the staging copy is elementwise, so a mixed pair would "
       "transpose the data");
@@ -129,6 +133,7 @@ auto triangular_matrix_matrix_solve(
   } else {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_matrix_solve: a device_scalar scaled() factor on B "
       "is unsupported: the staging copy runs under host pointer mode and the "
       "in-place solve's factor is the host constant 1; use host factors");
@@ -138,19 +143,13 @@ auto triangular_matrix_matrix_solve(
   constexpr driver::deviceBlasDiagType_t diag = details_::diagonal_type_v<Diag>;
 
   // Row-major-like A reads as its transpose; mirrored triangle, flipped op.
-  const auto uplo      = op_a == driver::deviceBlasOpN
-                           ? uplo_tag
-                           : (uplo_tag == driver::deviceBlasFillModeUpper
-                                ? driver::deviceBlasFillModeLower
-                                : driver::deviceBlasFillModeUpper);
+  const auto uplo =
+    details_::mirrored_fill_mode(op_a != driver::deviceBlasOpN, uplo_tag);
   const auto trans     = out.transposed ? details_::flip_blas_op(op_a) : op_a;
-  const auto side_mode = out.transposed ? (side == driver::deviceBlasSideLeft
-                                             ? driver::deviceBlasSideRight
-                                             : driver::deviceBlasSideLeft)
-                                        : side;
+  const auto side_mode = details_::flipped_blas_side(out.transposed, side);
 
   // The solve's scalar factor is host constant 1; pin host pointer mode.
-  details_::BlasPointerModeGuard guard{h, false};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
   const Sv alpha_host = Sv(1);
   const Sv* alpha_ptr = &alpha_host;
 
@@ -168,7 +167,8 @@ auto triangular_matrix_matrix_solve(
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "triangular_matrix_matrix_solve failed");
+    details_::throwBlasError(status,
+                             /*msg*/ "triangular_matrix_matrix_solve failed");
   }
 }
 

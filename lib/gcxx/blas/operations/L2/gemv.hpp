@@ -70,6 +70,7 @@ auto matrix_vector_product(
   if (alpha_res.from_device()) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "matrix_vector_product: the write-only form has no device-resident "
       "beta, so a device_scalar scaled() factor is unsupported here; use the "
       "accumulate form (with a device_scalar zero addend) or host factors");
@@ -81,7 +82,7 @@ auto matrix_vector_product(
 
   // Pin host pointer mode for the call (restored on scope exit); both
   // scalars above are host values in this form.
-  details_::BlasPointerModeGuard guard{h, false};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
@@ -96,6 +97,7 @@ auto matrix_vector_product(
   if (len_x != n || len_y != m) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "matrix_vector_product requires x to have A.extent(1) elements and y "
       "to have A.extent(0) elements");
   }
@@ -116,7 +118,7 @@ auto matrix_vector_product(
                            inc_y);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "matrix_vector_product failed");
+    details_::throwBlasError(status, /*msg*/ "matrix_vector_product failed");
   }
 }
 
@@ -167,7 +169,7 @@ auto matrix_vector_product(
   if (b.extent(0) != y.extent(0)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      "matrix_vector_product addend b must have the same extent as y");
+      /*msg*/ "matrix_vector_product addend b must have the same extent as y");
   }
 
   // The addend's factor doubles as beta (aliased) or axpy alpha (split).
@@ -192,6 +194,7 @@ auto matrix_vector_product(
   if (alpha_res.from_device() != beta_res.from_device()) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "matrix_vector_product: the backend reads alpha and beta through one "
       "pointer mode, so host and device_scalar factors cannot be mixed in "
       "one call");
@@ -213,6 +216,7 @@ auto matrix_vector_product(
   if (len_x != n || len_y != m) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "matrix_vector_product requires x to have A.extent(1) elements and y "
       "to have A.extent(0) elements");
   }
@@ -228,7 +232,7 @@ auto matrix_vector_product(
                            inc_y);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "matrix_vector_product failed");
+    details_::throwBlasError(status, /*msg*/ "matrix_vector_product failed");
   }
 }
 

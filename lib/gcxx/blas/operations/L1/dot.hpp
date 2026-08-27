@@ -54,7 +54,7 @@ namespace dot_impl_ {
 
     // Pin host pointer mode for the call (restored on scope exit) so the result
     // lands in the host storage below.
-    details_::BlasPointerModeGuard guard{h, false};
+    const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
     // run-time device-memory probe (no-op unless checks are enabled)
     details_::validate_device_view(x, "x");
@@ -67,8 +67,9 @@ namespace dot_impl_ {
     // extent compatibility: the backend takes a single n for both vectors, so
     // mismatched extents would read y past its allocation
     if (len_x != len_y) {
-      details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                               "dot requires x and y to have the same length");
+      details_::throwBlasError(
+        GCXX_BLAS_STATUS(INVALID_VALUE),
+        /*msg*/ "dot requires x and y to have the same length");
     }
 
     driver::deviceBlasStatus_t status{};
@@ -78,7 +79,7 @@ namespace dot_impl_ {
       static_cast<void*>(result), cuda_datatype_v<R>, cuda_datatype_v<R>);
 
     if (status != driver::deviceBlasStatusSuccess) {
-      details_::throwBlasError(status, "dot failed");
+      details_::throwBlasError(status, /*msg*/ "dot failed");
     }
 
     // The backend's host-mode write may lag the host thread; make the returned
@@ -146,7 +147,7 @@ auto dot(BlasHandleView h,
 
   // Select device pointer mode for this call; the result is written to the
   // wrapped device pointer asynchronously.
-  details_::BlasPointerModeGuard guard{h, true};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ true};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(x, "x");
@@ -159,8 +160,9 @@ auto dot(BlasHandleView h,
   // extent compatibility: the backend takes a single n for both vectors, so
   // mismatched extents would read y past its allocation
   if (len_x != len_y) {
-    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                             "dot requires x and y to have the same length");
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/ "dot requires x and y to have the same length");
   }
 
   driver::deviceBlasStatus_t status{};
@@ -171,7 +173,7 @@ auto dot(BlasHandleView h,
                            cuda_datatype_v<R>, cuda_datatype_v<R>);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "dot failed");
+    details_::throwBlasError(status, /*msg*/ "dot failed");
   }
 }
 

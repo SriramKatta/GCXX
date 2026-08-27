@@ -64,6 +64,7 @@ auto symmetric_matrix_rank_k_update(
   if (alpha_res.from_device()) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "symmetric_matrix_rank_k_update: the accumulate weight is the host "
       "constant 1, so a device_scalar scaled() factor on A cannot pair with "
       "it under one pointer mode; use host factors");
@@ -75,7 +76,7 @@ auto symmetric_matrix_rank_k_update(
 
   // Pin host pointer mode for the call (restored on scope exit); both
   // scalars above are host values.
-  details_::BlasPointerModeGuard guard{h, false};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
@@ -87,11 +88,13 @@ auto symmetric_matrix_rank_k_update(
 
   if (out.rows != out.cols) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "symmetric_matrix_rank_k_update requires C to "
                              "be square");
   }
   if (out.rows != rows_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "symmetric_matrix_rank_k_update requires A to "
                              "have C.extent(0) rows");
   }
@@ -100,11 +103,7 @@ auto symmetric_matrix_rank_k_update(
   // A row-major-like C is updated as its transpose, whose stored triangle is
   // the mirror of the tagged one (A*A^T is symmetric, so the update is
   // unchanged by the transposition)
-  const auto uplo = out.transposed
-                      ? (uplo_tag == driver::deviceBlasFillModeUpper
-                           ? driver::deviceBlasFillModeLower
-                           : driver::deviceBlasFillModeUpper)
-                      : uplo_tag;
+  const auto uplo = details_::mirrored_fill_mode(out.transposed, uplo_tag);
 
   // op_a carries A's storage orientation directly: a column-major-like
   // operand is the backend's trans=N problem, a row-major-like operand the
@@ -115,7 +114,8 @@ auto symmetric_matrix_rank_k_update(
                            beta_ptr, c.data_handle(), out.leading_dimension);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "symmetric_matrix_rank_k_update failed");
+    details_::throwBlasError(status,
+                             /*msg*/ "symmetric_matrix_rank_k_update failed");
   }
 }
 

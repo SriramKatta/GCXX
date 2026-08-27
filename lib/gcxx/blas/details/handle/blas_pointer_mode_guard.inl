@@ -10,9 +10,12 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_BEGIN()
 
 GCXX_FH BlasPointerModeGuard::BlasPointerModeGuard(
   BlasHandleView h, driver::deviceBlasPointerMode_t mode)
-    : m_handle(h) {
-  m_saved   = m_handle.getPointerMode();
-  m_changed = m_saved != mode;
+    : m_handle(h),
+      m_saved(h.getPointerMode()),  // use h, not m_handle: members initialize
+                                    // in declaration order, so a declaration
+                                    // reorder would read m_handle before its
+                                    // lifetime began (UB); h is always valid
+      m_changed(m_saved != mode) {
   if (m_changed) {
     m_handle.setPointerMode(mode);
   }

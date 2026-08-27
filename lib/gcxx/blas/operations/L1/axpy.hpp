@@ -74,18 +74,23 @@ auto axpy(BlasHandleView h, S alpha,
   // extent compatibility: the backend takes a single n for both vectors, so
   // mismatched extents would run y past its allocation
   if (len_x != len_y) {
-    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                             "axpy requires x and y to have the same length");
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/ "axpy requires x and y to have the same length");
   }
 
-  driver::deviceBlasStatus_t status{};
+  driver::deviceBlasStatus_t
+    status{};  // NOLINT(misc-const-correctness) assigned by the dispatch below
+  // The macro's two branches spell distinct entry points (AxpyEx_64 vs
+  // AxpyEx); the checker cannot tell them apart in uninstantiated code.
+  // NOLINTNEXTLINE(bugprone-branch-clone)
   GCXX_BLAS_DISPATCH_INT64(status, XIt, AxpyEx, h.getRawHandle(), len_x,
                            alpha_ptr, cuda_datatype_v<Sv>, x.data_handle(),
                            cuda_datatype_v<XVt>, inc_x, y.data_handle(),
                            cuda_datatype_v<YVt>, inc_y, cuda_datatype_v<Sv>);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "axpy failed");
+    details_::throwBlasError(status, /*msg*/ "axpy failed");
   }
 }
 

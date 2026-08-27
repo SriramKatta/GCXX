@@ -61,6 +61,7 @@ auto swap_elements(
   // vectors, so mismatched extents would swap past the shorter allocation
   if (len_x != len_y) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "swap_elements requires x and y to have the same "
                              "length");
   }
@@ -70,7 +71,7 @@ auto swap_elements(
                            x.data_handle(), inc_x, y.data_handle(), inc_y);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "swap_elements failed");
+    details_::throwBlasError(status, /*msg*/ "swap_elements failed");
   }
 }
 

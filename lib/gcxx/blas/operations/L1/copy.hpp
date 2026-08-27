@@ -59,6 +59,7 @@ auto copy(BlasHandleView h,
   // mismatched extents would run to past its allocation
   if (len_x != len_y) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "copy requires from and to to have the same "
                              "length");
   }
@@ -68,7 +69,7 @@ auto copy(BlasHandleView h,
                            from.data_handle(), inc_x, to.data_handle(), inc_y);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "copy failed");
+    details_::throwBlasError(status, /*msg*/ "copy failed");
   }
 }
 

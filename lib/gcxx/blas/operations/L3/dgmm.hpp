@@ -70,22 +70,26 @@ auto dgmm(BlasHandleView h, Side side,
   // The diagonal vector must match the scaled extent for the chosen side.
   constexpr driver::deviceBlasSideMode_t mode = details_::side_mode_v<Side>;
   if (mode == driver::deviceBlasSideLeft && len_x != m) {
-    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                             "dgmm left side requires x length == rows of A");
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/ "dgmm left side requires x length == rows of A");
   }
   if (mode == driver::deviceBlasSideRight && len_x != n) {
-    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                             "dgmm right side requires x length == cols of A");
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/ "dgmm right side requires x length == cols of A");
   }
   if (out.rows != m || out.cols != n) {
-    details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                             "dgmm requires C to have the same extents as A");
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/ "dgmm requires C to have the same extents as A");
   }
   // cublasDdgmm takes no transpose flags: A and C are read/written
   // column-major as given, so their orientations must match.
   if ((op_a == driver::deviceBlasOpN) != !out.transposed) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "dgmm requires A and C to share storage orientation: the backend entry "
       "point takes no transpose flags, so a column-major-like A must pair "
       "with a column-major-like C and a row-major-like A with a row-major-"
@@ -110,7 +114,7 @@ auto dgmm(BlasHandleView h, Side side,
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "dgmm failed");
+    details_::throwBlasError(status, /*msg*/ "dgmm failed");
   }
 }
 

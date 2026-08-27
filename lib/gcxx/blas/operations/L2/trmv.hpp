@@ -80,12 +80,14 @@ auto triangular_matrix_vector_product(
 
   if (rows_a != cols_a) {
     details_::throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                             /*msg*/
                              "triangular_matrix_vector_product requires A "
                              "to be square");
   }
   if (len_x != cols_a || len_y != rows_a) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_vector_product requires x and y to have "
       "A.extent(0) elements");
   }
@@ -108,11 +110,8 @@ auto triangular_matrix_vector_product(
 
   // a row-major-like operand is read as its transpose: the mirrored triangle
   // plus the flipped op flag recover the mathematical A
-  const auto uplo  = op_a == driver::deviceBlasOpN
-                       ? uplo_tag
-                       : (uplo_tag == driver::deviceBlasFillModeUpper
-                            ? driver::deviceBlasFillModeLower
-                            : driver::deviceBlasFillModeUpper);
+  const auto uplo =
+    details_::mirrored_fill_mode(op_a != driver::deviceBlasOpN, uplo_tag);
   const auto trans = op_a;  // N stays N (column-major-like); T flips it back
 
   driver::deviceBlasStatus_t status{};
@@ -122,6 +121,7 @@ auto triangular_matrix_vector_product(
 
   if (status != driver::deviceBlasStatusSuccess) {
     details_::throwBlasError(status,
+                             /*msg*/
                              "triangular_matrix_vector_product "
                              "failed");
   }
@@ -176,12 +176,14 @@ auto triangular_matrix_vector_product(
   if (b.extent(0) != y.extent(0)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_vector_product addend b must have the same extent "
       "as y");
   }
   if (details_::views_alias(b, y)) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "triangular_matrix_vector_product: the addend b must not alias y "
       "(the in-place trmv staging would destroy it); pass a distinct "
       "addend view");

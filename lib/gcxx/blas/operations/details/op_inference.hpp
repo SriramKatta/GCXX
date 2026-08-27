@@ -82,8 +82,9 @@ constexpr auto infer_blas_op_view(IdxT s0, IdxT s1) -> blas_op_view<IdxT> {
   if (s1 == 1) {
     return {s0, driver::deviceBlasOpT};
   }
-  throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                 "BLAS matrix operand must have a unit stride on one axis");
+  throwBlasError(
+    GCXX_BLAS_STATUS(INVALID_VALUE),
+    /*msg*/ "BLAS matrix operand must have a unit stride on one axis");
 }
 
 // Flip N<->T; reading storage with the flipped flag yields the transpose.
@@ -91,6 +92,32 @@ constexpr auto flip_blas_op(driver::deviceBlasOp_t op)
   -> driver::deviceBlasOp_t {
   return op == driver::deviceBlasOpN ? driver::deviceBlasOpT
                                      : driver::deviceBlasOpN;
+}
+
+// Fill-mode seen by the backend when an operand is read through its
+// transpose: the stored triangle mirrors the tagged one.
+constexpr auto mirrored_fill_mode(bool transposed_read,
+                                  driver::deviceBlasFillMode_t uplo_tag)
+  -> driver::deviceBlasFillMode_t {
+  if (!transposed_read) {
+    return uplo_tag;
+  }
+  if (uplo_tag == driver::deviceBlasFillModeUpper) {
+    return driver::deviceBlasFillModeLower;
+  }
+  return driver::deviceBlasFillModeUpper;
+}
+
+// Side seen by the backend when the OUTPUT is row-major-like: the whole
+// problem is transposed, swapping left/right.
+constexpr auto flipped_blas_side(bool transposed_output,
+                                 driver::deviceBlasSideMode_t side)
+  -> driver::deviceBlasSideMode_t {
+  if (!transposed_output) {
+    return side;
+  }
+  return side == driver::deviceBlasSideLeft ? driver::deviceBlasSideRight
+                                            : driver::deviceBlasSideLeft;
 }
 
 template <class MD>
@@ -139,6 +166,7 @@ constexpr auto infer_blas_batched_matrix_view(const MD& v)
   if (v.stride(1) != 1 && v.stride(2) != 1) {
     throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
       "BLAS batched matrix operand's inner matrices must have a unit stride "
       "on one axis: a layout_left (batch, rows, cols) operand with batch > 1 "
       "interleaves the inner matrices (its batch axis is the unit-stride "
@@ -253,8 +281,9 @@ constexpr auto infer_blas_output_view(const MD& v)
   if (s1 == 1) {
     return {v.extent(0), v.extent(1), s0, true};
   }
-  throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
-                 "BLAS matrix output must have a unit stride on one axis");
+  throwBlasError(
+    GCXX_BLAS_STATUS(INVALID_VALUE),
+    /*msg*/ "BLAS matrix output must have a unit stride on one axis");
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()

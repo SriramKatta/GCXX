@@ -78,17 +78,21 @@ auto apply_givens_rotation(
   if (len_x != len_y) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      "apply_givens_rotation requires x and y to have the same length");
+      /*msg*/ "apply_givens_rotation requires x and y to have the same length");
   }
 
-  driver::deviceBlasStatus_t status{};
+  driver::deviceBlasStatus_t
+    status{};  // NOLINT(misc-const-correctness) assigned by the dispatch below
+  // The macro's two branches spell distinct entry points (RotEx_64 vs
+  // RotEx); the checker cannot tell them apart in uninstantiated code.
+  // NOLINTNEXTLINE(bugprone-branch-clone)
   GCXX_BLAS_DISPATCH_INT64(status, XIt, RotEx, h.getRawHandle(), len_x,
                            x.data_handle(), cuda_datatype_v<XVt>, inc_x,
                            y.data_handle(), cuda_datatype_v<YVt>, inc_y, c_ptr,
                            s_ptr, cuda_datatype_v<Sv>, cuda_datatype_v<XVt>);
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "apply_givens_rotation failed");
+    details_::throwBlasError(status, /*msg*/ "apply_givens_rotation failed");
   }
 }
 

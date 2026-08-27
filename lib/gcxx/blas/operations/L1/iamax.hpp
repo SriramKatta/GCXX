@@ -41,7 +41,7 @@ auto idx_abs_max(BlasHandleView h,
 
   // Pin host pointer mode for the call (restored on scope exit) so the result
   // lands in the host storage below.
-  details_::BlasPointerModeGuard guard{h, false};
+  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(x, "x");
@@ -63,7 +63,7 @@ auto idx_abs_max(BlasHandleView h,
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, "idx_abs_max failed");
+    details_::throwBlasError(status, /*msg*/ "idx_abs_max failed");
   }
 
   // The backend's host-mode write may lag the host thread; make the returned
