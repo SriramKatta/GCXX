@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_error_common.hpp>
 #include <gcxx/runtime_backend/backend_sparse_handles.hpp>
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
@@ -43,17 +44,8 @@ GCXX_FH auto GetSparseStatusName(deviceSparseStatus_t status) -> const char* {
 
 GCXX_FH auto make_message(deviceSparseStatus_t status,
                           std::string_view context) -> std::string {
-  std::string msg{};
-  msg.reserve(context.size() + additional_message_size);
-
-  msg.append(context)
-    .append(": ")
-    .append(GetSparseStatusName(status))
-    .append(" (")
-    .append(std::to_string(static_cast<int>(status)))
-    .append(")");
-
-  return msg;
+  return make_status_message(context, GetSparseStatusName(status),
+                             std::to_string(static_cast<int>(status)));
 }
 
 GCXX_NAMESPACE_MAIN_DRIVER_END()

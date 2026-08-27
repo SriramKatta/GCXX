@@ -18,7 +18,7 @@ GCXX_FH auto EventRecordNodeView::getEvent() -> EventView {
   return {driver::graphEventRecordNodeGetEvent(m_node)};
 }
 
-GCXX_FH auto EventRecordNodeView::setEvent(const EventView event) -> void {
+GCXX_FH auto EventRecordNodeView::setEvent(const EventView& event) -> void {
   driver::graphEventRecordNodeSetEvent(m_node, event.getRawHandle());
 }
 

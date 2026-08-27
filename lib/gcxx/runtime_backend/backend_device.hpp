@@ -38,7 +38,7 @@ GCXX_FH auto deviceGetByPCIBusId(const char* pciBusId) -> int {
   return device;
 }
 
-GCXX_FH auto deviceGetCacheConfig(int device) -> funcCacheConfig_t {
+GCXX_FH auto deviceGetCacheConfig() -> funcCacheConfig_t {
   funcCacheConfig_t config{};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetCacheConfig,
                          "Failed to get device cache configuration", &config);

@@ -13,9 +13,6 @@
 #include <gcxx/macros/version_macros.hpp>
 #include <gcxx/runtime/runtime_error.hpp>
 
-// Reserved headroom for the status text appended
-constexpr std::size_t additional_message_size = 32;
-
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 using device_t = int;

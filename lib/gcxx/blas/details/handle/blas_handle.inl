@@ -14,7 +14,7 @@
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 
-BlasHandle::BlasHandle() : BlasHandleView(driver::blasCreate()) {}
+inline BlasHandle::BlasHandle() : BlasHandleView(driver::blasCreate()) {}
 
 GCXX_FH BlasHandle::~BlasHandle() noexcept {
   destroy();

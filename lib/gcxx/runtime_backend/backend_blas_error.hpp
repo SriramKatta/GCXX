@@ -9,6 +9,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime_backend/backend_blas_handles.hpp>
+#include <gcxx/runtime_backend/backend_error_common.hpp>
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
 
@@ -39,17 +40,8 @@ GCXX_FH auto GetBlasStatusName(deviceBlasStatus_t status) -> const char* {
 
 GCXX_FH auto make_message(deviceBlasStatus_t status,
                           std::string_view context) -> std::string {
-  std::string msg{};
-  msg.reserve(context.size() + additional_message_size);
-
-  msg.append(context)
-    .append(": ")
-    .append(GetBlasStatusName(status))
-    .append(" (")
-    .append(std::to_string(static_cast<int>(status)))
-    .append(")");
-
-  return msg;
+  return make_status_message(context, GetBlasStatusName(status),
+                             std::to_string(static_cast<int>(status)));
 }
 
 GCXX_NAMESPACE_MAIN_DRIVER_END()

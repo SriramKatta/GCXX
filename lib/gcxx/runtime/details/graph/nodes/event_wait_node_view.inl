@@ -18,7 +18,7 @@ GCXX_FH auto EventWaitNodeView::getEvent() -> EventView {
   return {driver::graphEventWaitNodeGetEvent(m_node)};
 }
 
-GCXX_FH auto EventWaitNodeView::setEvent(const EventView event) -> void {
+GCXX_FH auto EventWaitNodeView::setEvent(const EventView& event) -> void {
   driver::graphEventWaitNodeSetEvent(m_node, event.getRawHandle());
 }
 

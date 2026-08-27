@@ -14,7 +14,7 @@ class Event : public EventView {
 
  public:
   GCXX_FH auto destroy() -> void;
-  GCXX_FH Event(const flags::eventCreate createFlag = flags::eventCreate::None);
+  GCXX_FH Event(flags::eventCreate createFlag = flags::eventCreate::None);
 
   GCXX_FH ~Event();
 

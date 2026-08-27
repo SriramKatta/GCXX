@@ -17,7 +17,7 @@ class EventRecordNodeView : public GraphNodeView {
 
   GCXX_FH auto getEvent() -> EventView;
 
-  GCXX_FH auto setEvent(const EventView event) -> void;
+  GCXX_FH auto setEvent(const EventView& event) -> void;
 };
 
 GCXX_NAMESPACE_MAIN_END()
