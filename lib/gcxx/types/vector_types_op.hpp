@@ -4,6 +4,7 @@
 #ifndef GCXX_TYPES_VECTOR_TYPES_OP_HPP
 #define GCXX_TYPES_VECTOR_TYPES_OP_HPP
 
+#include <gcxx/functional/functional.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/types/vector_types.hpp>
@@ -15,7 +16,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 // LHS and RHS are unrelated template parameters — an operation is vectorized
 // when EITHER operand is a vector — so the two sides are not equivalent.
-// NOLINTNEXTLINE(misc-redundant-expression)
+
 template <typename LHS, typename RHS>
 inline constexpr bool binary_vec_op_v = is_vectype_v<LHS> || is_vectype_v<RHS>;
 
@@ -136,42 +137,6 @@ namespace impl {
     }
   }
 
-  namespace op {
-    struct product {
-      template <typename VT>
-      GCXX_FHDC auto operator()(VT a, VT b) -> VT {
-        return a * b;
-      }
-    };
-
-    struct sum {
-      template <typename VT>
-      GCXX_FHDC auto operator()(VT a, VT b) -> VT {
-        return a + b;
-      }
-    };
-
-    struct difference {
-      template <typename VT>
-      GCXX_FHDC auto operator()(VT a, VT b) -> VT {
-        return a - b;
-      }
-    };
-
-    struct quotient {
-      template <typename VT>
-      GCXX_FHDC auto operator()(VT a, VT b) -> VT {
-        return a / b;
-      }
-    };
-
-    struct remainder {
-      GCXX_TEMPLATE(typename VT)
-      GCXX_REQUIRES(std::is_integral_v<VT>)
-      GCXX_FHDC auto operator()(VT a, VT b) -> VT { return a % b; }
-    };
-  }  // namespace op
-
 }  // namespace impl
 
 GCXX_NAMESPACE_MAIN_DETAILS_END()
@@ -181,8 +146,7 @@ GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator+(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
-  using gcxx::details_::impl::op::sum;
-  return apply_binary_dispatch(lhs, rhs, sum{});
+  return apply_binary_dispatch(lhs, rhs, gcxx::plus{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
@@ -190,8 +154,7 @@ GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator-(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
-  using gcxx::details_::impl::op::difference;
-  return apply_binary_dispatch(lhs, rhs, difference{});
+  return apply_binary_dispatch(lhs, rhs, gcxx::minus{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
@@ -199,8 +162,7 @@ GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator*(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
-  using gcxx::details_::impl::op::product;
-  return apply_binary_dispatch(lhs, rhs, product{});
+  return apply_binary_dispatch(lhs, rhs, gcxx::multiplies{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
@@ -208,8 +170,7 @@ GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
 GCXX_FHDC auto operator/(const LHS& lhs, const RHS& rhs)
   -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
-  using gcxx::details_::impl::op::quotient;
-  return apply_binary_dispatch(lhs, rhs, quotient{});
+  return apply_binary_dispatch(lhs, rhs, gcxx::divides{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
@@ -222,24 +183,21 @@ GCXX_FHDC auto operator%(const LHS& lhs, const RHS& rhs)
   static_assert(std::is_integral_v<elem_t>,
                 "vector operator% only supports integral element types");
   using gcxx::details_::impl::apply_binary_dispatch;
-  using gcxx::details_::impl::op::remainder;
-  return apply_binary_dispatch(lhs, rhs, remainder{});
+  return apply_binary_dispatch(lhs, rhs, gcxx::modulus{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
 GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator+=(LHS& lhs, const RHS& rhs) -> LHS& {
   using gcxx::details_::impl::apply_inplace_dispatch;
-  using gcxx::details_::impl::op::sum;
-  return apply_inplace_dispatch(lhs, rhs, sum{});
+  return apply_inplace_dispatch(lhs, rhs, gcxx::plus{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
 GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator-=(LHS& lhs, const RHS& rhs) -> LHS& {
   using gcxx::details_::impl::apply_inplace_dispatch;
-  using gcxx::details_::impl::op::difference;
-  return apply_inplace_dispatch(lhs, rhs, difference{});
+  return apply_inplace_dispatch(lhs, rhs, gcxx::minus{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
@@ -247,16 +205,14 @@ GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator/=(LHS& lhs, const RHS& rhs) -> LHS& {
 
   using gcxx::details_::impl::apply_inplace_dispatch;
-  using gcxx::details_::impl::op::quotient;
-  return apply_inplace_dispatch(lhs, rhs, quotient{});
+  return apply_inplace_dispatch(lhs, rhs, gcxx::divides{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
 GCXX_REQUIRES(gcxx::details_::is_vectype_v<LHS>)
 GCXX_FHDC auto operator*=(LHS& lhs, const RHS& rhs) -> LHS& {
   using gcxx::details_::impl::apply_inplace_dispatch;
-  using gcxx::details_::impl::op::product;
-  return apply_inplace_dispatch(lhs, rhs, product{});
+  return apply_inplace_dispatch(lhs, rhs, gcxx::multiplies{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
@@ -267,8 +223,7 @@ GCXX_FHDC auto operator%=(LHS& lhs, const RHS& rhs) -> LHS& {
   static_assert(std::is_integral_v<elem_t>,
                 "vector operator%= only supports integral element types");
   using gcxx::details_::impl::apply_inplace_dispatch;
-  using gcxx::details_::impl::op::remainder;
-  return apply_inplace_dispatch(lhs, rhs, remainder{});
+  return apply_inplace_dispatch(lhs, rhs, gcxx::modulus{});
 }
 
 // TODO: Use expression templates to avoid temporaries (CppCon 2019 talk).

@@ -6,6 +6,9 @@
 // clang-format off
 #include <gcxx/internal/prologue.hpp>
 
+// section for functional
+#include <gcxx/functional/functional.hpp>
+
 // section for types
 #include <gcxx/types/scalar_types.hpp>
 #include <gcxx/types/shared_mem.hpp>
