@@ -73,6 +73,9 @@ GCXX_FH auto Fill(DSTTY&& destination, const Val& value) -> void {
 
 GCXX_TEMPLATE(typename DSTTY, typename Val)
 GCXX_REQUIRES(is_span_like_v<DSTTY>)
+// Inspection-only: data()/size() take lvalue refs, so forwarding an rvalue
+// destination would feed a const pointer into fill_dispatch.
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 GCXX_FH auto Fill(const StreamView& stream, DSTTY&& destination,
                   const Val& value) -> void {
   using element_t = span_element_t<DSTTY>;

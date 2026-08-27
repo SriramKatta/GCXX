@@ -35,8 +35,9 @@ GCXX_FH auto Event::release() GCXX_NOEXCEPT -> EventView {
 }
 
 GCXX_FH auto Event::operator=(Event&& other) noexcept -> Event& {
-  if (this != &other)
+  if (this != &other) {
     this->m_event = std::exchange(other.m_event, driver::INVALID_EVENT);
+  }
   return *this;
 }
 

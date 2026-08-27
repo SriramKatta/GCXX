@@ -16,8 +16,7 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
     return;
   }
   m_stream = driver::streamCreateWithPriority(
-    static_cast<details_::flag_t>(createFlag),
-    -static_cast<details_::flag_t>(priorityFlag));
+    static_cast<details_::flag_t>(createFlag), -static_cast<int>(priorityFlag));
 }
 
 GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {

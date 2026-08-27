@@ -8,7 +8,6 @@
 #include <gcxx/runtime/flags/event_flags.hpp>
 
 #include <gcxx/runtime/event/event_view.hpp>
-#include <gcxx/runtime/stream/stream_view.hpp>
 
 #include <utility>
 
@@ -39,7 +38,8 @@ auto EventView::operator=(const EventView& eventRef)
 }
 
 GCXX_CXPR
-auto operator==(const EventView lhs, const EventView rhs) GCXX_NOEXCEPT->bool {
+auto operator==(const EventView& lhs,
+                const EventView& rhs) GCXX_NOEXCEPT->bool {
   return lhs.m_event == rhs.m_event;
 }
 
@@ -54,16 +54,7 @@ GCXX_FH auto EventView::hasOccurred() const -> bool {
   return details_::nonFatalErrorQuery(err);
 }
 
-GCXX_FH auto EventView::recordInStream(const flags::eventRecord recordFlag)
-  -> void {
-  recordInStream(StreamView::Null(), recordFlag);
-}
-
-GCXX_FH auto EventView::recordInStream(
-  const StreamView& stream, const flags::eventRecord recordFlag) -> void {
-  driver::eventRecordWithFlags(m_event, stream.getRawHandle(),
-                               static_cast<details_::flag_t>(recordFlag));
-}
+// recordInStream(...) is defined in details/stream/stream_view.inl
 
 GCXX_FH auto EventView::sync() const -> void {
   driver::eventSynchronize(m_event);
