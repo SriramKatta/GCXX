@@ -78,6 +78,26 @@ file(
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hh"
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.cuh"
 )
+
+# Skip backend headers for the *inactive* backend: they include that backend's
+# SDK unconditionally (cuda_runtime.h / hip_runtime.h), which is not present
+# when tidy runs inside a single-backend container.
+set(_gcxx_tidy_exclude "")
+if(GCXX_CUDA_MODE)
+  set(_gcxx_tidy_exclude "backend/hip_[^/]*\\.hpp$")
+elseif(GCXX_HIP_MODE)
+  set(_gcxx_tidy_exclude "backend/cuda_[^/]*\\.hpp$")
+endif()
+if(_gcxx_tidy_exclude)
+  list(
+    FILTER
+    _gcxx_headers
+    EXCLUDE
+    REGEX
+    "${_gcxx_tidy_exclude}"
+  )
+endif()
+
 gcxx_tidy_add_target(
   TARGET
   gcxx

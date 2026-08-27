@@ -53,6 +53,10 @@ Checks:
   - '-modernize-avoid-c-arrays'
   - '-cppcoreguidelines-avoid-c-arrays'
 
+  # ---- Driver ABI types: stream/graph ids are 'unsigned long long' in both
+  # ---- the CUDA and HIP APIs; matching the SDK signature is the contract.
+  - '-google-runtime-int'
+
   # ---- Flag enums: the details_::flag_t (unsigned int) base type matches the
   # ---- CUDA driver's enum ABI and is static_cast to/from driver types; the
   # ---- "use uint8_t" suggestion would narrow/fragment that contract.

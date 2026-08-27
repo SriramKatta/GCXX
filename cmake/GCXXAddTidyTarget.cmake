@@ -58,22 +58,42 @@ function(_gcxx_tidy_write_db)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# Internal helper — append a target's INTERFACE_INCLUDE_DIRECTORIES to _flags.
+# Internal helper — append a target's INTERFACE_INCLUDE_DIRECTORIES (as
+# <flag_prefix><dir>) and INTERFACE_COMPILE_DEFINITIONS (as -D<def>) to _flags.
+#
+# ROCm's imported targets split their interface: e.g. hip::host carries only
+# INTERFACE_LINK_LIBRARIES + __HIP_PLATFORM_AMD__, while the include dir lives
+# on hip::amdhip64 — so both the includes and the platform define must be
+# harvested explicitly or clang-tidy can't parse hip/*.h.
+# Entries containing generator expressions ($<…>) are skipped: they cannot be
+# evaluated at configure time here.
 # ---------------------------------------------------------------------------
-function(_gcxx_tidy_add_includes target flag_prefix)
+function(_gcxx_tidy_add_target_props target flag_prefix)
   if(NOT TARGET "${target}")
     return()
   endif()
   get_target_property(_incs "${target}" INTERFACE_INCLUDE_DIRECTORIES)
   if(_incs)
     foreach(_inc IN LISTS _incs)
+      if(_inc MATCHES "\\$<")
+        continue()
+      endif()
       list(APPEND _flags "${flag_prefix}${_inc}")
     endforeach()
-    set(_flags
-        "${_flags}"
-        PARENT_SCOPE
-    )
   endif()
+  get_target_property(_defs "${target}" INTERFACE_COMPILE_DEFINITIONS)
+  if(_defs)
+    foreach(_def IN LISTS _defs)
+      if(_def MATCHES "\\$<")
+        continue()
+      endif()
+      list(APPEND _flags "-D${_def}")
+    endforeach()
+  endif()
+  set(_flags
+      "${_flags}"
+      PARENT_SCOPE
+  )
 endfunction()
 
 # ---------------------------------------------------------------------------
@@ -85,32 +105,29 @@ function(_gcxx_tidy_collect_flags out_var)
              "-Wno-error=unused-command-line-argument"
   )
 
-  # Direct include directories on gpu_cxx (e.g. lib/)
+  # Direct include directories + definitions on gpu_cxx (e.g. lib/)
   if(TARGET gpu_cxx)
-    _gcxx_tidy_add_includes(gpu_cxx "-I")
-
-    # Compile definitions (GCXX_CUDA_MODE, MDSPAN_IMPL_*, …)
-    get_target_property(_defs gpu_cxx INTERFACE_COMPILE_DEFINITIONS)
-    if(_defs)
-      foreach(_def IN LISTS _defs)
-        list(APPEND _flags "-D${_def}")
-      endforeach()
-    endif()
+    _gcxx_tidy_add_target_props(gpu_cxx "-I")
   endif()
 
   # mdspan — system include so its own warnings are suppressed
-  _gcxx_tidy_add_includes(mdspan_headers "-isystem")
+  _gcxx_tidy_add_target_props(mdspan_headers "-isystem")
 
-  # CUDA runtime + BLAS backend headers — system includes
+  # CUDA runtime + BLAS/SPARSE backend headers — system includes
   if(GCXX_CUDA_MODE)
-    _gcxx_tidy_add_includes(CUDA::cudart "-isystem")
-    _gcxx_tidy_add_includes(CUDA::cublas "-isystem")
+    _gcxx_tidy_add_target_props(CUDA::cudart "-isystem")
+    _gcxx_tidy_add_target_props(CUDA::cublas "-isystem")
+    _gcxx_tidy_add_target_props(CUDA::cusparse "-isystem")
   endif()
 
-  # HIP runtime + BLAS backend headers — system includes
+  # HIP runtime + BLAS/SPARSE backend headers — system includes.
+  # roc::* is the target namespace the ROCm find modules create; hip::host
+  # still supplies __HIP_PLATFORM_AMD__ via its compile definitions.
   if(GCXX_HIP_MODE)
-    _gcxx_tidy_add_includes(hip::host "-isystem")
-    _gcxx_tidy_add_includes(hip::hipblas "-isystem")
+    _gcxx_tidy_add_target_props(hip::host "-isystem")
+    _gcxx_tidy_add_target_props(hip::amdhip64 "-isystem")
+    _gcxx_tidy_add_target_props(roc::hipblas "-isystem")
+    _gcxx_tidy_add_target_props(roc::hipsparse "-isystem")
   endif()
 
   # Stub out CUDA qualifiers so clang parses GPU headers without a CUDA
