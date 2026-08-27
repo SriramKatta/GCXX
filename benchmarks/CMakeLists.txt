@@ -13,4 +13,5 @@ else()
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmarks)
 endif()
 
+add_subdirectory(gemm_raw_vs_wrapped)
 add_subdirectory(kernel_params_direct_vs_builder)
