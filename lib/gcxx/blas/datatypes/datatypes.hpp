@@ -9,6 +9,7 @@
 
 #include <gcxx/backend/backend_blas.hpp>
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/types/scalar_types.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()

@@ -18,7 +18,6 @@ struct restrict_accessor : public Accessor {
   static_assert(std::is_pointer_v<typename Accessor::data_handle_type>,
                 "Accessor::data_handle_type must be a raw pointer");
 
- public:
   using offset_policy    = restrict_accessor<typename Accessor::offset_policy>;
   using element_type     = typename Accessor::element_type;
   using reference        = typename Accessor::reference;

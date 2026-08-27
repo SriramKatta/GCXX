@@ -48,7 +48,6 @@ struct scaled_accessor : public NestedAccessor {
   static_assert(std::is_object_v<typename NestedAccessor::element_type>,
                 "NestedAccessor::element_type must be an object type");
 
- public:
   using offset_policy =
     scaled_accessor<ScalingFactor, typename NestedAccessor::offset_policy>;
   using element_type = typename NestedAccessor::element_type;
