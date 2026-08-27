@@ -13,6 +13,7 @@
 #include <gcxx/runtime_backend/backend_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
+// NOLINTBEGIN(cppcoreguidelines-missing-std-forward)
 
 // Copy via smart/raw pointers.
 GCXX_TEMPLATE(typename Ptr1, typename Ptr2)
@@ -67,6 +68,7 @@ GCXX_FH auto Copy(const StreamView& stream, DSTTY&& destination,
     details_::size(destination) * sizeof(span_element_t<DSTTY>),
     stream.getRawHandle());
 }
+// NOLINTEND(cppcoreguidelines-missing-std-forward)
 
 GCXX_NAMESPACE_MAIN_END()
 

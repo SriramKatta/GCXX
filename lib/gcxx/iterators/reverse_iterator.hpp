@@ -167,6 +167,7 @@ class reverse_iterator {
   }
 
  protected:
+  // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   Iterator_t current_{};
 };
 

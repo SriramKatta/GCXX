@@ -31,7 +31,7 @@ template <flags::deviceAttribute Attr, typename ValueType>
 struct device_attr_impl {
   using type = ValueType;
 
-  static inline constexpr flags::deviceAttribute attribute = Attr;
+  static constexpr flags::deviceAttribute attribute = Attr;
 
   // TODO: May not be right but works for now.
   GCXX_FH constexpr operator flags::deviceAttribute() const noexcept {
@@ -113,7 +113,7 @@ namespace dev_attr {
 
 #define GCXX_DEVICE_ATTR_DEFINE(ATTR_MEMBER, NAME)                   \
   using NAME##_t = device_attr<flags::deviceAttribute::ATTR_MEMBER>; \
-  static inline constexpr NAME##_t NAME {}
+  static constexpr NAME##_t NAME {}
 
   GCXX_DEVICE_ATTR_DEFINE(AsyncEngineCount, async_engine_count);
 
@@ -320,7 +320,7 @@ template <flags::deviceLimit Attr>
 struct device_limit_impl {
   using type = std::size_t;
 
-  static inline constexpr flags::deviceLimit attribute = Attr;
+  static constexpr flags::deviceLimit attribute = Attr;
 
   GCXX_FH constexpr operator flags::deviceLimit()
     const noexcept {  // NOLINT(google-explicit-constructor)
@@ -346,7 +346,7 @@ namespace device_limits {
 
 #define GCXX_DEVICE_LIMIT_DEFINE(LIMIT_MEMBER, NAME)               \
   using NAME##_t = device_limit<flags::deviceLimit::LIMIT_MEMBER>; \
-  static inline constexpr NAME##_t NAME {}
+  static constexpr NAME##_t NAME {}
 
   GCXX_DEVICE_LIMIT_DEFINE(StackSize, stack_size);
 

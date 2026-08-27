@@ -56,6 +56,10 @@ class StreamView {
   GCXX_TEMPLATE(typename Span)
   GCXX_REQUIRES(is_span_like_v<Span>)
   GCXX_FH auto attachMemAsync(
+    // mem is deliberately not forwarded: data()/size() take lvalue refs, and
+    // the const-data() fallback would feed a const pointer into the void*
+    // cast below.
+    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
     Span&& mem,
     flags::memAttach flag = flags::memAttach::Single) const -> void {
     driver::streamAttachMemAsync(

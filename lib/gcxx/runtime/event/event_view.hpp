@@ -43,13 +43,18 @@ class EventView {
   GCXX_CXPR
   auto operator=(const EventView& eventRef) GCXX_NOEXCEPT->EventView&;
 
+  // Views are handle wrappers: moving just transfers the same raw handle.
+  ~EventView()                                                    = default;
+  GCXX_CXPR EventView(EventView&&) GCXX_NOEXCEPT                  = default;
+  GCXX_CXPR auto operator=(EventView&&) GCXX_NOEXCEPT->EventView& = default;
+
   GCXX_FHC auto getRawHandle() GCXX_CONST_NOEXCEPT -> raw_handle_type;
 
   GCXX_CXPR explicit operator bool() GCXX_CONST_NOEXCEPT;
 
   GCXX_CXPR
-  friend auto operator==(const EventView lhs,
-                         const EventView rhs) GCXX_NOEXCEPT->bool;
+  friend auto operator==(const EventView& lhs,
+                         const EventView& rhs) GCXX_NOEXCEPT->bool;
 
   GCXX_CXPR
   friend auto operator!=(const EventView& lhs,

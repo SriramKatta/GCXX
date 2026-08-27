@@ -22,7 +22,6 @@ namespace detail {
   // Primary: reached only for host_device (managed) memory.
   template <typename Tp, bool IsConst, memory_accessibility Space>
   class iter_access {
-   private:
     using element_ptr_t = maybe_const<IsConst, Tp>*;
     using element_ref_t = maybe_const<IsConst, Tp>&;
 
@@ -38,6 +37,7 @@ namespace detail {
     }
 
    protected:
+    // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
     element_ptr_t ptr_{nullptr};
   };
 
@@ -45,7 +45,6 @@ namespace detail {
   // Host-only deref.
   template <typename Tp, bool IsConst>
   class iter_access<Tp, IsConst, memory_accessibility::host> {
-   private:
     using element_ptr_t = maybe_const<IsConst, Tp>*;
     using element_ref_t = maybe_const<IsConst, Tp>&;
 
@@ -60,13 +59,13 @@ namespace detail {
     }
 
    protected:
+    // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
     element_ptr_t ptr_{nullptr};
   };
 
   // Device-only deref.
   template <typename Tp, bool IsConst>
   class iter_access<Tp, IsConst, memory_accessibility::device> {
-   private:
     using element_ptr_t = maybe_const<IsConst, Tp>*;
     using element_ref_t = maybe_const<IsConst, Tp>&;
 
@@ -81,6 +80,7 @@ namespace detail {
     }
 
    protected:
+    // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
     element_ptr_t ptr_{nullptr};
   };
 

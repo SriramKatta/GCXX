@@ -17,6 +17,7 @@
 #include <gcxx/iterators/heterogeneous_iterator.hpp>
 #include <gcxx/iterators/reverse_iterator.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp> // gcxx::dynamic_extent
 #include <gcxx/types/size_holder.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
@@ -130,7 +131,6 @@ template <class VT, std::size_t Extent,
           template <typename, std::size_t> class span_storage_base,
           template <typename, std::size_t> class span_view_base>
 class span_base {
- private:
   // Static Asserts.
   static_assert(std::is_object_v<VT>,
                 "A reference is not supported,"
@@ -254,6 +254,10 @@ class span_base {
           GCXX_AND !gcxx::details_::is_std_array_v<details_::remove_cvref_t<R>>
             GCXX_AND !details_::is_gcxx_span_specialization_v<R>
               GCXX_AND(E == gcxx::dynamic_extent))
+  // r is deliberately not forwarded: data()/size() take lvalue refs, and the
+  // SFINAE traits above test lvalue use, so forwarding an rvalue source would
+  // reject instantiations that today compile.
+  // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
   GCXX_FHC span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
     GCXX_RUNTIME_EXPECT(
@@ -269,6 +273,7 @@ class span_base {
           GCXX_AND !gcxx::details_::is_std_array_v<details_::remove_cvref_t<R>>
             GCXX_AND !details_::is_gcxx_span_specialization_v<R>
               GCXX_AND(E != gcxx::dynamic_extent))
+  // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
   GCXX_FHC explicit span_base(R&& r)
       : m_storage(gcxx::details_::data(r), gcxx::details_::size(r)) {
     GCXX_RUNTIME_EXPECT(
@@ -293,7 +298,7 @@ class span_base {
   GCXX_REQUIRES(
     (E == gcxx::dynamic_extent || N == gcxx::dynamic_extent || E == N)
       GCXX_AND details_::is_type_ptr_convertible_v<U, element_type>
-        GCXX_AND !(E != gcxx::dynamic_extent && N == gcxx::dynamic_extent))
+        GCXX_AND(E == gcxx::dynamic_extent || N != gcxx::dynamic_extent))
   GCXX_FHC span_base(
     const span_base<U, N, span_storage_base, span_view_base>& source) noexcept
       : m_storage(source.data(), source.size()) {
@@ -322,9 +327,13 @@ class span_base {
 
   GCXX_FHD ~span_base() = default;
 
-  // Operator =.
-
-  GCXX_CXPR auto operator=(const Self&) GCXX_NOEXCEPT->Self& = default;
+  // Copy/move: defaulted and host+device so spans keep working as kernel
+  // arguments; declaring them completes the rule of five alongside the
+  // destructor and assignment operators below.
+  GCXX_HD span_base(const Self&) GCXX_NOEXCEPT       = default;
+  GCXX_HD span_base(Self&&) GCXX_NOEXCEPT            = default;
+  GCXX_HD Self& operator=(const Self&) GCXX_NOEXCEPT = default;
+  GCXX_HD Self& operator=(Self&&) GCXX_NOEXCEPT      = default;
 
   // Iterators.
 
@@ -404,12 +413,22 @@ class span_base {
     return {data() + (size() - count), count};
   }
 
+  // Extent of subspan<Offset, Count>(): an explicit Count wins; otherwise the
+  // tail after Offset, collapsing to dynamic when this span is dynamic.
+  template <std::size_t Offset, std::size_t Count>
+  static constexpr size_type subspanExtent() noexcept {
+    if (Count != gcxx::dynamic_extent) {
+      return Count;
+    }
+    if (Extent != gcxx::dynamic_extent) {
+      return Extent - Offset;
+    }
+    return gcxx::dynamic_extent;
+  }
+
   template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   using subspan_ret_t =
-    span_view_base<element_type, Count != gcxx::dynamic_extent
-                                   ? Count
-                                   : (Extent != Count ? Extent - Offset
-                                                      : gcxx::dynamic_extent)>;
+    span_view_base<element_type, subspanExtent<Offset, Count>()>;
 
   template <std::size_t Offset, std::size_t Count = gcxx::dynamic_extent>
   GCXX_FHDC auto subspan() const -> subspan_ret_t<Offset, Count> {
@@ -443,7 +462,6 @@ GCXX_NAMESPACE_DETAILS_END()
 template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class span
     : public details_::span_base<VT, Extent, details_::span_storage, span> {
- private:
   using Base = details_::span_base<VT, Extent, details_::span_storage, span>;
 
  public:
@@ -471,7 +489,6 @@ template <class VT, std::size_t Extent = gcxx::dynamic_extent>
 class restrict_span
     : public details_::span_base<VT, Extent, details_::restrict_span_storage,
                                  restrict_span> {
- private:
   using Base = details_::span_base<VT, Extent, details_::restrict_span_storage,
                                    restrict_span>;
 

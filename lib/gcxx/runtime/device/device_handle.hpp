@@ -42,9 +42,16 @@ class DeviceHandle {
 
   GCXX_FHC auto id() const -> device_t;
 
+  // RAII owner of the previous-device state: copying/moving could
+  // double-restore.
+  DeviceHandle(const DeviceHandle&)                    = delete;
+  auto operator=(const DeviceHandle&) -> DeviceHandle& = delete;
+  DeviceHandle(DeviceHandle&&)                         = delete;
+  auto operator=(DeviceHandle&&) -> DeviceHandle&      = delete;
+
  private:
-  const device_t m_deviceId;
-  const bool m_resetOnDestruct;
+  device_t m_deviceId;
+  bool m_resetOnDestruct;
 };
 
 GCXX_NAMESPACE_MAIN_END()

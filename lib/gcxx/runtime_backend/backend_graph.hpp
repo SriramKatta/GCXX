@@ -55,11 +55,11 @@ GCXX_FH auto graphClone(deviceGraph_t graph) -> deviceGraph_t {
   return clonedGraph;
 }
 
-GCXX_FH auto graphAddDependencies(deviceGraph_t graph,
-                                  const deviceGraphNode_t* from,
-                                  const deviceGraphNode_t* to,
-                                  const deviceGraphEdgeData_t* edgeData,
-                                  std::size_t numDependencies) -> void {
+GCXX_FH auto graphAddDependencies(
+  deviceGraph_t graph, const deviceGraphNode_t* from,
+  const deviceGraphNode_t* to,
+  [[maybe_unused]] const deviceGraphEdgeData_t* edgeData,
+  std::size_t numDependencies) -> void {
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     GraphAddDependencies_v2,
@@ -76,11 +76,11 @@ GCXX_FH auto graphAddDependencies(deviceGraph_t graph,
 // Generic node creation. HIP's union-based hipGraphAddNode rejects Empty
 // nodes (hipErrorInvalidValue), so those go through the dedicated
 // hipGraphAddEmptyNode entry point; CUDA handles every kind through the union.
-GCXX_FH auto graphAddNode(deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
-                          const deviceGraphNode_t* pDependencies,
-                          const deviceGraphEdgeData_t* dependencyData,
-                          size_t numDependencies,
-                          deviceGraphNodeParams_t* nodeParams) -> void {
+GCXX_FH auto graphAddNode(
+  deviceGraphNode_t* pGraphNode, deviceGraph_t graph,
+  const deviceGraphNode_t* pDependencies,
+  [[maybe_unused]] const deviceGraphEdgeData_t* dependencyData,
+  size_t numDependencies, deviceGraphNodeParams_t* nodeParams) -> void {
 #if GCXX_HIP_MODE()
   if (nodeParams->type == GCXX_RUNTIME_BACKEND(GraphNodeTypeEmpty)) {
     GCXX_SAFE_RUNTIME_CALL(GraphAddEmptyNode, "Failed to add node to graph",
@@ -156,7 +156,7 @@ GCXX_FH auto graphExecUpdate(deviceGraphExec_t exec,
   GCXX_SAFE_RUNTIME_CALL(GraphExecUpdate, "Failed to update graph exec", exec,
                          graph,
 #if GCXX_HIP_MODE()
-                         NULL,
+                         nullptr,
 #endif
                          nullptr);
 }
@@ -378,9 +378,22 @@ GCXX_FH auto graphKernelNodeSetParams(
 }
 
 GCXX_FH auto graphMemFreeNodeGetParams(deviceGraphNode_t node,
-                                       void* dptrOut) -> void {
+                                       void** dptrOut) -> void {
+  // API divergence: hipGraphMemFreeNodeGetParams takes a plain void*
+  // out-pointer; CUDA's cuGraphMemFreeNodeGetParams takes void**. Both really
+  // mean "address of the storage holding the device pointer", so flattening
+  // to void* under HIP is safe. Note the checker flags even the explicit
+  // cast here (the AST wraps it in an inner implicit cast).
+#if GCXX_HIP_MODE()
+  GCXX_SAFE_RUNTIME_CALL(
+    GraphMemFreeNodeGetParams, "Failed to get mem free node params", node,
+    static_cast<void*>(
+      dptrOut));  // NOLINT(bugprone-multi-level-implicit-pointer-conversion)
+#else
   GCXX_SAFE_RUNTIME_CALL(GraphMemFreeNodeGetParams,
-                         "Failed to get mem free node params", node, dptrOut);
+                         "Failed to get mem free node params", node,
+                         static_cast<void**>(dptrOut));
+#endif
 }
 
 GCXX_FH auto graphMemAllocNodeGetParams(

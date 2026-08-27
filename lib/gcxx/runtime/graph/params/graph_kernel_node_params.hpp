@@ -62,10 +62,10 @@ class KernelNodeParamsView {
   }
 
   GCXX_FHC auto getKernelParams() const -> void* const* {
-    return m_params.kernelParams;
+    return static_cast<void* const*>(m_params.kernelParams);
   }
 
-  GCXX_FHC auto getExtraArgs() const -> void* { return m_params.extra; }
+  GCXX_FHC auto getExtraArgs() const -> void** { return m_params.extra; }
 
  protected:
   GCXX_FH KernelNodeParamsView() = default;
@@ -236,7 +236,10 @@ class KernelParamsBuilder {
   }
 
   template <typename... Args>
-  GCXX_FHC auto setArgs(Args&&... args) const
+  // The static_asserts force every Args to be an lvalue reference, so a
+  // forward would be a no-op; only the args' addresses are taken.
+  GCXX_FHC auto setArgs(
+    Args&&... args) const  // NOLINT(cppcoreguidelines-missing-std-forward)
     -> KernelParamsBuilder<Set..., kpb::args_tag<sizeof...(Args)>> {
     static_assert(!kpb::has_args_v<Set...>,
                   "setArgs() may only be called once; use addArgs() to append");
@@ -249,14 +252,19 @@ class KernelParamsBuilder {
     KernelParamsBuilder<Set..., kpb::args_tag<sizeof...(Args)>> next = *this;
     next.m_arg_ptrs.clear();
     next.m_arg_ptrs.reserve(sizeof...(Args));
+    // The CUDA/HIP kernel-node API takes void* slots for the arg addresses;
+    // the builder only reads through them, never writes.
     (next.m_arg_ptrs.push_back(
-       const_cast<void*>(static_cast<const void*>(std::addressof(args)))),
+       const_cast<void*>(  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+         static_cast<const void*>(std::addressof(args)))),
      ...);
     return next;
   }
 
   template <typename... Args>
-  GCXX_FHC auto addArgs(Args&&... args) const
+  // See setArgs(): lvalue-only by contract, forward is a no-op.
+  GCXX_FHC auto addArgs(
+    Args&&... args) const  // NOLINT(cppcoreguidelines-missing-std-forward)
     -> KernelParamsBuilder<Set..., kpb::args_tag<sizeof...(Args)>> {
     static_assert((std::is_lvalue_reference_v<Args> && ...),
                   "Kernel arguments must be lvalues: the graph node stores "
@@ -265,8 +273,11 @@ class KernelParamsBuilder {
       (std::is_trivially_copyable_v<std::remove_reference_t<Args>> && ...),
       "All kernel args must be trivially copyable");
     KernelParamsBuilder<Set..., kpb::args_tag<sizeof...(Args)>> next = *this;
+    // The CUDA/HIP kernel-node API takes void* slots for the arg addresses;
+    // the builder only reads through them, never writes.
     (next.m_arg_ptrs.push_back(
-       const_cast<void*>(static_cast<const void*>(std::addressof(args)))),
+       const_cast<void*>(  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+         static_cast<const void*>(std::addressof(args)))),
      ...);
     return next;
   }

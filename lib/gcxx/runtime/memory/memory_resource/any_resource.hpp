@@ -21,7 +21,8 @@ class any_resource {
  public:
   any_resource() noexcept = default;
 
-  // Requires copy-constructible Resource; caller validates properties.
+  // NOLINTNEXTLINE(bugprone-forwarding-reference-overload,
+  // cppcoreguidelines-missing-std-forward)
   GCXX_TEMPLATE(typename Resource)
   GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, any_resource>)
   any_resource(Resource&& r) {
@@ -61,7 +62,12 @@ class any_resource {
 
  private:
   struct interface {
+    interface()                                                   = default;
     virtual ~interface()                                          = default;
+    interface(const interface&)                                   = default;
+    auto operator=(const interface&) -> interface&                = default;
+    interface(interface&&)                                        = default;
+    auto operator=(interface&&) -> interface&                     = default;
     virtual auto allocate(gcxx::StreamView, std::size_t) -> void* = 0;
     virtual auto deallocate(gcxx::StreamView, void*) -> void      = 0;
     virtual auto clone() const -> interface*                      = 0;
@@ -80,7 +86,7 @@ class any_resource {
     auto clone() const -> interface* override { return new model(resource); }
   };
 
-  std::unique_ptr<interface> impl_;
+  std::unique_ptr<interface> impl_{nullptr};
 };
 
 

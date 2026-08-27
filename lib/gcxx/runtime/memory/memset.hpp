@@ -15,6 +15,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
+// NOLINTBEGIN(cppcoreguidelines-missing-std-forward)
 
 // Memset via smart/raw pointers.
 GCXX_TEMPLATE(typename Ptr)
@@ -55,6 +56,7 @@ GCXX_FH auto Memset(const StreamView& stream, DSTTY&& destination,
     details_::size(destination) * sizeof(span_element_t<DSTTY>),
     stream.getRawHandle());
 }
+// NOLINTEND(cppcoreguidelines-missing-std-forward)
 
 GCXX_NAMESPACE_MAIN_END()
 

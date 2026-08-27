@@ -185,6 +185,9 @@ class buffer {
   GCXX_TEMPLATE(typename... OtherProperties)
   GCXX_REQUIRES((TypeSet<OtherProperties...>::template contains<Properties> &&
                  ...))
+  // The storage itself is moved; `other` is intentionally left intact
+  // otherwise.
+  // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
   buffer(buffer<VT, OtherProperties...>&& other) noexcept
       : m_storage(std::move(other.m_storage)) {}
 
@@ -234,15 +237,17 @@ class buffer {
   GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FH auto at(size_type i) -> reference {
-    if (i >= size())
+    if (i >= size()) {
       throw std::out_of_range{"buffer::at"};
+    }
     return data()[i];
   }
   GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
   GCXX_REQUIRES(H)
   GCXX_FH auto at(size_type i) const -> const_reference {
-    if (i >= size())
+    if (i >= size()) {
       throw std::out_of_range{"buffer::at"};
+    }
     return data()[i];
   }
 

@@ -49,12 +49,13 @@ class uninit_buffer {
 
   uninit_buffer() noexcept = default;
 
-  uninit_buffer(gcxx::StreamView stream, resource_type res) noexcept
-      : m_resource(std::move(res)), m_stream(stream) {}
+  uninit_buffer(gcxx::StreamView stream, const resource_type& res) noexcept
+      : m_resource(res), m_stream(stream) {}
 
   // A zero-size request allocates nothing.
-  uninit_buffer(gcxx::StreamView stream, resource_type res, size_type num_elems)
-      : m_resource(std::move(res)),
+  uninit_buffer(gcxx::StreamView stream, const resource_type& res,
+                size_type num_elems)
+      : m_resource(res),
         m_stream(stream),
         m_ptr(num_elems != 0
                 ? m_resource.allocate(m_stream, sizeof(VT) * num_elems)
@@ -83,6 +84,9 @@ class uninit_buffer {
   GCXX_TEMPLATE(typename... OtherProperties)
   GCXX_REQUIRES((TypeSet<OtherProperties...>::template contains<Properties> &&
                  ...))
+  // Member-wise copy is intentional: resources are shareable handles (see
+  // above).
+  // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
   uninit_buffer(uninit_buffer<VT, OtherProperties...>&& other) noexcept
       : m_resource(other.m_resource),
         m_stream(other.m_stream),

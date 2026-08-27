@@ -43,8 +43,8 @@ GCXX_FH auto streamBeginCapture(deviceStream_t stream,
 GCXX_FH auto streamBeginCaptureToGraph(
   deviceStream_t stream, deviceGraph_t graph,
   const deviceGraphNode_t* dependencies,
-  const deviceGraphEdgeData_t* dependencyData, std::size_t numDependencies,
-  deviceStreamCaptureMode_t mode) -> void {
+  [[maybe_unused]] const deviceGraphEdgeData_t* dependencyData,
+  std::size_t numDependencies, deviceStreamCaptureMode_t mode) -> void {
   GCXX_SAFE_RUNTIME_CALL(
     StreamBeginCaptureToGraph, "Failed to begin Stream Capture to graph",
     stream, graph, dependencies, dependencyData, numDependencies, mode);
@@ -98,7 +98,7 @@ GCXX_FH auto streamGetCaptureInfo(
   deviceStream_t stream, deviceStreamCaptureStatus_t* captureStatus_out,
   unsigned long long* id_out, deviceGraph_t* graph_out,
   const deviceGraphNode_t** dependencies_out,
-  const deviceGraphEdgeData_t** edgeData_out,
+  [[maybe_unused]] const deviceGraphEdgeData_t** edgeData_out,
   size_t* numDependencies_out) -> void {
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
@@ -170,8 +170,9 @@ GCXX_FH auto streamSynchronize(deviceStream_t stream) -> void {
 
 GCXX_FH auto streamUpdateCaptureDependencies(
   deviceStream_t stream, deviceGraphNode_t* dependencies,
-  const deviceGraphEdgeData_t* dependencyData, std::size_t numDependencies,
-  unsigned int flags = 0) -> void {
+  [[maybe_unused]] const deviceGraphEdgeData_t*
+    dependencyData,  // CUDA-only (v2 API); unused under HIP
+  std::size_t numDependencies, unsigned int flags = 0) -> void {
   GCXX_SAFE_RUNTIME_CALL(
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
     StreamUpdateCaptureDependencies_v2,

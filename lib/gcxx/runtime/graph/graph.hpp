@@ -13,17 +13,16 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 class GraphExec;
 
 class Graph : public GraphView {
- private:
   GCXX_FH Graph(deviceGraph_t graph) GCXX_NOEXCEPT : GraphView(graph) {}
 
 
  public:
   GCXX_FH auto destroy() -> void;
-  GCXX_FH Graph(const flags::graphCreate createFlag = flags::graphCreate::None)
+  GCXX_FH Graph(flags::graphCreate createFlag = flags::graphCreate::None)
     GCXX_NOEXCEPT;
 
   GCXX_FH static auto create(
-    const flags::graphCreate createFlag = flags::graphCreate::None) -> Graph;
+    flags::graphCreate createFlag = flags::graphCreate::None) -> Graph;
 
 
   GCXX_FH ~Graph() GCXX_NOEXCEPT;

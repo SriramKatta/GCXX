@@ -67,7 +67,7 @@ GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
   // hipMallocHost-backed shim (see PinnedMemPoolView). Built once per process
   // (magic-static init is thread-safe); trivially destructible, releases
   // nothing at exit — there is no pool handle to destroy.
-  static PinnedMemPoolView pool = [] {
+  static const PinnedMemPoolView pool = [] {
     return PinnedMemPoolView(PinnedMemPoolView::hip_shim_handle_t{});
   }();
   return pool;
@@ -79,7 +79,7 @@ GCXX_FH auto pinned_default_memory_pool() -> PinnedMemPoolView {
   // pools are never destroyed) and PinnedMemPoolView is trivially destructible,
   // so the static releases nothing at exit.
   // TODO: Absolutely an stupid thing since on alex we dont know what is the.
-  static PinnedMemPoolView pool = [] {
+  static const PinnedMemPoolView pool = [] {
     PinnedMemPoolView ref(get_default_mem_pool(flags::MemLocation::Host, 0,
                                                flags::MemAllocation::Pinned));
     // Host-location pool allocations are only GPU-mapped after access is

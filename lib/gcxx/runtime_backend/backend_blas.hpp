@@ -56,8 +56,10 @@ GCXX_FH auto blasGetVersion(deviceBlasHandle_t handle) -> int {
 #elif GCXX_HIP_MODE()
   // hipBLAS exposes the version only at compile time
   (void)handle;
-  return hipblasVersionMajor * 10000 + hipblasVersionMinor * 100 +
-         hipblasVersionPatch;
+  constexpr int version_scale_major = 10000;
+  constexpr int version_scale_minor = 100;
+  return hipblasVersionMajor * version_scale_major +
+         hipblasVersionMinor * version_scale_minor + hipblasVersionPatch;
 #endif
 }
 

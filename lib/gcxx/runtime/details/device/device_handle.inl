@@ -19,7 +19,7 @@ GCXX_FH DeviceHandle::DeviceHandle(int devId, bool resetOnDestruct)
 
 GCXX_FH DeviceHandle::~DeviceHandle() {
   if (m_resetOnDestruct) {
-    [[maybe_unused]] details_::EnsureCurrentDevice hand(m_deviceId);
+    [[maybe_unused]] const details_::EnsureCurrentDevice hand(m_deviceId);
     driver::deviceReset();
   }
 }
@@ -29,7 +29,7 @@ GCXX_FH auto DeviceHandle::makeCurrent() const -> void {
 }
 
 GCXX_FH auto DeviceHandle::sync() const -> void {
-  [[maybe_unused]] details_::EnsureCurrentDevice hand(m_deviceId);
+  [[maybe_unused]] const details_::EnsureCurrentDevice hand(m_deviceId);
   gcxx::Device::sync();
 }
 
@@ -45,19 +45,19 @@ GCXX_FHC auto DeviceHandle::id() const -> device_t {
 template <typename Lim>
 GCXX_FH auto DeviceHandle::limit(Lim lim) const -> typename Lim::type {
   // Limits operate on the current device, so make this handle's device current.
-  [[maybe_unused]] details_::EnsureCurrentDevice dev(m_deviceId);
+  [[maybe_unused]] const details_::EnsureCurrentDevice dev(m_deviceId);
   return lim();
 }
 
 template <typename Lim>
 GCXX_FH auto DeviceHandle::set_limit(Lim /*lim*/,
                                      typename Lim::type value) const -> void {
-  [[maybe_unused]] details_::EnsureCurrentDevice dev(m_deviceId);
+  [[maybe_unused]] const details_::EnsureCurrentDevice dev(m_deviceId);
   Lim::set(value);
 }
 
 GCXX_FH auto DeviceHandle::getDeviceProp() const -> driver::deviceProp_t {
-  [[maybe_unused]] details_::EnsureCurrentDevice dev(m_deviceId);
+  [[maybe_unused]] const details_::EnsureCurrentDevice dev(m_deviceId);
   return gcxx::Device::getDeviceProp();
 }
 

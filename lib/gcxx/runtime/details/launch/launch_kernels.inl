@@ -17,9 +17,11 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace launch {
   template <typename... ExpTypes, typename... ActTypes>
-  GCXX_FH void CooperativeKernel(LaunchConfig& config,
-                                 void (*kernel)(ExpTypes...),
-                                 ActTypes&&... args) {
+  // args must stay lvalues: their ADDRESSES go into kernelArgs, so forwarding
+  // would turn rvalue elements into non-addressable xvalues.
+  GCXX_FH void CooperativeKernel(
+    LaunchConfig& config, void (*kernel)(ExpTypes...),
+    ActTypes&&... args) {  // NOLINT(cppcoreguidelines-missing-std-forward)
     std::array<void*, sizeof...(args)> kernelArgs = {((void*)&args)...};
     driver::launchCooperativeKernel(kernel, config.config_.gridDim,
                                     config.config_.blockDim, kernelArgs.data(),

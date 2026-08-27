@@ -26,7 +26,7 @@ template <flags::MemPoolAttr Attr, typename ValueType, typename StorageType,
 struct pool_attr_impl {
   using type = ValueType;
 
-  static inline constexpr flags::MemPoolAttr attribute = Attr;
+  static constexpr flags::MemPoolAttr attribute = Attr;
 
   GCXX_FH constexpr operator flags::MemPoolAttr()
     const noexcept {  // NOLINT(google-explicit-constructor)
@@ -82,7 +82,7 @@ namespace memory_pool_attributes {
 
 #define GCXX_POOL_ATTR_DEFINE(ATTR_MEMBER, NAME)               \
   using NAME##_t = pool_attr<flags::MemPoolAttr::ATTR_MEMBER>; \
-  static inline constexpr NAME##_t NAME {}
+  static constexpr NAME##_t NAME {}
 
   // Threshold at which the pool releases unused memory back to the driver.
   GCXX_POOL_ATTR_DEFINE(ReleaseThreshold, release_threshold);

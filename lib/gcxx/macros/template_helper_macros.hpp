@@ -142,9 +142,21 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 // Exec-check family (#20011/13/14/15-D): __host__ fn called from __host__
 // __device__ code; lets an HD helper instantiate host-only members on the
-// device pass (cf. libcudacxx's _CCCL_EXEC_CHECK_DISABLE).
+// device pass (cf. libcudacxx's _CCCL_EXEC_CHECK_DISABLE). The parameterless
+// ALL form bundles the whole family; the per-tag form covers subsets (e.g.
+// the #20013/#20015 constexpr pair alone).
 #define GCXX_DIAG_SUPPRESS_EXEC_CHECK_(TAG) GCXX_DIAG_SUPPRESS_(TAG)
 #define GCXX_DIAG_RESTORE_EXEC_CHECK_(TAG) GCXX_DIAG_RESTORE_(TAG)
+#define GCXX_DIAG_SUPPRESS_ALL_EXEC_CHECKS_() \
+  GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20011)       \
+  GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20013)       \
+  GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20014)       \
+  GCXX_DIAG_SUPPRESS_EXEC_CHECK_(20015)
+#define GCXX_DIAG_RESTORE_ALL_EXEC_CHECKS_() \
+  GCXX_DIAG_RESTORE_EXEC_CHECK_(20011)       \
+  GCXX_DIAG_RESTORE_EXEC_CHECK_(20013)       \
+  GCXX_DIAG_RESTORE_EXEC_CHECK_(20014)       \
+  GCXX_DIAG_RESTORE_EXEC_CHECK_(20015)
 
 // The "0" or "1" suffixes indicate whether _REQ is parenthesized or not.
 #define GCXX_CONCEPT_REQUIREMENT_0(_REQ) \

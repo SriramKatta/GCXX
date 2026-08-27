@@ -33,12 +33,15 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 //     ported
 
 // Fire on host usage; a no-op in device compilation passes.
+// The check must stay a RUNTIME assert: it trips only when host code actually
+// reaches this accessor at run time. A static_assert would reject every host
+// TU outright, even ones that never construct a shared view.
 #if GCXX_DEVICE_COMPILE
 #define GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY() (void)0
 #else
-#define GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY()            \
-  assert(false &&                                       \
-         "gcxx::shared_memory_accessor cannot be used " \
+#define GCXX_SHARED_MEM_VERIFY_DEVICE_ONLY()                     \
+  assert(false && /* NOLINT(misc-static-assert, cert-dcl03-c) */ \
+         "gcxx::shared_memory_accessor cannot be used "          \
          "in HOST code")
 #endif
 

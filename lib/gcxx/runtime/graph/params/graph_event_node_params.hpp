@@ -43,7 +43,7 @@ class EventRecordNodeParams : public EventRecordNodeParamsView {
  public:
   GCXX_FHC EventRecordNodeParams() = default;
 
-  GCXX_FHC explicit EventRecordNodeParams(const EventView event)
+  GCXX_FHC explicit EventRecordNodeParams(const EventView& event)
       : EventRecordNodeParamsView{make_raw_params(event)} {}
 
   // Non-copyable/non-movable so pointers into m_params cannot dangle.
@@ -57,7 +57,7 @@ class EventRecordNodeParams : public EventRecordNodeParamsView {
   ~EventRecordNodeParams() = default;
 
  private:
-  GCXX_FHC static auto make_raw_params(const EventView event)
+  GCXX_FHC static auto make_raw_params(const EventView& event)
     -> deviceEventRecordNodeParams_t {
     deviceEventRecordNodeParams_t p{};
     p.event = event.getRawHandle();
@@ -93,7 +93,7 @@ class EventWaitNodeParams : public EventWaitNodeParamsView {
  public:
   GCXX_FHC EventWaitNodeParams() = default;
 
-  GCXX_FHC explicit EventWaitNodeParams(const EventView event)
+  GCXX_FHC explicit EventWaitNodeParams(const EventView& event)
       : EventWaitNodeParamsView{make_raw_params(event)} {}
 
   // Non-copyable/non-movable so pointers into m_params cannot dangle.
@@ -106,7 +106,7 @@ class EventWaitNodeParams : public EventWaitNodeParamsView {
   ~EventWaitNodeParams() = default;
 
  private:
-  GCXX_FHC static auto make_raw_params(const EventView event)
+  GCXX_FHC static auto make_raw_params(const EventView& event)
     -> deviceEventWaitNodeParams_t {
     deviceEventWaitNodeParams_t p{};
     p.event = event.getRawHandle();
@@ -129,7 +129,7 @@ class EventRecordParamsBuilder {
  public:
   EventRecordParamsBuilder() = default;
 
-  GCXX_FHC auto setEvent(const EventView event) const
+  GCXX_FHC auto setEvent(const EventView& event) const
     -> EventRecordParamsBuilder<Set..., ernb::event_tag> {
     static_assert(!details_::contains_v<ernb::event_tag, Set...>,
                   "setEvent() may only be called once");
@@ -169,7 +169,7 @@ class EventWaitParamsBuilder {
  public:
   EventWaitParamsBuilder() = default;
 
-  GCXX_FHC auto setEvent(const EventView event) const
+  GCXX_FHC auto setEvent(const EventView& event) const
     -> EventWaitParamsBuilder<Set..., ewnb::event_tag> {
     static_assert(!details_::contains_v<ewnb::event_tag, Set...>,
                   "setEvent() may only be called once");

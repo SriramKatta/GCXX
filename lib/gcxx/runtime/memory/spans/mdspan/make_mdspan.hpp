@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
@@ -40,7 +41,7 @@ constexpr auto make_vector(SpanLike&& storage, Idx stride = Idx{1})
   const gcxx::layout_stride::mapping<extents_t> map(extents_t{n},
                                                     std::array{stride});
   return gcxx::mdspan<T, extents_t, gcxx::layout_stride>(
-    gcxx::details_::data(storage), map);
+    gcxx::details_::data(std::forward<SpanLike>(storage)), map);
 }
 
 // make_vector with a device_accessor — what gcxx::blas requires.
@@ -60,7 +61,7 @@ constexpr auto make_device_vector(SpanLike&& storage, Idx stride = Idx{1})
   const gcxx::layout_stride::mapping<extents_t> map(extents_t{n},
                                                     std::array{stride});
   return gcxx::mdspan<T, extents_t, gcxx::layout_stride, accessor_t>(
-    gcxx::details_::data(storage), map);
+    gcxx::details_::data(std::forward<SpanLike>(storage)), map);
 }
 
 GCXX_NAMESPACE_MAIN_END()

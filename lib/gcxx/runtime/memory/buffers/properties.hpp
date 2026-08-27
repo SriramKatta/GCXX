@@ -58,10 +58,16 @@ enum class memory_accessibility {
 
 template <bool HostAccessible, bool DeviceAccessible>
 constexpr memory_accessibility accessibility_from_static_properties() noexcept {
-  return HostAccessible && DeviceAccessible ? memory_accessibility::host_device
-         : DeviceAccessible                 ? memory_accessibility::device
-         : HostAccessible                   ? memory_accessibility::host
-                                            : memory_accessibility::unknown;
+  if (HostAccessible && DeviceAccessible) {
+    return memory_accessibility::host_device;
+  }
+  if (DeviceAccessible) {
+    return memory_accessibility::device;
+  }
+  if (HostAccessible) {
+    return memory_accessibility::host;
+  }
+  return memory_accessibility::unknown;
 }
 
 // CCCL-parity runtime-queryable property; answered from static properties.

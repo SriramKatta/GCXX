@@ -50,9 +50,8 @@ device_mdspan(ElementType*, const MappingType&)
                    typename MappingType::layout_type>;
 
 template <class MappingType, class AccessorPolicy>
-device_mdspan(
-  const typename gcxx::device_accessor<AccessorPolicy>::data_handle_type,
-  const MappingType&, const gcxx::device_accessor<AccessorPolicy>&)
+device_mdspan(typename gcxx::device_accessor<AccessorPolicy>::data_handle_type,
+              const MappingType&, const gcxx::device_accessor<AccessorPolicy>&)
   -> device_mdspan<typename AccessorPolicy::element_type,
                    typename MappingType::extents_type,
                    typename MappingType::layout_type, AccessorPolicy>;
@@ -90,9 +89,8 @@ host_mdspan(ElementType*, const MappingType&)
                  typename MappingType::layout_type>;
 
 template <class MappingType, class AccessorPolicy>
-host_mdspan(
-  const typename gcxx::host_accessor<AccessorPolicy>::data_handle_type,
-  const MappingType&, const gcxx::host_accessor<AccessorPolicy>&)
+host_mdspan(typename gcxx::host_accessor<AccessorPolicy>::data_handle_type,
+            const MappingType&, const gcxx::host_accessor<AccessorPolicy>&)
   -> host_mdspan<typename AccessorPolicy::element_type,
                  typename MappingType::extents_type,
                  typename MappingType::layout_type, AccessorPolicy>;
@@ -133,7 +131,7 @@ managed_mdspan(ElementType*, const MappingType&)
 
 template <class MappingType, class AccessorPolicy>
 managed_mdspan(
-  const typename gcxx::managed_accessor<AccessorPolicy>::data_handle_type,
+  typename gcxx::managed_accessor<AccessorPolicy>::data_handle_type,
   const MappingType&, const gcxx::managed_accessor<AccessorPolicy>&)
   -> managed_mdspan<typename AccessorPolicy::element_type,
                     typename MappingType::extents_type,

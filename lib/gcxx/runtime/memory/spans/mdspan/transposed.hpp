@@ -40,6 +40,11 @@ constexpr auto transposed(const gcxx::mdspan<T, Extents, Layout, Accessor>& v) {
   // of relying on CTAD: the vendored mdspan's constructors are __host__
   // __device__ (MDSPAN_IMPL_HAS_CUDA/HIP), and nvcc's front-end forms no
   // implicit deduction guides from __host__ __device__ constructors.
+  //
+  // The first two arms differ textually only in the mapping type spelled; in
+  // this uninstantiated template the checker cannot see that each arm builds
+  // a distinct mapping<extents> per instantiation, so it flags a clone.
+  // NOLINTNEXTLINE(bugprone-branch-clone)
   if constexpr (std::is_same_v<Layout, gcxx::layout_left>) {
     // column-major (e0,e1) -> row-major (e1,e0)
     return gcxx::mdspan(v.data_handle(),
