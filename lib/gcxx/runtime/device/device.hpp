@@ -22,6 +22,10 @@ namespace Device {
 
   GCXX_FH auto count() -> int;
 
+  // Non-throwing probe: true iff at least one device is visible. Unlike
+  // count(), which aborts when no device is present (exceptions off).
+  GCXX_FH auto available() -> bool;
+
   GCXX_FH auto sync() -> void;
 
   GCXX_FH auto getDeviceProp() -> driver::deviceProp_t;

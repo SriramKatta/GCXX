@@ -27,6 +27,10 @@ GCXX_FH auto Device::count() -> int {
   return num_dev;
 }
 
+GCXX_FH auto Device::available() -> bool {
+  return driver::deviceAvailable();
+}
+
 GCXX_FH auto Device::sync() -> void {
   driver::deviceSynchronize();
 }

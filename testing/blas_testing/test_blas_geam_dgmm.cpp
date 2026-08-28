@@ -30,9 +30,7 @@ namespace {
 
   template <class IndexT>
   void run_geam() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M    = 3;
     constexpr int N    = 4;
@@ -72,9 +70,7 @@ namespace {
 
   template <class IndexT, class Side>
   void run_dgmm() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int N = 4;
@@ -124,9 +120,7 @@ namespace {
   // Regression gate: non-square row-major geam once flipped m/n and read OOB.
   template <class IndexT>
   void run_geam_rowmajor() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M    = 3;
     constexpr int N    = 5;

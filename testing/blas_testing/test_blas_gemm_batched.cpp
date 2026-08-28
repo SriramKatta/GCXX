@@ -66,9 +66,7 @@ namespace {
 
   template <class IndexT>
   void run_gemm_batched_separate_allocs() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     std::vector<double> hA = make_a();
     std::vector<double> hB = make_b();
@@ -125,9 +123,7 @@ namespace {
   // Strided-batched rank-3 (batch,rows,cols): inner cm=stride, rm=right.
   template <class IndexT>
   void run_gemm_strided_batched(bool rowmajor_inner) {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     std::vector<double> hA = make_a();
     std::vector<double> hB = make_b();

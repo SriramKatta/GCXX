@@ -28,9 +28,7 @@ static_assert(!gcxx::resource_with<not_a_resource, gcxx::device_accessible,
 class PinnedMemoryPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available; skipping PinnedMemPool tests";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
   }
 };
 

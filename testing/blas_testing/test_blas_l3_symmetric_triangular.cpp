@@ -29,9 +29,7 @@ namespace {
 
   template <class IndexT, bool RowMajor>
   void run_symm() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int K = 3, N = 4;
     std::vector<double> hSym(K * K);  // symmetric reference (column-major)
@@ -114,9 +112,7 @@ namespace {
 
   template <class IndexT>
   void run_syrk() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N = 3, K = 4;
     std::vector<double> hC0(N * N), hA(N * K);
@@ -166,9 +162,7 @@ namespace {
   // Row-major-like C exercises the transposed-problem dispatch.
   template <class IndexT, bool RowMajorC>
   void run_syr2k() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N = 3, K = 4;
     std::vector<double> hC0(N * N), hA(N * K), hB(N * K);
@@ -244,9 +238,7 @@ namespace {
 
   template <class IndexT, bool RowMajor>
   void run_trmm_trsm() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int K = 3, N = 4;
     std::vector<double> hTri(K * K, 0.0);  // upper triangle

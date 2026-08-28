@@ -36,15 +36,14 @@ GCXX_CONCEPT has_raw_handle_type_v =
   static_assert(std::is_same_v<gcxx::WRAPPER::raw_handle_type, EXPECTED>, \
                 #WRAPPER "::raw_handle_type must be " #EXPECTED)
 
-namespace gcxx::testing {
-
-  // Raw backend probe; Device::count() can abort when exceptions are off.
-  inline auto haveCudaDevice() -> bool {
-    int count      = 0;
-    const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
-    return err == gcxx::driver::deviceErrSuccess && count > 0;
-  }
-
-}  // namespace gcxx::testing
+// Skips the enclosing test when no GPU device is visible (e.g. CI runners
+// without a GPU). Device::available() is a non-throwing probe; Device::count()
+// would abort in this situation.
+#define GCXX_SKIP_WITHOUT_DEVICE()               \
+  do {                                           \
+    if (!gcxx::Device::available()) {            \
+      GTEST_SKIP() << "No GPU device available"; \
+    }                                            \
+  } while (false)
 
 #endif

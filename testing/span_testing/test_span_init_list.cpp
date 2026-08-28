@@ -85,9 +85,7 @@ namespace {
 }  // namespace
 
 TEST(SpanInitList, DeviceSideConstruction) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
 
   auto dOutRaii = gcxx::make_device_unique_ptr<int>(1);
   int* dOut     = dOutRaii.get();

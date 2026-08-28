@@ -253,8 +253,7 @@ TEST(HeterogeneousIteratorTest, HostSpaceDerefAndCrossSpaceArithmetic) {
 
 // in = {10, 20, 30} -> out = 10 + 30 + 20 = 60.
 TEST(HeterogeneousIteratorTest, DeviceDerefFromDeviceKernel) {
-  if (!gcxx::testing::haveCudaDevice())
-    GTEST_SKIP() << "no CUDA device";
+  GCXX_SKIP_WITHOUT_DEVICE();
 
   auto in          = gcxx::make_device_unique_ptr<int>(3);
   auto out         = gcxx::make_device_unique_ptr<int>(1);

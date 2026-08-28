@@ -31,9 +31,7 @@ GCXX_ASSERT_RAW_HANDLE(ManagedMemPool, gcxx::driver::deviceMemPool_t);
 class ManagedMemoryPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available; skipping ManagedMemPool tests";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
   }
 };
 

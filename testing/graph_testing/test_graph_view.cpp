@@ -74,9 +74,7 @@ namespace {
 }  // namespace
 
 TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
 
   gcxx::Graph graph;
 

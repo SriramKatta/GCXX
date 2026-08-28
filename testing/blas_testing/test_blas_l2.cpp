@@ -30,9 +30,7 @@ namespace {
   // Garbage in the unread triangle pins the tag semantics.
   template <class IndexT, bool RowMajorA>
   void run_symv() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N = 4;
     std::vector<double> hFull(N * N);  // symmetric reference (column-major)
@@ -108,9 +106,7 @@ namespace {
 
   template <class IndexT>
   void run_trmv_trsv() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N = 4;
     std::vector<double> hTri(N * N, 0.0);  // upper triangle (column-major)
@@ -178,9 +174,7 @@ namespace {
 
   template <class IndexT, bool RowMajorA>
   void run_ger() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3, N = 4;
     std::vector<double> hA0(M * N);  // column-major base values
@@ -247,9 +241,7 @@ namespace {
   // syr/syr2 write only the tagged triangle; check just that triangle.
   template <class IndexT>
   void run_syr_syr2() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N = 4;
     std::vector<double> hA0(N * N);  // symmetric base (column-major)

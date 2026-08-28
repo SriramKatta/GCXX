@@ -13,10 +13,7 @@ GCXX_ASSERT_RAW_HANDLE(MemPool, gcxx::driver::deviceMemPool_t);
 class MemPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP()
-        << "No CUDA device available; skipping MemPool ownership tests";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
   }
 };
 

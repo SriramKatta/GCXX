@@ -57,9 +57,7 @@ namespace {
   // index_type picks the cu/hipblas entry: Sgemv_v2/Dgemv_v2 vs *_v2_64.
   template <class IndexT>
   void run_colmajor_double_ax() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int K = 4;
@@ -108,9 +106,7 @@ namespace {
   // Layout gate: row-major buffer must give same A*x and scaled accumulate.
   template <class IndexT>
   void run_rowmajor_and_scaled() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int K = 4;
@@ -187,9 +183,7 @@ namespace {
   // transposed(A): y = A^T*x with no data movement.
   template <class IndexT>
   void run_transposed_operand() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 4;  // A is (M x K) column-major
     constexpr int K = 3;
@@ -238,9 +232,7 @@ namespace {
   // device_scalar selects device pointer mode; both factors device-resident.
   template <class IndexT>
   void run_colmajor_double_ax_device_scalar() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int K = 4;

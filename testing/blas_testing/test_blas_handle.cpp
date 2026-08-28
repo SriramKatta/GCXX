@@ -14,25 +14,19 @@ GCXX_ASSERT_RAW_HANDLE(blas::BlasHandleView, gcxx::driver::deviceBlasHandle_t);
 GCXX_ASSERT_RAW_HANDLE(blas::BlasHandle, gcxx::driver::deviceBlasHandle_t);
 
 TEST(BlasHandle, CreateAndDestroy) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   EXPECT_NE(handle.getRawHandle(), nullptr);
 }
 
 TEST(BlasHandle, VersionIsPositive) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   EXPECT_GT(handle.getVersion(), 0);
 }
 
 TEST(BlasHandle, SetGetStream) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   gcxx::Stream stream;
   handle.setStream(stream);
@@ -40,9 +34,7 @@ TEST(BlasHandle, SetGetStream) {
 }
 
 TEST(BlasHandle, MoveTransfersOwnership) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   auto raw = handle.getRawHandle();
   ASSERT_NE(raw, nullptr);
@@ -52,9 +44,7 @@ TEST(BlasHandle, MoveTransfersOwnership) {
 }
 
 TEST(BlasHandle, ReleaseYieldsView) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   auto raw  = handle.getRawHandle();
   auto view = handle.release();

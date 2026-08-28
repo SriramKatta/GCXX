@@ -54,9 +54,7 @@ namespace {
   // index_type picks the cu/hipblas entry: GemmEx vs GemmEx_64.
   template <class IndexT>
   void run_colmajor_double_ab() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int K = 4;
@@ -111,9 +109,7 @@ namespace {
   // Regression gate: pre-fix this computed (A*B)^T for row-major C.
   template <class IndexT>
   void run_rowmajor_and_scaled() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int K = 4;
@@ -200,9 +196,7 @@ namespace {
   // Non-aliased addend E: split path via the in-place geam step.
   template <class IndexT>
   void run_colmajor_accumulate_unaliased() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int K = 4;
@@ -268,9 +262,7 @@ namespace {
   // device_scalar selects device pointer mode; both factors device-resident.
   template <class IndexT>
   void run_colmajor_double_ab_device_scalar() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int M = 3;
     constexpr int K = 4;

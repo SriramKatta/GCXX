@@ -7,17 +7,13 @@
 #include <gcxx/blas_api.hpp>
 
 TEST(BlasPointerMode, DefaultIsHost) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   EXPECT_EQ(handle.getPointerMode(), gcxx::blas::host_pointer_mode);
 }
 
 TEST(BlasPointerMode, SetGetRoundTrip) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   handle.setPointerMode(gcxx::blas::device_pointer_mode);
   EXPECT_EQ(handle.getPointerMode(), gcxx::blas::device_pointer_mode);
@@ -26,9 +22,7 @@ TEST(BlasPointerMode, SetGetRoundTrip) {
 }
 
 TEST(BlasPointerMode, GuardRestoresOnDestruction) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   ASSERT_EQ(handle.getPointerMode(), gcxx::blas::host_pointer_mode);
 
@@ -42,9 +36,7 @@ TEST(BlasPointerMode, GuardRestoresOnDestruction) {
 
 // Restores the *prior* mode, not a hard-coded host default.
 TEST(BlasPointerMode, GuardRestoresPriorDeviceMode) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::blas::BlasHandle handle;
   handle.setPointerMode(gcxx::blas::device_pointer_mode);
 

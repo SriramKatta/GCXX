@@ -14,25 +14,19 @@ GCXX_ASSERT_RAW_HANDLE(SparseHandleView, gcxx::driver::deviceSparseHandle_t);
 GCXX_ASSERT_RAW_HANDLE(SparseHandle, gcxx::driver::deviceSparseHandle_t);
 
 TEST(SparseHandle, CreateAndDestroy) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::SparseHandle handle;
   EXPECT_NE(handle.getRawHandle(), nullptr);
 }
 
 TEST(SparseHandle, VersionIsPositive) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::SparseHandle handle;
   EXPECT_GT(handle.getVersion(), 0);
 }
 
 TEST(SparseHandle, SetGetStream) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::SparseHandle handle;
   gcxx::Stream stream;
   handle.setStream(stream);
@@ -40,9 +34,7 @@ TEST(SparseHandle, SetGetStream) {
 }
 
 TEST(SparseHandle, MoveTransfersOwnership) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::SparseHandle handle;
   auto raw = handle.getRawHandle();
   ASSERT_NE(raw, nullptr);
@@ -52,9 +44,7 @@ TEST(SparseHandle, MoveTransfersOwnership) {
 }
 
 TEST(SparseHandle, ReleaseYieldsView) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   gcxx::SparseHandle handle;
   auto raw  = handle.getRawHandle();
   auto view = handle.release();

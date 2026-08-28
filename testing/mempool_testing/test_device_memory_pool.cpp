@@ -25,9 +25,7 @@ GCXX_ASSERT_RAW_HANDLE(DeviceMemPool, gcxx::driver::deviceMemPool_t);
 class DeviceMemoryPoolTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available; skipping DeviceMemPool tests";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
   }
 };
 

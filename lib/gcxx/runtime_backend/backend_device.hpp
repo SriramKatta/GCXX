@@ -19,6 +19,18 @@ GCXX_FH auto chooseDevice(const deviceProp_t& prop) -> int {
   return device;
 }
 
+// Non-throwing availability probe: unlike deviceGetCount, a missing driver
+// or device reports false instead of aborting when exceptions are off.
+GCXX_FH auto deviceAvailable() -> bool {
+  int count = 0;
+  if (::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count) != deviceErrSuccess) {
+    (void)GetLastError();  // consume the recorded error; a failed count is
+                           // an expected outcome for this probe
+    return false;
+  }
+  return count > 0;
+}
+
 GCXX_FH auto deviceFlushGPUDirectRDMAWrites() -> void {
   // TODO: To be filed later.
 }

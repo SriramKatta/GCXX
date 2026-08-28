@@ -69,8 +69,7 @@ TEST(CopySfinaeTest, RejectsInvalidArgumentShapes) {
 }
 
 TEST(CopyTest, RawPointerSyncRoundTrip) {
-  if (!gcxx::testing::haveCudaDevice())
-    GTEST_SKIP() << "no CUDA device";
+  GCXX_SKIP_WITHOUT_DEVICE();
 
   constexpr std::size_t N = 1024;
   std::vector<u32> h_src(N), h_dst(N);
@@ -89,8 +88,7 @@ TEST(CopyTest, RawPointerSyncRoundTrip) {
 }
 
 TEST(CopyTest, RawPointerAsyncRoundTrip) {
-  if (!gcxx::testing::haveCudaDevice())
-    GTEST_SKIP() << "no CUDA device";
+  GCXX_SKIP_WITHOUT_DEVICE();
 
   constexpr std::size_t N = 1024;
   std::vector<u32> h_src(N), h_dst(N);
@@ -110,8 +108,7 @@ TEST(CopyTest, RawPointerAsyncRoundTrip) {
 }
 
 TEST(CopyTest, SpanAsyncRoundTrip) {
-  if (!gcxx::testing::haveCudaDevice())
-    GTEST_SKIP() << "no CUDA device";
+  GCXX_SKIP_WITHOUT_DEVICE();
 
   constexpr std::size_t N = 512;
   std::vector<u32> h_src(N), h_dst(N);

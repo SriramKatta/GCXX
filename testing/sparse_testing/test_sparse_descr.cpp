@@ -46,9 +46,7 @@ static_assert(std::is_base_of_v<gcxx::DnVecDescrView, gcxx::DnVecDescr>, "");
 static_assert(std::is_base_of_v<gcxx::SpVecDescrView, gcxx::SpVecDescr>, "");
 
 TEST(SpMatDescr, CreateCsrAndIntrospect) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   DeviceBuf rowOffsets(4 * sizeof(int));
   DeviceBuf colInd(3 * sizeof(int));
   DeviceBuf values(3 * sizeof(float));
@@ -62,9 +60,7 @@ TEST(SpMatDescr, CreateCsrAndIntrospect) {
 }
 
 TEST(SpMatDescr, CreateCooAndMove) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   DeviceBuf rowInd(3 * sizeof(int));
   DeviceBuf colInd(3 * sizeof(int));
   DeviceBuf values(3 * sizeof(float));
@@ -82,9 +78,7 @@ TEST(SpMatDescr, CreateCooAndMove) {
 }
 
 TEST(SpMatDescr, ReleaseYieldsView) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   DeviceBuf rowOffsets(4 * sizeof(int));
   DeviceBuf colInd(3 * sizeof(int));
   DeviceBuf values(3 * sizeof(float));
@@ -100,9 +94,7 @@ TEST(SpMatDescr, ReleaseYieldsView) {
 }
 
 TEST(DnMatDescr, CreateAndDestroy) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   DeviceBuf values(6 * sizeof(float));
   auto mat = gcxx::DnMatDescr::from_dense(2, 3, 2, values.get(),
                                           gcxx::driver::deviceValueTypeF32,
@@ -111,9 +103,7 @@ TEST(DnMatDescr, CreateAndDestroy) {
 }
 
 TEST(SpVecDescr, CreateAndMove) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   DeviceBuf indices(3 * sizeof(int));
   DeviceBuf values(3 * sizeof(float));
   auto vec = gcxx::SpVecDescr::from_sparse(
@@ -128,9 +118,7 @@ TEST(SpVecDescr, CreateAndMove) {
 }
 
 TEST(DnVecDescr, CreateAndDestroy) {
-  if (!gcxx::testing::haveCudaDevice()) {
-    GTEST_SKIP() << "No CUDA device available";
-  }
+  GCXX_SKIP_WITHOUT_DEVICE();
   DeviceBuf values(4 * sizeof(float));
   auto vec = gcxx::DnVecDescr::from_dense(4, values.get(),
                                           gcxx::driver::deviceValueTypeF32);

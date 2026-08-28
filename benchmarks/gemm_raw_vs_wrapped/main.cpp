@@ -28,6 +28,7 @@
 
 #include <gcxx/backend/backend_blas.hpp>
 #include <gcxx/blas_api.hpp>
+#include <gcxx/runtime/device.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
@@ -264,37 +265,31 @@ namespace {
     return true;
   }
 
-  auto have_device() -> bool {
-    int count      = 0;
-    const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
-    return err == gcxx::driver::deviceErrSuccess && count > 0;
-  }
-
 }  // namespace
 
+// Geometric ranges (×2) rather than spelled-out Arg lists.
 BENCHMARK(BM_RawGemmEx_IssueOnly)
-  ->Arg(32)
-  ->Arg(64)
+  ->RangeMultiplier(4)
+  ->Range(32, 2046)
   ->Unit(benchmark::kMicrosecond);
+
 BENCHMARK(BM_WrappedMatrixProduct_IssueOnly)
-  ->Arg(32)
-  ->Arg(64)
+  ->RangeMultiplier(4)
+  ->Range(32, 2046)
   ->Unit(benchmark::kMicrosecond);
+
 BENCHMARK(BM_RawGemmEx_WithSync)
-  ->Arg(128)
-  ->Arg(256)
-  ->Arg(512)
-  ->Arg(1024)
+  ->RangeMultiplier(2)
+  ->Range(128, 2046)
   ->Unit(benchmark::kMicrosecond);
+
 BENCHMARK(BM_WrappedMatrixProduct_WithSync)
-  ->Arg(128)
-  ->Arg(256)
-  ->Arg(512)
-  ->Arg(1024)
+  ->RangeMultiplier(2)
+  ->Range(128, 2046)
   ->Unit(benchmark::kMicrosecond);
 
 auto main(int argc, char** argv) -> int {
-  if (!have_device()) {
+  if (!gcxx::Device::available()) {
     std::fputs(
       "SKIP: no CUDA/HIP device visible; this benchmark needs a "
       "GPU\n",

@@ -22,9 +22,7 @@ namespace {
 
   template <class IndexT>
   void run_axpy_scale() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N    = 5;
     const double alpha = 2.0, scale = 3.0;
@@ -60,9 +58,7 @@ namespace {
 
   template <class IndexT>
   void run_dot_two_norm_givens() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N    = 5;
     constexpr double c = 0.8, s = 0.6;
@@ -133,9 +129,7 @@ namespace {
 
   template <class IndexT>
   void run_copy_swap_asum_idx() {
-    if (!gcxx::testing::haveCudaDevice()) {
-      GTEST_SKIP() << "No CUDA device available";
-    }
+    GCXX_SKIP_WITHOUT_DEVICE();
 
     constexpr int N = 6;
 
