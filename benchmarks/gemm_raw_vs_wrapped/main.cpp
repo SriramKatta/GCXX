@@ -267,25 +267,28 @@ namespace {
 
 }  // namespace
 
+constexpr std::size_t lown = 32;
+constexpr std::size_t highn = 1024 * 8;
+
 // Geometric ranges (×2) rather than spelled-out Arg lists.
 BENCHMARK(BM_RawGemmEx_IssueOnly)
   ->RangeMultiplier(4)
-  ->Range(32, 2046)
+  ->Range(lown, highn)
   ->Unit(benchmark::kMicrosecond);
 
 BENCHMARK(BM_WrappedMatrixProduct_IssueOnly)
   ->RangeMultiplier(4)
-  ->Range(32, 2046)
+  ->Range(lown, highn)
   ->Unit(benchmark::kMicrosecond);
 
 BENCHMARK(BM_RawGemmEx_WithSync)
   ->RangeMultiplier(2)
-  ->Range(128, 2046)
+  ->Range(lown, highn)
   ->Unit(benchmark::kMicrosecond);
 
 BENCHMARK(BM_WrappedMatrixProduct_WithSync)
   ->RangeMultiplier(2)
-  ->Range(128, 2046)
+  ->Range(lown, highn)
   ->Unit(benchmark::kMicrosecond);
 
 auto main(int argc, char** argv) -> int {
