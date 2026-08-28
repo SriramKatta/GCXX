@@ -14,7 +14,7 @@ class Event : public EventView {
 
  public:
   GCXX_FH auto destroy() -> void;
-  GCXX_FH Event(const flags::eventCreate createFlag = flags::eventCreate::None);
+  GCXX_FH Event(flags::eventCreate createFlag = flags::eventCreate::None);
 
   GCXX_FH ~Event();
 
@@ -26,9 +26,7 @@ class Event : public EventView {
 
   GCXX_FH auto operator=(Event&& other) noexcept -> Event&;
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT -> EventView;
-
-  operator deviceEvent_t() = delete;
+  GCXX_FH auto release() GCXX_NOEXCEPT -> EventView;
 };
 
 GCXX_NAMESPACE_MAIN_END()

@@ -247,8 +247,7 @@ TEST(SpanSubviews, StaticSubviewsReturnPublicWrapperTypes) {
 TEST(SpanConstructors, CrossStorageConversions) {
   int values[]{1, 2, 3, 4, 5};
 
-  // Converting between span and restrict_span should be allowed when
-  // element types and extents are compatible.
+  // Conversions allowed when element types and extents are compatible.
   static_assert(
     std::is_constructible_v<gcxx::span<int>, gcxx::restrict_span<int, 5>&>);
   static_assert(std::is_constructible_v<gcxx::span<const int>,
@@ -269,4 +268,35 @@ TEST(SpanConstructors, CrossStorageConversions) {
   gcxx::restrict_span<int> rs_from_s{s};
   EXPECT_EQ(rs_from_s.data(), values);
   EXPECT_EQ(rs_from_s.size(), std::size(values));
+}
+
+// Span iterators are space-aware heterogeneous iterators, never raw T*.
+TEST(SpanConstructors, IteratorsAreSpaceAwareNotRawPointers) {
+  static_assert(
+    std::is_same_v<gcxx::span<int>::iterator,
+                   gcxx::heterogeneous_iterator<int, gcxx::host_accessible,
+                                                gcxx::device_accessible>>);
+  static_assert(std::is_same_v<
+                gcxx::span<const int>::iterator,
+                gcxx::heterogeneous_iterator<const int, gcxx::host_accessible,
+                                             gcxx::device_accessible>>);
+  static_assert(
+    std::is_same_v<gcxx::span<int>::reverse_iterator,
+                   gcxx::reverse_iterator<gcxx::span<int>::iterator>>);
+  static_assert(!std::is_same_v<gcxx::span<int>::iterator, int*>);
+  static_assert(!std::is_same_v<gcxx::span<int>::reverse_iterator,
+                                std::reverse_iterator<int*>>);
+
+  int values[]{1, 2, 3, 4, 5};
+  gcxx::span<int> s{values};
+
+  // Forward and reverse traversal + std-algorithm interop.
+  EXPECT_EQ(*s.begin(), 1);
+  EXPECT_EQ(s.begin()[4], 5);
+  EXPECT_EQ(*s.rbegin(), 5);
+  EXPECT_EQ(s.rend() - s.rbegin(), 5);
+  int expected = 5;
+  for (auto it = s.rbegin(); it != s.rend(); ++it, --expected) {
+    EXPECT_EQ(*it, expected);
+  }
 }

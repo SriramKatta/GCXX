@@ -100,13 +100,11 @@ int main(int argc, char* argv[]) {
     }
   }
   {
-    int chunk_size = rowsinrank(rank, nranks, N);
-    auto a_raii =
-      gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
-    auto a_new_raii =
-      gcxx::memory::make_device_unique_ptr<real>(N * (chunk_size + 2));
-    gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
-    gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
+    int chunk_size  = rowsinrank(rank, nranks, N);
+    auto a_raii     = gcxx::make_device_unique_ptr<real>(N * (chunk_size + 2));
+    auto a_new_raii = gcxx::make_device_unique_ptr<real>(N * (chunk_size + 2));
+    gcxx::Memset(a_raii, 0, N * (chunk_size + 2));
+    gcxx::Memset(a_new_raii, 0, N * (chunk_size + 2));
     real* a     = a_raii.get();
     real* a_new = a_new_raii.get();
 
@@ -134,14 +132,14 @@ int main(int argc, char* argv[]) {
       std::swap(a, a_new);
     }
     worldcomm.ibarrier();
-    locdev.Synchronize();
+    locdev.sync();
     nvtxRangePop();
 
     // cudaGraph_t graphs[2];
     std::array<gcxx::Graph, 2> graphs;
     nvtxRangePushA("Graph_create");
     for (int g = 0; g < 2; ++g) {
-      edge_stream.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+      edge_stream.beginCapture(gcxx::flags::streamCaptureMode::Global);
 
       // Launch edge-row Jacobi on edge_stream
       launch_jacobi_kernel(a_new, a, iy_start, iy_start + 1, N, edge_stream);
@@ -162,7 +160,7 @@ int main(int argc, char* argv[]) {
       // Inner Jacobi on inner_stream
       launch_jacobi_kernel(a_new, a, iy_start + 1, iy_end - 1, N, inner_stream);
 
-      graphs[g] = edge_stream.EndCapture();
+      graphs[g] = edge_stream.endCapture();
       std::swap(a, a_new);
     }
     nvtxRangePop();
@@ -172,7 +170,7 @@ int main(int argc, char* argv[]) {
     std::array<gcxx::GraphExec, 2> graph_exec;
     nvtxRangePushA("Graph_init");
     for (int g = 0; g < 2; ++g) {
-      graph_exec[g] = graphs[g].Instantiate();
+      graph_exec[g] = graphs[g].instantiate();
       graphs[g].destroy();
     }
     nvtxRangePop();
@@ -180,28 +178,28 @@ int main(int argc, char* argv[]) {
     // Warmup graph launches
     nvtxRangePushA("Graph_Warmup");
     for (int i = 0; i < 10; ++i) {
-      graph_exec[0].Launch(inner_stream);
-      graph_exec[1].Launch(inner_stream);
+      graph_exec[0].launch(inner_stream);
+      graph_exec[1].launch(inner_stream);
     }
-    inner_stream.Synchronize();
+    inner_stream.sync();
     nvtxRangePop();
 
     // Initialize boundaries
-    gcxx::memory::Memset(a_raii, 0, N * (chunk_size + 2));
-    gcxx::memory::Memset(a_new_raii, 0, N * (chunk_size + 2));
+    gcxx::Memset(a_raii, 0, N * (chunk_size + 2));
+    gcxx::Memset(a_new_raii, 0, N * (chunk_size + 2));
     launch_initialize_boundaries(a, a_new, M_PI, iy_start_global - 1, N,
                                  chunk_size + 2);
-    locdev.Synchronize();
+    locdev.sync();
 
     // Solve
     double start = MPI_Wtime();
     nvtxRangePushA("Jacobistep");
     for (int it = 0; it < maxIt; ++it) {
-      graph_exec[it % 2].Launch(inner_stream);
+      graph_exec[it % 2].launch(inner_stream);
     }
     nvtxRangePop();
     // CUDA_CALL(cudaDeviceSynchronize());
-    locdev.Synchronize();
+    locdev.sync();
     double dur    = (MPI_Wtime() - start) / maxIt;
     double maxdur = 0;
     worldcomm.iallreduce(&dur, &maxdur, 1, mpicxx::op::max());
@@ -278,12 +276,12 @@ void Halo_exchange(real* a_new, real* a, int N, const int top, int iy_end,
                    gcxx::StreamView edge_stream) {
   NCCL_CALL(ncclGroupStart());
   // clang-format off
-  NCCL_CALL(ncclRecv(a_new                   , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawStream()));
-  NCCL_CALL(ncclSend(a_new + (iy_end - 1) * N, N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawStream()));
-  NCCL_CALL(ncclRecv(a_new + (iy_end * N)    , N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawStream()));
-  NCCL_CALL(ncclSend(a_new + (iy_start * N)  , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawStream()));
+  NCCL_CALL(ncclRecv(a_new                   , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawHandle()));
+  NCCL_CALL(ncclSend(a_new + (iy_end - 1) * N, N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawHandle()));
+  NCCL_CALL(ncclRecv(a_new + (iy_end * N)    , N, NCCL_REAL_TYPE, bottom, nccl_comm, edge_stream.getRawHandle()));
+  NCCL_CALL(ncclSend(a_new + (iy_start * N)  , N, NCCL_REAL_TYPE, top   , nccl_comm, edge_stream.getRawHandle()));
   // clang-format on
   NCCL_CALL(ncclGroupEnd());
   // CUDA_CALL(cudaStreamSynchronize(edge_stream));
-  edge_stream.Synchronize();
+  edge_stream.sync();
 }

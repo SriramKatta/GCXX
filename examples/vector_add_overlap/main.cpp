@@ -24,15 +24,15 @@ void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
-  str.Synchronize();
-  auto kernelstart = str.RecordEvent();
+  str.sync();
+  auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.RecordEvent();
-  str.Synchronize();
+  auto kernelend = str.recordEvent();
+  str.sync();
   float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
+    (kernelend.elapsedTimeSince<gcxx::Sec>(kernelstart)).count();
   return kerneltime;
 }
 
@@ -45,10 +45,10 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  auto h_a = gcxx::memory::host_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_host_resource{}, arg.N);
-  auto d_a = gcxx::memory::device_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_device_resource{}, arg.N);
+  auto h_a = gcxx::host_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::pinned_default_memory_pool(), arg.N);
+  auto d_a = gcxx::device_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::device_default_memory_pool(dev), arg.N);
 
 
   gcxx::span h_a_span(h_a);
@@ -72,15 +72,15 @@ int main(int argc, char** argv) {
       size_t count   = std::min(base_count, arg.N - offset);
       auto h_subspan = h_a_span.subspan(offset, count);
       auto d_subspan = d_a_span.subspan(offset, count);
-      gcxx::memory::Copy(stream, d_subspan, h_subspan);
+      gcxx::Copy(stream, d_subspan, h_subspan);
       launch_scalar_kernel(arg, stream, d_subspan);
       launch_vec2_kernel(arg, stream, d_subspan);
       launch_vec4_kernel(arg, stream, d_subspan);
-      gcxx::memory::Copy(stream, h_subspan, d_subspan);
+      gcxx::Copy(stream, h_subspan, d_subspan);
     }
   }
 
-  dev.Synchronize();
+  dev.sync();
 
 
   checkdata(h_a_span, static_cast<datatype>(3 * arg.rep));

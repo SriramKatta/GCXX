@@ -21,7 +21,7 @@ struct device_malloc_t {
 struct device_malloc_async_t {
   auto operator()(std::size_t numbytes,
                   const StreamView& sv = StreamView::Null()) const {
-    return driver::deviceMallocAsync(numbytes, sv.getRawStream());
+    return driver::deviceMallocAsync(numbytes, sv.getRawHandle());
   }
 };
 
@@ -43,7 +43,7 @@ struct device_free_t {
 
 struct device_free_async_t {
   auto operator()(void* ptr, const StreamView& sv = StreamView::Null()) const {
-    driver::deviceFreeAsync(ptr, sv.getRawStream());
+    driver::deviceFreeAsync(ptr, sv.getRawHandle());
   }
 };
 
@@ -55,13 +55,14 @@ GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-inline auto device_malloc         = details_::device_malloc_t{};
-inline auto device_managed_malloc = details_::device_managed_malloc_t{};
-inline auto device_malloc_async   = details_::device_malloc_async_t{};
-inline auto device_free           = details_::device_free_t{};
-inline auto device_free_async     = details_::device_free_async_t{};
-inline auto host_malloc           = details_::host_malloc_t{};
-inline auto host_free             = details_::host_free_t{};
+constexpr inline auto device_malloc = details_::device_malloc_t{};
+constexpr inline auto device_managed_malloc =
+  details_::device_managed_malloc_t{};
+constexpr inline auto device_malloc_async = details_::device_malloc_async_t{};
+constexpr inline auto device_free         = details_::device_free_t{};
+constexpr inline auto device_free_async   = details_::device_free_async_t{};
+constexpr inline auto host_malloc         = details_::host_malloc_t{};
+constexpr inline auto host_free           = details_::host_free_t{};
 
 GCXX_NAMESPACE_MAIN_END()
 

@@ -72,68 +72,77 @@ enum class deviceAttribute : details_::flag_t {
     MaxSharedMemoryPerBlockOptin, SharedMemPerBlockOptin),
   MaxSharedMemoryPerMultiprocessor =
     GCXX_ATTRIBUTE_BACKEND(MaxSharedMemoryPerMultiprocessor),
-  MaxSurface1DLayeredWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface1DLayeredWidth, MaxSurface1DLayered),
-  MaxSurface1DWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface1DWidth, MaxSurface1D),
-  MaxSurface2DHeight =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DHeight, MaxSurface2D),
-  MaxSurface2DLayeredHeight =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DLayeredHeight, MaxSurface2DLayered),
-  MaxSurface2DLayeredWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DLayeredWidth, MaxSurface2DLayered),
-  MaxSurface2DWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DWidth, MaxSurface2D),
-  MaxSurface3DDepth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface3DDepth, MaxSurface3D),
-  MaxSurface3DHeight =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface3DHeight, MaxSurface3D),
-  MaxSurface3DWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface3DWidth, MaxSurface3D),
-  MaxSurfaceCubemapLayeredWidth = GCXX_ATTRIBUTE_BACKEND_ALT(
-    MaxSurfaceCubemapLayeredWidth, MaxSurfaceCubemapLayered),
-  MaxSurfaceCubemapWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurfaceCubemapWidth, MaxSurfaceCubemap),
-  MaxTexture1DLayeredWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture1DLayeredWidth, MaxTexture1DLayered),
-  MaxTexture1DLinearWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture1DLinearWidth, MaxTexture1DLinear),
-  MaxTexture1DMipmappedWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture1DMipmappedWidth, MaxTexture1DMipmap),
-  MaxTexture1DWidth = GCXX_ATTRIBUTE_BACKEND(MaxTexture1DWidth),
-  MaxTexture2DGatherHeight =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DGatherHeight, MaxTexture2DGather),
-  MaxTexture2DGatherWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DGatherWidth, MaxTexture2DGather),
-  MaxTexture2DHeight = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DHeight),
-  MaxTexture2DLayeredHeight =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLayeredHeight, MaxTexture2DLayered),
-  MaxTexture2DLayeredWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLayeredWidth, MaxTexture2DLayered),
-  MaxTexture2DLinearHeight =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLinearHeight, MaxTexture2DLinear),
-  MaxTexture2DLinearPitch =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLinearPitch, MaxTexture2DLinear),
-  MaxTexture2DLinearWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLinearWidth, MaxTexture2DLinear),
-  MaxTexture2DMipmappedHeight =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DMipmappedHeight, MaxTexture2DMipmap),
-  MaxTexture2DMipmappedWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DMipmappedWidth, MaxTexture2DMipmap),
-  MaxTexture2DWidth = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DWidth),
-  MaxTexture3DDepth = GCXX_ATTRIBUTE_BACKEND(MaxTexture3DDepth),
-  MaxTexture3DDepthAlt =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture3DDepthAlt, MaxTexture3DAlt),
-  MaxTexture3DHeight = GCXX_ATTRIBUTE_BACKEND(MaxTexture3DHeight),
-  MaxTexture3DHeightAlt =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture3DHeightAlt, MaxTexture3DAlt),
-  MaxTexture3DWidth = GCXX_ATTRIBUTE_BACKEND(MaxTexture3DWidth),
-  MaxTexture3DWidthAlt =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture3DWidthAlt, MaxTexture3DAlt),
-  MaxTextureCubemapLayeredWidth = GCXX_ATTRIBUTE_BACKEND_ALT(
-    MaxTextureCubemapLayeredWidth, MaxTextureCubemapLayered),
-  MaxTextureCubemapWidth =
-    GCXX_ATTRIBUTE_BACKEND_ALT(MaxTextureCubemapWidth, MaxTextureCubemap),
+  // MaxSurface1DLayeredWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface1DLayeredWidth,
+  //   MaxSurface1DLayered),
+  // MaxSurface1DWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface1DWidth, MaxSurface1D),
+  // MaxSurface2DHeight =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DHeight, MaxSurface2D),
+  // MaxSurface2DLayeredHeight =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DLayeredHeight,
+  //   MaxSurface2DLayered),
+  // MaxSurface2DLayeredWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DLayeredWidth,
+  //   MaxSurface2DLayered),
+  // MaxSurface2DWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface2DWidth, MaxSurface2D),
+  // MaxSurface3DDepth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface3DDepth, MaxSurface3D),
+  // MaxSurface3DHeight =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface3DHeight, MaxSurface3D),
+  // MaxSurface3DWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurface3DWidth, MaxSurface3D),
+  // MaxSurfaceCubemapLayeredWidth = GCXX_ATTRIBUTE_BACKEND_ALT(
+  //   MaxSurfaceCubemapLayeredWidth, MaxSurfaceCubemapLayered),
+  // MaxSurfaceCubemapWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxSurfaceCubemapWidth, MaxSurfaceCubemap),
+  // MaxTexture1DLayeredWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture1DLayeredWidth,
+  //   MaxTexture1DLayered),
+  // MaxTexture1DLinearWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture1DLinearWidth, MaxTexture1DLinear),
+  // MaxTexture1DMipmappedWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture1DMipmappedWidth,
+  //   MaxTexture1DMipmap),
+  // MaxTexture1DWidth = GCXX_ATTRIBUTE_BACKEND(MaxTexture1DWidth),
+  // MaxTexture2DGatherHeight =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DGatherHeight, MaxTexture2DGather),
+  // MaxTexture2DGatherWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DGatherWidth, MaxTexture2DGather),
+  // MaxTexture2DHeight = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DHeight),
+  // MaxTexture2DLayeredHeight =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLayeredHeight,
+  //   MaxTexture2DLayered),
+  // MaxTexture2DLayeredWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLayeredWidth,
+  //   MaxTexture2DLayered),
+  // MaxTexture2DLinearHeight =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLinearHeight, MaxTexture2DLinear),
+  // MaxTexture2DLinearPitch =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLinearPitch, MaxTexture2DLinear),
+  // MaxTexture2DLinearWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DLinearWidth, MaxTexture2DLinear),
+  // MaxTexture2DMipmappedHeight =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DMipmappedHeight,
+  //   MaxTexture2DMipmap),
+  // MaxTexture2DMipmappedWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture2DMipmappedWidth,
+  //   MaxTexture2DMipmap),
+  // MaxTexture2DWidth = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DWidth),
+  // MaxTexture3DDepth = GCXX_ATTRIBUTE_BACKEND(MaxTexture3DDepth),
+  // MaxTexture3DDepthAlt =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture3DDepthAlt, MaxTexture3DAlt),
+  // MaxTexture3DHeight = GCXX_ATTRIBUTE_BACKEND(MaxTexture3DHeight),
+  // MaxTexture3DHeightAlt =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture3DHeightAlt, MaxTexture3DAlt),
+  // MaxTexture3DWidth = GCXX_ATTRIBUTE_BACKEND(MaxTexture3DWidth),
+  // MaxTexture3DWidthAlt =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTexture3DWidthAlt, MaxTexture3DAlt),
+  // MaxTextureCubemapLayeredWidth = GCXX_ATTRIBUTE_BACKEND_ALT(
+  //   MaxTextureCubemapLayeredWidth, MaxTextureCubemapLayered),
+  // MaxTextureCubemapWidth =
+  //   GCXX_ATTRIBUTE_BACKEND_ALT(MaxTextureCubemapWidth, MaxTextureCubemap),
   MaxThreadsPerBlock = GCXX_ATTRIBUTE_BACKEND(MaxThreadsPerBlock),
   MaxThreadsPerMultiProcessor =
     GCXX_ATTRIBUTE_BACKEND(MaxThreadsPerMultiProcessor),
@@ -152,13 +161,13 @@ enum class deviceAttribute : details_::flag_t {
   SingleToDoublePrecisionPerfRatio =
     GCXX_ATTRIBUTE_BACKEND(SingleToDoublePrecisionPerfRatio),
   StreamPrioritiesSupported = GCXX_ATTRIBUTE_BACKEND(StreamPrioritiesSupported),
-  SurfaceAlignment          = GCXX_ATTRIBUTE_BACKEND(SurfaceAlignment),
-  TccDriver                 = GCXX_ATTRIBUTE_BACKEND(TccDriver),
-  TextureAlignment          = GCXX_ATTRIBUTE_BACKEND(TextureAlignment),
-  TexturePitchAlignment     = GCXX_ATTRIBUTE_BACKEND(TexturePitchAlignment),
-  TotalConstantMemory       = GCXX_ATTRIBUTE_BACKEND(TotalConstantMemory),
-  UnifiedAddressing         = GCXX_ATTRIBUTE_BACKEND(UnifiedAddressing),
-  WarpSize                  = GCXX_ATTRIBUTE_BACKEND(WarpSize),
+  // SurfaceAlignment          = GCXX_ATTRIBUTE_BACKEND(SurfaceAlignment),
+  TccDriver = GCXX_ATTRIBUTE_BACKEND(TccDriver),
+  // TextureAlignment          = GCXX_ATTRIBUTE_BACKEND(TextureAlignment),
+  // TexturePitchAlignment     = GCXX_ATTRIBUTE_BACKEND(TexturePitchAlignment),
+  TotalConstantMemory = GCXX_ATTRIBUTE_BACKEND(TotalConstantMemory),
+  UnifiedAddressing   = GCXX_ATTRIBUTE_BACKEND(UnifiedAddressing),
+  WarpSize            = GCXX_ATTRIBUTE_BACKEND(WarpSize),
 
 #if GCXX_CUDA_MODE()
   CanFlushRemoteWrites = GCXX_ATTRIBUTE_BACKEND(CanFlushRemoteWrites),
@@ -186,14 +195,16 @@ enum class deviceAttribute : details_::flag_t {
   Max                       = GCXX_ATTRIBUTE_BACKEND(Max),
   MaxAccessPolicyWindowSize = GCXX_ATTRIBUTE_BACKEND(MaxAccessPolicyWindowSize),
   MaxPersistingL2CacheSize  = GCXX_ATTRIBUTE_BACKEND(MaxPersistingL2CacheSize),
-  MaxSurface1DLayeredLayers = GCXX_ATTRIBUTE_BACKEND(MaxSurface1DLayeredLayers),
-  MaxSurface2DLayeredLayers = GCXX_ATTRIBUTE_BACKEND(MaxSurface2DLayeredLayers),
-  MaxSurfaceCubemapLayeredLayers =
-    GCXX_ATTRIBUTE_BACKEND(MaxSurfaceCubemapLayeredLayers),
-  MaxTexture1DLayeredLayers = GCXX_ATTRIBUTE_BACKEND(MaxTexture1DLayeredLayers),
-  MaxTexture2DLayeredLayers = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DLayeredLayers),
-  MaxTextureCubemapLayeredLayers =
-    GCXX_ATTRIBUTE_BACKEND(MaxTextureCubemapLayeredLayers),
+// MaxSurface1DLayeredLayers =
+// GCXX_ATTRIBUTE_BACKEND(MaxSurface1DLayeredLayers), MaxSurface2DLayeredLayers
+// = GCXX_ATTRIBUTE_BACKEND(MaxSurface2DLayeredLayers),
+// MaxSurfaceCubemapLayeredLayers =
+//   GCXX_ATTRIBUTE_BACKEND(MaxSurfaceCubemapLayeredLayers),
+// MaxTexture1DLayeredLayers =
+// GCXX_ATTRIBUTE_BACKEND(MaxTexture1DLayeredLayers), MaxTexture2DLayeredLayers
+// = GCXX_ATTRIBUTE_BACKEND(MaxTexture2DLayeredLayers),
+// MaxTextureCubemapLayeredLayers =
+//   GCXX_ATTRIBUTE_BACKEND(MaxTextureCubemapLayeredLayers),
 #if GCXX_CUDA_VERSION_LESS_THAN(13, 0, 0)
   MaxTimelineSemaphoreInteropSupported =
     GCXX_ATTRIBUTE_BACKEND(MaxTimelineSemaphoreInteropSupported),

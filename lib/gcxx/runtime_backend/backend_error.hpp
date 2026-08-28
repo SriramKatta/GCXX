@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_error_common.hpp>
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
 GCXX_NAMESPACE_MAIN_DRIVER_BEGIN()
@@ -30,18 +31,7 @@ GCXX_FHD auto PeekAtLastError() -> deviceError_t {
 
 GCXX_FH auto make_message(deviceError_t err,
                           std::string_view context) -> std::string {
-  std::string msg;
-  constexpr size_t addtional_message_size = 128;
-  msg.reserve(context.size() + addtional_message_size);
-
-  msg.append(context)
-    .append(": ")
-    .append(GetErrorName(err))
-    .append(" (")
-    .append(GetErrorString(err))
-    .append(")");
-
-  return msg;
+  return make_status_message(context, GetErrorName(err), GetErrorString(err));
 }
 
 GCXX_NAMESPACE_MAIN_DRIVER_END()

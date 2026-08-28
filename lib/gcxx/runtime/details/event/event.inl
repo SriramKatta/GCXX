@@ -6,6 +6,7 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
+#include <gcxx/runtime/stream/stream_view.hpp>
 
 #include <utility>
 
@@ -27,24 +28,25 @@ GCXX_FH Event::~Event() {
 GCXX_FH Event::Event(Event&& other) noexcept
     : EventView(std::exchange(other.m_event, driver::INVALID_EVENT)) {}
 
-GCXX_FH auto Event::Release() GCXX_NOEXCEPT -> EventView {
+GCXX_FH auto Event::release() GCXX_NOEXCEPT -> EventView {
   auto oldEvent = m_event;
   m_event       = driver::INVALID_EVENT;
   return {oldEvent};
 }
 
 GCXX_FH auto Event::operator=(Event&& other) noexcept -> Event& {
-  if (this != &other)
+  if (this != &other) {
     this->m_event = std::exchange(other.m_event, driver::INVALID_EVENT);
+  }
   return *this;
 }
 
 // Implementation of recordEvent to break circular dependency
-GCXX_FH auto StreamView::RecordEvent(const flags::eventCreate createflag,
+GCXX_FH auto StreamView::recordEvent(const flags::eventCreate createflag,
                                      const flags::eventRecord recordFlag) const
   -> Event {
   Event event(createflag);
-  event.RecordInStream(*this, recordFlag);
+  event.recordInStream(*this, recordFlag);
   return event;
 }
 

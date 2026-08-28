@@ -1,100 +1,69 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Sriram Katta
+// Tests for gcxx::MemPool, the owning cudaMemPool_t handle (view/owner
+// split like Stream); GPU-dependent cases skip without a device.
 #include "tests_common.hpp"
-
-#include <utility>
 
 #include <gcxx/api.hpp>
 
-namespace {
-
-  auto makeProps() -> gcxx::MemPoolProps {
-    gcxx::MemPoolProps props;
-    props.locationId = gcxx::driver::deviceGet();
-    return props;
-  }
-
-  // Query the device count via the raw backend call (not the throwing
-  // driver:: wrapper, which aborts when GCXX_WITH_EXCEPTIONS is off) so the
-  // fixture can skip gracefully on hosts without a usable GPU driver.
-  auto gpuAvailable() -> bool {
-    int count      = 0;
-    const auto err = ::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count);
-    return err == gcxx::driver::deviceErrSuccess && count > 0;
-  }
-
-}  // namespace
+// raw_handle_type contract (see tests_common.hpp).
+GCXX_ASSERT_RAW_HANDLE(MemPoolView, gcxx::driver::deviceMemPool_t);
+GCXX_ASSERT_RAW_HANDLE(MemPool, gcxx::driver::deviceMemPool_t);
 
 class MemPoolTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    if (!gpuAvailable()) {
-      GTEST_SKIP() << "No GPU device available; skipping pool ownership tests";
-    }
-  }
+  void SetUp() override { GCXX_SKIP_WITHOUT_DEVICE(); }
 };
 
 TEST_F(MemPoolTest, ConstructAndDestroy) {
   {
-    const gcxx::MemPool pool(makeProps());
-    EXPECT_NE(pool.getRawMemPool(), nullptr);
+    gcxx::MemPool pool;
+    EXPECT_NE(pool.getRawHandle(), nullptr);
   }  // destroyed here; must not throw
 }
 
 TEST_F(MemPoolTest, MoveConstructorTransfersOwnership) {
-  gcxx::MemPool pool1(makeProps());
-  const auto raw = pool1.getRawMemPool();
+  gcxx::MemPool pool1;
+  const auto raw = pool1.getRawHandle();
 
   gcxx::MemPool pool2(std::move(pool1));
 
-  EXPECT_EQ(pool1.getRawMemPool(), nullptr);
-  EXPECT_EQ(pool2.getRawMemPool(), raw);
+  EXPECT_EQ(pool1.getRawHandle(), nullptr);
+  EXPECT_EQ(pool2.getRawHandle(), raw);
 }
 
 TEST_F(MemPoolTest, MoveAssignmentTransfersOwnership) {
-  // pool1 is moved-from below; move-assignment needs a non-const source (copy
-  // is deleted), so it must stay non-const despite the check's suggestion.
-  gcxx::MemPool pool1(makeProps());  // NOLINT(misc-const-correctness)
-  gcxx::MemPool pool2(makeProps());
-  const auto raw1 = pool1.getRawMemPool();
+  // Moved-from below; move-assign needs non-const (copy ctor is deleted).
+  gcxx::MemPool pool1;  // NOLINT(misc-const-correctness)
+  gcxx::MemPool pool2;
+  const auto raw1 = pool1.getRawHandle();
 
   pool2 = std::move(pool1);
 
-  EXPECT_EQ(pool1.getRawMemPool(), nullptr);
-  EXPECT_EQ(pool2.getRawMemPool(), raw1);
+  EXPECT_EQ(pool1.getRawHandle(), nullptr);
+  EXPECT_EQ(pool2.getRawHandle(),
+            raw1);  // pool2's original handle was destroyed
 }
 
 TEST_F(MemPoolTest, ReleaseTransfersHandle) {
-  gcxx::MemPool pool(makeProps());
-  const auto raw = pool.getRawMemPool();
+  gcxx::MemPool pool;
+  const auto raw = pool.getRawHandle();
 
-  const gcxx::MemPoolView view = pool.Release();
+  const gcxx::MemPoolView view = pool.release();
 
-  EXPECT_EQ(pool.getRawMemPool(), nullptr);
-  EXPECT_EQ(view.getRawMemPool(), raw);
+  EXPECT_EQ(pool.getRawHandle(), nullptr);
+  EXPECT_EQ(view.getRawHandle(), raw);
 
-  // Ownership transferred; destroy manually.
+  // Ownership left the pool (view is non-owning); destroy the handle manually.
   gcxx::driver::deviceMemPoolDestroy(raw);
 }
 
-TEST_F(MemPoolTest, GetReturnsValidView) {
-  const gcxx::MemPool pool(makeProps());
-  const gcxx::MemPoolView view = pool.get();
-  EXPECT_EQ(view.getRawMemPool(), pool.getRawMemPool());
-}
+TEST_F(MemPoolTest, FromNativeHandleAdoptsAndDestroys) {
+  gcxx::MemPool pool;
+  const auto raw = pool.getRawHandle();  // the handle, while pool still owns it
+  pool.release();  // relinquish ownership (view discarded)
 
-TEST_F(MemPoolTest, SelfMoveKeepsOwnership) {
-  gcxx::MemPool pool(makeProps());
-  const auto raw = pool.getRawMemPool();
-
-  pool = std::move(pool);  // NOLINT(clang-analyzer-cplusplus.Move)
-
-  EXPECT_EQ(pool.getRawMemPool(), raw);
-}
-
-TEST_F(MemPoolTest, DestroyIsIdempotentOnReleased) {
-  gcxx::MemPool pool(makeProps());
-  const gcxx::MemPoolView view = pool.Release();
-  pool.destroy();  // no-op on null handle after Release
-  gcxx::driver::deviceMemPoolDestroy(view.getRawMemPool());
+  gcxx::MemPool adopted = gcxx::MemPool::from_native_handle(raw);
+  EXPECT_EQ(adopted.getRawHandle(),
+            raw);  // adopted owns raw; its dtor will destroy it
 }

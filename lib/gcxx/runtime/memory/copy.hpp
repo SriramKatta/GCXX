@@ -6,45 +6,50 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/macros/template_helper_macros.hpp>
-#include <gcxx/runtime/details/helper_function.hpp>
+#include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime/stream.hpp>
 #include <gcxx/runtime_backend/backend_memory.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
+// NOLINTBEGIN(cppcoreguidelines-missing-std-forward)
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
-// ╔════════════════════════════════════════════════════════╗
-// ║    smart / raw pointer version based on element type   ║
-// ╚════════════════════════════════════════════════════════╝
-GCXX_TEMPLATE(typename Ptr)
-GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-GCXX_FH auto Copy(Ptr destination, const Ptr source,
+// Copy via smart/raw pointers.
+GCXX_TEMPLATE(typename Ptr1, typename Ptr2)
+GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr1> GCXX_AND
+                details_::is_pointer_or_has_get_v<Ptr2>)
+GCXX_FH auto Copy(Ptr1&& destination, Ptr2&& source,
                   const std::size_t numElements) -> void {
-  auto src_raw_ptr = details_::get_raw_pointer(source);
-  auto dst_raw_ptr = details_::get_raw_pointer(destination);
-  using VT         = typename details_::pointed_to_type_t<Ptr>;
-  driver::deviceCopy(dst_raw_ptr, src_raw_ptr, numElements * sizeof(VT));
+  using VT1 = typename details_::pointed_to_type_t<Ptr1>;
+  using VT2 = typename details_::pointed_to_type_t<Ptr2>;
+  static_assert(std::is_same_v<VT1, VT2>,
+                "copy needs pointers to point to same type");
+  driver::deviceCopy(details_::get_raw_pointer(destination),
+                     details_::get_raw_pointer(source),
+                     numElements * sizeof(VT1));
 }
 
-GCXX_TEMPLATE(typename Ptr)
-GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr>)
-GCXX_FH auto Copy(const StreamView& stream, Ptr destination, const Ptr source,
+GCXX_TEMPLATE(typename Ptr1, typename Ptr2)
+GCXX_REQUIRES(details_::is_pointer_or_has_get_v<Ptr1> GCXX_AND
+                details_::is_pointer_or_has_get_v<Ptr2>)
+GCXX_FH auto Copy(const StreamView& stream, Ptr1&& destination, Ptr2&& source,
                   const std::size_t numElements) -> void {
-  auto src_raw_ptr = details_::get_raw_pointer(source);
-  auto dst_raw_ptr = details_::get_raw_pointer(destination);
-  using VT         = typename details_::pointed_to_type_t<Ptr>;
-  driver::deviceCopyAsync(dst_raw_ptr, src_raw_ptr, numElements * sizeof(VT),
-                          stream);
+  using VT1 = typename details_::pointed_to_type_t<Ptr1>;
+  using VT2 = typename details_::pointed_to_type_t<Ptr2>;
+  static_assert(std::is_same_v<VT1, VT2>,
+                "copy needs pointers to point to same type");
+  driver::deviceCopyAsync(details_::get_raw_pointer(destination),
+                          details_::get_raw_pointer(source),
+                          numElements * sizeof(VT1), stream.getRawHandle());
 }
 
-// ╔════════════════════════════════════════════════════════╗
-// ║  works on any type that can be converted into a span   ║
-// ╚════════════════════════════════════════════════════════╝
+// Copy between span-like types.
 GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
 GCXX_REQUIRES(is_span_like_v<DSTTY> GCXX_AND is_span_like_v<SRCTY>)
 GCXX_FH auto Copy(DSTTY&& destination, SRCTY&& source) -> void {
+  static_assert(std::is_same_v<span_element_t<DSTTY>, span_element_t<SRCTY>>,
+                "copy needs spans like data struct to point to same type");
   driver::deviceCopy(
     details_::to_address(details_::data(destination)),
     details_::to_address(details_::data(source)),
@@ -55,12 +60,15 @@ GCXX_TEMPLATE(typename DSTTY, typename SRCTY)
 GCXX_REQUIRES(is_span_like_v<DSTTY> GCXX_AND is_span_like_v<SRCTY>)
 GCXX_FH auto Copy(const StreamView& stream, DSTTY&& destination,
                   SRCTY&& source) -> void {
+  static_assert(std::is_same_v<span_element_t<DSTTY>, span_element_t<SRCTY>>,
+                "copy needs spans like data struct to point to same type");
   driver::deviceCopyAsync(
     details_::to_address(details_::data(destination)),
     details_::to_address(details_::data(source)),
-    details_::size(destination) * sizeof(span_element_t<DSTTY>), stream);
+    details_::size(destination) * sizeof(span_element_t<DSTTY>),
+    stream.getRawHandle());
 }
-GCXX_NAMESPACE_MEMORY_END()
+// NOLINTEND(cppcoreguidelines-missing-std-forward)
 
 GCXX_NAMESPACE_MAIN_END()
 

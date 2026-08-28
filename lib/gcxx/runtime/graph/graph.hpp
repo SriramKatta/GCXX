@@ -13,17 +13,16 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 class GraphExec;
 
 class Graph : public GraphView {
- private:
   GCXX_FH Graph(deviceGraph_t graph) GCXX_NOEXCEPT : GraphView(graph) {}
 
 
  public:
   GCXX_FH auto destroy() -> void;
-  GCXX_FH Graph(const flags::graphCreate createFlag = flags::graphCreate::None)
+  GCXX_FH Graph(flags::graphCreate createFlag = flags::graphCreate::None)
     GCXX_NOEXCEPT;
 
-  GCXX_FH static auto Create(
-    const flags::graphCreate createFlag = flags::graphCreate::None) -> Graph;
+  GCXX_FH static auto create(
+    flags::graphCreate createFlag = flags::graphCreate::None) -> Graph;
 
 
   GCXX_FH ~Graph() GCXX_NOEXCEPT;
@@ -34,13 +33,13 @@ class Graph : public GraphView {
   GCXX_FH Graph(Graph&& other) GCXX_NOEXCEPT;
   GCXX_FH auto operator=(Graph&& other) GCXX_NOEXCEPT->Graph&;
 
-  GCXX_FH auto Release() GCXX_NOEXCEPT -> GraphView;
+  GCXX_FH auto release() GCXX_NOEXCEPT -> GraphView;
 
-  GCXX_FH static auto CreateFromRaw(deviceGraph_t graph) -> Graph;
+  GCXX_FH static auto createFromRaw(deviceGraph_t graph) -> Graph;
 
-  GCXX_FH auto Instantiate() const -> GraphExec;
+  GCXX_FH auto instantiate() const -> GraphExec;
 
-  GCXX_FH auto Clone() const -> Graph;
+  GCXX_FH auto clone() const -> Graph;
 };
 
 GCXX_NAMESPACE_MAIN_END()

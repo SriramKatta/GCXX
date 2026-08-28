@@ -14,6 +14,10 @@ enum class MemAllocation : details_::flag_t {
   Invalid = GCXX_RUNTIME_BACKEND(MemAllocationTypeInvalid),
   Pinned  = GCXX_RUNTIME_BACKEND(MemAllocationTypePinned),
   Max     = GCXX_RUNTIME_BACKEND(MemAllocationTypeMax),
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+  // CUDA 13.0+ managed-allocation pools; used by ManagedMemPool. Needs 13.0+.
+  Managed = GCXX_RUNTIME_BACKEND(MemAllocationTypeManaged),
+#endif
 };
 
 enum MemAllocationHandle : details_::flag_t {
@@ -32,6 +36,10 @@ enum class MemLocation : details_::flag_t {
   Host            = GCXX_RUNTIME_BACKEND(MemLocationTypeHost),
   HostNuma        = GCXX_RUNTIME_BACKEND(MemLocationTypeHostNuma),
   HostNumaCurrent = GCXX_RUNTIME_BACKEND(MemLocationTypeHostNumaCurrent),
+#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+  // CUDA 13.0+ runtime: location-less managed pools (no fixed placement).
+  None = GCXX_RUNTIME_BACKEND(MemLocationTypeNone),
+#endif
 };
 
 enum class MemAccessFlags : details_::flag_t {
@@ -40,6 +48,14 @@ enum class MemAccessFlags : details_::flag_t {
   ReadWrite = GCXX_RUNTIME_BACKEND(MemAccessFlagsProtReadWrite),
 };
 
+enum class memAttach : details_::flag_t {
+  // Memory is accessible from any stream on any device (cudaMemAttachGlobal).
+  Global = GCXX_RUNTIME_BACKEND(MemAttachGlobal),
+  // Host-attached; device sees it only after reattach (cudaMemAttachHost).
+  Host = GCXX_RUNTIME_BACKEND(MemAttachHost),
+  // Stream-only attachment (cudaMemAttachSingle); the default behavior.
+  Single = GCXX_RUNTIME_BACKEND(MemAttachSingle),
+};
 
 enum class MemPoolAttr : details_::flag_t {
   FollowEventDependencies =

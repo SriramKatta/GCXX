@@ -1,0 +1,80 @@
+# Build GCXX inside each devcontainer on GitHub-hosted runners.
+#
+# Every job builds the image from .devcontainer/Dockerfile on top of the
+# container's BASE_IMAGE, then runs the CUDA or HIP full-build preset inside
+# it. Runners have no GPU, but the presets are configure+build only.
+#
+# The build runs automatically only on pushes to main. DEV gets frequent
+# pushes, so build it via workflow_dispatch (Actions tab or
+# `gh workflow run devcontainer.yml --ref DEV`) when wanted.
+#
+# On pushes to main (or a manual run on any branch) the built image is also
+# pushed to GHCR and reused as the build cache (cacheFrom) by subsequent runs.
+
+name: build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build (${{ matrix.container }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { container: nvhpc25.3-cuda12.8-gcc13,  preset: workflow_debug_cuda_full }
+          - { container: nvhpc25.7-cuda12.9-gcc13,  preset: workflow_debug_cuda_full }
+          - { container: nvhpc25.11-cuda13.0-gcc13, preset: workflow_debug_cuda_full }
+          - { container: nvhpc26.3-cuda13.1-gcc13,  preset: workflow_debug_cuda_full }
+          - { container: nvhpc26.5-cuda13.2-gcc13,  preset: workflow_debug_cuda_full }
+          - { container: cuda13.3.0-runtime-gcc13,  preset: workflow_debug_cuda_full }
+          - { container: rocm7.1.1-complete,        preset: workflow_debug_hip_full }
+          - { container: rocm7.2.3-complete,        preset: workflow_debug_hip_full }
+    steps:
+      - uses: actions/checkout@v4
+
+      # The GPU base images are 15-25 GB uncompressed; free up the runner disk
+      # (android SDK, dotnet, ghc, CodeQL, preinstalled docker images) first.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                       /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift || true
+          sudo docker image prune -af || true
+          df -h /
+
+      # GHCR image names must be lowercase; GITHUB_REPOSITORY may not be.
+      - name: Compute lowercase repo name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and run in dev container
+        uses: devcontainers/ci@v0.3
+        with:
+          configFile: .devcontainer/${{ matrix.container }}/devcontainer.json
+          imageName: ghcr.io/${{ env.REPO_LC }}/devcontainers/${{ matrix.container }}
+          cacheFrom: ghcr.io/${{ env.REPO_LC }}/devcontainers/${{ matrix.container }}
+          push: filter
+          refFilterForPush: |
+            refs/heads/main
+            refs/heads/DEV
+          runCmd: |
+            git config --global --add safe.directory /workspaces/GCXX
+            cmake --workflow --preset ${{ matrix.preset }}

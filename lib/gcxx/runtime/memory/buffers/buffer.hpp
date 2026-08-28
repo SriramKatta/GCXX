@@ -4,208 +4,407 @@
 #ifndef GCXX_RUNTIME_MEMORY_BUFFERS_BUFFER_HPP_
 #define GCXX_RUNTIME_MEMORY_BUFFERS_BUFFER_HPP_
 
+#include <algorithm>
 #include <cstddef>
+#include <initializer_list>
 #include <iterator>
+#include <memory>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 
 #include <gcxx/internal/prologue.hpp>
 
-#include <gcxx/runtime/memory/buffers/buffer_storage.hpp>
 #include <gcxx/runtime/memory/buffers/no_init.hpp>
+#include <gcxx/runtime/memory/buffers/properties.hpp>
+#include <gcxx/runtime/memory/buffers/uninitialized_buffer.hpp>
+#include <gcxx/runtime/memory/copy.hpp>
 #include <gcxx/runtime/memory/fill.hpp>
-#include <gcxx/runtime/memory/memory_resource/async_device_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/pooled_device_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/sync_device_resource.hpp>
-#include <gcxx/runtime/memory/memory_resource/sync_host_resource.hpp>
+#include <gcxx/runtime/memory/memory_resource/resource_concepts.hpp>
+#include <gcxx/runtime/memory/spans/spans.hpp>
+#include <gcxx/runtime/runtime_error.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
-// ─────────────────────────────────────────────────────────────────────────────
-// gcxx::memory::buffer<VT, Resource>
-//
-// A typed raw-storage owner allocated from a memory resource in stream order.
-// Interface modelled on cuda::buffer (CCCL/libcudacxx): the resource is a
-// compile-time template argument (zero overhead; one per backend), while the
-// stream and resource value are passed at construction. Elements are NOT
-// constructed or destroyed — VT must be trivially destructible.
-//
-// Responsibilities are split across two layers:
-//   * buffer_storage<Resource>  — owns the raw byte block (allocation,
-//                                 deallocation, byte size); RAII with the
-//                                 memory resource.
-//   * buffer<VT, Resource>      — composes buffer_storage and provides typed
-//                                 data()/iterator access, deriving the element
-//                                 count from the stored byte size.
-//
-// Because raw ownership (including size) lives in the buffer_storage
-// subobject, any future initialization performed by buffer's constructor is
-// exception-safe: if that initialization throws after storage is allocated,
-// the storage subobject's destructor runs and returns the memory to the
-// resource — no leak.
-//
-// Resource concept (duck-typed):
-//   void* allocate(std::size_t num_bytes, gcxx::StreamView)
-//   void  deallocate(void* ptr, gcxx::StreamView)
-// ─────────────────────────────────────────────────────────────────────────────
-template <typename VT, typename Resource>
+// uninit_buffer owns bytes + resource; buffer adds typed access and init.
+template <typename VT, typename... Properties>
 class buffer {
-  static_assert(std::is_trivially_constructible_v<VT>,
-                "buffer<VT, Resource> requires trivially constructable VT");
-  static_assert(std::is_trivially_destructible_v<VT>,
-                "buffer<VT, Resource> requires trivially destructible VT");
+  static_assert(std::is_trivially_copyable_v<VT>,
+                "buffer requires trivially copyable VT");
+  static_assert(contains_execution_space_property<Properties...>,
+                "buffer requires device_accessible or host_accessible");
+
+  template <typename, typename...>
+  friend class buffer;
 
  public:
-  using buffer_t               = buffer_storage<VT, Resource>;
-  using value_type             = typename buffer_t::value_type;
-  using size_type              = typename buffer_t::size_type;
-  using pointer                = typename buffer_t::pointer;
-  using const_pointer          = typename buffer_t::const_pointer;
+  // The buffer's accessibility contract (uniform with resources).
+  using properties             = TypeSet<Properties...>;
+  using buffer_t               = uninit_buffer<VT, Properties...>;
+  using value_type             = VT;
+  using reference              = value_type&;
+  using const_reference        = const value_type&;
+  using size_type              = std::size_t;
+  using pointer                = value_type*;
+  using const_pointer          = const value_type*;
   using iterator               = typename buffer_t::iterator;
   using const_iterator         = typename buffer_t::const_iterator;
   using reverse_iterator       = typename buffer_t::reverse_iterator;
   using const_reverse_iterator = typename buffer_t::const_reverse_iterator;
 
-  /// Empty buffer (no allocation). Resource and stream are default/unset.
-  buffer() noexcept(noexcept(Resource{})) : m_storage{} {}
+  // Resource-taking ctors: resource properties must ⊇ buffer's Properties.
 
-  /// Empty buffer, explicit lazy-intent tag.
-  explicit buffer(no_init_t) noexcept(noexcept(Resource{})) : m_storage{} {}
-
-  /// Empty buffer bound to an explicit stream + resource (no allocation).
-  buffer(gcxx::StreamView stream, Resource resource) noexcept(
-    std::is_nothrow_move_constructible<Resource>::value)
-      : m_storage(stream, std::move(resource)) {}
-
-  /// Allocate n elements from resource on stream (CCCL ctor order:
-  /// stream, resource, size). Storage is uninitialized.
-  buffer(gcxx::StreamView stream, Resource resource, size_type n)
-      : m_storage(stream, std::move(resource), n) {}
-
-  /// Allocate n elements from resource on stream; storage is left
-  /// uninitialized (explicit no-init tag).
-  buffer(gcxx::StreamView stream, Resource resource, size_type n, no_init_t)
-      : m_storage(stream, std::move(resource), n) {}
-
-  /// Allocate n elements from resource on stream and initialize every element
-  /// to value. Dispatches to memset when value is zero, otherwise to a fill
-  /// kernel. Exception-safe: if initialization throws after the storage
-  /// subobject has allocated, m_storage's destructor reclaims the memory.
-  buffer(gcxx::StreamView stream, Resource resource, size_type n,
-         const value_type& value)
-      : m_storage(stream, std::move(resource), n) {
-    pointer p = data();
-    Fill(stream, p, value, n);
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource))) {
+    validate_resource<Resource>();
   }
 
-  /// Destructor is defaulted: raw memory is released by m_storage's RAII.
-  ~buffer() = default;
+  // Allocate n elements (uninitialized).
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource, size_type n)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
+    validate_resource<Resource>();
+  }
 
-  buffer(const buffer&)            = delete;
-  buffer& operator=(const buffer&) = delete;
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource, size_type n, no_init_t)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
+    validate_resource<Resource>();
+  }
+
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource, size_type n,
+         const value_type& value)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
+    validate_resource<Resource>();
+    if (n != 0) {
+      // CCCL __fill_n accessibility dispatch: host-writable storage (e.g.
+      // malloc-backed) gets a plain host fill — the driver path (memset /
+      // fill kernel) requires device memory and fails on host pointers. A
+      // fresh allocation has no in-flight device work, so the immediate host
+      // write needs no stream ordering. host+device (managed/pinned) storage
+      // is host-coherent too, so it also takes the host path (CCCL probes
+      // pointer attributes at runtime instead; both choices are valid).
+      if constexpr (is_host_accessible<Properties...>) {
+        std::fill_n(data(), n, value);
+      } else {
+        pointer p = data();  // Fill takes Ptr& (lvalue) — bind to a local.
+        Fill(stream, p, value, n);
+      }
+    }
+  }
+
+  GCXX_TEMPLATE(typename Resource)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
+  buffer(gcxx::StreamView stream, Resource&& resource,
+         std::initializer_list<value_type> il)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)),
+                  il.size()) {
+    validate_resource<Resource>();
+    if (il.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): Copy requires
+      // same-cv pointers; il.begin() is const. Destination is freshly
+      // allocated.
+      Copy(stream, data(), const_cast<value_type*>(il.begin()), il.size());
+    }
+  }
+
+  // Non-integral Range SFINAE so this doesn't shadow the size ctor.
+  GCXX_TEMPLATE(typename Resource, typename Range)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>
+                  GCXX_AND !std::is_integral_v<std::decay_t<Range>>)
+  buffer(gcxx::StreamView stream, Resource&& resource, Range&& rng)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)),
+                  static_cast<size_type>(rng.size())) {
+    validate_resource<Resource>();
+    if (rng.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
+      Copy(stream, data(), const_cast<value_type*>(std::data(rng)), rng.size());
+    }
+  }
+
+  // Non-integral Iter SFINAE so this doesn't shadow the size ctor.
+  GCXX_TEMPLATE(typename Resource, typename Iter)
+  GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>
+                  GCXX_AND !std::is_integral_v<std::decay_t<Iter>>)
+  buffer(gcxx::StreamView stream, Resource&& resource, Iter first, Iter last)
+      : m_storage(stream, any_resource(std::forward<Resource>(resource)),
+                  static_cast<size_type>(std::distance(first, last))) {
+    validate_resource<Resource>();
+    auto count = std::distance(first, last);
+    if (count != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
+      Copy(stream, data(), const_cast<value_type*>(std::addressof(*first)),
+           static_cast<size_type>(count));
+    }
+  }
+
+  // Copy / move / cross.
+  buffer(const buffer& other)
+      : m_storage(other.stream(), other.m_storage.borrow_resource(),
+                  other.size()) {
+    if (other.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
+      Copy(other.stream(), data(), const_cast<value_type*>(other.data()),
+           other.size());
+    }
+  }
 
   buffer(buffer&&) noexcept = default;
 
-  buffer& operator=(buffer&& other) noexcept {
+  buffer& operator=(const buffer& other) {
     if (this != &other) {
-      m_storage = std::move(other.m_storage);
+      buffer tmp(other);
+      *this = std::move(tmp);
     }
     return *this;
   }
+  buffer& operator=(buffer&&) noexcept = default;
 
-  // ───────────────────────────── element access ─────────────────────────────
-  GCXX_FHDC auto data() noexcept -> pointer {
-    return static_cast<pointer>(m_storage.get());
+  // Cross-properties copy: other's Properties ⊇ this; never host↔device.
+  GCXX_TEMPLATE(typename... OtherProperties)
+  GCXX_REQUIRES((TypeSet<OtherProperties...>::template contains<Properties> &&
+                 ...))
+  explicit buffer(const buffer<VT, OtherProperties...>& other)
+      : m_storage(other.stream(), other.m_storage.borrow_resource(),
+                  other.size()) {
+    if (other.size() != 0) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
+      Copy(other.stream(), data(), const_cast<value_type*>(other.data()),
+           other.size());
+    }
   }
+
+  GCXX_TEMPLATE(typename... OtherProperties)
+  GCXX_REQUIRES((TypeSet<OtherProperties...>::template contains<Properties> &&
+                 ...))
+  // The storage itself is moved; `other` is intentionally left intact
+  // otherwise.
+  // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+  buffer(buffer<VT, OtherProperties...>&& other) noexcept
+      : m_storage(std::move(other.m_storage)) {}
+
+  ~buffer() = default;
+
+  // Element access.
+  GCXX_FHDC auto data() noexcept -> pointer { return m_storage.data(); }
   GCXX_FHDC auto data() const noexcept -> const_pointer {
-    return static_cast<const_pointer>(m_storage.get());
+    return m_storage.data();
   }
 
-  GCXX_FHDC auto begin() noexcept -> iterator { return data(); }
-  GCXX_FHDC auto begin() const noexcept -> const_iterator { return data(); }
-  GCXX_FHDC auto end() noexcept -> iterator { return data() + size(); }
-  GCXX_FHDC auto end() const noexcept -> const_iterator {
-    return data() + size();
+  GCXX_FHDC auto begin() noexcept -> iterator { return m_storage.begin(); }
+  GCXX_FHDC auto begin() const noexcept -> const_iterator {
+    return m_storage.begin();
   }
-  GCXX_FHDC auto cbegin() const noexcept -> const_iterator { return data(); }
+  GCXX_FHDC auto end() noexcept -> iterator { return m_storage.end(); }
+  GCXX_FHDC auto end() const noexcept -> const_iterator {
+    return m_storage.end();
+  }
+  GCXX_FHDC auto cbegin() const noexcept -> const_iterator {
+    return m_storage.begin();
+  }
   GCXX_FHDC auto cend() const noexcept -> const_iterator {
-    return data() + size();
+    return m_storage.end();
   }
   GCXX_FHDC auto rbegin() const noexcept -> const_reverse_iterator {
-    return const_reverse_iterator(end());
+    return m_storage.rbegin();
   }
   GCXX_FHDC auto rend() const noexcept -> const_reverse_iterator {
-    return const_reverse_iterator(begin());
+    return m_storage.rend();
   }
 
-  // ─────────────────────────────── observers ────────────────────────────────
-  /// Number of elements (derived from the stored byte size).
-  GCXX_FHDC auto size() const noexcept -> size_type {
-    return m_storage.size_bytes() / sizeof(VT);
+  // Element access (host allocations only).
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FHDC auto operator[](size_type i) noexcept -> reference {
+    GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
+    return data()[i];
+  }
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FHDC auto operator[](size_type i) const noexcept -> const_reference {
+    GCXX_RUNTIME_EXPECT(i < size(), "buffer::operator[] index out of range");
+    return data()[i];
   }
 
-  /// Size of the allocated block in bytes.
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FH auto at(size_type i) -> reference {
+    if (i >= size()) {
+      throw std::out_of_range{"buffer::at"};
+    }
+    return data()[i];
+  }
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FH auto at(size_type i) const -> const_reference {
+    if (i >= size()) {
+      throw std::out_of_range{"buffer::at"};
+    }
+    return data()[i];
+  }
+
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FHDC auto front() noexcept -> reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
+    return data()[0];
+  }
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FHDC auto front() const noexcept -> const_reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::front on empty buffer");
+    return data()[0];
+  }
+
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FHDC auto back() noexcept -> reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
+    return data()[size() - 1];
+  }
+  GCXX_TEMPLATE(bool H = is_host_accessible<Properties...>)
+  GCXX_REQUIRES(H)
+  GCXX_FHDC auto back() const noexcept -> const_reference {
+    GCXX_RUNTIME_EXPECT(!empty(), "buffer::back on empty buffer");
+    return data()[size() - 1];
+  }
+
+  // Slicing.
+  GCXX_FHDC auto first(size_type n) noexcept -> gcxx::span<value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::first count out of range");
+    return {data(), n};
+  }
+  GCXX_FHDC auto first(size_type n) const noexcept
+    -> gcxx::span<const value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::first count out of range");
+    return {data(), n};
+  }
+  GCXX_FHDC auto last(size_type n) noexcept -> gcxx::span<value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::last count out of range");
+    return {data() + size() - n, n};
+  }
+  GCXX_FHDC auto last(size_type n) const noexcept
+    -> gcxx::span<const value_type> {
+    GCXX_RUNTIME_EXPECT(n <= size(), "buffer::last count out of range");
+    return {data() + size() - n, n};
+  }
+  GCXX_FHDC auto subspan(size_type offset,
+                         size_type count = gcxx::dynamic_extent) noexcept
+    -> gcxx::span<value_type> {
+    GCXX_RUNTIME_EXPECT(offset <= size(),
+                        "buffer::subspan offset out of range");
+    if (count == gcxx::dynamic_extent) {
+      return gcxx::span<value_type>{data() + offset, size() - offset};
+    }
+    GCXX_RUNTIME_EXPECT(count <= size() - offset,
+                        "buffer::subspan count out of range");
+    return gcxx::span<value_type>{data() + offset, count};
+  }
+  GCXX_FHDC auto subspan(size_type offset,
+                         size_type count = gcxx::dynamic_extent) const noexcept
+    -> gcxx::span<const value_type> {
+    GCXX_RUNTIME_EXPECT(offset <= size(),
+                        "buffer::subspan offset out of range");
+    if (count == gcxx::dynamic_extent) {
+      return gcxx::span<const value_type>{data() + offset, size() - offset};
+    }
+    GCXX_RUNTIME_EXPECT(count <= size() - offset,
+                        "buffer::subspan count out of range");
+    return gcxx::span<const value_type>{data() + offset, count};
+  }
+
+  // Observers.
+  GCXX_FHDC auto size() const noexcept -> size_type { return m_storage.size(); }
   GCXX_FHDC auto size_bytes() const noexcept -> size_type {
     return m_storage.size_bytes();
   }
-
   GCXX_FHDC auto empty() const noexcept -> bool { return m_storage.empty(); }
 
-  /// The memory resource the storage was allocated from.
-  GCXX_FH auto memory_resource() const noexcept -> const Resource& {
+  GCXX_FH auto memory_resource() const noexcept -> const any_resource& {
     return m_storage.memory_resource();
   }
-
-  /// The stream associated with this buffer (used for deallocation).
   GCXX_FHDC auto stream() const noexcept -> gcxx::StreamView {
     return m_storage.stream();
   }
-
-  /// Rebind the buffer to a new stream (synchronizes the old stream first).
   GCXX_FH auto set_stream(gcxx::StreamView new_stream) -> void {
     m_storage.set_stream(new_stream);
   }
-
-  // ─────────────────────────────── operations ───────────────────────────────
-  /// Deallocate using the stored stream; buffer becomes empty.
-  GCXX_FH auto destroy() -> void { m_storage.destroy(); }
-
-  /// Deallocate using an explicit stream; buffer becomes empty.
-  GCXX_FH auto destroy(gcxx::StreamView s) -> void { m_storage.destroy(s); }
-
-  /// Reallocate to n elements (discards contents) using the stored stream.
-  /// A failed resize does not destroy the current allocation.
-  GCXX_FH auto resize(size_type n) -> void {
-    *this = buffer(m_storage.stream(), m_storage.memory_resource(), n);
+  // Caller must ensure stream order going forward after this rebind.
+  GCXX_FH auto set_stream_unsynchronized(gcxx::StreamView new_stream) noexcept
+    -> void {
+    m_storage.set_stream_unsynchronized(new_stream);
   }
 
-  /// Access the underlying raw storage (e.g. for resource-level operations).
+  // Operations.
+  GCXX_FH auto destroy() -> void { m_storage.destroy(); }
+  GCXX_FH auto destroy(gcxx::StreamView s) -> void { m_storage.destroy(s); }
+
+  // Reallocate to n elements (discards contents) reusing the stored resource.
+  GCXX_FH auto resize(size_type n) -> void {
+    m_storage.replace_allocation_discard(stream(), n);
+  }
+
   GCXX_FH auto storage() noexcept -> buffer_t& { return m_storage; }
   GCXX_FH auto storage() const noexcept -> const buffer_t& { return m_storage; }
 
+  // Launch integration: device buffers adapt to spans (CCCL launch parity).
+  GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
+  GCXX_REQUIRES(D)
+  GCXX_FH friend auto transform_launch_argument(
+    gcxx::StreamView, buffer& self) noexcept -> gcxx::span<value_type> {
+    return {self.data(), self.size()};
+  }
+  GCXX_TEMPLATE(bool D = is_device_accessible<Properties...>)
+  GCXX_REQUIRES(D)
+  GCXX_FH friend auto transform_launch_argument(gcxx::StreamView,
+                                                const buffer& self) noexcept
+    -> gcxx::span<const value_type> {
+    return {self.data(), self.size()};
+  }
+
  private:
+  // Shared gate so every resource-taking ctor gets uniform static_asserts.
+  template <typename Resource>
+  static constexpr auto validate_resource() -> void {
+    static_assert(
+      std::is_copy_constructible_v<std::decay_t<Resource>>,
+      "buffer owns a copy of the resource; it must be copy constructible");
+    static_assert(resource_has_all_v<std::decay_t<Resource>, Properties...>,
+                  "resource properties do not satisfy this buffer's Properties "
+                  "(e.g. a host_accessible resource cannot back a "
+                  "device_accessible buffer)");
+    static_assert(resource_api<std::decay_t<Resource>>,
+                  "resource does not model the gcxx resource concept: it must "
+                  "expose allocate(gcxx::StreamView, std::size_t) -> void* and "
+                  "deallocate(gcxx::StreamView, void*) -> void");
+  }
+
   buffer_t m_storage{};
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Convenience aliases.
-// ─────────────────────────────────────────────────────────────────────────────
-template <typename VT>
-using device_buffer = buffer<VT, sync_device_resource>;
+// Properties are explicit: accessibility is a claim, not inferable.
+template <typename VT, typename... Properties, typename Resource,
+          typename... Args>
+GCXX_FH auto make_buffer(gcxx::StreamView stream, Resource&& resource,
+                         Args&&... args) -> buffer<VT, Properties...> {
+  return buffer<VT, Properties...>{stream, std::forward<Resource>(resource),
+                                   std::forward<Args>(args)...};
+}
 
 template <typename VT>
-using host_buffer = buffer<VT, sync_host_resource>;
+using device_buffer = buffer<VT, device_accessible>;
 
 template <typename VT>
-using device_buffer_async = buffer<VT, async_device_resource>;
+using host_buffer = buffer<VT, host_accessible>;
 
-template <typename VT>
-using device_buffer_pooled = buffer<VT, pooled_device_resource>;
-
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

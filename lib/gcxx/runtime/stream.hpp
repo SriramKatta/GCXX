@@ -8,6 +8,7 @@
 
 #include <gcxx/runtime/flags/stream_flags.hpp>
 #include <gcxx/runtime/stream/stream.hpp>
+#include <gcxx/runtime/stream/stream_capture.hpp>
 #include <gcxx/runtime/stream/stream_view.hpp>
 
 #endif

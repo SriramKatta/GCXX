@@ -3,31 +3,71 @@
 #include "tests_common.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
-#include <type_traits>
 
 #include <gcxx/api.hpp>
 
 namespace {
 
-  // Host-only resource (malloc/free) so ctor/size logic can be exercised
-  // without a GPU or the CUDA runtime.
+  // Host-only malloc/free mock; properties satisfy buffer's static_assert.
   struct host_mock_resource {
-    void* allocate(std::size_t num_bytes, gcxx::StreamView) {
+    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
       return std::malloc(num_bytes);
     }
 
-    void deallocate(void* ptr, gcxx::StreamView) { std::free(ptr); }
+    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
+
+    using properties = gcxx::TypeSet<gcxx::host_accessible>;
   };
 
   template <typename VT>
-  using mock_buffer = gcxx::memory::buffer<VT, host_mock_resource>;
+  using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
+
+  using device_ptr = gcxx::device_ptr<std::uint32_t>;
+  using device_buf = gcxx::device_buffer<std::uint32_t>;
+
+  // Satisfies no handle/span trait: universal negative case.
+  struct NotAHandle {};
+
+  // Args... is the candidate pack; stream/resource/count are concrete.
+  GCXX_DEFINE_IS_CALLABLE(
+    is_buf_value_init_callable,
+    mock_buffer<std::uint32_t>(std::declval<gcxx::StreamView>(),
+                               std::declval<host_mock_resource>(),
+                               std::size_t{4}, std::declval<Args>()...));
+
+  GCXX_DEFINE_IS_CALLABLE(is_fill_ptr_callable,
+                          gcxx::Fill(std::declval<Args>()..., std::uint32_t{0},
+                                     std::size_t{4}));
+
+  GCXX_DEFINE_IS_CALLABLE(is_fill_span_callable,
+                          gcxx::Fill(std::declval<Args>()...,
+                                     std::uint32_t{0}));
 
 }  // namespace
 
-// ─────────────────────────────────────────────────────────────────────────────
-// buffer(stream, resource) — empty buffer bound to a stream + resource.
-// ─────────────────────────────────────────────────────────────────────────────
+TEST(BufferSfinaeTest, AcceptsValidHandleShapes) {
+  static_assert(is_buf_value_init_callable_v<std::uint32_t>);
+  static_assert(is_fill_ptr_callable_v<std::uint32_t*&>);
+  static_assert(is_fill_ptr_callable_v<device_ptr&>);
+  static_assert(is_fill_span_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(is_fill_span_callable_v<device_buf&>);
+}
+
+// Negative asserts impossible with the old decltype type check.
+TEST(BufferSfinaeTest, RejectsInvalidHandleShapes) {
+  static_assert(!is_buf_value_init_callable_v<NotAHandle>);
+
+  // Pointer Fill rejects spans (no .get()), NotAHandle.
+  static_assert(!is_fill_ptr_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(!is_fill_ptr_callable_v<NotAHandle>);
+
+  // Span Fill rejects raw pointers (no .data()/.size() members), NotAHandle.
+  static_assert(!is_fill_span_callable_v<std::uint32_t*>);
+  static_assert(!is_fill_span_callable_v<NotAHandle>);
+}
+
 TEST(BufferCtorTest, StreamResourceCtorIsEmpty) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{});
 
@@ -42,17 +82,14 @@ TEST(BufferCtorTest, StreamResourceCtorKeepsResourceAndStream) {
 
   EXPECT_EQ(buf.size_bytes(), 0);
   // Stream round-trips through the storage.
-  EXPECT_EQ(buf.stream().getRawStream(),
-            gcxx::StreamView::Null().getRawStream());
+  EXPECT_EQ(buf.stream().getRawHandle(),
+            gcxx::StreamView::Null().getRawHandle());
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// buffer(stream, resource, n, no_init) — allocate n elements, uninitialized.
-// ─────────────────────────────────────────────────────────────────────────────
 TEST(BufferCtorTest, NoInitCtorAllocatesRequestedSize) {
   constexpr std::size_t N = 1024;
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{}, N,
-                       gcxx::memory::no_init);
+                       gcxx::no_init);
 
   EXPECT_FALSE(buf.empty());
   EXPECT_EQ(buf.size(), N);
@@ -60,65 +97,17 @@ TEST(BufferCtorTest, NoInitCtorAllocatesRequestedSize) {
 }
 
 TEST(BufferCtorTest, NoInitCtorZeroSizeHasZeroSize) {
-  // A zero-size allocation is a valid (possibly non-null) handle with a count
-  // of zero — empty() is ptr-based and implementation-defined for malloc(0),
-  // so assert on the element/byte counts instead.
+  // Zero-size allocations are valid handles; assert counts, not empty().
   mock_buffer<float> buf(gcxx::StreamView::Null(), host_mock_resource{},
-                         std::size_t{0}, gcxx::memory::no_init);
+                         std::size_t{0}, gcxx::no_init);
 
   EXPECT_EQ(buf.size(), 0);
   EXPECT_EQ(buf.size_bytes(), 0);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// buffer(stream, resource, n, value) — value-initialized. The dispatch
-// (memset for zero, kernel for non-zero) needs a GPU to execute, so here we
-// only assert the constructors are callable (compile-time), mirroring the
-// Memset callable-tests.
-// ─────────────────────────────────────────────────────────────────────────────
-TEST(BufferCtorTest, ValueInitCtorIsCallableWithZero) {
-  using buf_t = mock_buffer<std::uint32_t>;
-  EXPECT_TRUE((std::is_same_v<decltype(buf_t(std::declval<gcxx::StreamView>(),
-                                             std::declval<host_mock_resource>(),
-                                             std::size_t{4}, std::uint32_t{0})),
-                              buf_t>));
-}
-
-TEST(BufferCtorTest, ValueInitCtorIsCallableWithNonZero) {
-  using buf_t = mock_buffer<std::uint32_t>;
-  EXPECT_TRUE((std::is_same_v<decltype(buf_t(std::declval<gcxx::StreamView>(),
-                                             std::declval<host_mock_resource>(),
-                                             std::size_t{4}, std::uint32_t{7})),
-                              buf_t>));
-}
-
-// n == 0 actually constructs via the value-init ctor, which forces the whole
-// Fill / fill_dispatch template to instantiate (so the fill_kernel + launch
-// path is compiled and linked) while performing no GPU operation —
-// fill_dispatch returns early on a zero element count.
+// n=0 still compiles/links the whole fill path; fill_dispatch early-returns.
 TEST(BufferCtorTest, ValueInitZeroSizeInstantiatesFillPath) {
   mock_buffer<int> buf(gcxx::StreamView::Null(), host_mock_resource{},
                        std::size_t{0}, 0);
   EXPECT_EQ(buf.size(), 0);
-}
-
-TEST(BufferCtorTest, FillOverloadsAreCallable) {
-  using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
-  using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
-
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<std::uint32_t*&>(),
-                                std::uint32_t{0}, std::size_t{4})),
-                              void>));
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<device_ptr&>(), std::uint32_t{0},
-                                std::size_t{4})),
-                              void>));
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<gcxx::span<std::uint32_t>&>(),
-                                std::uint32_t{0})),
-                              void>));
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Fill(
-                                std::declval<device_buf&>(), std::uint32_t{0})),
-                              void>));
 }

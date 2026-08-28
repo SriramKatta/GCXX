@@ -12,7 +12,7 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_FH auto Graph::Create(const flags::graphCreate createFlag) -> Graph {
+GCXX_FH auto Graph::create(const flags::graphCreate createFlag) -> Graph {
   return Graph{createFlag};
 }
 
@@ -42,22 +42,22 @@ GCXX_FH auto Graph::operator=(Graph&& other) GCXX_NOEXCEPT -> Graph& {
   return *this;
 }
 
-GCXX_FH auto Graph::Release() GCXX_NOEXCEPT -> GraphView {
+GCXX_FH auto Graph::release() GCXX_NOEXCEPT -> GraphView {
   auto oldGraph = m_graph;
   m_graph       = driver::INVALID_GRAPH;
   return GraphView{oldGraph};
 }
 
-GCXX_FH auto Graph::CreateFromRaw(deviceGraph_t graph) -> Graph {
+GCXX_FH auto Graph::createFromRaw(deviceGraph_t graph) -> Graph {
   return Graph{graph};
 }
 
-GCXX_FH auto Graph::Instantiate() const -> GraphExec {
+GCXX_FH auto Graph::instantiate() const -> GraphExec {
   return GraphExec{*this};
 }
 
-GCXX_FH auto Graph::Clone() const -> Graph {
-  return Graph::CreateFromRaw(GraphView::Clone().getRawGraph());
+GCXX_FH auto Graph::clone() const -> Graph {
+  return Graph::createFromRaw(GraphView::clone().getRawHandle());
 }
 
 GCXX_NAMESPACE_MAIN_END()

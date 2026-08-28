@@ -40,6 +40,47 @@ GCXX_FH auto deviceFreeHost(void* ptr) -> void {
                          "Failed to free pinned host memory", ptr);
 }
 
+// Failed probes clear the sticky last-error and return false.
+GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
+  if (ptr == nullptr) {
+    return true;
+  }
+  devicePointerAttributes_t attrs{};
+  const deviceError_t err =
+    ::GCXX_RUNTIME_BACKEND(PointerGetAttributes)(&attrs, ptr);
+  if (err != deviceErrSuccess) {
+    (void)GetLastError();  // consume the recorded error; the probe is
+                           // expected to fail for unregistered memory
+    return false;
+  }
+  // Both backends spell the field `type`; managed memory maps to
+  // cudaMemoryTypeManaged / hipMemoryTypeManaged (hipMemoryTypeUnified is an
+  // AMD-specific unified-address-space concept, not managed memory).
+  return attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeDevice) ||
+         attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged);
+}
+
+// Also accepts pinned host memory that has a device (UVA) mapping.
+GCXX_FH auto isDeviceUsableMemory(const void* ptr) -> bool {
+  if (ptr == nullptr) {
+    return true;
+  }
+  devicePointerAttributes_t attrs{};
+  const deviceError_t err =
+    ::GCXX_RUNTIME_BACKEND(PointerGetAttributes)(&attrs, ptr);
+  if (err != deviceErrSuccess) {
+    (void)GetLastError();  // consume the recorded error; the probe is
+                           // expected to fail for unregistered memory
+    return false;
+  }
+  if (attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeDevice) ||
+      attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged)) {
+    return true;
+  }
+  return attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeHost) &&
+         attrs.devicePointer != nullptr;
+}
+
 GCXX_FH auto deviceMemset(void* dev_ptr, const int value,
                           const std::size_t countinBytes) -> void {
   GCXX_SAFE_RUNTIME_CALL(Memset, "Failed to perform GPU memset", dev_ptr, value,

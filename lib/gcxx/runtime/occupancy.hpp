@@ -16,19 +16,19 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 namespace Occupancy {
 
   template <typename func_t>
-  GCXX_FH auto MaxActiveBlocksPerMultiprocessor(
-    func_t func, int blockSize, std::size_t dynamicSMemSizeBytes = 0) -> int {
-    return MaxActiveBlocksPerMultiprocessorWithFlags(
-      func, blockSize, dynamicSMemSizeBytes, flags::occupancyType::Default);
-  }
-
-  template <typename func_t>
   GCXX_FH auto MaxActiveBlocksPerMultiprocessorWithFlags(
     func_t func, int blockSize, std::size_t dynamicSMemSizeBytes = 0,
     flags::occupancyType flag = flags::occupancyType::Default) -> int {
     return driver::occupancyMaxActiveBlocksPerMultiprocessorWithFlags(
       func, blockSize, dynamicSMemSizeBytes,
       static_cast<details_::flag_t>(flag));
+  }
+
+  template <typename func_t>
+  GCXX_FH auto MaxActiveBlocksPerMultiprocessor(
+    func_t func, int blockSize, std::size_t dynamicSMemSizeBytes = 0) -> int {
+    return MaxActiveBlocksPerMultiprocessorWithFlags(
+      func, blockSize, dynamicSMemSizeBytes, flags::occupancyType::Default);
   }
 
   template <typename func_t>

@@ -33,8 +33,6 @@
 
 #include <cmath>
 #include <cstdio>
-#include <vector>
-
 
 #include <gcxx/api.hpp>
 #include <gcxx/cooperative_groups.hpp>
@@ -159,75 +157,64 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                         size_t numOfBlocks) {
   gcxx::Stream streamForGraph;
   gcxx::Graph graph;
-  std::vector<gcxx::GraphView::deviceGraphNode_t> nodeDependencies;
-  gcxx::GraphView::deviceGraphNode_t memcpyNode = nullptr, memsetNode = nullptr;
   double result_h = 0.0;
 
-  auto memcpy3d1 =
-    gcxx::Memcpy3DParamsBuilder()
-      .setSrcPtr(gcxx::memory::makePitchedPtr<float>(inputVec_h, inputSize,
-                                                     inputSize, 1))
-      .setDstPtr(gcxx::memory::makePitchedPtr<float>(inputVec_d, inputSize,
-                                                     inputSize, 1))
-      .setExtent(gcxx::memory::makeExtent<float>(inputSize, 1, 1))
-      .build();
+  auto memcpy3d1 = gcxx::Memcpy3DParamsBuilder()
+                     .setSrcPtr(gcxx::makePitchedPtr<float>(
+                       inputVec_h, inputSize, inputSize, 1))
+                     .setDstPtr(gcxx::makePitchedPtr<float>(
+                       inputVec_d, inputSize, inputSize, 1))
+                     .setExtent(gcxx::makeExtent<float>(inputSize, 1, 1))
+                     .build();
 
 
-  memcpyNode = graph.AddMemcpyNode(memcpy3d1);
+  auto memcpyNode = graph.addNode(memcpy3d1);
 
   auto memset1 = gcxx::MemsetParamsBuilder()
                    .setPtr(outputVec_d)
-                   .setElemetSize(sizeof(float))
+                   .setValue(0)
+                   .setElementSize<float>()
                    .setWidth(numOfBlocks * 2)
                    .build();
 
-  memsetNode = graph.AddMemsetNode(memset1);
-
-  nodeDependencies.push_back(memsetNode);
-  nodeDependencies.push_back(memcpyNode);
+  auto memsetNode = graph.addNode(memset1);
 
   auto k1build = gcxx::KernelParamsBuilder()
                    .setKernel(reduce)
                    .setBlockDim(numOfBlocks)
                    .setGridDim(THREADS_PER_BLOCK)
                    .setArgs(inputVec_d, outputVec_d, inputSize, numOfBlocks)
-                   .build<4>();
+                   .build();
 
-  auto kernelNode = graph.AddKernelNode(k1build, nodeDependencies);
-
-  nodeDependencies.clear();
-  nodeDependencies.push_back(kernelNode);
+  auto kernelNode = graph.addNode(k1build, {memsetNode, memcpyNode});
 
   auto memset2 = gcxx::MemsetParamsBuilder()
-                   .setElemetSize(sizeof(float))
+                   .setValue(0)
+                   .setElementSize<float>()
                    .setPtr(result_d)
                    .setWidth(2)
                    .build();
 
-  memsetNode = graph.AddMemsetNode(memset2);
-  nodeDependencies.push_back(memsetNode);
+  memsetNode = graph.addNode(memset2);
 
   auto k2builder = gcxx::KernelParamsBuilder()
                      .setKernel(reduceFinal)
+                     .setGridDim(1)
                      .setBlockDim(THREADS_PER_BLOCK)
                      .setArgs(outputVec_d, result_d, numOfBlocks)
-                     .build<3>();
+                     .build();
   auto k2 = k2builder.getRawParams();
 
-  kernelNode = graph.AddKernelNode(k2builder, nodeDependencies);
-  nodeDependencies.clear();
-  nodeDependencies.push_back(kernelNode);
+  kernelNode = graph.addNode(k2builder, {kernelNode, memsetNode});
 
   auto memcpy3d2 =
     gcxx::Memcpy3DParamsBuilder()
-      .setSrcPtr(gcxx::memory::makePitchedPtr<double>(result_d, 1, 1, 1))
-      .setDstPtr(gcxx::memory::makePitchedPtr<double>(&result_h, 1, 1, 1))
-      .setExtent(gcxx::memory::makeExtent<double>(1, 1, 1))
+      .setSrcPtr(gcxx::makePitchedPtr<double>(result_d, 1, 1, 1))
+      .setDstPtr(gcxx::makePitchedPtr<double>(&result_h, 1, 1, 1))
+      .setExtent(gcxx::makeExtent<double>(1, 1, 1))
       .build();
 
-  memcpyNode = graph.AddMemcpyNode(memcpy3d2, nodeDependencies);
-  nodeDependencies.clear();
-  nodeDependencies.push_back(memcpyNode);
+  memcpyNode = graph.addNode(memcpy3d2, {kernelNode});
 
   callBackData_t hostFnData;
   hostFnData.data    = &result_h;
@@ -242,27 +229,27 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                             .build();
 
 
-  auto hostNode = graph.AddHostNode(hostparambuilder, nodeDependencies);
+  auto hostNode = graph.addNode(hostparambuilder, {memcpyNode});
 
-  size_t numNodes = graph.GetNumNodes();
+  size_t numNodes = graph.getNumNodes();
   printf("\nNum of nodes in the graph created manually = %zu\n", numNodes);
 
-  auto graphExec       = graph.Instantiate();
-  auto clonesGraph     = graph.Clone();
-  auto clonedGraphExec = graph.Instantiate();
+  auto graphExec       = graph.instantiate();
+  auto clonesGraph     = graph.clone();
+  auto clonedGraphExec = graph.instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    graphExec.Launch(streamForGraph);
+    graphExec.launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    clonedGraphExec.Launch(streamForGraph);
+    clonedGraphExec.launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
-  // graph.SaveDotfile("./test_manual.dot",
+  // graph.saveDotfile("./test_manual.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
@@ -273,30 +260,30 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
   gcxx::Event forkStreamEvent, memsetEvent1, memsetEvent2;
   double result_h = 0.0;
 
-  stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+  stream1.beginCapture(gcxx::flags::streamCaptureMode::Global);
 
-  forkStreamEvent.RecordInStream(stream1);
-  stream2.WaitOnEvent(forkStreamEvent);
-  stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::Copy(stream1, inputVec_d, inputVec_h, inputSize);
+  forkStreamEvent.recordInStream(stream1);
+  stream2.waitOnEvent(forkStreamEvent);
+  stream3.waitOnEvent(forkStreamEvent);
+  gcxx::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
-  gcxx::memory::Memset(stream2, outputVec_d, 0, numOfBlocks);
-  memsetEvent1.RecordInStream(stream2);
+  gcxx::Memset(stream2, outputVec_d, 0, numOfBlocks);
+  memsetEvent1.recordInStream(stream2);
 
-  gcxx::memory::Memset(stream3, result_d, 0, 1);
-  memsetEvent2.RecordInStream(stream3);
+  gcxx::Memset(stream3, result_d, 0, 1);
+  memsetEvent2.recordInStream(stream3);
 
-  stream1.WaitOnEvent(memsetEvent1);
+  stream1.waitOnEvent(memsetEvent1);
 
   gcxx::launch::Kernel(stream1, numOfBlocks, THREADS_PER_BLOCK, 0, reduce,
                        inputVec_d, outputVec_d, inputSize, numOfBlocks);
 
-  stream1.WaitOnEvent(memsetEvent2);
+  stream1.waitOnEvent(memsetEvent2);
 
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::Copy(stream1, &result_h, result_d, 1);
+  gcxx::Copy(stream1, &result_h, result_d, 1);
 
 
   callBackData_t hostFnData = {nullptr};
@@ -305,30 +292,30 @@ void deviceGraphsUsingStreamCapture(float* inputVec_h, float* inputVec_d,
 
   gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
 
-  auto graph = stream1.EndCapture();
+  auto graph = stream1.endCapture();
 
 
-  size_t numNodes = graph.GetNumNodes();
+  size_t numNodes = graph.getNumNodes();
   printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
          numNodes);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
-  auto clonedGraph     = graph.Clone();
-  auto clonedGraphExec = clonedGraph.Instantiate();
+  auto clonedGraph     = graph.clone();
+  auto clonedGraphExec = clonedGraph.instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    graphExec.Launch(streamForGraph);
+    graphExec.launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    clonedGraphExec.Launch(streamForGraph);
+    clonedGraphExec.launch(streamForGraph);
   }
 
-  streamForGraph.Synchronize();
-  // graph.SaveDotfile("./test_stream_capture.dot",
+  streamForGraph.sync();
+  // graph.saveDotfile("./test_stream_capture.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
@@ -341,30 +328,30 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
   double result_h = 0.0;
   gcxx::Graph graph;
 
-  stream1.BeginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
+  stream1.beginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
 
-  forkStreamEvent.RecordInStream(stream1);
-  stream2.WaitOnEvent(forkStreamEvent);
-  stream3.WaitOnEvent(forkStreamEvent);
-  gcxx::memory::Copy(stream1, inputVec_d, inputVec_h, inputSize);
+  forkStreamEvent.recordInStream(stream1);
+  stream2.waitOnEvent(forkStreamEvent);
+  stream3.waitOnEvent(forkStreamEvent);
+  gcxx::Copy(stream1, inputVec_d, inputVec_h, inputSize);
 
-  gcxx::memory::Memset(stream2, outputVec_d, 0, numOfBlocks);
-  memsetEvent1.RecordInStream(stream2);
+  gcxx::Memset(stream2, outputVec_d, 0, numOfBlocks);
+  memsetEvent1.recordInStream(stream2);
 
-  gcxx::memory::Memset(stream3, result_d, 0, 1);
-  memsetEvent2.RecordInStream(stream3);
+  gcxx::Memset(stream3, result_d, 0, 1);
+  memsetEvent2.recordInStream(stream3);
 
-  stream1.WaitOnEvent(memsetEvent1);
+  stream1.waitOnEvent(memsetEvent1);
 
   gcxx::launch::Kernel(stream1, numOfBlocks, THREADS_PER_BLOCK, 0, reduce,
                        inputVec_d, outputVec_d, inputSize, numOfBlocks);
 
-  stream1.WaitOnEvent(memsetEvent2);
+  stream1.waitOnEvent(memsetEvent2);
 
   gcxx::launch::Kernel(stream1, 1, THREADS_PER_BLOCK, 0, reduceFinal,
                        outputVec_d, result_d, numOfBlocks);
 
-  gcxx::memory::Copy(stream1, &result_h, result_d, 1);
+  gcxx::Copy(stream1, &result_h, result_d, 1);
 
 
   callBackData_t hostFnData = {nullptr};
@@ -373,30 +360,30 @@ void deviceGraphsUsingStreamCaptureToGraph(float* inputVec_h, float* inputVec_d,
 
   gcxx::launch::HostFunc(stream1, myHostNodeCallback, &hostFnData);
 
-  stream1.EndCaptureToGraph(graph);
+  stream1.endCaptureToGraph(graph);
 
 
-  size_t numNodes = graph.GetNumNodes();
+  size_t numNodes = graph.getNumNodes();
   printf("\nNum of nodes in the graph created using stream capture API = %zu\n",
          numNodes);
 
-  auto graphExec = graph.Instantiate();
+  auto graphExec = graph.instantiate();
 
-  auto clonedGraph     = graph.Clone();
-  auto clonedGraphExec = clonedGraph.Instantiate();
+  auto clonedGraph     = graph.clone();
+  auto clonedGraphExec = clonedGraph.instantiate();
 
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    graphExec.Launch(streamForGraph);
+    graphExec.launch(streamForGraph);
   }
-  streamForGraph.Synchronize();
+  streamForGraph.sync();
 
   printf("Cloned Graph Output.. \n");
   for (int i = 0; i < GRAPH_LAUNCH_ITERATIONS; i++) {
-    clonedGraphExec.Launch(streamForGraph);
+    clonedGraphExec.launch(streamForGraph);
   }
 
-  streamForGraph.Synchronize();
-  // graph.SaveDotfile("./test_stream_capture.dot",
+  streamForGraph.sync();
+  // graph.saveDotfile("./test_stream_capture.dot",
   //                   gcxx::flags::graphDebugDot::EventNodeParams);
 }
 
@@ -411,10 +398,10 @@ int main(int argc, char** argv) {
   printf("threads per block  = %d\n", THREADS_PER_BLOCK);
   printf("Graph Launch iterations = %d\n", GRAPH_LAUNCH_ITERATIONS);
 
-  auto inVec_h_raii  = gcxx::memory::make_host_pinned_unique_ptr<float>(size);
-  auto inVec_d_raii  = gcxx::memory::make_device_unique_ptr<float>(size);
-  auto outVec_d_raii = gcxx::memory::make_device_unique_ptr<double>(maxBlocks);
-  auto result_d_raii = gcxx::memory::make_device_unique_ptr<double>(1);
+  auto inVec_h_raii  = gcxx::make_host_pinned_unique_ptr<float>(size);
+  auto inVec_d_raii  = gcxx::make_device_unique_ptr<float>(size);
+  auto outVec_d_raii = gcxx::make_device_unique_ptr<double>(maxBlocks);
+  auto result_d_raii = gcxx::make_device_unique_ptr<double>(1);
 
 
   float* inputVec_h   = inVec_h_raii.get();

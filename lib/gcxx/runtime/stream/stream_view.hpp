@@ -5,9 +5,12 @@
 #define GCXX_RUNTIME_STREAM_STREAM_VIEW_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/macros/template_helper_macros.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
+#include <gcxx/runtime/flags/memory_flags.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
-#include <gcxx/runtime_backend/backend_graph.hpp>
+#include <gcxx/runtime/memory/spans/spans.hpp>
+#include <gcxx/runtime_backend/backend_handles.hpp>
 #include <gcxx/runtime_backend/backend_stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
@@ -22,6 +25,7 @@ class StreamView {
  public:
   using deviceGraphNode_t = driver::deviceGraphNode_t;
   using deviceStream_t    = driver::deviceStream_t;
+  using raw_handle_type   = driver::deviceStream_t;
 
   explicit GCXX_FHC StreamView(deviceStream_t rawStream) GCXX_NOEXCEPT;
 
@@ -34,21 +38,35 @@ class StreamView {
     return s;
   }
 
-  GCXX_FH constexpr auto getRawStream() GCXX_CONST_NOEXCEPT -> deviceStream_t;
+  GCXX_FH constexpr auto getRawHandle() GCXX_CONST_NOEXCEPT -> deviceStream_t;
 
-  GCXX_FH constexpr operator deviceStream_t() GCXX_CONST_NOEXCEPT;  // NOLINT
+  GCXX_FH auto hasPendingWork() -> bool;
 
-  GCXX_FH auto HasPendingWork() -> bool;
+  GCXX_FH auto sync() const -> void;
 
-  GCXX_FH auto Synchronize() const -> void;
-
-  GCXX_FH auto WaitOnEvent(
+  GCXX_FH auto waitOnEvent(
     const EventView& event,
     flags::eventWait waitFlag = flags::eventWait::None) const -> void;
 
-  GCXX_FH auto RecordEvent(
+  GCXX_FH auto recordEvent(
     flags::eventCreate createflag = flags::eventCreate::None,
     flags::eventRecord recordFlag = flags::eventRecord::None) const -> Event;
+
+  // TODO: No op in HIP.
+  GCXX_TEMPLATE(typename Span)
+  GCXX_REQUIRES(is_span_like_v<Span>)
+  GCXX_FH auto attachMemAsync(
+    // mem is deliberately not forwarded: data()/size() take lvalue refs, and
+    // the const-data() fallback would feed a const pointer into the void*
+    // cast below.
+    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
+    Span&& mem,
+    flags::memAttach flag = flags::memAttach::Single) const -> void {
+    driver::streamAttachMemAsync(
+      m_stream, static_cast<void*>(details_::to_address(details_::data(mem))),
+      details_::size(mem) * sizeof(span_element_t<Span>),
+      static_cast<details_::flag_t>(flag));
+  }
 
   GCXX_FHDC auto isNullStream() const -> bool {
     return m_stream == driver::NULL_STREAM;
@@ -58,25 +76,22 @@ class StreamView {
     return m_stream == driver::INVALID_STREAM;
   }
 
-  GCXX_FH auto BeginCapture(flags::streamCaptureMode createflag) const -> void;
+  GCXX_FH auto beginCapture(flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH auto BeginCaptureToGraph(
+  GCXX_FH auto beginCaptureToGraph(
     GraphView& graph_view, flags::streamCaptureMode createflag) const -> void;
 
-  GCXX_FH auto EndCapture() const -> Graph;
+  GCXX_FH auto endCapture() const -> Graph;
 
-  /// @brief End stream capture and update the graph that was passed to
-  /// BeginCaptureToGraph. Use this instead of EndCapture() when using
-  /// BeginCaptureToGraph to avoid ownership issues.
-  /// @param graph Reference to the same Graph passed to BeginCaptureToGraph
-  GCXX_FH auto EndCaptureToGraph(const GraphView& graph) const -> void;
+  // Updates the graph passed to beginCaptureToGraph; avoids ownership issues.
+  GCXX_FH auto endCaptureToGraph(const GraphView& graph) const -> void;
 
 #if GCXX_CUDA_MODE()
-  GCXX_FH auto IsCapturing() const -> gcxx::flags::streamCaptureStatus;
+  GCXX_FH auto isCapturing() const -> gcxx::flags::streamCaptureStatus;
 
-  GCXX_FH auto GetCaptureInfo() const -> CaptureInfo;
+  GCXX_FH auto getCaptureInfo() const -> CaptureInfo;
 
-  GCXX_FH auto UpdateCaptureDependencies(
+  GCXX_FH auto updateCaptureDependencies(
     flags::StreamUpdateCaptureDependencies flag, deviceGraphNode_t* nodes,
     std::size_t numdeps) const -> void;
 #endif

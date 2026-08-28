@@ -21,7 +21,7 @@ namespace {
   template <typename T, std::size_t N>
   void expect_device_contents_equal(T* device_ptr, const int byte_value) {
     std::array<T, N> host_values{};
-    gcxx::memory::Copy(host_values.data(), device_ptr, N);
+    gcxx::Copy(host_values.data(), device_ptr, N);
 
     const T expected = memset_expected_value<T>(byte_value);
     for (const auto& actual : host_values) {
@@ -29,34 +29,39 @@ namespace {
     }
   }
 
+  using device_ptr = gcxx::device_ptr<std::uint32_t>;
+  using device_buf = gcxx::device_buffer<std::uint32_t>;
+
+  // Satisfies no handle/span trait: universal negative case.
+  struct NotAHandle {};
+
+  // Args... is the handle candidate; value/count are concrete.
+
+  // Memset(handle, value, count) — sync, pointer/smart-pointer.
+  GCXX_DEFINE_IS_CALLABLE(is_memset_ptr_callable,
+                          gcxx::Memset(std::declval<Args>()..., 0,
+                                       std::size_t{4}));
+
+  // Memset(spanLike, value) — sync, span-like.
+  GCXX_DEFINE_IS_CALLABLE(is_memset_span_callable,
+                          gcxx::Memset(std::declval<Args>()..., 0));
+
 }  // namespace
 
-TEST(MemsetTest, RawPointerOverloadIsCallable) {
-  EXPECT_TRUE(
-    (std::is_same_v<decltype(gcxx::memory::Memset(
-                      std::declval<std::uint32_t*&>(), 0, std::size_t{4})),
-                    void>));
+TEST(MemsetSfinaeTest, AcceptsValidHandleShapes) {
+  static_assert(is_memset_ptr_callable_v<std::uint32_t*&>);
+  static_assert(is_memset_ptr_callable_v<device_ptr&>);
+  static_assert(is_memset_span_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(is_memset_span_callable_v<device_buf&>);
 }
 
-TEST(MemsetTest, UniquePointerOverloadIsCallable) {
-  using device_ptr = gcxx::memory::device_ptr<std::uint32_t>;
+// Negative asserts impossible with the old decltype type check.
+TEST(MemsetSfinaeTest, RejectsInvalidHandleShapes) {
+  // Pointer overload rejects spans (no .get()), NotAHandle, plain values.
+  static_assert(!is_memset_ptr_callable_v<gcxx::span<std::uint32_t>&>);
+  static_assert(!is_memset_ptr_callable_v<NotAHandle>);
 
-  EXPECT_TRUE(
-    (std::is_same_v<decltype(gcxx::memory::Memset(std::declval<device_ptr&>(),
-                                                  0, std::size_t{4})),
-                    void>));
-}
-
-TEST(MemsetTest, SpanOverloadIsCallable) {
-  EXPECT_TRUE((std::is_same_v<decltype(gcxx::memory::Memset(
-                                std::declval<gcxx::span<std::uint32_t>&>(), 0)),
-                              void>));
-}
-
-TEST(MemsetTest, DeviceBufferOverloadIsCallable) {
-  using device_buf = gcxx::memory::device_buffer<std::uint32_t>;
-
-  EXPECT_TRUE(
-    (std::is_same_v<
-      decltype(gcxx::memory::Memset(std::declval<device_buf&>(), 0)), void>));
+  // Span overload rejects raw pointers and NotAHandle.
+  static_assert(!is_memset_span_callable_v<std::uint32_t*>);
+  static_assert(!is_memset_span_callable_v<NotAHandle>);
 }

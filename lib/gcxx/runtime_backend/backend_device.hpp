@@ -19,8 +19,20 @@ GCXX_FH auto chooseDevice(const deviceProp_t& prop) -> int {
   return device;
 }
 
+// Non-throwing availability probe: unlike deviceGetCount, a missing driver
+// or device reports false instead of aborting when exceptions are off.
+GCXX_FH auto deviceAvailable() -> bool {
+  int count = 0;
+  if (::GCXX_RUNTIME_BACKEND(GetDeviceCount)(&count) != deviceErrSuccess) {
+    (void)GetLastError();  // consume the recorded error; a failed count is
+                           // an expected outcome for this probe
+    return false;
+  }
+  return count > 0;
+}
+
 GCXX_FH auto deviceFlushGPUDirectRDMAWrites() -> void {
-  // TODO : to be filed later
+  // TODO: To be filed later.
 }
 
 GCXX_FH auto deviceGetAttribute(deviceAttribute_t attr, int device) -> int {
@@ -38,7 +50,7 @@ GCXX_FH auto deviceGetByPCIBusId(const char* pciBusId) -> int {
   return device;
 }
 
-GCXX_FH auto deviceGetCacheConfig(int device) -> funcCacheConfig_t {
+GCXX_FH auto deviceGetCacheConfig() -> funcCacheConfig_t {
   funcCacheConfig_t config{};
   GCXX_SAFE_RUNTIME_CALL(DeviceGetCacheConfig,
                          "Failed to get device cache configuration", &config);

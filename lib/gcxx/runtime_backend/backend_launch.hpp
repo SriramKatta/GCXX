@@ -18,7 +18,7 @@ GCXX_FH auto launchHostFunc(deviceStream_t stream, deviceHostCallBackFn_t fn,
 template <typename func_t>
 GCXX_FH auto launchCooperativeKernel(func_t* func, dim3 gridDim, dim3 blockDim,
                                      void** args, size_t sharedMem = 0,
-                                     deviceStream_t stream = 0) -> void {
+                                     deviceStream_t stream = nullptr) -> void {
   GCXX_SAFE_RUNTIME_CALL(LaunchCooperativeKernel,
                          "Failed to launch Cooprative GPU kernel", func,
                          gridDim, blockDim, args, sharedMem, stream);
@@ -27,7 +27,7 @@ GCXX_FH auto launchCooperativeKernel(func_t* func, dim3 gridDim, dim3 blockDim,
 template <typename func_t>
 GCXX_FH auto launchKernel(func_t* func, dim3 gridDim, dim3 blockDim,
                           void** args, size_t sharedMem = 0,
-                          deviceStream_t stream = 0) -> void {
+                          deviceStream_t stream = nullptr) -> void {
   GCXX_SAFE_RUNTIME_CALL(LaunchKernel, "Failed to launch Cooprative GPU kernel",
                          func, gridDim, blockDim, args, sharedMem, stream);
 }

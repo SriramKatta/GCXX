@@ -17,9 +17,11 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 namespace launch {
   template <typename... ExpTypes, typename... ActTypes>
-  GCXX_FH void CooperativeKernel(LaunchConfig& config,
-                                 void (*kernel)(ExpTypes...),
-                                 ActTypes&&... args) {
+  // args must stay lvalues: their ADDRESSES go into kernelArgs, so forwarding
+  // would turn rvalue elements into non-addressable xvalues.
+  GCXX_FH void CooperativeKernel(
+    LaunchConfig& config, void (*kernel)(ExpTypes...),
+    ActTypes&&... args) {  // NOLINT(cppcoreguidelines-missing-std-forward)
     std::array<void*, sizeof...(args)> kernelArgs = {((void*)&args)...};
     driver::launchCooperativeKernel(kernel, config.config_.gridDim,
                                     config.config_.blockDim, kernelArgs.data(),
@@ -29,7 +31,7 @@ namespace launch {
 
   GCXX_FH void HostFunc(const StreamView sview, gcxxHostCallBackFn_t fn,
                         void* userData) {
-    driver::launchHostFunc(sview.getRawStream(), fn, userData);
+    driver::launchHostFunc(sview.getRawHandle(), fn, userData);
   }
 
   // TODO : add sfinae to check if the kernel is __global__
@@ -38,7 +40,7 @@ namespace launch {
                       std::size_t smem_bytes, void (*kernel)(ExpTypes...),
                       ActTypes&&... args) {
     driver::deviceLaunchConfig_t config{};
-    config.stream           = sv.getRawStream();
+    config.stream           = sv.getRawHandle();
     config.blockDim         = blockdim;
     config.gridDim          = griddim;
     config.dynamicSmemBytes = smem_bytes;
