@@ -27,9 +27,7 @@ static_assert(!gcxx::resource_with<not_a_resource, gcxx::device_accessible,
 
 class PinnedMemoryPoolTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    GCXX_SKIP_WITHOUT_DEVICE();
-  }
+  void SetUp() override { GCXX_SKIP_WITHOUT_DEVICE(); }
 };
 
 // HIP shim deliberately holds no handle; CUDA default ctor is a real pool.

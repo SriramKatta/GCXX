@@ -42,9 +42,7 @@ static_assert(
 
 class DeviceAttributeTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    GCXX_SKIP_WITHOUT_DEVICE();
-  }
+  void SetUp() override { GCXX_SKIP_WITHOUT_DEVICE(); }
 };
 
 TEST_F(DeviceAttributeTest, NumericAttributeReadsAsInt) {

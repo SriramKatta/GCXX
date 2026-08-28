@@ -110,8 +110,8 @@ namespace {
           vc(c.get(), m_, n_) {}
   };
 
-  auto make_gemm(std::int32_t m, std::int32_t k, std::int32_t n)
-    -> GemmProblem {
+  auto make_gemm(std::int32_t m, std::int32_t k,
+                 std::int32_t n) -> GemmProblem {
     auto& env = blas_env();
 
     const auto na = static_cast<std::size_t>(m) * static_cast<std::size_t>(k);
@@ -138,8 +138,8 @@ namespace {
 
   // The floor: one hand-written GemmEx with every argument spelled out —
   // no guards, no inference, no checks.
-  auto raw_gemm_ex(const GemmProblem& p, const f32_t* alpha, const f32_t* beta)
-    -> gcxx::driver::deviceBlasStatus_t {
+  auto raw_gemm_ex(const GemmProblem& p, const f32_t* alpha,
+                   const f32_t* beta) -> gcxx::driver::deviceBlasStatus_t {
     return ::GCXX_BLAS_BACKEND(GemmEx)(
       blas_env().handle.getRawHandle(), gcxx::driver::deviceBlasOpN,
       gcxx::driver::deviceBlasOpN, p.m, p.n, p.k, alpha, p.a.get(),
@@ -150,8 +150,8 @@ namespace {
   }
 
   // items/s == FLOP/s for the WithSync variants.
-  auto set_flops_counter(benchmark::State& state, const GemmProblem& p)
-    -> void {
+  auto set_flops_counter(benchmark::State& state,
+                         const GemmProblem& p) -> void {
     const auto flops = 2.0 * static_cast<double>(p.m) *
                        static_cast<double>(p.k) * static_cast<double>(p.n) *
                        static_cast<double>(state.iterations());

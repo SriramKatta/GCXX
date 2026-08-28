@@ -24,9 +24,7 @@ GCXX_ASSERT_RAW_HANDLE(DeviceMemPool, gcxx::driver::deviceMemPool_t);
 
 class DeviceMemoryPoolTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    GCXX_SKIP_WITHOUT_DEVICE();
-  }
+  void SetUp() override { GCXX_SKIP_WITHOUT_DEVICE(); }
 };
 
 TEST_F(DeviceMemoryPoolTest, ConstructOwnsHandle) {

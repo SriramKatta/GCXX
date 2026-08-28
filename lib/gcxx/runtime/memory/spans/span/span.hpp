@@ -17,7 +17,7 @@
 #include <gcxx/iterators/heterogeneous_iterator.hpp>
 #include <gcxx/iterators/reverse_iterator.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
-#include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp> // gcxx::dynamic_extent
+#include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>  // gcxx::dynamic_extent
 #include <gcxx/types/size_holder.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()

@@ -30,9 +30,7 @@ GCXX_ASSERT_RAW_HANDLE(ManagedMemPool, gcxx::driver::deviceMemPool_t);
 
 class ManagedMemoryPoolTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    GCXX_SKIP_WITHOUT_DEVICE();
-  }
+  void SetUp() override { GCXX_SKIP_WITHOUT_DEVICE(); }
 };
 
 TEST_F(ManagedMemoryPoolTest, ConstructAndAllocate) {
