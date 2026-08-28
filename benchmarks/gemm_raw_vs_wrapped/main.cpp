@@ -10,6 +10,11 @@
 //     resolution, view inference, extent checks) lives here.
 //   • WithSync  — stream sync every iteration: end-to-end time where GPU
 //     work dominates; shows the wrapper delta drowning in kernel time.
+//   • GpuTime   — event pair around the gemm, reported via UseManualTime:
+//     device-side duration alone, excluding both host issue cost and sync
+//     latency (the complement of the other two modes).
+//
+// The three loop shapes come from benchmarks/common/bench_common.hpp.
 //
 // The IssueOnly problems stay small so the GPU drains faster than the host
 // can issue; larger problems would back up the launch queue until issuing
@@ -25,6 +30,8 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
+
+#include "bench_common.hpp"
 
 #include <gcxx/backend/backend_blas.hpp>
 #include <gcxx/blas_api.hpp>
@@ -149,13 +156,10 @@ namespace {
       gcxx::blas::blas_compute_type_v<f32_t>, GCXX_BLAS_GEMM(DEFAULT));
   }
 
-  // items/s == FLOP/s for the WithSync variants.
-  auto set_flops_counter(benchmark::State& state,
-                         const GemmProblem& p) -> void {
-    const auto flops = 2.0 * static_cast<double>(p.m) *
-                       static_cast<double>(p.k) * static_cast<double>(p.n) *
-                       static_cast<double>(state.iterations());
-    state.SetItemsProcessed(static_cast<std::int64_t>(flops));
+  // items/s == FLOP/s for the WithSync and GpuTime variants.
+  auto set_flops_counter(benchmark::State& state, const GemmProblem& p)
+    -> void {
+    bench::set_flops_counter(state, 2.0 * p.m * p.k * p.n);
   }
 
   // ── IssueOnly: host-side cost of issuing one gemm ─────────────────────────
@@ -166,22 +170,20 @@ namespace {
     auto problem = make_gemm(n, n, n);
     const f32_t alpha{1.0F};
     const f32_t beta{0.0F};
-    for (auto _ : state) {
+    bench::issue_only(state, env.stream, [&] {
       const auto status = raw_gemm_ex(problem, &alpha, &beta);
       benchmark::DoNotOptimize(status);
-    }
-    env.stream.sync();  // drain outside the timed region
+    });
   }
 
   void BM_WrappedMatrixProduct_IssueOnly(benchmark::State& state) {
     auto& env    = blas_env();
     const auto n = static_cast<std::int32_t>(state.range(0));
     auto problem = make_gemm(n, n, n);
-    for (auto _ : state) {
+    bench::issue_only(state, env.stream, [&] {
       gcxx::blas::matrix_product(env.handle, problem.va, problem.vb,
                                  problem.vc);
-    }
-    env.stream.sync();  // drain outside the timed region
+    });
   }
 
   // ── WithSync: end-to-end, GPU-dominated ───────────────────────────────────
@@ -192,11 +194,10 @@ namespace {
     auto problem = make_gemm(n, n, n);
     const f32_t alpha{1.0F};
     const f32_t beta{0.0F};
-    for (auto _ : state) {
+    bench::with_sync(state, env.stream, [&] {
       const auto status = raw_gemm_ex(problem, &alpha, &beta);
       benchmark::DoNotOptimize(status);
-      env.stream.sync();
-    }
+    });
     set_flops_counter(state, problem);
   }
 
@@ -204,11 +205,36 @@ namespace {
     auto& env    = blas_env();
     const auto n = static_cast<std::int32_t>(state.range(0));
     auto problem = make_gemm(n, n, n);
-    for (auto _ : state) {
+    bench::with_sync(state, env.stream, [&] {
       gcxx::blas::matrix_product(env.handle, problem.va, problem.vb,
                                  problem.vc);
-      env.stream.sync();
-    }
+    });
+    set_flops_counter(state, problem);
+  }
+
+  // ── GpuTime: device-side duration via event pair (UseManualTime) ──────────
+
+  void BM_RawGemmEx_GpuTime(benchmark::State& state) {
+    auto& env    = blas_env();
+    const auto n = static_cast<std::int32_t>(state.range(0));
+    auto problem = make_gemm(n, n, n);
+    const f32_t alpha{1.0F};
+    const f32_t beta{0.0F};
+    bench::gpu_time(state, env.stream, [&] {
+      const auto status = raw_gemm_ex(problem, &alpha, &beta);
+      benchmark::DoNotOptimize(status);
+    });
+    set_flops_counter(state, problem);
+  }
+
+  void BM_WrappedMatrixProduct_GpuTime(benchmark::State& state) {
+    auto& env    = blas_env();
+    const auto n = static_cast<std::int32_t>(state.range(0));
+    auto problem = make_gemm(n, n, n);
+    bench::gpu_time(state, env.stream, [&] {
+      gcxx::blas::matrix_product(env.handle, problem.va, problem.vb,
+                                 problem.vc);
+    });
     set_flops_counter(state, problem);
   }
 
@@ -289,6 +315,18 @@ BENCHMARK(BM_RawGemmEx_WithSync)
 BENCHMARK(BM_WrappedMatrixProduct_WithSync)
   ->RangeMultiplier(2)
   ->Range(lown, highn)
+  ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK(BM_RawGemmEx_GpuTime)
+  ->RangeMultiplier(2)
+  ->Range(lown, highn)
+  ->UseManualTime()
+  ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK(BM_WrappedMatrixProduct_GpuTime)
+  ->RangeMultiplier(2)
+  ->Range(lown, highn)
+  ->UseManualTime()
   ->Unit(benchmark::kMicrosecond);
 
 auto main(int argc, char** argv) -> int {
