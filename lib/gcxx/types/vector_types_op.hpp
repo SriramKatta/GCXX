@@ -17,11 +17,11 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 // LHS and RHS are unrelated template parameters — an operation is vectorized
 // when EITHER operand is a vector — so the two sides are not equivalent.
 
-template <typename LHS, typename RHS>
-inline constexpr bool binary_vec_op_v = is_vectype_v<LHS> || is_vectype_v<RHS>;
+template <typename ... VECTYs>
+GCXX_CXPR inline bool at_least_one_vec_type_v = (is_vectype_v<VECTYs> || ...);
 
 template <typename LHS, typename RHS>
-using binary_vec_result_t = std::conditional_t<is_vectype_v<LHS>, LHS, RHS>;
+using vector_operand_t = std::conditional_t<is_vectype_v<LHS>, LHS, RHS>;
 
 namespace impl {
   // Indexed component accessor
@@ -48,9 +48,9 @@ namespace impl {
   }
 
   template <typename A, typename B, typename Op, std::size_t... Is>
-  GCXX_FHDC auto vec_apply(const A& a, const B& b, Op op,
+  GCXX_FHDC auto  vec_apply(const A& a, const B& b, Op op,
                            std::index_sequence<Is...>) {
-    binary_vec_result_t<A, B> result{};
+    vector_operand_t<A, B> result{};
     ((vec_comp<Is>(result) = op(vec_comp<Is>(a), vec_comp<Is>(b))), ...);
     return result;
   }
@@ -77,7 +77,7 @@ namespace impl {
                     "vector operators require matching component counts");
     }
 
-    using traits = vec_traits<binary_vec_result_t<LHS, RHS>>;
+    using traits = vec_traits<vector_operand_t<LHS, RHS>>;
 
     using base_t    = typename traits::value_type;
     constexpr int N = traits::size;
@@ -142,41 +142,41 @@ namespace impl {
 GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
-GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
+GCXX_REQUIRES(gcxx::details_::at_least_one_vec_type_v<LHS, RHS>)
 GCXX_FHDC auto operator+(const LHS& lhs, const RHS& rhs)
-  -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
+  -> gcxx::details_::vector_operand_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
   return apply_binary_dispatch(lhs, rhs, gcxx::plus{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
-GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
+GCXX_REQUIRES(gcxx::details_::at_least_one_vec_type_v<LHS, RHS>)
 GCXX_FHDC auto operator-(const LHS& lhs, const RHS& rhs)
-  -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
+  -> gcxx::details_::vector_operand_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
   return apply_binary_dispatch(lhs, rhs, gcxx::minus{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
-GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
+GCXX_REQUIRES(gcxx::details_::at_least_one_vec_type_v<LHS, RHS>)
 GCXX_FHDC auto operator*(const LHS& lhs, const RHS& rhs)
-  -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
+  -> gcxx::details_::vector_operand_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
   return apply_binary_dispatch(lhs, rhs, gcxx::multiplies{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
-GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
+GCXX_REQUIRES(gcxx::details_::at_least_one_vec_type_v<LHS, RHS>)
 GCXX_FHDC auto operator/(const LHS& lhs, const RHS& rhs)
-  -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
+  -> gcxx::details_::vector_operand_t<LHS, RHS> {
   using gcxx::details_::impl::apply_binary_dispatch;
   return apply_binary_dispatch(lhs, rhs, gcxx::divides{});
 }
 
 GCXX_TEMPLATE(typename LHS, typename RHS)
-GCXX_REQUIRES(gcxx::details_::binary_vec_op_v<LHS, RHS>)
+GCXX_REQUIRES(gcxx::details_::at_least_one_vec_type_v<LHS, RHS>)
 GCXX_FHDC auto operator%(const LHS& lhs, const RHS& rhs)
-  -> gcxx::details_::binary_vec_result_t<LHS, RHS> {
+  -> gcxx::details_::vector_operand_t<LHS, RHS> {
   // Remainder is an integral-only
   using elem_t = typename gcxx::details_::vec_traits<std::conditional_t<
     gcxx::details_::is_vectype_v<LHS>, LHS, RHS>>::value_type;
