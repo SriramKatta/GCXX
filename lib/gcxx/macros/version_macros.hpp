@@ -78,6 +78,10 @@
 
 #endif
 
-#define GCXX_DEVICE_COMPILE (__HIP_DEVICE_COMPILE__ || __CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__) || defined(__CUDA_ARCH__)
+#define GCXX_DEVICE_COMPILE 1
+#else
+#define GCXX_DEVICE_COMPILE 0
+#endif
 
 #endif
