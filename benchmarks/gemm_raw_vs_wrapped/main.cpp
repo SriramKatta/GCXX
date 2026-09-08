@@ -157,8 +157,8 @@ namespace {
   }
 
   // items/s == FLOP/s for the WithSync and GpuTime variants.
-  auto set_flops_counter(benchmark::State& state, const GemmProblem& p)
-    -> void {
+  auto set_flops_counter(benchmark::State& state,
+                         const GemmProblem& p) -> void {
     bench::set_flops_counter(state, 2.0 * p.m * p.k * p.n);
   }
 
@@ -293,7 +293,7 @@ namespace {
 
 }  // namespace
 
-constexpr std::size_t lown = 32;
+constexpr std::size_t lown  = 32;
 constexpr std::size_t highn = 1024 * 8;
 
 // Geometric ranges (×2) rather than spelled-out Arg lists.

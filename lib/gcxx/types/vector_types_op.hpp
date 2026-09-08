@@ -17,7 +17,7 @@ GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 // LHS and RHS are unrelated template parameters — an operation is vectorized
 // when EITHER operand is a vector — so the two sides are not equivalent.
 
-template <typename ... VECTYs>
+template <typename... VECTYs>
 GCXX_CXPR inline bool at_least_one_vec_type_v = (is_vectype_v<VECTYs> || ...);
 
 template <typename LHS, typename RHS>
@@ -48,7 +48,7 @@ namespace impl {
   }
 
   template <typename A, typename B, typename Op, std::size_t... Is>
-  GCXX_FHDC auto  vec_apply(const A& a, const B& b, Op op,
+  GCXX_FHDC auto vec_apply(const A& a, const B& b, Op op,
                            std::index_sequence<Is...>) {
     vector_operand_t<A, B> result{};
     ((vec_comp<Is>(result) = op(vec_comp<Is>(a), vec_comp<Is>(b))), ...);

@@ -21,8 +21,8 @@ namespace bench {
   // Host-side issue cost: fn() must be enqueue-only (no per-iteration sync);
   // device work is drained once, outside the timed loop.
   template <typename Fn>
-  auto issue_only(benchmark::State& state, gcxx::Stream& stream, Fn&& fn)
-    -> void {
+  auto issue_only(benchmark::State& state, gcxx::Stream& stream,
+                  Fn&& fn) -> void {
     for (auto _ : state) {
       fn();
     }
@@ -32,8 +32,8 @@ namespace bench {
   // End-to-end: every iteration completes on the device before the next one
   // is issued; host issue cost and GPU execution are both counted.
   template <typename Fn>
-  auto with_sync(benchmark::State& state, gcxx::Stream& stream, Fn&& fn)
-    -> void {
+  auto with_sync(benchmark::State& state, gcxx::Stream& stream,
+                 Fn&& fn) -> void {
     for (auto _ : state) {
       fn();
       stream.sync();
@@ -45,8 +45,8 @@ namespace bench {
   // cost (which with_sync counts) and the sync latency (which both other
   // modes count); roughly issue_only + with_sync - gpu_time == overhead.
   template <typename Fn>
-  auto gpu_time(benchmark::State& state, gcxx::Stream& stream, Fn&& fn)
-    -> void {
+  auto gpu_time(benchmark::State& state, gcxx::Stream& stream,
+                Fn&& fn) -> void {
     gcxx::Event start;
     gcxx::Event stop;
     for (auto _ : state) {
