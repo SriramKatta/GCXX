@@ -44,9 +44,23 @@ struct TypeSet {
   static constexpr std::size_t size = sizeof...(Ts);
 };
 
+// Accessibility tags (orthogonal to allocation kind).
 struct device_accessible {};
-
 struct host_accessible {};
+
+// Allocation-kind tags (orthogonal to accessibility).
+// The four tags biject with driver::queryMemoryKind's classification —
+// each CUDA-side allocation family has exactly one tag.
+struct device_allocated {};   // cudaMalloc / device pool -> memory_kind::device
+struct pinned_allocated {};   // cudaMallocHost / host pool (page-locked,
+                              // UVA-mapped) -> memory_kind::mapped_host
+struct unified_allocated {};  // cudaMallocManaged -> memory_kind::unified
+struct host_allocated {};     // plain malloc/new/stack (pageable,
+                              // unregistered) -> memory_kind::host
+
+// Lifecycle contract of the allocation, invisible to any pointer query:
+struct sync_allocated {};   // valid on return; free is immediate
+struct async_allocated {};  // stream-ordered alloc+free (pool-backed)
 
 // Four accessibility states; mirrors CCCL's __memory_accessibility.
 enum class memory_accessibility {

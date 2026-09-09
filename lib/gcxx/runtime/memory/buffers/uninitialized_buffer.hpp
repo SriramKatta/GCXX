@@ -241,6 +241,16 @@ using uninit_device_buffer = uninit_buffer<VT, device_accessible>;
 template <typename VT>
 using uninit_host_buffer = uninit_buffer<VT, host_accessible>;
 
+// Pinned/managed staging storage: host+device accessible; the resource
+// picks the kind (see pinned_buffer/managed_buffer in buffer.hpp).
+template <typename VT>
+using uninit_pinned_buffer =
+  uninit_buffer<VT, host_accessible, device_accessible>;
+
+template <typename VT>
+using uninit_managed_buffer =
+  uninit_buffer<VT, host_accessible, device_accessible>;
+
 
 GCXX_NAMESPACE_MAIN_END()
 

@@ -9,6 +9,8 @@
 #ifndef GCXX_RUNTIME_MEMORY_MEMORY_RESOURCE_RESOURCE_CONCEPTS_HPP_
 #define GCXX_RUNTIME_MEMORY_MEMORY_RESOURCE_RESOURCE_CONCEPTS_HPP_
 
+#include <type_traits>
+
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/memory/buffers/properties.hpp>
@@ -33,5 +35,26 @@ GCXX_CONCEPT resource_with =
 
 
 GCXX_NAMESPACE_MAIN_END()
+
+GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
+
+// Shared ctor gate for the property-carrying containers (buffer, scalar):
+// uniform static_asserts for every resource-taking constructor.
+template <typename Resource, typename... Properties>
+constexpr auto validate_resource() -> void {
+  static_assert(
+    std::is_copy_constructible_v<std::decay_t<Resource>>,
+    "resource must be copy constructible: the container owns a copy of it");
+  static_assert(resource_has_all_v<std::decay_t<Resource>, Properties...>,
+                "resource properties do not satisfy the container's "
+                "Properties (e.g. a host_accessible resource cannot back a "
+                "device_accessible container)");
+  static_assert(resource_api<std::decay_t<Resource>>,
+                "resource does not model the gcxx resource concept: it must "
+                "expose allocate(gcxx::StreamView, std::size_t) -> void* and "
+                "deallocate(gcxx::StreamView, void*) -> void");
+}
+
+GCXX_NAMESPACE_MAIN_DETAILS_END()
 
 #endif

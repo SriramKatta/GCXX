@@ -12,12 +12,6 @@
 
 namespace {
 
-  struct host_mock_resource {
-    using properties = gcxx::TypeSet<gcxx::host_accessible>;
-    void* allocate(gcxx::StreamView, std::size_t n) { return std::malloc(n); }
-    void deallocate(gcxx::StreamView, void* p) { std::free(p); }
-  };
-
   struct device_mock_resource {
     using properties = gcxx::TypeSet<gcxx::device_accessible>;
     void* allocate(gcxx::StreamView, std::size_t n) { return std::malloc(n); }
@@ -85,7 +79,7 @@ TEST(PropertyTest, ResourcesAdvertiseProperties) {
   static_assert(gcxx::has_property_v<PinnedMemPoolView, host_accessible>);
   static_assert(gcxx::has_property_v<PinnedMemPoolView, device_accessible>);
 
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_HAS_MANAGED_POOLS
   using gcxx::ManagedMemPoolView;
   // managed_default_memory_pool() returns ManagedMemPoolView (host and device).
   static_assert(gcxx::has_property_v<ManagedMemPoolView, device_accessible>);
@@ -127,6 +121,20 @@ TEST(PropertyTest, AliasesArePropertyBased) {
     std::is_same_v<device_buffer<int>, gcxx::buffer<int, device_accessible>>);
   static_assert(
     std::is_same_v<host_buffer<int>, gcxx::buffer<int, host_accessible>>);
+
+  // pinned/managed aliases share the dual-accessibility instantiation
+  // (mirrors pinned_scalar/managed_scalar); the resource picks the kind.
+  using gcxx::managed_buffer;
+  using gcxx::pinned_buffer;
+  static_assert(
+    std::is_same_v<pinned_buffer<int>,
+                   gcxx::buffer<int, host_accessible, device_accessible>>);
+  static_assert(std::is_same_v<managed_buffer<int>, pinned_buffer<int>>);
+  static_assert(std::is_same_v<
+                gcxx::uninit_pinned_buffer<int>,
+                gcxx::uninit_buffer<int, host_accessible, device_accessible>>);
+  static_assert(std::is_same_v<gcxx::uninit_managed_buffer<int>,
+                               gcxx::uninit_pinned_buffer<int>>);
 
   // Same type across allocators (pool call sits in an unevaluated decltype).
   using d_from_default_pool = decltype(gcxx::buffer<int, device_accessible>(

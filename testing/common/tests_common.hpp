@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdlib>
 #include <type_traits>
 
 #include <gcxx/api.hpp>
@@ -45,5 +46,26 @@ GCXX_CONCEPT has_raw_handle_type_v =
       GTEST_SKIP() << "No GPU device available"; \
     }                                            \
   } while (false)
+
+
+// Default device pool for staging allocations in GPU-gated tests (one
+// definition shared across test TUs; never instantiated unless called).
+inline auto dev_pool() {
+  return gcxx::device_default_memory_pool(gcxx::DeviceHandle{0});
+}
+
+// Malloc-backed host resource: the pageable leg of the allocation-kind
+// bijection (host_accessible + host_allocated). Shared by buffer/scalar
+// tests; the kind tag is a superset of the old host-only mock's properties,
+// so buffer<VT, host_accessible> construction checks still pass.
+struct host_mock_resource {
+  void* allocate(gcxx::StreamView, std::size_t num_bytes) {
+    return std::malloc(num_bytes);
+  }
+
+  void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
+
+  using properties = gcxx::TypeSet<gcxx::host_accessible, gcxx::host_allocated>;
+};
 
 #endif

@@ -60,7 +60,7 @@ class buffer {
   GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
   buffer(gcxx::StreamView stream, Resource&& resource)
       : m_storage(stream, any_resource(std::forward<Resource>(resource))) {
-    validate_resource<Resource>();
+    details_::validate_resource<Resource, Properties...>();
   }
 
   // Allocate n elements (uninitialized).
@@ -68,14 +68,14 @@ class buffer {
   GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
   buffer(gcxx::StreamView stream, Resource&& resource, size_type n)
       : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
-    validate_resource<Resource>();
+    details_::validate_resource<Resource, Properties...>();
   }
 
   GCXX_TEMPLATE(typename Resource)
   GCXX_REQUIRES(!std::is_same_v<std::decay_t<Resource>, buffer>)
   buffer(gcxx::StreamView stream, Resource&& resource, size_type n, no_init_t)
       : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
-    validate_resource<Resource>();
+    details_::validate_resource<Resource, Properties...>();
   }
 
   GCXX_TEMPLATE(typename Resource)
@@ -83,7 +83,7 @@ class buffer {
   buffer(gcxx::StreamView stream, Resource&& resource, size_type n,
          const value_type& value)
       : m_storage(stream, any_resource(std::forward<Resource>(resource)), n) {
-    validate_resource<Resource>();
+    details_::validate_resource<Resource, Properties...>();
     if (n != 0) {
       // CCCL __fill_n accessibility dispatch: host-writable storage (e.g.
       // malloc-backed) gets a plain host fill — the driver path (memset /
@@ -107,7 +107,7 @@ class buffer {
          std::initializer_list<value_type> il)
       : m_storage(stream, any_resource(std::forward<Resource>(resource)),
                   il.size()) {
-    validate_resource<Resource>();
+    details_::validate_resource<Resource, Properties...>();
     if (il.size() != 0) {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): Copy requires
       // same-cv pointers; il.begin() is const. Destination is freshly
@@ -123,7 +123,7 @@ class buffer {
   buffer(gcxx::StreamView stream, Resource&& resource, Range&& rng)
       : m_storage(stream, any_resource(std::forward<Resource>(resource)),
                   static_cast<size_type>(rng.size())) {
-    validate_resource<Resource>();
+    details_::validate_resource<Resource, Properties...>();
     if (rng.size() != 0) {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
       Copy(stream, data(), const_cast<value_type*>(std::data(rng)), rng.size());
@@ -137,7 +137,7 @@ class buffer {
   buffer(gcxx::StreamView stream, Resource&& resource, Iter first, Iter last)
       : m_storage(stream, any_resource(std::forward<Resource>(resource)),
                   static_cast<size_type>(std::distance(first, last))) {
-    validate_resource<Resource>();
+    details_::validate_resource<Resource, Properties...>();
     auto count = std::distance(first, last);
     if (count != 0) {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): see ilist ctor.
@@ -371,22 +371,6 @@ class buffer {
   }
 
  private:
-  // Shared gate so every resource-taking ctor gets uniform static_asserts.
-  template <typename Resource>
-  static constexpr auto validate_resource() -> void {
-    static_assert(
-      std::is_copy_constructible_v<std::decay_t<Resource>>,
-      "buffer owns a copy of the resource; it must be copy constructible");
-    static_assert(resource_has_all_v<std::decay_t<Resource>, Properties...>,
-                  "resource properties do not satisfy this buffer's Properties "
-                  "(e.g. a host_accessible resource cannot back a "
-                  "device_accessible buffer)");
-    static_assert(resource_api<std::decay_t<Resource>>,
-                  "resource does not model the gcxx resource concept: it must "
-                  "expose allocate(gcxx::StreamView, std::size_t) -> void* and "
-                  "deallocate(gcxx::StreamView, void*) -> void");
-  }
-
   buffer_t m_storage{};
 };
 
@@ -404,6 +388,15 @@ using device_buffer = buffer<VT, device_accessible>;
 
 template <typename VT>
 using host_buffer = buffer<VT, host_accessible>;
+
+// Pinned and managed storage are host+device accessible (their pool
+// property sets); the resource passed to the ctor picks the kind — mirrors
+// pinned_scalar/managed_scalar in scalars/scalar.hpp.
+template <typename VT>
+using pinned_buffer = buffer<VT, host_accessible, device_accessible>;
+
+template <typename VT>
+using managed_buffer = buffer<VT, host_accessible, device_accessible>;
 
 
 GCXX_NAMESPACE_MAIN_END()
