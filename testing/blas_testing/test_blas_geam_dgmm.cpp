@@ -12,9 +12,9 @@
 
 #include <gcxx/blas_api.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
-#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/make_mdspan.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
+#include <gcxx/runtime/memory/spans/mdspan/scaled_accessor.hpp>
 
 namespace {
 
@@ -43,23 +43,24 @@ namespace {
     }
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    auto dB = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
-    gcxx::Copy(str, dB.get(), hB.data(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dB(str, dev_pool(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dC(str, dev_pool(), std::size_t{M * N});
+    gcxx::Copy(str, dA.data(), hA.data(), std::size_t{M * N});
+    gcxx::Copy(str, dB.data(), hB.data(), std::size_t{M * N});
 
-    dmat_left<IndexT> A(dA.get(), M, N);
-    dmat_left<IndexT> B(dB.get(), M, N);
-    dmat_left<IndexT> C(dC.get(), M, N);
+    dmat_left<IndexT> A(dA.data(), M, N);
+    dmat_left<IndexT> B(dB.data(), M, N);
+    dmat_left<IndexT> C(dC.data(), M, N);
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
-    gcxx::blas::geam(handle, alpha, A, beta, B, C);
+    gcxx::blas::matrix_addition(handle, gcxx::scaled(alpha, A),
+                                gcxx::scaled(beta, B), C);
     str.sync();
 
     std::vector<double> hResult(M * N);
-    gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
+    gcxx::Copy(str, hResult.data(), dC.data(), std::size_t{M * N});
     str.sync();
 
     for (int i = 0; i < M * N; ++i) {
@@ -86,17 +87,17 @@ namespace {
     }
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    auto dX =
-      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(xlen));
-    auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
-    gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(xlen));
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(),
+                                          static_cast<std::size_t>(xlen));
+    gcxx::uninit_device_buffer<double> dC(str, dev_pool(), std::size_t{M * N});
+    gcxx::Copy(str, dA.data(), hA.data(), std::size_t{M * N});
+    gcxx::Copy(str, dX.data(), hX.data(), static_cast<std::size_t>(xlen));
 
-    dmat_left<IndexT> A(dA.get(), M, N);
-    dmat_left<IndexT> C(dC.get(), M, N);
+    dmat_left<IndexT> A(dA.data(), M, N);
+    dmat_left<IndexT> C(dC.data(), M, N);
     auto X = gcxx::make_device_vector<IndexT>(
-      gcxx::span(dX.get(), static_cast<std::size_t>(xlen)));
+      gcxx::span(dX.data(), static_cast<std::size_t>(xlen)));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -104,7 +105,7 @@ namespace {
     str.sync();
 
     std::vector<double> hResult(M * N);
-    gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
+    gcxx::Copy(str, hResult.data(), dC.data(), std::size_t{M * N});
     str.sync();
 
     for (int j = 0; j < N; ++j) {
@@ -141,23 +142,24 @@ namespace {
                                           gcxx::layout_right>;
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    auto dB = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * N});
-    gcxx::Copy(str, dB.get(), hB.data(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dB(str, dev_pool(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dC(str, dev_pool(), std::size_t{M * N});
+    gcxx::Copy(str, dA.data(), hA.data(), std::size_t{M * N});
+    gcxx::Copy(str, dB.data(), hB.data(), std::size_t{M * N});
 
-    mat_right A(dA.get(), M, N);
-    mat_right B(dB.get(), M, N);
-    mat_right C(dC.get(), M, N);
+    mat_right A(dA.data(), M, N);
+    mat_right B(dB.data(), M, N);
+    mat_right C(dC.data(), M, N);
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
-    gcxx::blas::geam(handle, alpha, A, beta, B, C);
+    gcxx::blas::matrix_addition(handle, gcxx::scaled(alpha, A),
+                                gcxx::scaled(beta, B), C);
     str.sync();
 
     std::vector<double> hResult(M * N);
-    gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N});
+    gcxx::Copy(str, hResult.data(), dC.data(), std::size_t{M * N});
     str.sync();
 
     for (int i = 0; i < M; ++i) {

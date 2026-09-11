@@ -13,12 +13,6 @@
 
 namespace {
 
-  struct host_mock_resource {
-    using properties = gcxx::TypeSet<gcxx::host_accessible>;
-    void* allocate(gcxx::StreamView, std::size_t n) { return std::malloc(n); }
-    void deallocate(gcxx::StreamView, void* p) { std::free(p); }
-  };
-
   using host_buf = gcxx::buffer<int, gcxx::host_accessible>;
 
   void raw_fill(host_buf& b, int start) {
@@ -255,16 +249,19 @@ TEST(HeterogeneousIteratorTest, HostSpaceDerefAndCrossSpaceArithmetic) {
 TEST(HeterogeneousIteratorTest, DeviceDerefFromDeviceKernel) {
   GCXX_SKIP_WITHOUT_DEVICE();
 
-  auto in          = gcxx::make_device_unique_ptr<int>(3);
-  auto out         = gcxx::make_device_unique_ptr<int>(1);
+  auto pool = gcxx::device_default_memory_pool(gcxx::DeviceHandle{0});
+  gcxx::uninit_device_buffer<int> in(gcxx::StreamView::Null(), pool,
+                                     std::size_t{3});
+  gcxx::uninit_device_buffer<int> out(gcxx::StreamView::Null(), pool,
+                                      std::size_t{1});
   int host_in[3]   = {10, 20, 30};
   int* host_in_ptr = host_in;  // Copy needs pointers (arrays don't decay here).
-  gcxx::Copy(in.get(), host_in_ptr, std::size_t{3});
+  gcxx::Copy(in.data(), host_in_ptr, std::size_t{3});
 
-  deref_device_iter<<<1, 1>>>(in.get(), out.get());
+  deref_device_iter<<<1, 1>>>(in.data(), out.data());
   gcxx::driver::streamSynchronize(nullptr);
 
   int host_out = 0;
-  gcxx::Copy(&host_out, out.get(), std::size_t{1});
+  gcxx::Copy(&host_out, out.data(), std::size_t{1});
   EXPECT_EQ(host_out, 60);
 }

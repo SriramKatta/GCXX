@@ -16,7 +16,6 @@ GCXX_ASSERT_RAW_HANDLE(Stream, gcxx::driver::deviceStream_t);
 namespace {
 
   using u32        = std::uint32_t;
-  using device_ptr = gcxx::device_ptr<u32>;
   using device_buf = gcxx::device_buffer<u32>;
 
   // Satisfies no handle/span trait: universal negative case.
@@ -44,10 +43,8 @@ namespace {
 TEST(CopySfinaeTest, AcceptsValidArgumentShapes) {
   static_assert(is_copy_ptrs_sync_callable_v<u32*&, u32*&>);
   static_assert(is_copy_ptrs_sync_callable_v<u32*, u32*>);
-  static_assert(is_copy_ptrs_sync_callable_v<device_ptr&, device_ptr&>);
 
   static_assert(is_copy_ptrs_async_callable_v<u32*&, u32*&>);
-  static_assert(is_copy_ptrs_async_callable_v<device_ptr&, device_ptr&>);
 
   static_assert(
     is_copy_spans_async_callable_v<gcxx::span<u32>&, gcxx::span<u32>&>);
@@ -75,10 +72,12 @@ TEST(CopyTest, RawPointerSyncRoundTrip) {
   std::vector<u32> h_src(N), h_dst(N);
   std::iota(h_src.begin(), h_src.end(), u32{0});
 
-  auto d = gcxx::make_device_unique_ptr<u32>(N);
+  gcxx::uninit_device_buffer<u32> d(
+    gcxx::StreamView::Null(),
+    gcxx::device_default_memory_pool(gcxx::DeviceHandle{0}), N);
 
   // lvalue pointers on purpose: exercises the Ptr = T*& deduction path.
-  u32* d_raw   = d.get();
+  u32* d_raw   = d.data();
   u32* src_raw = h_src.data();
   u32* dst_raw = h_dst.data();
   gcxx::Copy(d_raw, src_raw, N);  // H2D (sync, blocks)
@@ -94,10 +93,11 @@ TEST(CopyTest, RawPointerAsyncRoundTrip) {
   std::vector<u32> h_src(N), h_dst(N);
   std::iota(h_src.begin(), h_src.end(), u32{7});
 
-  auto d = gcxx::make_device_unique_ptr<u32>(N);
   gcxx::Stream str;
+  gcxx::uninit_device_buffer<u32> d(
+    str, gcxx::device_default_memory_pool(gcxx::DeviceHandle{0}), N);
 
-  u32* d_raw   = d.get();
+  u32* d_raw   = d.data();
   u32* src_raw = h_src.data();
   u32* dst_raw = h_dst.data();
   gcxx::Copy(str, d_raw, src_raw, N);  // H2D async
@@ -114,10 +114,11 @@ TEST(CopyTest, SpanAsyncRoundTrip) {
   std::vector<u32> h_src(N), h_dst(N);
   std::iota(h_src.begin(), h_src.end(), u32{1});
 
-  auto d = gcxx::make_device_unique_ptr<u32>(N);
   gcxx::Stream str;
+  gcxx::uninit_device_buffer<u32> d(
+    str, gcxx::device_default_memory_pool(gcxx::DeviceHandle{0}), N);
 
-  gcxx::span<u32> d_span(d.get(), N);
+  gcxx::span<u32> d_span(d.data(), N);
   gcxx::span<u32> src_span(h_src.data(), N);
   gcxx::span<u32> dst_span(h_dst.data(), N);
   gcxx::Copy(str, d_span, src_span);  // H2D async

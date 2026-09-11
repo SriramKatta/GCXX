@@ -78,8 +78,10 @@ TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
 
   gcxx::Graph graph;
 
-  auto dPtrRaii = gcxx::make_device_unique_ptr<int>(1);
-  int* dPtr     = dPtrRaii.get();
+  gcxx::uninit_device_buffer<int> dPtrRaii(
+    gcxx::StreamView::Null(),
+    gcxx::device_default_memory_pool(gcxx::DeviceHandle{0}), std::size_t{1});
+  int* dPtr = dPtrRaii.data();
 
   // Roots: an empty node and a memset node.
   auto emptyNode = graph.addNode();
@@ -90,7 +92,7 @@ TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
                         .setElementSize<int>()
                         .setWidth(1)
                         .build();
-  auto memsetNode = graph.addNode(memsetParams);
+  auto memsetNode   = graph.addNode(memsetParams);
 
   // Kernel depends on both roots (braced dependency list; the mixed view
   // types slice into GraphNodeView).
@@ -100,7 +102,7 @@ TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
                         .setBlockDim(1)
                         .setArgs(dPtr)
                         .build();
-  auto kernelNode = graph.addNode(kernelParams, {memsetNode, emptyNode});
+  auto kernelNode   = graph.addNode(kernelParams, {memsetNode, emptyNode});
 
   // Record a real event after the kernel, then wait on it.
   auto rawEvent = driver::eventCreateWithFlags(

@@ -10,21 +10,9 @@
 
 namespace {
 
-  // Host-only malloc/free mock; properties satisfy buffer's static_assert.
-  struct host_mock_resource {
-    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
-      return std::malloc(num_bytes);
-    }
-
-    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
-
-    using properties = gcxx::TypeSet<gcxx::host_accessible>;
-  };
-
   template <typename VT>
   using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 
-  using device_ptr = gcxx::device_ptr<std::uint32_t>;
   using device_buf = gcxx::device_buffer<std::uint32_t>;
 
   // Satisfies no handle/span trait: universal negative case.
@@ -50,7 +38,6 @@ namespace {
 TEST(BufferSfinaeTest, AcceptsValidHandleShapes) {
   static_assert(is_buf_value_init_callable_v<std::uint32_t>);
   static_assert(is_fill_ptr_callable_v<std::uint32_t*&>);
-  static_assert(is_fill_ptr_callable_v<device_ptr&>);
   static_assert(is_fill_span_callable_v<gcxx::span<std::uint32_t>&>);
   static_assert(is_fill_span_callable_v<device_buf&>);
 }

@@ -12,7 +12,6 @@
 
 #include <gcxx/blas_api.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
-#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 
 namespace {
@@ -59,19 +58,19 @@ namespace {
     }
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{N * N});
-    auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    gcxx::Copy(str, dA.get(), hBuf.data(), std::size_t{N * N});
-    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(), std::size_t{N * N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(), std::size_t{N});
+    gcxx::Copy(str, dA.data(), hBuf.data(), std::size_t{N * N});
+    gcxx::Copy(str, dX.data(), hX.data(), std::size_t{N});
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
     if constexpr (RowMajorA) {
-      dmat_right<double, IndexT> A(dA.get(), N, N);
-      auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
-      auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
+      dmat_right<double, IndexT> A(dA.data(), N, N);
+      auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), N));
+      auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
       // Row-major view: garbage sits where the tagged read never looks.
       std::vector<double> hRow(N * N);
       for (int j = 0; j < N; ++j) {
@@ -84,20 +83,20 @@ namespace {
           hRow[i * N + j] = 1e9;  // unread lower triangle of the row-major view
         }
       }
-      gcxx::Copy(str, dA.get(), hRow.data(), std::size_t{N * N});
+      gcxx::Copy(str, dA.data(), hRow.data(), std::size_t{N * N});
       gcxx::blas::symmetric_matrix_vector_product(handle, A, gcxx::blas::upper,
                                                   X, Y);
     } else {
-      dmat_left<double, IndexT> A(dA.get(), N, N);
-      auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
-      auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
+      dmat_left<double, IndexT> A(dA.data(), N, N);
+      auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), N));
+      auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
       gcxx::blas::symmetric_matrix_vector_product(handle, A, gcxx::blas::upper,
                                                   X, Y);
     }
     str.sync();
 
     std::vector<double> hResult(N);
-    gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
+    gcxx::Copy(str, hResult.data(), dY.data(), std::size_t{N});
     str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hResult[i], href[i], 1e-9) << "symv mismatch at " << i;
@@ -134,18 +133,18 @@ namespace {
     }
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{N * N});
-    auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    auto dB = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    gcxx::Copy(str, dA.get(), hBuf.data(), std::size_t{N * N});
-    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
-    gcxx::Copy(str, dB.get(), hB.data(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(), std::size_t{N * N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dB(str, dev_pool(), std::size_t{N});
+    gcxx::Copy(str, dA.data(), hBuf.data(), std::size_t{N * N});
+    gcxx::Copy(str, dX.data(), hX.data(), std::size_t{N});
+    gcxx::Copy(str, dB.data(), hB.data(), std::size_t{N});
 
-    dmat_left<double, IndexT> A(dA.get(), N, N);
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
-    auto B = gcxx::make_device_vector<IndexT>(gcxx::span(dB.get(), N));
+    dmat_left<double, IndexT> A(dA.data(), N, N);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), N));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
+    auto B = gcxx::make_device_vector<IndexT>(gcxx::span(dB.data(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -155,7 +154,7 @@ namespace {
     str.sync();
 
     std::vector<double> hResult(N);
-    gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
+    gcxx::Copy(str, hResult.data(), dY.data(), std::size_t{N});
     str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hResult[i], hYref[i], 1e-9) << "trmv mismatch at " << i;
@@ -165,7 +164,7 @@ namespace {
       handle, A, gcxx::blas::upper, gcxx::blas::explicit_diagonal, B, Y);
     str.sync();
 
-    gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
+    gcxx::Copy(str, hResult.data(), dY.data(), std::size_t{N});
     str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_NEAR(hResult[i], hX[i], 1e-9) << "trsv mismatch at " << i;
@@ -192,14 +191,14 @@ namespace {
     }
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * N});
-    auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{M});
-    auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{M});
-    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(), std::size_t{M * N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(), std::size_t{M});
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(), std::size_t{N});
+    gcxx::Copy(str, dX.data(), hX.data(), std::size_t{M});
+    gcxx::Copy(str, dY.data(), hY.data(), std::size_t{N});
 
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), M));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), M));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -212,11 +211,11 @@ namespace {
           hRow[i * N + j] = hA0[i + j * M];
         }
       }
-      gcxx::Copy(str, dA.get(), hRow.data(), std::size_t{M * N});
-      dmat_right<double, IndexT> A(dA.get(), M, N);
+      gcxx::Copy(str, dA.data(), hRow.data(), std::size_t{M * N});
+      dmat_right<double, IndexT> A(dA.data(), M, N);
       gcxx::blas::matrix_rank_1_update(handle, X, Y, A);
       str.sync();
-      gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{M * N});
+      gcxx::Copy(str, hResult.data(), dA.data(), std::size_t{M * N});
       str.sync();
       for (int i = 0; i < M; ++i) {
         for (int j = 0; j < N; ++j) {
@@ -225,11 +224,11 @@ namespace {
         }
       }
     } else {
-      gcxx::Copy(str, dA.get(), hA0.data(), std::size_t{M * N});
-      dmat_left<double, IndexT> A(dA.get(), M, N);
+      gcxx::Copy(str, dA.data(), hA0.data(), std::size_t{M * N});
+      dmat_left<double, IndexT> A(dA.data(), M, N);
       gcxx::blas::matrix_rank_1_update(handle, X, Y, A);
       str.sync();
-      gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{M * N});
+      gcxx::Copy(str, hResult.data(), dA.data(), std::size_t{M * N});
       str.sync();
       for (int i = 0; i < M * N; ++i) {
         EXPECT_NEAR(hResult[i], href[i], 1e-9)
@@ -255,15 +254,15 @@ namespace {
     std::vector<double> hY{0.25, 0.5, -0.75, 1.25};
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{N * N});
-    auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
-    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(), std::size_t{N * N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(), std::size_t{N});
+    gcxx::Copy(str, dX.data(), hX.data(), std::size_t{N});
+    gcxx::Copy(str, dY.data(), hY.data(), std::size_t{N});
 
-    dmat_left<double, IndexT> A(dA.get(), N, N);
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
+    dmat_left<double, IndexT> A(dA.data(), N, N);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), N));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -275,12 +274,12 @@ namespace {
         hLower[i + j * N] = 1e9;
       }
     }
-    gcxx::Copy(str, dA.get(), hLower.data(), std::size_t{N * N});
+    gcxx::Copy(str, dA.data(), hLower.data(), std::size_t{N * N});
     gcxx::blas::symmetric_matrix_rank_1_update(handle, X, A, gcxx::blas::lower);
     str.sync();
 
     std::vector<double> hResult(N * N);
-    gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{N * N});
+    gcxx::Copy(str, hResult.data(), dA.data(), std::size_t{N * N});
     str.sync();
     for (int j = 0; j < N; ++j) {
       for (int i = j; i < N; ++i) {  // lower triangle + diagonal only
@@ -298,12 +297,12 @@ namespace {
         hUpdated[i + j * N] = hA0[i + j * N] + hX[i] * hX[j];
       }
     }
-    gcxx::Copy(str, dA.get(), hUpdated.data(), std::size_t{N * N});
+    gcxx::Copy(str, dA.data(), hUpdated.data(), std::size_t{N * N});
     str.sync();
     gcxx::blas::symmetric_matrix_rank_2_update(handle, X, Y, A,
                                                gcxx::blas::upper);
     str.sync();
-    gcxx::Copy(str, hResult.data(), dA.get(), std::size_t{N * N});
+    gcxx::Copy(str, hResult.data(), dA.data(), std::size_t{N * N});
     str.sync();
     for (int j = 0; j < N; ++j) {
       for (int i = 0; i <= j; ++i) {  // upper triangle + diagonal only

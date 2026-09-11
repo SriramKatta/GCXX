@@ -11,7 +11,6 @@
 
 #include <gcxx/blas_api.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
-#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/make_mdspan.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 
@@ -78,16 +77,18 @@ namespace {
     host_gemv(hostA, hostX, hostYref, href, 1.0, 0.0);
 
     gcxx::Stream str;
-    auto dA =
-      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
-    auto dX = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K));
-    auto dY = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M));
-    gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
-    gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(K));
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(),
+                                          static_cast<std::size_t>(M * K));
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(),
+                                          static_cast<std::size_t>(K));
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(),
+                                          static_cast<std::size_t>(M));
+    gcxx::Copy(str, dA.data(), hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dX.data(), hX.data(), static_cast<std::size_t>(K));
 
-    dmat_left<double, IndexT> A(dA.get(), M, K);
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), K));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), M));
+    dmat_left<double, IndexT> A(dA.data(), M, K);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), K));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), M));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -95,7 +96,7 @@ namespace {
     str.sync();
 
     std::vector<double> hY_result(M);
-    gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(M));
+    gcxx::Copy(str, hY_result.data(), dY.data(), static_cast<std::size_t>(M));
     str.sync();
 
     for (int i = 0; i < M; ++i) {
@@ -136,17 +137,19 @@ namespace {
     host_gemv(hostA, hostX, hostY, href_acc, 2.0, 0.5);
 
     gcxx::Stream str;
-    auto dA =
-      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
-    auto dX = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K));
-    auto dY = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M));
-    gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
-    gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(K));
-    gcxx::Copy(str, dY.get(), hY.data(), static_cast<std::size_t>(M));
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(),
+                                          static_cast<std::size_t>(M * K));
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(),
+                                          static_cast<std::size_t>(K));
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(),
+                                          static_cast<std::size_t>(M));
+    gcxx::Copy(str, dA.data(), hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dX.data(), hX.data(), static_cast<std::size_t>(K));
+    gcxx::Copy(str, dY.data(), hY.data(), static_cast<std::size_t>(M));
 
-    dmat_right<double, IndexT> A(dA.get(), M, K);
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), K));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), M));
+    dmat_right<double, IndexT> A(dA.data(), M, K);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), K));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), M));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -155,7 +158,7 @@ namespace {
     gcxx::blas::matrix_vector_product(handle, A, X, Y);
     str.sync();
     std::vector<double> hY_stage1(M);
-    gcxx::Copy(str, hY_stage1.data(), dY.get(), static_cast<std::size_t>(M));
+    gcxx::Copy(str, hY_stage1.data(), dY.data(), static_cast<std::size_t>(M));
     str.sync();
     for (int i = 0; i < M; ++i) {
       EXPECT_NEAR(hY_stage1[i], href[i], 1e-9)
@@ -163,7 +166,7 @@ namespace {
     }
 
     // Restore the original y so stage 2's beta reads the right addend.
-    gcxx::Copy(str, dY.get(), hY.data(), static_cast<std::size_t>(M));
+    gcxx::Copy(str, dY.data(), hY.data(), static_cast<std::size_t>(M));
 
     // Stage 2: accumulate y = 2*A*x + 0.5*y via scaled() views.
     gcxx::blas::matrix_vector_product(handle, gcxx::scaled(2.0, A), X,
@@ -171,7 +174,7 @@ namespace {
     str.sync();
 
     std::vector<double> hY_result(M);
-    gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(M));
+    gcxx::Copy(str, hY_result.data(), dY.data(), static_cast<std::size_t>(M));
     str.sync();
 
     for (int i = 0; i < M; ++i) {
@@ -204,16 +207,18 @@ namespace {
     host_gemv(gcxx::transposed(hostA), hostX, hostY, href, 1.0, 0.0);
 
     gcxx::Stream str;
-    auto dA =
-      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
-    auto dX = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M));
-    auto dY = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K));
-    gcxx::Copy(str, dA.get(), hA.data(), static_cast<std::size_t>(M * K));
-    gcxx::Copy(str, dX.get(), hX.data(), static_cast<std::size_t>(M));
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(),
+                                          static_cast<std::size_t>(M * K));
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(),
+                                          static_cast<std::size_t>(M));
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(),
+                                          static_cast<std::size_t>(K));
+    gcxx::Copy(str, dA.data(), hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dX.data(), hX.data(), static_cast<std::size_t>(M));
 
-    dmat_left<double, IndexT> A(dA.get(), M, K);
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), M));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), K));
+    dmat_left<double, IndexT> A(dA.data(), M, K);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), M));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), K));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -221,7 +226,7 @@ namespace {
     str.sync();
 
     std::vector<double> hY_result(K);
-    gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(K));
+    gcxx::Copy(str, hY_result.data(), dY.data(), static_cast<std::size_t>(K));
     str.sync();
 
     for (int i = 0; i < K; ++i) {
@@ -258,31 +263,32 @@ namespace {
     host_gemv(hostA, hostX, hostYref, href, alpha, beta);
 
     gcxx::Stream str;
-    auto dA =
-      gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M * K));
-    auto dX = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(K));
-    auto dY = gcxx::make_device_unique_ptr<double>(static_cast<std::size_t>(M));
-    auto dAlpha = gcxx::make_device_unique_ptr<double>(std::size_t{1});
-    auto dBeta  = gcxx::make_device_unique_ptr<double>(std::size_t{1});
-    gcxx::Copy(str, dA, hA.data(), static_cast<std::size_t>(M * K));
-    gcxx::Copy(str, dX, hX.data(), static_cast<std::size_t>(K));
-    gcxx::Copy(str, dY, hY.data(), static_cast<std::size_t>(M));
-    gcxx::Copy(str, dAlpha, &alpha, std::size_t{1});
-    gcxx::Copy(str, dBeta, &beta, std::size_t{1});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(),
+                                          static_cast<std::size_t>(M * K));
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(),
+                                          static_cast<std::size_t>(K));
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(),
+                                          static_cast<std::size_t>(M));
+    auto dAlpha =
+      gcxx::make_device_scalar<double>(gcxx::DeviceHandle{0}, str, alpha);
+    auto dBeta =
+      gcxx::make_device_scalar<double>(gcxx::DeviceHandle{0}, str, beta);
+    gcxx::Copy(str, dA.data(), hA.data(), static_cast<std::size_t>(M * K));
+    gcxx::Copy(str, dX.data(), hX.data(), static_cast<std::size_t>(K));
+    gcxx::Copy(str, dY.data(), hY.data(), static_cast<std::size_t>(M));
 
-    dmat_left<double, IndexT> A(dA.get(), M, K);
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), K));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), M));
+    dmat_left<double, IndexT> A(dA.data(), M, K);
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), K));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), M));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
-    gcxx::blas::matrix_vector_product(
-      handle, gcxx::scaled(gcxx::blas::device_scalar<double>{dAlpha.get()}, A),
-      X, gcxx::scaled(gcxx::blas::device_scalar<double>{dBeta.get()}, Y), Y);
+    gcxx::blas::matrix_vector_product(handle, gcxx::scaled(dAlpha, A), X,
+                                      gcxx::scaled(dBeta, Y), Y);
     str.sync();
 
     std::vector<double> hY_result(M);
-    gcxx::Copy(str, hY_result.data(), dY.get(), static_cast<std::size_t>(M));
+    gcxx::Copy(str, hY_result.data(), dY.data(), static_cast<std::size_t>(M));
     str.sync();
 
     for (int i = 0; i < M; ++i) {

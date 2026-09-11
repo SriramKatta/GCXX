@@ -12,7 +12,6 @@
 
 #include <gcxx/blas_api.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
-#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/make_mdspan.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 
@@ -87,19 +86,23 @@ namespace {
     }
 
     gcxx::Stream str;
-    std::vector<gcxx::device_ptr<double>> dAs, dBs, dCs;
+    std::vector<gcxx::uninit_device_buffer<double>> dAs, dBs, dCs;
     std::vector<dmat2d<IndexT>> aViews, bViews, cViews;
+    const auto pool = dev_pool();  // device + pool query: hoist out of loop
     for (int i = 0; i < B; ++i) {
-      dAs.push_back(gcxx::make_device_unique_ptr<double>(std::size_t{M * K}));
-      dBs.push_back(gcxx::make_device_unique_ptr<double>(std::size_t{K * N}));
-      dCs.push_back(gcxx::make_device_unique_ptr<double>(std::size_t{M * N}));
-      gcxx::Copy(str, dAs.back().get(), hA.data() + i * M * K,
+      dAs.push_back(
+        gcxx::uninit_device_buffer<double>(str, pool, std::size_t{M * K}));
+      dBs.push_back(
+        gcxx::uninit_device_buffer<double>(str, pool, std::size_t{K * N}));
+      dCs.push_back(
+        gcxx::uninit_device_buffer<double>(str, pool, std::size_t{M * N}));
+      gcxx::Copy(str, dAs.back().data(), hA.data() + i * M * K,
                  std::size_t{M * K});
-      gcxx::Copy(str, dBs.back().get(), hB.data() + i * K * N,
+      gcxx::Copy(str, dBs.back().data(), hB.data() + i * K * N,
                  std::size_t{K * N});
-      aViews.emplace_back(dAs.back().get(), M, K);
-      bViews.emplace_back(dBs.back().get(), K, N);
-      cViews.emplace_back(dCs.back().get(), M, N);
+      aViews.emplace_back(dAs.back().data(), M, K);
+      bViews.emplace_back(dBs.back().data(), K, N);
+      cViews.emplace_back(dCs.back().data(), M, N);
     }
 
     gcxx::blas::BlasHandle handle;
@@ -109,7 +112,7 @@ namespace {
 
     for (int i = 0; i < B; ++i) {
       std::vector<double> hResult(M * N);
-      gcxx::Copy(str, hResult.data(), dCs[static_cast<std::size_t>(i)].get(),
+      gcxx::Copy(str, hResult.data(), dCs[static_cast<std::size_t>(i)].data(),
                  std::size_t{M * N});
       str.sync();
       for (int j = 0; j < M * N; ++j) {
@@ -149,36 +152,39 @@ namespace {
     }
 
     gcxx::Stream str;
-    auto dA = gcxx::make_device_unique_ptr<double>(std::size_t{M * K * B});
-    auto dB = gcxx::make_device_unique_ptr<double>(std::size_t{K * N * B});
-    auto dC = gcxx::make_device_unique_ptr<double>(std::size_t{M * N * B});
-    gcxx::Copy(str, dA.get(), hA.data(), std::size_t{M * K * B});
-    gcxx::Copy(str, dB.get(), hB.data(), std::size_t{K * N * B});
+    gcxx::uninit_device_buffer<double> dA(str, dev_pool(),
+                                          std::size_t{M * K * B});
+    gcxx::uninit_device_buffer<double> dB(str, dev_pool(),
+                                          std::size_t{K * N * B});
+    gcxx::uninit_device_buffer<double> dC(str, dev_pool(),
+                                          std::size_t{M * N * B});
+    gcxx::Copy(str, dA.data(), hA.data(), std::size_t{M * K * B});
+    gcxx::Copy(str, dB.data(), hB.data(), std::size_t{K * N * B});
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
 
     if (rowmajor_inner) {
-      gcxx::device_mdspan<double, ext3, gcxx::layout_right> A(dA.get(), B, M,
+      gcxx::device_mdspan<double, ext3, gcxx::layout_right> A(dA.data(), B, M,
                                                               K);
-      gcxx::device_mdspan<double, ext3, gcxx::layout_right> Bv(dB.get(), B, K,
+      gcxx::device_mdspan<double, ext3, gcxx::layout_right> Bv(dB.data(), B, K,
                                                                N);
-      gcxx::device_mdspan<double, ext3, gcxx::layout_right> C(dC.get(), B, M,
+      gcxx::device_mdspan<double, ext3, gcxx::layout_right> C(dC.data(), B, M,
                                                               N);
       gcxx::blas::gemm_strided_batched(handle, 1.0, A, Bv, 0.0, C);
     } else {
       gcxx::device_mdspan<double, ext3, gcxx::layout_stride> A(
-        dA.get(), map_cm(ext3{B, M, K}, strides3{M * K, 1, M}));
+        dA.data(), map_cm(ext3{B, M, K}, strides3{M * K, 1, M}));
       gcxx::device_mdspan<double, ext3, gcxx::layout_stride> Bv(
-        dB.get(), map_cm(ext3{B, K, N}, strides3{K * N, 1, K}));
+        dB.data(), map_cm(ext3{B, K, N}, strides3{K * N, 1, K}));
       gcxx::device_mdspan<double, ext3, gcxx::layout_stride> C(
-        dC.get(), map_cm(ext3{B, M, N}, strides3{M * N, 1, M}));
+        dC.data(), map_cm(ext3{B, M, N}, strides3{M * N, 1, M}));
       gcxx::blas::gemm_strided_batched(handle, 1.0, A, Bv, 0.0, C);
     }
     str.sync();
 
     std::vector<double> hResult(M * N * B);
-    gcxx::Copy(str, hResult.data(), dC.get(), std::size_t{M * N * B});
+    gcxx::Copy(str, hResult.data(), dC.data(), std::size_t{M * N * B});
     str.sync();
 
     for (int i = 0; i < M * N * B; ++i) {

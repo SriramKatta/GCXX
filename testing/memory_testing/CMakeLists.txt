@@ -10,6 +10,7 @@ set(SRC_BASE_NAMES
     test_stride_iterator
     test_properties
     test_copy
+    test_scalar
 )
 
 foreach(SRC_BASE_NAME IN LISTS SRC_BASE_NAMES)

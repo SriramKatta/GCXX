@@ -15,7 +15,6 @@
 
 #include <gcxx/blas_api.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
-#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/make_mdspan.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 namespace {
@@ -31,13 +30,13 @@ namespace {
     std::vector<double> hY{0.5, 0.5, 0.5, 0.5, 0.5};
 
     gcxx::Stream str;
-    auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
-    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(), std::size_t{N});
+    gcxx::Copy(str, dX.data(), hX.data(), std::size_t{N});
+    gcxx::Copy(str, dY.data(), hY.data(), std::size_t{N});
 
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), N));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -47,7 +46,7 @@ namespace {
     str.sync();
 
     std::vector<double> hResult(N);
-    gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
+    gcxx::Copy(str, hResult.data(), dY.data(), std::size_t{N});
     str.sync();
 
     for (int i = 0; i < N; ++i) {
@@ -67,13 +66,13 @@ namespace {
     std::vector<double> hY{2.0, 1.0, 0.0, -1.0, -2.0};
 
     gcxx::Stream str;
-    auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
-    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(), std::size_t{N});
+    gcxx::Copy(str, dX.data(), hX.data(), std::size_t{N});
+    gcxx::Copy(str, dY.data(), hY.data(), std::size_t{N});
 
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), N));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -95,19 +94,17 @@ namespace {
     EXPECT_NEAR(nrm2_r, nrm2_ref, 1e-9);
     EXPECT_NEAR(nrm2_init, std::sqrt(3.0 * 3.0 + nrm2_ref * nrm2_ref), 1e-9);
 
-    // Asynchronous device_scalar result forms.
-    auto dDot = gcxx::make_device_unique_ptr<double>(std::size_t{1});
-    auto dNrm = gcxx::make_device_unique_ptr<double>(std::size_t{1});
-    gcxx::blas::dot(handle, X, Y,
-                    gcxx::blas::device_scalar<double>{dDot.get()});
-    gcxx::blas::vector_two_norm(handle, X,
-                                gcxx::blas::device_scalar<double>{dNrm.get()});
+    // Asynchronous owning-scalar result forms.
+    auto dDot =
+      gcxx::make_device_scalar<double>(gcxx::DeviceHandle{0}, str, 0.0);
+    auto dNrm =
+      gcxx::make_device_scalar<double>(gcxx::DeviceHandle{0}, str, 0.0);
+    gcxx::blas::dot(handle, X, Y, dDot);
+    gcxx::blas::vector_two_norm(handle, X, dNrm);
     str.sync();
 
-    double dot_d{}, nrm2_d{};
-    gcxx::Copy(str, &dot_d, dDot.get(), std::size_t{1});
-    gcxx::Copy(str, &nrm2_d, dNrm.get(), std::size_t{1});
-    str.sync();
+    const double dot_d  = dDot.value();
+    const double nrm2_d = dNrm.value();
     EXPECT_NEAR(dot_d, dot_ref, 1e-9);
     EXPECT_NEAR(nrm2_d, nrm2_ref, 1e-9);
 
@@ -115,8 +112,8 @@ namespace {
     str.sync();
 
     std::vector<double> hXr(N), hYr(N);
-    gcxx::Copy(str, hXr.data(), dX.get(), std::size_t{N});
-    gcxx::Copy(str, hYr.data(), dY.get(), std::size_t{N});
+    gcxx::Copy(str, hXr.data(), dX.data(), std::size_t{N});
+    gcxx::Copy(str, hYr.data(), dY.data(), std::size_t{N});
     str.sync();
 
     for (int i = 0; i < N; ++i) {
@@ -137,13 +134,13 @@ namespace {
     std::vector<double> hY{9.0, 9.0, 9.0, 9.0, 9.0, 9.0};
 
     gcxx::Stream str;
-    auto dX = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    auto dY = gcxx::make_device_unique_ptr<double>(std::size_t{N});
-    gcxx::Copy(str, dX.get(), hX.data(), std::size_t{N});
-    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dX(str, dev_pool(), std::size_t{N});
+    gcxx::uninit_device_buffer<double> dY(str, dev_pool(), std::size_t{N});
+    gcxx::Copy(str, dX.data(), hX.data(), std::size_t{N});
+    gcxx::Copy(str, dY.data(), hY.data(), std::size_t{N});
 
-    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.get(), N));
-    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.get(), N));
+    auto X = gcxx::make_device_vector<IndexT>(gcxx::span(dX.data(), N));
+    auto Y = gcxx::make_device_vector<IndexT>(gcxx::span(dY.data(), N));
 
     gcxx::blas::BlasHandle handle;
     handle.setStream(str);
@@ -153,7 +150,7 @@ namespace {
     str.sync();
 
     std::vector<double> hResult(N);
-    gcxx::Copy(str, hResult.data(), dY.get(), std::size_t{N});
+    gcxx::Copy(str, hResult.data(), dY.data(), std::size_t{N});
     str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_DOUBLE_EQ(hResult[i], hX[i]) << "copy mismatch at " << i;
@@ -169,13 +166,11 @@ namespace {
     EXPECT_NEAR(asum_r, asum_ref, 1e-9);
     EXPECT_NEAR(asum_init, 1.5 + asum_ref, 1e-9);
 
-    auto dAsum = gcxx::make_device_unique_ptr<double>(std::size_t{1});
-    gcxx::blas::vector_abs_sum(handle, X,
-                               gcxx::blas::device_scalar<double>{dAsum.get()});
+    auto dAsum =
+      gcxx::make_device_scalar<double>(gcxx::DeviceHandle{0}, str, 0.0);
+    gcxx::blas::vector_abs_sum(handle, X, dAsum);
     str.sync();
-    double asum_d{};
-    gcxx::Copy(str, &asum_d, dAsum.get(), std::size_t{1});
-    str.sync();
+    const double asum_d = dAsum.value();
     EXPECT_NEAR(asum_d, asum_ref, 1e-9);
 
     // zero-based index-of-extreme forms (ties broken by FIRST occurrence)
@@ -187,13 +182,13 @@ namespace {
 
     // swap_elements: restore Y's own values first so the exchange is visible
     // (the copy above left Y holding X's values)
-    gcxx::Copy(str, dY.get(), hY.data(), std::size_t{N});
+    gcxx::Copy(str, dY.data(), hY.data(), std::size_t{N});
     gcxx::blas::swap_elements(handle, X, Y);
     str.sync();
 
     std::vector<double> hXs(N), hYs(N);
-    gcxx::Copy(str, hXs.data(), dX.get(), std::size_t{N});
-    gcxx::Copy(str, hYs.data(), dY.get(), std::size_t{N});
+    gcxx::Copy(str, hXs.data(), dX.data(), std::size_t{N});
+    gcxx::Copy(str, hYs.data(), dY.data(), std::size_t{N});
     str.sync();
     for (int i = 0; i < N; ++i) {
       EXPECT_DOUBLE_EQ(hXs[i], hY[i]) << "swap x mismatch at " << i;

@@ -12,17 +12,6 @@
 
 namespace {
 
-  // Host-only malloc/free mock; `properties` gates the SFINAE accessors.
-  struct host_mock_resource {
-    using properties = gcxx::TypeSet<gcxx::host_accessible>;
-
-    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
-      return std::malloc(num_bytes);
-    }
-
-    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
-  };
-
   template <typename VT>
   using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 

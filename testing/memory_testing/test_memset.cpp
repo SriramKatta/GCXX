@@ -29,7 +29,6 @@ namespace {
     }
   }
 
-  using device_ptr = gcxx::device_ptr<std::uint32_t>;
   using device_buf = gcxx::device_buffer<std::uint32_t>;
 
   // Satisfies no handle/span trait: universal negative case.
@@ -50,7 +49,6 @@ namespace {
 
 TEST(MemsetSfinaeTest, AcceptsValidHandleShapes) {
   static_assert(is_memset_ptr_callable_v<std::uint32_t*&>);
-  static_assert(is_memset_ptr_callable_v<device_ptr&>);
   static_assert(is_memset_span_callable_v<gcxx::span<std::uint32_t>&>);
   static_assert(is_memset_span_callable_v<device_buf&>);
 }

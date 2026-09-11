@@ -9,17 +9,6 @@
 
 namespace {
 
-  // Host-only malloc/free mock; properties satisfy buffer's static_assert.
-  struct host_mock_resource {
-    void* allocate(gcxx::StreamView, std::size_t num_bytes) {
-      return std::malloc(num_bytes);
-    }
-
-    void deallocate(gcxx::StreamView, void* ptr) { std::free(ptr); }
-
-    using properties = gcxx::TypeSet<gcxx::host_accessible>;
-  };
-
   template <typename VT>
   using mock_buffer = gcxx::buffer<VT, gcxx::host_accessible>;
 

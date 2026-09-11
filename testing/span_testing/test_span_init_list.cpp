@@ -87,8 +87,10 @@ namespace {
 TEST(SpanInitList, DeviceSideConstruction) {
   GCXX_SKIP_WITHOUT_DEVICE();
 
-  auto dOutRaii = gcxx::make_device_unique_ptr<int>(1);
-  int* dOut     = dOutRaii.get();
+  gcxx::uninit_device_buffer<int> dOutRaii(
+    gcxx::StreamView::Null(),
+    gcxx::device_default_memory_pool(gcxx::DeviceHandle{0}), std::size_t{1});
+  int* dOut = dOutRaii.data();
 
   gcxx::Stream stream;
   gcxx::launch::Kernel(stream, {1}, {1}, 0, initListKernel, dOut);
