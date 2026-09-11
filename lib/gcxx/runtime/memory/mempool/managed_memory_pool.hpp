@@ -24,13 +24,21 @@
 
 #if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
 
+// Feature macro for "managed memory pools exist": the semantic gates in
+// default_memory_pools.hpp, scalars/default_scalar_pools.hpp, and the tests
+// key on this. Other 13.0 features gate on the raw version macro directly
+// and must not switch.
+#define GCXX_HAS_MANAGED_POOLS 1
+
 GCXX_NAMESPACE_MAIN_BEGIN()
 
 
 class ManagedMemPoolView : public MemPoolView {
  public:
-  // Managed memory is always host- and device-visible.
-  using properties = TypeSet<device_accessible, host_accessible>;
+  // Managed memory is always host- and device-visible; allocations are
+  // stream-ordered from the managed pool.
+  using properties = TypeSet<device_accessible, host_accessible,
+                             unified_allocated, async_allocated>;
 
   GCXX_FH explicit ManagedMemPoolView(driver::deviceMemPool_t pool) noexcept
       : MemPoolView(pool) {}

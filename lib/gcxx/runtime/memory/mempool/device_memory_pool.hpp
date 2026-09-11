@@ -27,8 +27,10 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 
 class DeviceMemPoolView : public MemPoolView {
  public:
-  // Pool memory is always device-visible.
-  using properties = TypeSet<device_accessible>;
+  // Pool memory is always device-visible; MemPoolView::allocate is
+  // stream-ordered (deviceMallocFromPoolAsync).
+  using properties =
+    TypeSet<device_accessible, device_allocated, async_allocated>;
 
   GCXX_FH explicit DeviceMemPoolView(driver::deviceMemPool_t pool) noexcept
       : MemPoolView(pool) {}

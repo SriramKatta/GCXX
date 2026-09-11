@@ -38,7 +38,15 @@ GCXX_NAMESPACE_MAIN_BEGIN()
 class PinnedMemPoolView : public MemPoolView {
  public:
   // Pinned memory is always host- and device-visible.
-  using properties = TypeSet<device_accessible, host_accessible>;
+#if GCXX_HIP_MODE()
+  // The HIP shim below allocates via hipMallocHost: synchronous.
+  using properties = TypeSet<device_accessible, host_accessible,
+                             pinned_allocated, sync_allocated>;
+#else
+  // Stream-ordered allocations from the host-location pool.
+  using properties = TypeSet<device_accessible, host_accessible,
+                             pinned_allocated, async_allocated>;
+#endif
 
   GCXX_FH explicit PinnedMemPoolView(driver::deviceMemPool_t pool) noexcept
       : MemPoolView(pool) {}

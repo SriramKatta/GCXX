@@ -40,10 +40,17 @@ GCXX_FH auto deviceFreeHost(void* ptr) -> void {
                          "Failed to free pinned host memory", ptr);
 }
 
-// Failed probes clear the sticky last-error and return false.
-GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
+// Single classification probe: everything needing pointer attributes goes
+// through queryMemoryKind (the allocation-kind property tags mirror its
+// categories, and pool audits compare the actual pointer against the
+// advertised tag). Unregistered memory (ordinary stack/heap) is reported as
+// plain host — the attribute query fails for it. Failed probes clear the
+// sticky last-error.
+enum class memory_kind { host, device, unified, mapped_host };
+
+GCXX_FH auto queryMemoryKind(const void* ptr) -> memory_kind {
   if (ptr == nullptr) {
-    return true;
+    return memory_kind::host;
   }
   devicePointerAttributes_t attrs{};
   const deviceError_t err =
@@ -51,34 +58,32 @@ GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
   if (err != deviceErrSuccess) {
     (void)GetLastError();  // consume the recorded error; the probe is
                            // expected to fail for unregistered memory
-    return false;
+    return memory_kind::host;
   }
   // Both backends spell the field `type`; managed memory maps to
   // cudaMemoryTypeManaged / hipMemoryTypeManaged (hipMemoryTypeUnified is an
   // AMD-specific unified-address-space concept, not managed memory).
-  return attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeDevice) ||
-         attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged);
+  if (attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeDevice)) {
+    return memory_kind::device;
+  }
+  if (attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged)) {
+    return memory_kind::unified;
+  }
+  return attrs.devicePointer != nullptr ? memory_kind::mapped_host
+                                        : memory_kind::host;
+}
+
+GCXX_FH auto isDeviceOrManagedMemory(const void* ptr) -> bool {
+  const memory_kind k = queryMemoryKind(ptr);
+  return ptr == nullptr || k == memory_kind::device ||
+         k == memory_kind::unified;
 }
 
 // Also accepts pinned host memory that has a device (UVA) mapping.
 GCXX_FH auto isDeviceUsableMemory(const void* ptr) -> bool {
-  if (ptr == nullptr) {
-    return true;
-  }
-  devicePointerAttributes_t attrs{};
-  const deviceError_t err =
-    ::GCXX_RUNTIME_BACKEND(PointerGetAttributes)(&attrs, ptr);
-  if (err != deviceErrSuccess) {
-    (void)GetLastError();  // consume the recorded error; the probe is
-                           // expected to fail for unregistered memory
-    return false;
-  }
-  if (attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeDevice) ||
-      attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeManaged)) {
-    return true;
-  }
-  return attrs.type == GCXX_RUNTIME_BACKEND(MemoryTypeHost) &&
-         attrs.devicePointer != nullptr;
+  const memory_kind k = queryMemoryKind(ptr);
+  return ptr == nullptr || k == memory_kind::device ||
+         k == memory_kind::unified || k == memory_kind::mapped_host;
 }
 
 GCXX_FH auto deviceMemset(void* dev_ptr, const int value,

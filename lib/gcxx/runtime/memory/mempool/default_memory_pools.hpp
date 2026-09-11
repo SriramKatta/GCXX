@@ -34,7 +34,7 @@ GCXX_FH auto device_default_memory_pool(const gcxx::DeviceHandle& device)
   return DeviceMemPoolView(driver::deviceGetDefaultMemoryPool(device.id()));
 }
 
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_HAS_MANAGED_POOLS
 GCXX_FH auto managed_default_memory_pool() -> ManagedMemPoolView {
   MemAccessDesc location{flags::MemLocation::None, 0,
                          flags::MemAccessFlags::None};
@@ -44,13 +44,13 @@ GCXX_FH auto managed_default_memory_pool() -> ManagedMemPoolView {
   return ManagedMemPoolView(
     driver::deviceMemPoolGetDefaultMemPool(&rawLoc, rawType));
 }
-#endif  // GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#endif  // GCXX_HAS_MANAGED_POOLS
 
 // Pre-13.0 this creates a fresh pool; cache it for default-pool semantics.
 inline auto get_default_mem_pool(flags::MemLocation locationType,
                                  int locationId, flags::MemAllocation type)
   -> driver::deviceMemPool_t {
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_HAS_MANAGED_POOLS
   MemAccessDesc loc{locationType, locationId, flags::MemAccessFlags::None};
   auto rawLoc = loc.getRawMemLocation();
   return driver::deviceMemPoolGetDefaultMemPool(

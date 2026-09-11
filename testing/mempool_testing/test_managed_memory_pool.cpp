@@ -4,7 +4,7 @@
 // cudaMemPool_t with the full MemPoolView API; mirrors device-pool tests.
 #include "tests_common.hpp"
 
-#if GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#if GCXX_HAS_MANAGED_POOLS
 
 #include <cstddef>
 
@@ -110,4 +110,4 @@ TEST_F(ManagedMemoryPoolTest, DefaultManagedPoolRef) {
   ref.deallocate(gcxx::StreamView::Null(), ptr);
 }
 
-#endif  // GCXX_CUDA_VERSION_GREATER_EQUAL(13, 0, 0)
+#endif  // GCXX_HAS_MANAGED_POOLS
