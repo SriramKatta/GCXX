@@ -21,7 +21,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 // dot: returning forms sync the stream; the device-resident scalar form is
 // async.
-namespace dot_impl_ {
+namespace blas_impl {
 
   // Shared host/device-mode core: device_mode selects the result write's
   // pointer mode; host mode additionally syncs so the caller's stack
@@ -103,7 +103,7 @@ namespace dot_impl_ {
     dot_core(h, x, y, result, /*device_mode*/ false);
   }
 
-}  // namespace dot_impl_
+}  // namespace blas_impl
 
 // Returning form: dot(h, x, y) -> x . y (synchronizes).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
@@ -113,7 +113,7 @@ auto dot(BlasHandleView h,
          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
          const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> TX {
   TX result{};
-  dot_impl_::sync_dot(h, x, y, &result);
+  blas_impl::sync_dot(h, x, y, &result);
   return result;
 }
 
@@ -126,7 +126,7 @@ auto dot(BlasHandleView h,
          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
          const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y, R init) -> R {
   R result{};
-  dot_impl_::sync_dot(h, x, y, &result);
+  blas_impl::sync_dot(h, x, y, &result);
   return init + result;
 }
 
@@ -140,7 +140,7 @@ auto dot(BlasHandleView h,
          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
          const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y,
          gcxx::device_scalar_view<R> result) -> void {
-  dot_impl_::dot_core(h, x, y, const_cast<R*>(result.ptr),
+  blas_impl::dot_core(h, x, y, const_cast<R*>(result.ptr),
                       /*device_mode*/ true);
 }
 
@@ -156,7 +156,7 @@ auto dot(BlasHandleView h,
          const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
          const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y,
          gcxx::scalar<R, Properties...>& result) -> void {
-  dot_impl_::dot_core(h, x, y, result.data(), /*device_mode*/ true);
+  blas_impl::dot_core(h, x, y, result.data(), /*device_mode*/ true);
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_END()

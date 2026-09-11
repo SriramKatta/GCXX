@@ -21,7 +21,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 // asum: returning forms sync the stream; the device-resident scalar form is
 // async.
-namespace asum_impl_ {
+namespace blas_impl {
 
   // Shared host/device-mode core: device_mode selects the result write's
   // pointer mode; host mode additionally syncs so the caller's stack
@@ -92,7 +92,7 @@ namespace asum_impl_ {
     asum_core(h, x, result, /*device_mode*/ false);
   }
 
-}  // namespace asum_impl_
+}  // namespace blas_impl
 
 // Returning form: vector_abs_sum(h, x) -> ||x||_1 (synchronizes).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX)
@@ -101,7 +101,7 @@ auto vector_abs_sum(BlasHandleView h,
                     const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x)
   -> TX {
   TX result{};
-  asum_impl_::sync_asum(h, x, &result);
+  blas_impl::sync_asum(h, x, &result);
   return result;
 }
 
@@ -113,7 +113,7 @@ auto vector_abs_sum(BlasHandleView h,
                     const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
                     R init) -> R {
   R result{};
-  asum_impl_::sync_asum(h, x, &result);
+  blas_impl::sync_asum(h, x, &result);
   return init + result;
 }
 
@@ -125,8 +125,8 @@ GCXX_REQUIRES(ExtentsX::rank() == 1)
 auto vector_abs_sum(BlasHandleView h,
                     const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
                     gcxx::device_scalar_view<R> result) -> void {
-  asum_impl_::asum_core(h, x, const_cast<R*>(result.ptr),
-                        /*device_mode*/ true);
+  blas_impl::asum_core(h, x, const_cast<R*>(result.ptr),
+                       /*device_mode*/ true);
 }
 
 // Async form into an owning device-accessible scalar (device mode). The
@@ -139,7 +139,7 @@ GCXX_REQUIRES(ExtentsX::rank() ==
 auto vector_abs_sum(BlasHandleView h,
                     const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
                     gcxx::scalar<R, Properties...>& result) -> void {
-  asum_impl_::asum_core(h, x, result.data(), /*device_mode*/ true);
+  blas_impl::asum_core(h, x, result.data(), /*device_mode*/ true);
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_END()

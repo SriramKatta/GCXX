@@ -21,7 +21,7 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
 // nrm2: returning forms sync the stream; the device-resident scalar form is
 // async.
-namespace nrm2_impl_ {
+namespace blas_impl {
 
   // Shared host/device-mode core: device_mode selects the result write's
   // pointer mode; host mode additionally syncs so the caller's stack
@@ -84,7 +84,7 @@ namespace nrm2_impl_ {
     nrm2_core(h, x, result, /*device_mode*/ false);
   }
 
-}  // namespace nrm2_impl_
+}  // namespace blas_impl
 
 // Returning form: vector_two_norm(h, x) -> ||x||_2 (synchronizes).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX)
@@ -93,7 +93,7 @@ auto vector_two_norm(BlasHandleView h,
                      const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x)
   -> TX {
   TX result{};
-  nrm2_impl_::sync_nrm2(h, x, &result);
+  blas_impl::sync_nrm2(h, x, &result);
   return result;
 }
 
@@ -105,7 +105,7 @@ auto vector_two_norm(BlasHandleView h,
                      const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
                      R init) -> R {
   R result{};
-  nrm2_impl_::sync_nrm2(h, x, &result);
+  blas_impl::sync_nrm2(h, x, &result);
   using std::sqrt;
   return sqrt(init * init + result * result);
 }
@@ -118,8 +118,8 @@ GCXX_REQUIRES(ExtentsX::rank() == 1)
 auto vector_two_norm(BlasHandleView h,
                      const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
                      gcxx::device_scalar_view<R> result) -> void {
-  nrm2_impl_::nrm2_core(h, x, const_cast<R*>(result.ptr),
-                        /*device_mode*/ true);
+  blas_impl::nrm2_core(h, x, const_cast<R*>(result.ptr),
+                       /*device_mode*/ true);
 }
 
 // Async form into an owning device-accessible scalar (device mode). The
@@ -132,7 +132,7 @@ GCXX_REQUIRES(ExtentsX::rank() ==
 auto vector_two_norm(BlasHandleView h,
                      const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
                      gcxx::scalar<R, Properties...>& result) -> void {
-  nrm2_impl_::nrm2_core(h, x, result.data(), /*device_mode*/ true);
+  blas_impl::nrm2_core(h, x, result.data(), /*device_mode*/ true);
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_END()
