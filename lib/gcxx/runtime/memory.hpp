@@ -14,7 +14,9 @@
 #include <gcxx/runtime/memory/mempool/managed_memory_pool.hpp>
 #include <gcxx/runtime/memory/mempool/pinned_memory_pool.hpp>
 
-#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
+
+#include <gcxx/runtime/memory/scalars/default_scalar_pools.hpp>
+#include <gcxx/runtime/memory/scalars/scalar.hpp>
 
 #include <gcxx/runtime/memory/buffers/buffer.hpp>
 #include <gcxx/runtime/memory/memory_resource/any_resource.hpp>

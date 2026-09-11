@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/memory/scalars/device_scalar_view.hpp>
 #include <gcxx/runtime/memory/spans/mdspan/mdspan.hpp>
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
@@ -97,9 +98,13 @@ GCXX_CXPR inline bool
   is_scaled_accessor_v<scaled_accessor<ScalingFactor, NestedAccessor>> = true;
 
 // Elements read as alpha*x_i; mapping/handle unchanged, alpha in accessor.
+// Owning scalars are excluded: the factor is stored by value in a freely
+// copied mdspan, so move-only owners must decay to a device_scalar_view via
+// the dedicated scalar overloads (see memory/scalars/scalar.hpp).
 GCXX_TEMPLATE(class ScalingFactor, class T, class Extents, class Layout,
               class Accessor)
-GCXX_REQUIRES(std::is_object_v<T>)
+GCXX_REQUIRES(std::is_object_v<T>
+                GCXX_AND !gcxx::details_::is_owning_scalar_v<ScalingFactor>)
 constexpr auto scaled(ScalingFactor alpha,
                       const gcxx::mdspan<T, Extents, Layout, Accessor>& x) {
   return gcxx::mdspan(
