@@ -119,7 +119,8 @@ auto triangular_matrix_matrix_solve(
       "transpose the data");
   }
 
-  // Stage B into X (plain copy, or geam when B carries a scaled() factor).
+  // Stage B into X (plain copy, or matrix_addition when B carries a scaled()
+  // factor; the zero-factor X addend keeps X from being read).
   auto alpha_res = details_::resolve_scaled_alpha<Sv>(b.accessor());
   if (!alpha_res.from_device()) {
     if (alpha_res.host_value == Sv(1)) {
@@ -128,13 +129,16 @@ auto triangular_matrix_matrix_solve(
       Copy(h.getStream(), x.data_handle(), b.data_handle(),
            static_cast<std::size_t>(span_elems));
     } else {
-      geam(h, alpha_res.host_value, gcxx::strip_scaled(b), Sv(0), x, x);
+      matrix_addition(h,
+                      gcxx::scaled(alpha_res.host_value, gcxx::strip_scaled(b)),
+                      gcxx::scaled(Sv(0), x), x);
     }
   } else {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
-      "triangular_matrix_matrix_solve: a device_scalar scaled() factor on B "
+      "triangular_matrix_matrix_solve: a device-resident scalar scaled() "
+      "factor on B "
       "is unsupported: the staging copy runs under host pointer mode and the "
       "in-place solve's factor is the host constant 1; use host factors");
   }

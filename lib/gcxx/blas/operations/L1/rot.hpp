@@ -19,14 +19,17 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// Givens rotation on (x, y); c/s may be host scalars or device_scalar.
+// Givens rotation on (x, y); c/s may be host scalars, device-resident scalar,
+// or an owning gcxx scalar (device/pinned/managed — const& because it is
+// move-only).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY,
               class S = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
 auto apply_givens_rotation(
   BlasHandleView h, const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
-  const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y, S c, S s) -> void {
+  const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y, const S& c,
+  const S& s) -> void {
 
   // local alias for easier refrence
   using XVt = TX;
@@ -34,9 +37,9 @@ auto apply_givens_rotation(
   using XIt = typename ExtentsX::index_type;
   using YIt = typename ExtentsY::index_type;
 
-  // Value type carried by c/s: unwraps device_scalar<T> -> T. A
-  // device_scalar argument selects device pointer mode; a plain scalar selects
-  // host mode.
+  // Value type carried by c/s: unwraps device-resident scalars -> T. A
+  // device-resident scalar argument selects device pointer mode; a plain scalar
+  // selects host mode.
   using Sv                   = details_::scalar_value_t<S>;
   constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
@@ -59,7 +62,7 @@ auto apply_givens_rotation(
 
   // Select the pointer mode for this call and restore the prior mode on scope
   // exit; c/s are read from the host parameters or the device pointers carried
-  // by device_scalar, per the mode.
+  // by device-resident scalar, per the mode.
   details_::BlasPointerModeGuard guard{h, device_mode};
 
   const Sv* c_ptr = details_::blas_scalar_ptr(c);

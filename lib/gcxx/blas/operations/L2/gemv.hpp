@@ -72,8 +72,10 @@ auto matrix_vector_product(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "matrix_vector_product: the write-only form has no device-resident "
-      "beta, so a device_scalar scaled() factor is unsupported here; use the "
-      "accumulate form (with a device_scalar zero addend) or host factors");
+      "beta, so a device-resident scalar scaled() factor is unsupported here; "
+      "use the "
+      "accumulate form (with a device-resident scalar zero addend) or host "
+      "factors");
   }
   const Sv alpha_host = alpha_res.host_value;
   const Sv* alpha_ptr = &alpha_host;
@@ -179,7 +181,7 @@ auto matrix_vector_product(
     // Split path: write A*x into y, then accumulate b.
     matrix_vector_product(h, a, x, y);
     if (beta_res.from_device()) {
-      axpy(h, gcxx::blas::device_scalar<Sv>{beta_res.device_ptr},
+      axpy(h, gcxx::device_scalar_view<Sv>{beta_res.device_ptr},
            gcxx::strip_scaled(b), y);
     } else {
       axpy(h, beta_res.host_value, gcxx::strip_scaled(b), y);
@@ -196,7 +198,8 @@ auto matrix_vector_product(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "matrix_vector_product: the backend reads alpha and beta through one "
-      "pointer mode, so host and device_scalar factors cannot be mixed in "
+      "pointer mode, so host and device-resident scalar factors cannot be "
+      "mixed in "
       "one call");
   }
 

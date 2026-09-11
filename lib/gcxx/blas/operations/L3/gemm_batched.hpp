@@ -16,19 +16,50 @@
 #include <gcxx/blas/operations/details/op_inference.hpp>
 #include <gcxx/blas/operations/details/scalar.hpp>
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/details/memory/device_memory_helper.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime/memory/copy.hpp>
-#include <gcxx/runtime/memory/smartpointers/pointers.hpp>
 #include <gcxx/runtime/memory/spans/span/span.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
+namespace details_ {
+
+  // RAII over a stream-ordered raw allocation for the batched pointer arrays.
+  // Buffers would need an explicit resource this deep in blas, so this keeps
+  // the async alloc/free that used to hide behind the retired smart-pointer
+  // API — freed even when the backend throws.
+  class StagingAllocation {
+   public:
+    StagingAllocation(gcxx::StreamView stream, std::size_t bytes)
+        : m_stream(stream), m_ptr(gcxx::device_malloc_async(bytes, stream)) {}
+
+    ~StagingAllocation() noexcept {
+      if (m_ptr != nullptr) {
+        gcxx::device_free_async(m_ptr, m_stream);
+      }
+    }
+
+    StagingAllocation(const StagingAllocation&)            = delete;
+    StagingAllocation& operator=(const StagingAllocation&) = delete;
+    StagingAllocation(StagingAllocation&&)                 = delete;
+    StagingAllocation& operator=(StagingAllocation&&)      = delete;
+
+    GCXX_FH auto get() const noexcept -> void* { return m_ptr; }
+
+   private:
+    gcxx::StreamView m_stream;
+    void* m_ptr;
+  };
+
+}  // namespace details_
+
 // Batched C_i = A_i*B_i from host arrays of views (pointer-array API).
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::value_type::element_type>
-auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
-                  C&& c)
+auto gemm_batched(BlasHandleView h, const S& alpha, const A& a, const B& b,
+                  const S& beta, C&& c)
   -> void {  // NOLINT(cppcoreguidelines-missing-std-forward)
 
   // local alias for easier refrence
@@ -43,7 +74,7 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
   using CVt  = typename CMat::element_type;
   using AIt  = typename AMat::index_type;
 
-  // Value type carried by alpha/beta: unwraps device_scalar<T> -> T.
+  // Value type carried by alpha/beta: unwraps device-resident scalars -> T.
   using Sv = details_::scalar_value_t<S>;
 
   // static asserts to verify no funny business
@@ -127,12 +158,16 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     b_ptrs[i] = b[i].data_handle();
     c_ptrs[i] = c[i].data_handle();
   }
-  auto d_a_ptrs = gcxx::make_device_unique_ptr<const void*>(stream, a.size());
-  auto d_b_ptrs = gcxx::make_device_unique_ptr<const void*>(stream, a.size());
-  auto d_c_ptrs = gcxx::make_device_unique_ptr<void*>(stream, a.size());
-  gcxx::Copy(stream, d_a_ptrs.get(), a_ptrs.data(), a.size());
-  gcxx::Copy(stream, d_b_ptrs.get(), b_ptrs.data(), a.size());
-  gcxx::Copy(stream, d_c_ptrs.get(), c_ptrs.data(), a.size());
+  const std::size_t ptr_bytes = a.size() * sizeof(void*);
+  details_::StagingAllocation d_a_ptrs(stream, ptr_bytes);
+  details_::StagingAllocation d_b_ptrs(stream, ptr_bytes);
+  details_::StagingAllocation d_c_ptrs(stream, ptr_bytes);
+  gcxx::Copy(stream, static_cast<const void**>(d_a_ptrs.get()), a_ptrs.data(),
+             a.size());
+  gcxx::Copy(stream, static_cast<const void**>(d_b_ptrs.get()), b_ptrs.data(),
+             a.size());
+  gcxx::Copy(stream, static_cast<void**>(d_c_ptrs.get()), c_ptrs.data(),
+             a.size());
 
   const AIt batch = static_cast<AIt>(a.size());
 
@@ -164,12 +199,13 @@ auto gemm_batched(BlasHandleView h, S alpha, const A& a, const B& b, S beta,
     reinterpret_cast<CVt* const*>(d_c_ptrs.get()), out.leading_dimension,
     batch);
 #else
-  GCXX_BLAS_DISPATCH_INT64(
-    status, AIt, GemmBatchedEx, h.getRawHandle(), first_op, second_op, m_arg,
-    n_arg, k, &alpha, first_ptrs, cuda_datatype_v<AVt>, first_ld, second_ptrs,
-    cuda_datatype_v<BVt>, second_ld, &beta, d_c_ptrs.get(),
-    cuda_datatype_v<CVt>, out.leading_dimension, batch,
-    blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
+  GCXX_BLAS_DISPATCH_INT64(status, AIt, GemmBatchedEx, h.getRawHandle(),
+                           first_op, second_op, m_arg, n_arg, k, &alpha,
+                           first_ptrs, cuda_datatype_v<AVt>, first_ld,
+                           second_ptrs, cuda_datatype_v<BVt>, second_ld, &beta,
+                           static_cast<void* const*>(d_c_ptrs.get()),
+                           cuda_datatype_v<CVt>, out.leading_dimension, batch,
+                           blas_compute_type_v<CVt>, GCXX_BLAS_GEMM(DEFAULT));
 #endif
 
   if (status != driver::deviceBlasStatusSuccess) {

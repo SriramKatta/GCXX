@@ -19,12 +19,13 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// y = alpha*x + y; alpha may be a host scalar or device_scalar.
+// y = alpha*x + y; alpha may be a host scalar, device-resident scalar, or an
+// owning gcxx scalar (device/pinned/managed — const& because it is move-only).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class TY, class ExtentsY, class LayoutY, class AccessorY,
               class S = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1 GCXX_AND ExtentsY::rank() == 1)
-auto axpy(BlasHandleView h, S alpha,
+auto axpy(BlasHandleView h, const S& alpha,
           const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
           const gcxx::mdspan<TY, ExtentsY, LayoutY, AccessorY>& y) -> void {
 
@@ -34,9 +35,9 @@ auto axpy(BlasHandleView h, S alpha,
   using XIt = typename ExtentsX::index_type;
   using YIt = typename ExtentsY::index_type;
 
-  // Value type carried by alpha: unwraps device_scalar<T> -> T. A
-  // device_scalar argument selects device pointer mode; a plain scalar selects
-  // host mode.
+  // Value type carried by alpha: unwraps device-resident scalars -> T. A
+  // device-resident scalar argument selects device pointer mode; a plain scalar
+  // selects host mode.
   using Sv                   = details_::scalar_value_t<S>;
   constexpr bool device_mode = details_::is_device_scalar_v<S>;
 
@@ -58,7 +59,7 @@ auto axpy(BlasHandleView h, S alpha,
 
   // Select the pointer mode for this call and restore the prior mode on scope
   // exit; alpha is read from the host parameter or the device pointer carried
-  // by device_scalar, per the mode.
+  // by device-resident scalar, per the mode.
   details_::BlasPointerModeGuard guard{h, device_mode};
 
   const Sv* alpha_ptr = details_::blas_scalar_ptr(alpha);

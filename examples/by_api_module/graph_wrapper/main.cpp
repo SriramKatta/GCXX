@@ -203,7 +203,7 @@ void deviceGraphsManual(float* inputVec_h, float* inputVec_d,
                      .setBlockDim(THREADS_PER_BLOCK)
                      .setArgs(outputVec_d, result_d, numOfBlocks)
                      .build();
-  auto k2 = k2builder.getRawParams();
+  auto k2        = k2builder.getRawParams();
 
   kernelNode = graph.addNode(k2builder, {kernelNode, memsetNode});
 
@@ -398,16 +398,20 @@ int main(int argc, char** argv) {
   printf("threads per block  = %d\n", THREADS_PER_BLOCK);
   printf("Graph Launch iterations = %d\n", GRAPH_LAUNCH_ITERATIONS);
 
-  auto inVec_h_raii  = gcxx::make_host_pinned_unique_ptr<float>(size);
-  auto inVec_d_raii  = gcxx::make_device_unique_ptr<float>(size);
-  auto outVec_d_raii = gcxx::make_device_unique_ptr<double>(maxBlocks);
-  auto result_d_raii = gcxx::make_device_unique_ptr<double>(1);
+  auto dev_pool = gcxx::device_default_memory_pool(gcxx::DeviceHandle{0});
+  gcxx::uninit_pinned_buffer<float> inVec_h_raii(
+    gcxx::StreamView::Null(), gcxx::pinned_default_memory_pool(), size);
+  gcxx::uninit_device_buffer<float> inVec_d_raii(gcxx::StreamView::Null(),
+                                                 dev_pool, size);
+  gcxx::uninit_device_buffer<double> outVec_d_raii(gcxx::StreamView::Null(),
+                                                   dev_pool, maxBlocks);
+  auto result_d_raii = gcxx::make_device_scalar<double>(
+    gcxx::DeviceHandle{0}, gcxx::StreamView::Null());
 
-
-  float* inputVec_h   = inVec_h_raii.get();
-  float* inputVec_d   = inVec_d_raii.get();
-  double* outputVec_d = outVec_d_raii.get();
-  double* result_d    = result_d_raii.get();
+  float* inputVec_h   = inVec_h_raii.data();
+  float* inputVec_d   = inVec_d_raii.data();
+  double* outputVec_d = outVec_d_raii.data();
+  double* result_d    = result_d_raii.data();
 
   init_input(inputVec_h, size);
 

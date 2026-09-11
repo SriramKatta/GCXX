@@ -58,8 +58,9 @@ __global__ void ifGraphKernelC() {
 void simpleIfGraph() {
 
   // Allocate a byte of device memory to use as input.
-  auto dPtr_raii = gcxx::make_device_unique_ptr<char>(1);
-  char* dPtr     = dPtr_raii.get();
+  auto dPtr_raii = gcxx::make_device_scalar<char>(gcxx::DeviceHandle{0},
+                                                  gcxx::StreamView::Null());
+  char* dPtr     = dPtr_raii.data();
 
   printf("simpleIfGraph: Building graph...\n");
   gcxx::Graph graph;
@@ -73,16 +74,16 @@ void simpleIfGraph() {
                        .setBlockDim(1)
                        .setArgs(dPtr, condHandle)
                        .build();
-  auto kernelNode = graph.addNode(kernelparam);
+  auto kernelNode  = graph.addNode(kernelparam);
 
   auto [conditionalNode, bodyGraph] = graph.addIfNode(condHandle, {kernelNode});
 
 
-  auto kernel2 = gcxx::KernelParamsBuilder()
-                   .setKernel(ifGraphKernelC)
-                   .setGridDim(1)
-                   .setBlockDim(1)
-                   .build();
+  auto kernel2     = gcxx::KernelParamsBuilder()
+                       .setKernel(ifGraphKernelC)
+                       .setGridDim(1)
+                       .setBlockDim(1)
+                       .build();
   auto kernelnode1 = bodyGraph.addNode(kernel2);
 
 
@@ -119,8 +120,9 @@ __global__ void doWhileLoopKernel(
 }
 
 void simpleDoWhileGraph() {
-  auto dPtr_raii = gcxx::make_device_unique_ptr<char>(1);
-  char* dPtr     = dPtr_raii.get();
+  auto dPtr_raii = gcxx::make_device_scalar<char>(gcxx::DeviceHandle{0},
+                                                  gcxx::StreamView::Null());
+  char* dPtr     = dPtr_raii.data();
 
   printf("simpleDoWhileGraph: Building graph...\n");
   gcxx::Graph graph;
@@ -169,8 +171,9 @@ __global__ void capturedWhileEmptyKernel() {
 void capturedWhileGraph() {
   gcxx::GraphView::deviceGraphConditionalHandle_t handle = 0;
 
-  auto dPtr_raii = gcxx::make_device_unique_ptr<char>(1);
-  char* dPtr     = dPtr_raii.get();
+  auto dPtr_raii = gcxx::make_device_scalar<char>(gcxx::DeviceHandle{0},
+                                                  gcxx::StreamView::Null());
+  char* dPtr     = dPtr_raii.data();
 
   printf("capturedWhileGraph: Building graph...\n");
   gcxx::Stream captureStream;
@@ -246,8 +249,9 @@ __global__ void ifGraphKernelD() {
 void simpleIfElseGraph() {
   gcxx::Graph graph;
 
-  auto dptr_raii = gcxx::make_device_unique_ptr<char>(1);
-  char* dPtr     = dptr_raii.get();
+  auto dptr_raii = gcxx::make_device_scalar<char>(gcxx::DeviceHandle{0},
+                                                  gcxx::StreamView::Null());
+  char* dPtr     = dptr_raii.data();
 
   printf("simpleIfElseGraph: Building graph...\n");
 
@@ -261,17 +265,17 @@ void simpleIfElseGraph() {
                      .setBlockDim(1)
                      .setArgs(dPtr, handle)
                      .build();
-  auto kernNode = graph.addNode(kernparam);
+  auto kernNode  = graph.addNode(kernparam);
 
   auto [ifelsenode, IfGraphBody, Elsegraphbody] =
     graph.addIfElseNode(handle, {kernNode});
 
   // Populate the if-branch body (executed when the condition is true).
-  auto kern2 = gcxx::KernelParamsBuilder()
-                 .setKernel(ifGraphKernelC)
-                 .setGridDim(1)
-                 .setBlockDim(1)
-                 .build();
+  auto kern2    = gcxx::KernelParamsBuilder()
+                    .setKernel(ifGraphKernelC)
+                    .setGridDim(1)
+                    .setBlockDim(1)
+                    .build();
   auto truenode = IfGraphBody.addNode(kern2);
 
   auto falsekern = gcxx::KernelParamsBuilder()
@@ -326,8 +330,9 @@ __global__ void switchGraphKernelF() {
 void simpleSwitchGraph() {
   gcxx::Graph graph;
 
-  auto dptr_raii = gcxx::make_device_unique_ptr<char>(1);
-  char* dPtr     = dptr_raii.get();
+  auto dptr_raii = gcxx::make_device_scalar<char>(gcxx::DeviceHandle{0},
+                                                  gcxx::StreamView::Null());
+  char* dPtr     = dptr_raii.data();
 
   printf("simpleSwitchGraph: Building graph...\n");
 
@@ -335,12 +340,12 @@ void simpleSwitchGraph() {
     0, gcxx::flags::graphConditionalHandle::Default);
 
   // Use a kernel upstream of the conditional to set the handle value.
-  auto kern1 = gcxx::KernelParamsBuilder()
-                 .setKernel(switchGraphKernelA)
-                 .setGridDim(1)
-                 .setBlockDim(1)
-                 .setArgs(dPtr, handle)
-                 .build();
+  auto kern1      = gcxx::KernelParamsBuilder()
+                      .setKernel(switchGraphKernelA)
+                      .setGridDim(1)
+                      .setBlockDim(1)
+                      .setArgs(dPtr, handle)
+                      .build();
   auto kernelNode = graph.addNode(kern1);
 
   auto [condNode, casevector] = graph.addSwitchNode(handle, 4);
@@ -351,28 +356,28 @@ void simpleSwitchGraph() {
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[0].addNode(kernswitchC);
+  std::ignore      = casevector[0].addNode(kernswitchC);
 
   auto kernswitchD = gcxx::KernelParamsBuilder()
                        .setKernel(switchGraphKernelD)
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[1].addNode(kernswitchD);
+  std::ignore      = casevector[1].addNode(kernswitchD);
 
   auto kernswitchE = gcxx::KernelParamsBuilder()
                        .setKernel(switchGraphKernelE)
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[2].addNode(kernswitchE);
+  std::ignore      = casevector[2].addNode(kernswitchE);
 
   auto kernswitchF = gcxx::KernelParamsBuilder()
                        .setKernel(switchGraphKernelF)
                        .setGridDim(1)
                        .setBlockDim(1)
                        .build();
-  std::ignore = casevector[3].addNode(kernswitchF);
+  std::ignore      = casevector[3].addNode(kernswitchF);
 
   auto graphExec = graph.instantiate();
 

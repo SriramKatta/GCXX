@@ -27,8 +27,8 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsC::rank() == 2)
 auto symmetric_matrix_rank_k_update(
   BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-  Tri /*triangle*/,
-  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
+  Tri /*triangle*/, const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
+  -> void {
 
   // local alias for easier refrence
   using AVt = TA;
@@ -66,7 +66,8 @@ auto symmetric_matrix_rank_k_update(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "symmetric_matrix_rank_k_update: the accumulate weight is the host "
-      "constant 1, so a device_scalar scaled() factor on A cannot pair with "
+      "constant 1, so a device-resident scalar scaled() factor on A cannot "
+      "pair with "
       "it under one pointer mode; use host factors");
   }
   const Sv alpha_host = alpha_res.host_value;

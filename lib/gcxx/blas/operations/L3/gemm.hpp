@@ -26,10 +26,11 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TC, class ExtentsC, class LayoutC, class AccessorC)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
               2 GCXX_AND ExtentsC::rank() == 2)
-auto matrix_product(
-  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-  const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
-  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
+auto matrix_product(BlasHandleView h,
+                    const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+                    const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+                    const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
+  -> void {
 
   // local alias for easier refrence
   using AVt = TA;
@@ -70,8 +71,9 @@ auto matrix_product(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "matrix_product: the write-only form has no device-resident beta, so a "
-      "device_scalar scaled() factor is unsupported here; use the accumulate "
-      "form (with a device_scalar zero addend) or host factors");
+      "device-resident scalar scaled() factor is unsupported here; use the "
+      "accumulate "
+      "form (with a device-resident scalar zero addend) or host factors");
   }
   const Sv alpha_host = alpha_res.host_value;
   const Sv* alpha_ptr = &alpha_host;
@@ -136,11 +138,12 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TC, class ExtentsC, class LayoutC, class AccessorC)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
               2 GCXX_AND ExtentsE::rank() == 2 GCXX_AND ExtentsC::rank() == 2)
-auto matrix_product(
-  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-  const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
-  const gcxx::mdspan<TE, ExtentsE, LayoutE, AccessorE>& e,
-  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
+auto matrix_product(BlasHandleView h,
+                    const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+                    const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+                    const gcxx::mdspan<TE, ExtentsE, LayoutE, AccessorE>& e,
+                    const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
+  -> void {
 
   using AVt = TA;
   using BVt = TB;
@@ -185,19 +188,21 @@ auto matrix_product(
 
   if (!details_::views_alias(e, c)) {
     // Split path: write A*B into C, then accumulate E in place
-    // (C = factor*E + 1*C, the documented in-place geam mode).
+    // (C = factor*E + 1*C, the documented in-place matrix_addition mode).
     if (beta_res.from_device()) {
       details_::throwBlasError(
         GCXX_BLAS_STATUS(INVALID_VALUE),
         /*msg*/
-        "matrix_product: a non-aliased addend with a device_scalar scaled() "
+        "matrix_product: a non-aliased addend with a device-resident scalar "
+        "scaled() "
         "factor is unsupported: the in-place geam accumulation would have to "
         "read a device-resident alpha and a host beta through one pointer "
         "mode; use the aliased form matrix_product(h, A, B, scaled(f, C), C) "
         "with a device-resident zero addend, or host factors");
     }
     matrix_product(h, a, b, c);
-    geam(h, beta_res.host_value, gcxx::strip_scaled(e), Sv(1), c, c);
+    matrix_addition(h, gcxx::scaled(beta_res.host_value, gcxx::strip_scaled(e)),
+                    c, c);
     return;
   }
 
@@ -210,7 +215,8 @@ auto matrix_product(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "matrix_product: the backend reads alpha and beta through one pointer "
-      "mode, so host and device_scalar factors cannot be mixed in one call");
+      "mode, so host and device-resident scalar factors cannot be mixed in one "
+      "call");
   }
 
   const Sv alpha_host = alpha_res.host_value;

@@ -73,7 +73,8 @@ auto symmetric_matrix_rank_2k_update(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "symmetric_matrix_rank_2k_update: the accumulate weight is the host "
-      "constant 1, so a device_scalar scaled() factor cannot pair with it "
+      "constant 1, so a device-resident scalar scaled() factor cannot pair "
+      "with it "
       "under one pointer mode; use host factors");
   }
   const Sv alpha_host = alpha_res.host_value;

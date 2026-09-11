@@ -12,24 +12,25 @@
 #include <gcxx/blas/handle/blas_pointer_mode_guard.hpp>
 #include <gcxx/blas/operations/details/integer_interface.hpp>
 #include <gcxx/blas/operations/details/op_inference.hpp>
-#include <gcxx/blas/operations/details/scalar.hpp>
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
 #include <gcxx/runtime_backend/backend_blas.hpp>
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// C = alpha*op(A) + beta*op(B); cu/hipBLAS extension, not in P1673R13.
+// C = alpha*A + beta*B over the cu/hipBLAS geam extension (not in P1673R13);
+// alpha and beta arrive as scaled() factors on the inputs (1 when unscaled).
+// The elementwise nature makes C aliasing an input the in-place mode.
 GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TB, class ExtentsB, class LayoutB, class AccessorB,
-              class TC, class ExtentsC, class LayoutC, class AccessorC,
-              class S = TC)
+              class TC, class ExtentsC, class LayoutC, class AccessorC)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
               2 GCXX_AND ExtentsC::rank() == 2)
-auto geam(BlasHandleView h, S alpha,
-          const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a, S beta,
-          const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
-          const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
+auto matrix_addition(BlasHandleView h,
+                     const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+                     const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+                     const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
+  -> void {
 
   // local alias for easier refrence
   using AVt = TA;
@@ -38,37 +39,53 @@ auto geam(BlasHandleView h, S alpha,
   using AIt = typename ExtentsA::index_type;
   using BIt = typename ExtentsB::index_type;
   using CIt = typename ExtentsC::index_type;
-
-  // Value type carried by alpha/beta: unwraps device_scalar<T> -> T. A
-  // device_scalar argument selects device pointer mode; a plain scalar selects
-  // host mode.
-  using Sv                   = details_::scalar_value_t<S>;
-  constexpr bool device_mode = details_::is_device_scalar_v<S>;
+  using Sv  = CVt;
 
   // static asserts to verify no funny business
+  static_assert(!gcxx::is_scaled_accessor_v<AccessorC>,
+                "matrix_addition output cannot be a scaled() view; scale an "
+                "input instead");
+
   static_assert(gcxx::details_::all_same_v<AIt, BIt, CIt>,
-                "geam operands A, B, C must share the same mdspan index_type");
+                "matrix_addition operands A, B, C must share the same mdspan "
+                "index_type");
 
   static_assert(gcxx::blas::details_::is_supported_blas_index_v<AIt>,
                 "BLAS operands must use int32_t or int64_t as their "
                 "mdspan index_type");
 
-  static_assert(gcxx::details_::all_same_v<Sv, AVt, BVt, CVt>,
-                "geam alpha/beta value type must match the operands' element "
+  static_assert(gcxx::details_::all_same_v<AVt, BVt, CVt>,
+                "matrix_addition operands A, B, C must share a single element "
                 "type");
 
   // TODO: Wire complex Cgeam/Zgeam into GCXX_BLAS_DISPATCH_TYPED.
   static_assert(std::is_same_v<AVt, float> || std::is_same_v<AVt, double>,
-                "geam currently supports only float/double element types "
-                "(complex support is a TODO)");
+                "matrix_addition currently supports only float/double element "
+                "types (complex support is a TODO)");
+
+  // A's scaled() factor is alpha, B's is beta (1 when unscaled); a factor may
+  // be a host value or a device-resident scalar selecting device pointer mode.
+  const auto alpha_res = details_::resolve_scaled_alpha<Sv>(a.accessor());
+  const auto beta_res  = details_::resolve_scaled_alpha<Sv>(b.accessor());
+  if (alpha_res.from_device() != beta_res.from_device()) {
+    details_::throwBlasError(
+      GCXX_BLAS_STATUS(INVALID_VALUE),
+      /*msg*/
+      "matrix_addition: the backend reads alpha and beta through one pointer "
+      "mode, so host and device-resident scalar factors cannot be mixed in "
+      "one call");
+  }
+  const Sv alpha_host = alpha_res.host_value;
+  const Sv* alpha_ptr =
+    alpha_res.from_device() ? alpha_res.device_ptr : &alpha_host;
+  const Sv beta_host = beta_res.host_value;
+  const Sv* beta_ptr =
+    beta_res.from_device() ? beta_res.device_ptr : &beta_host;
 
   // Select the pointer mode for this call and restore the prior mode on scope
   // exit; alpha/beta are read from the host parameters or the device pointers
-  // carried by device_scalar, per the mode.
-  details_::BlasPointerModeGuard guard{h, device_mode};
-
-  const Sv* alpha_ptr = details_::blas_scalar_ptr(alpha);
-  const Sv* beta_ptr  = details_::blas_scalar_ptr(beta);
+  // carried by the scaled() factors, per the mode.
+  details_::BlasPointerModeGuard guard{h, alpha_res.from_device()};
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
@@ -85,7 +102,8 @@ auto geam(BlasHandleView h, S alpha,
       cols_b != out.cols) {
     details_::throwBlasError(
       GCXX_BLAS_STATUS(INVALID_VALUE),
-      /*msg*/ "geam requires A, B, and C to share the same extents");
+      /*msg*/
+      "matrix_addition requires A, B, and C to share the same extents");
   }
 
   driver::deviceBlasStatus_t status{};
@@ -104,7 +122,7 @@ auto geam(BlasHandleView h, S alpha,
   }
 
   if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, /*msg*/ "geam failed");
+    details_::throwBlasError(status, /*msg*/ "matrix_addition failed");
   }
 }
 

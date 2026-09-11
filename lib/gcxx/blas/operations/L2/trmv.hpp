@@ -100,7 +100,7 @@ auto triangular_matrix_vector_product(
     details_::resolve_scaled_alpha<Sv>(a.accessor()),
     "triangular_matrix_vector_product");
   if (alpha_res.from_device()) {
-    scale(h, gcxx::blas::device_scalar<Sv>{alpha_res.device_ptr}, y);
+    scale(h, gcxx::device_scalar_view<Sv>{alpha_res.device_ptr}, y);
   } else if (alpha_res.host_value != Sv(1)) {
     scale(h, alpha_res.host_value, y);
   }
@@ -193,7 +193,7 @@ auto triangular_matrix_vector_product(
 
   auto beta_res = details_::resolve_scaled_alpha<Sv>(b.accessor());
   if (beta_res.from_device()) {
-    axpy(h, gcxx::blas::device_scalar<Sv>{beta_res.device_ptr},
+    axpy(h, gcxx::device_scalar_view<Sv>{beta_res.device_ptr},
          gcxx::strip_scaled(b), y);
   } else {
     axpy(h, beta_res.host_value, gcxx::strip_scaled(b), y);

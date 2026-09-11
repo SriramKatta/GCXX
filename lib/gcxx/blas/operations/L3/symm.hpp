@@ -97,8 +97,10 @@ auto symmetric_matrix_product(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "symmetric_matrix_product: the write-only form has no device-resident "
-      "beta, so a device_scalar scaled() factor is unsupported here; use the "
-      "accumulate form (with a device_scalar zero addend) or host factors");
+      "beta, so a device-resident scalar scaled() factor is unsupported here; "
+      "use the "
+      "accumulate form (with a device-resident scalar zero addend) or host "
+      "factors");
   }
   const Sv alpha_host = alpha_res.host_value;
   const Sv* alpha_ptr = &alpha_host;
@@ -185,7 +187,8 @@ auto symmetric_matrix_product(
   }
 }
 
-// Accumulate form: E aliases C -> in-place beta path, else split via geam.
+// Accumulate form: E aliases C -> in-place beta path, else split via
+// matrix_addition.
 GCXX_TEMPLATE(class Side, class TA, class ExtentsA, class LayoutA,
               class AccessorA, class Tri, class TB, class ExtentsB,
               class LayoutB, class AccessorB, class TE, class ExtentsE,
@@ -239,7 +242,8 @@ auto symmetric_matrix_product(
       "symmetric_matrix_product addend E must have the same extents as C");
   }
 
-  // The addend's factor doubles as beta (aliased) or geam alpha (split).
+  // The addend's factor doubles as beta (aliased) or the matrix_addition
+  // alpha (split).
   auto beta_res = details_::resolve_scaled_alpha<Sv>(e.accessor());
 
   if (!details_::views_alias(e, c)) {
@@ -249,14 +253,15 @@ auto symmetric_matrix_product(
         GCXX_BLAS_STATUS(INVALID_VALUE),
         /*msg*/
         "symmetric_matrix_product: a non-aliased addend with a "
-        "device_scalar scaled() factor is unsupported: the in-place geam "
-        "accumulation would have to read a device-resident alpha and a host "
-        "beta through one pointer mode; use the aliased form "
+        "device-resident scalar scaled() factor is unsupported: the in-place "
+        "matrix_addition accumulation would have to read a device-resident "
+        "alpha and a host beta through one pointer mode; use the aliased form "
         "symmetric_matrix_product(h, side, A, t, B, scaled(f, C), C) with a "
         "device-resident zero addend, or host factors");
     }
     symmetric_matrix_product(h, side, a, triangle, b, c);
-    geam(h, beta_res.host_value, gcxx::strip_scaled(e), Sv(1), c, c);
+    matrix_addition(h, gcxx::scaled(beta_res.host_value, gcxx::strip_scaled(e)),
+                    c, c);
     return;
   }
 
@@ -270,7 +275,8 @@ auto symmetric_matrix_product(
       GCXX_BLAS_STATUS(INVALID_VALUE),
       /*msg*/
       "symmetric_matrix_product: the backend reads alpha and beta through "
-      "one pointer mode, so host and device_scalar factors cannot be mixed "
+      "one pointer mode, so host and device-resident scalar factors cannot be "
+      "mixed "
       "in one call");
   }
 

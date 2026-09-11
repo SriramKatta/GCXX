@@ -19,14 +19,19 @@
 
 GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 
-// asum: returning forms sync the stream; the device_scalar form is async.
+// asum: returning forms sync the stream; the device-resident scalar form is
+// async.
 namespace asum_impl_ {
+
+  // Shared host/device-mode core: device_mode selects the result write's
+  // pointer mode; host mode additionally syncs so the caller's stack
+  // result is observable on return.
   GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
                 class R = TX)
   GCXX_REQUIRES(ExtentsX::rank() == 1)
-  auto sync_asum(BlasHandleView h,
+  auto asum_core(BlasHandleView h,
                  const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
-                 R* result) -> void {
+                 R* result, const bool device_mode) -> void {
 
     // local alias for easier refrence
     using XVt = TX;
@@ -46,9 +51,9 @@ namespace asum_impl_ {
                   "vector_abs_sum currently supports only float/double "
                   "element types (complex support is a TODO)");
 
-    // Pin host pointer mode for the call (restored on scope exit) so the
-    // result lands in the host storage below.
-    const details_::BlasPointerModeGuard guard{h, /*device_mode*/ false};
+    // Select device pointer mode for this call; the result is written to the
+    // device pointer asynchronously.
+    const details_::BlasPointerModeGuard guard{h, device_mode};
 
     // run-time device-memory probe (no-op unless checks are enabled)
     details_::validate_device_view(x, "x");
@@ -72,11 +77,21 @@ namespace asum_impl_ {
     if (status != driver::deviceBlasStatusSuccess) {
       details_::throwBlasError(status, /*msg*/ "vector_abs_sum failed");
     }
-
-    // The backend's host-mode write may lag the host thread; make the
-    // returned value observable before this function returns.
-    h.getStream().sync();
+    // Host-mode results are consumed by the caller right after the
+    // call; device-mode writes are read out asynchronously.
+    if (!device_mode) {
+      h.getStream().sync();
+    }
   }
+  GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+                class R = TX)
+  GCXX_REQUIRES(ExtentsX::rank() == 1)
+  auto sync_asum(BlasHandleView h,
+                 const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+                 R* result) -> void {
+    asum_core(h, x, result, /*device_mode*/ false);
+  }
+
 }  // namespace asum_impl_
 
 // Returning form: vector_abs_sum(h, x) -> ||x||_1 (synchronizes).
@@ -102,58 +117,29 @@ auto vector_abs_sum(BlasHandleView h,
   return init + result;
 }
 
-// Async form: writes the result to the device_scalar pointer (device mode).
+// Async form: writes the result to the device_scalar_view pointer (device
+// mode).
 GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
               class R = TX)
 GCXX_REQUIRES(ExtentsX::rank() == 1)
 auto vector_abs_sum(BlasHandleView h,
                     const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
-                    gcxx::blas::device_scalar<R> result) -> void {
+                    gcxx::device_scalar_view<R> result) -> void {
+  asum_impl_::asum_core(h, x, const_cast<R*>(result.ptr),
+                        /*device_mode*/ true);
+}
 
-  // local alias for easier refrence
-  using XVt = TX;
-  using XIt = typename ExtentsX::index_type;
-
-  // static asserts to verify no funny business
-  static_assert(gcxx::blas::details_::is_supported_blas_index_v<XIt>,
-                "BLAS operands must use int32_t or int64_t as their "
-                "mdspan index_type");
-
-  static_assert(std::is_same_v<R, XVt>,
-                "vector_abs_sum result value type must match the operand's "
-                "element type");
-
-  // TODO: Support complex element types once the C/Z dispatch branches exist.
-  static_assert(std::is_same_v<XVt, float> || std::is_same_v<XVt, double>,
-                "vector_abs_sum currently supports only float/double "
-                "element types (complex support is a TODO)");
-
-  // Select device pointer mode for this call; the result is written to the
-  // wrapped device pointer asynchronously.
-  const details_::BlasPointerModeGuard guard{h, /*device_mode*/ true};
-
-  // run-time device-memory probe (no-op unless checks are enabled)
-  details_::validate_device_view(x, "x");
-
-  // extract problem dimensions
-  const auto [len_x, inc_x] = details_::infer_blas_vector_view(x);
-
-  driver::deviceBlasStatus_t status{};
-#if GCXX_CUDA_MODE()
-  GCXX_BLAS_DISPATCH_INT64(status, XIt, AsumEx, h.getRawHandle(), len_x,
-                           x.data_handle(), cuda_datatype_v<XVt>, inc_x,
-                           static_cast<void*>(const_cast<R*>(result.ptr)),
-                           cuda_datatype_v<R>, cuda_datatype_v<R>);
-#elif GCXX_HIP_MODE()
-  // hipBLAS has no AsumEx/_64 type-erased entry point; fall back to the
-  // plain typed routine (Sasum/Dasum, including their _64 forms).
-  GCXX_BLAS_DISPATCH_TYPED(status, XIt, XVt, asum, h.getRawHandle(), len_x,
-                           x.data_handle(), inc_x, const_cast<R*>(result.ptr));
-#endif
-
-  if (status != driver::deviceBlasStatusSuccess) {
-    details_::throwBlasError(status, /*msg*/ "vector_abs_sum failed");
-  }
+// Async form into an owning device-accessible scalar (device mode). The
+// scalar must outlive the call; read it via result.value() (which syncs the
+// scalar's stream) once the write is expected to be done.
+GCXX_TEMPLATE(class TX, class ExtentsX, class LayoutX, class AccessorX,
+              class R = TX, class... Properties)
+GCXX_REQUIRES(ExtentsX::rank() ==
+              1 GCXX_AND is_device_accessible<Properties...>)
+auto vector_abs_sum(BlasHandleView h,
+                    const gcxx::mdspan<TX, ExtentsX, LayoutX, AccessorX>& x,
+                    gcxx::scalar<R, Properties...>& result) -> void {
+  asum_impl_::asum_core(h, x, result.data(), /*device_mode*/ true);
 }
 
 GCXX_NAMESPACE_MAIN_BLAS_END()

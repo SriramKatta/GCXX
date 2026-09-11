@@ -206,7 +206,8 @@ constexpr auto resolve_scaled_alpha(
   if constexpr (is_device_scalar_v<factor_t>) {
     static_assert(
       std::is_same_v<typename scalar_traits<factor_t>::value_type, Sv>,
-      "device_scalar scaling factors must match the operands' element type");
+      "device-resident scalar scaling factors must match the operands' element "
+      "type");
     return {Sv(1), acc.scaling_factor().ptr};
   } else {
     return {static_cast<Sv>(acc.scaling_factor()), nullptr};
@@ -216,19 +217,19 @@ constexpr auto resolve_scaled_alpha(
 // A device factor must be the sole non-unit factor (one backend alpha).
 template <class Sv>
 auto combine_scaled_alpha(alpha_resolution<Sv> total,
-                          const alpha_resolution<Sv>& extra,
-                          const char* op) -> alpha_resolution<Sv> {
+                          const alpha_resolution<Sv>& extra, const char* op)
+  -> alpha_resolution<Sv> {
   const bool incompatible =
     (extra.from_device() &&
      (total.from_device() || total.host_value != Sv(1))) ||
     (total.from_device() && extra.host_value != Sv(1));
   if (incompatible) {
-    throwBlasError(
-      GCXX_BLAS_STATUS(INVALID_VALUE),
-      (std::string{op} +
-       ": a device_scalar scaled() factor cannot be combined with other "
-       "factors (the cu/hipBLAS entry points take a single alpha)")
-        .c_str());
+    throwBlasError(GCXX_BLAS_STATUS(INVALID_VALUE),
+                   (std::string{op} +
+                    ": a device-resident scalar scaled() factor cannot be "
+                    "combined with other "
+                    "factors (the cu/hipBLAS entry points take a single alpha)")
+                     .c_str());
   }
   if (extra.from_device()) {
     total.device_ptr = extra.device_ptr;

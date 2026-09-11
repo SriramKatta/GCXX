@@ -23,8 +23,8 @@ GCXX_NAMESPACE_MAIN_BLAS_BEGIN()
 template <class A, class B, class C,
           class S = typename std::decay_t<C>::element_type>
 // c is only indexed (never moved); forwarding an rvalue would change nothing.
-auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
-                          S beta, C&& c)
+auto gemm_strided_batched(BlasHandleView h, const S& alpha, const A& a,
+                          const B& b, const S& beta, C&& c)
   -> void {  // NOLINT(cppcoreguidelines-missing-std-forward)
 
   // local alias for easier refrence
@@ -38,7 +38,7 @@ auto gemm_strided_batched(BlasHandleView h, S alpha, const A& a, const B& b,
   using BIt = typename B_t::index_type;
   using CIt = typename C_t::index_type;
 
-  // Value type carried by alpha/beta: unwraps device_scalar<T> -> T.
+  // Value type carried by alpha/beta: unwraps device-resident scalars -> T.
   using Sv = details_::scalar_value_t<S>;
 
   // static asserts to verify no funny business

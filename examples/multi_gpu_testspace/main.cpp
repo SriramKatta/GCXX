@@ -100,13 +100,19 @@ int main(int argc, char* argv[]) {
     }
   }
   {
-    int chunk_size  = rowsinrank(rank, nranks, N);
-    auto a_raii     = gcxx::make_device_unique_ptr<real>(N * (chunk_size + 2));
-    auto a_new_raii = gcxx::make_device_unique_ptr<real>(N * (chunk_size + 2));
-    gcxx::Memset(a_raii, 0, N * (chunk_size + 2));
-    gcxx::Memset(a_new_raii, 0, N * (chunk_size + 2));
-    real* a     = a_raii.get();
-    real* a_new = a_new_raii.get();
+    int chunk_size = rowsinrank(rank, nranks, N);
+    // Pool of the CURRENT device (rank-local; set above via Device::set).
+    auto pool = gcxx::device_default_memory_pool(gcxx::Device::get());
+    gcxx::uninit_device_buffer<real> a_raii(
+      gcxx::StreamView::Null(), pool,
+      static_cast<std::size_t>(N * (chunk_size + 2)));
+    gcxx::uninit_device_buffer<real> a_new_raii(
+      gcxx::StreamView::Null(), pool,
+      static_cast<std::size_t>(N * (chunk_size + 2)));
+    gcxx::Memset(a_raii, 0);
+    gcxx::Memset(a_new_raii, 0);
+    real* a     = a_raii.data();
+    real* a_new = a_new_raii.data();
 
     int iy_start_global = startrow(rank, nranks, N);
     int iy_start        = 1;
@@ -185,8 +191,8 @@ int main(int argc, char* argv[]) {
     nvtxRangePop();
 
     // Initialize boundaries
-    gcxx::Memset(a_raii, 0, N * (chunk_size + 2));
-    gcxx::Memset(a_new_raii, 0, N * (chunk_size + 2));
+    gcxx::Memset(a_raii, 0);
+    gcxx::Memset(a_new_raii, 0);
     launch_initialize_boundaries(a, a_new, M_PI, iy_start_global - 1, N,
                                  chunk_size + 2);
     locdev.sync();

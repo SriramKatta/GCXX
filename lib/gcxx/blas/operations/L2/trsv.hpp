@@ -99,7 +99,7 @@ auto triangular_matrix_vector_solve(
   copy(h, b, x);
   auto alpha_res = details_::resolve_scaled_alpha<Sv>(b.accessor());
   if (alpha_res.from_device()) {
-    scale(h, gcxx::blas::device_scalar<Sv>{alpha_res.device_ptr}, x);
+    scale(h, gcxx::device_scalar_view<Sv>{alpha_res.device_ptr}, x);
   } else if (alpha_res.host_value != Sv(1)) {
     scale(h, alpha_res.host_value, x);
   }
