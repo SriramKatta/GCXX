@@ -8,7 +8,9 @@
 #include <utility>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/event/fwd.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
+#include <gcxx/runtime/stream/fwd.hpp>
 #include <gcxx/runtime_backend/backend_event.hpp>
 
 
@@ -23,8 +25,6 @@ template <typename DurationT>
 GCXX_FH auto ConvertDuration(float ms) -> DurationT {
   return std::chrono::duration_cast<DurationT>(milliSec(ms));
 }
-
-class StreamView;
 
 // Non-owning view of a GPU event; user creates and destroys it.
 class EventView {

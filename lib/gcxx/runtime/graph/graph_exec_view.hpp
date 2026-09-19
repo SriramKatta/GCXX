@@ -5,11 +5,11 @@
 #define GCXX_RUNTIME_GRAPH_GRAPH_EXEC_VIEW_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/graph/fwd.hpp>
+#include <gcxx/runtime/stream/fwd.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
-
-class StreamView;
 
 class GraphExecView {
  public:

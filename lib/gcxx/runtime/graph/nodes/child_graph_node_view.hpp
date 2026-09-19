@@ -7,12 +7,10 @@
 #include <gcxx/internal/prologue.hpp>
 
 
+#include <gcxx/runtime/graph/fwd.hpp>
 #include <gcxx/runtime/graph/nodes/graph_node_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
-
-class GraphView;
-class GraphExecView;
 
 class ChildGraphNodeView : public GraphNodeView {
  public:

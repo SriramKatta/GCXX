@@ -12,6 +12,7 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/flags/graph_flags.hpp>
+#include <gcxx/runtime/graph/fwd.hpp>
 #include <gcxx/runtime/graph/graph_params.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
@@ -19,14 +20,6 @@
 #include <gcxx/runtime/graph/graph_nodes.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
-
-
-class GraphView;
-// Result struct for addIfNode with named fields.
-struct IfNodeResult;
-struct IfElseNodeResult;
-struct WhileNodeResult;
-struct SwitchNodeResult;
 
 class GraphView {
  public:

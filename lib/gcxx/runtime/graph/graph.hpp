@@ -6,11 +6,10 @@
 
 #include <gcxx/internal/prologue.hpp>
 
+#include <gcxx/runtime/graph/fwd.hpp>
 #include <gcxx/runtime/graph/graph_view.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
-
-class GraphExec;
 
 class Graph : public GraphView {
   GCXX_FH Graph(deviceGraph_t graph) GCXX_NOEXCEPT : GraphView(graph) {}

@@ -6,14 +6,13 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/runtime/details/type_traits.hpp>
+#include <gcxx/runtime/graph/fwd.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
 // Type-state builder: setGraph() is required and may be called only once;
 // build() refuses to compile otherwise.
 
 GCXX_NAMESPACE_MAIN_BEGIN()
-
-class GraphView;
 
 GCXX_NAMESPACE_DETAILS_BEGIN()
 

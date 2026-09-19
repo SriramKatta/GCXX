@@ -6,19 +6,17 @@
 
 #include <gcxx/internal/prologue.hpp>
 #include <gcxx/macros/template_helper_macros.hpp>
+#include <gcxx/runtime/event/fwd.hpp>
 #include <gcxx/runtime/flags/event_flags.hpp>
 #include <gcxx/runtime/flags/memory_flags.hpp>
 #include <gcxx/runtime/flags/stream_flags.hpp>
+#include <gcxx/runtime/graph/fwd.hpp>
 #include <gcxx/runtime/memory/spans/spans.hpp>
+#include <gcxx/runtime/stream/fwd.hpp>
 #include <gcxx/runtime_backend/backend_handles.hpp>
 #include <gcxx/runtime_backend/backend_stream.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
-class Event;
-class EventView;
-class GraphView;
-class Graph;
-struct CaptureInfo;
 
 class StreamView {
 
