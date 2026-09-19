@@ -27,8 +27,8 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsC::rank() == 2)
 auto symmetric_matrix_rank_k_update(
   BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-  Tri /*triangle*/, const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
-  -> void {
+  Tri /*triangle*/,
+  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   // local alias for easier refrence
   using AVt = TA;

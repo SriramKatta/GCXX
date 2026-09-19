@@ -26,11 +26,10 @@ GCXX_TEMPLATE(class TA, class ExtentsA, class LayoutA, class AccessorA,
               class TC, class ExtentsC, class LayoutC, class AccessorC)
 GCXX_REQUIRES(ExtentsA::rank() == 2 GCXX_AND ExtentsB::rank() ==
               2 GCXX_AND ExtentsC::rank() == 2)
-auto matrix_addition(BlasHandleView h,
-                     const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
-                     const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
-                     const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c)
-  -> void {
+auto matrix_addition(
+  BlasHandleView h, const gcxx::mdspan<TA, ExtentsA, LayoutA, AccessorA>& a,
+  const gcxx::mdspan<TB, ExtentsB, LayoutB, AccessorB>& b,
+  const gcxx::mdspan<TC, ExtentsC, LayoutC, AccessorC>& c) -> void {
 
   // local alias for easier refrence
   using AVt = TA;

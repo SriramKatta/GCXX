@@ -217,8 +217,8 @@ constexpr auto resolve_scaled_alpha(
 // A device factor must be the sole non-unit factor (one backend alpha).
 template <class Sv>
 auto combine_scaled_alpha(alpha_resolution<Sv> total,
-                          const alpha_resolution<Sv>& extra, const char* op)
-  -> alpha_resolution<Sv> {
+                          const alpha_resolution<Sv>& extra,
+                          const char* op) -> alpha_resolution<Sv> {
   const bool incompatible =
     (extra.from_device() &&
      (total.from_device() || total.host_value != Sv(1))) ||

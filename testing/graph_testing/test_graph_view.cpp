@@ -92,7 +92,7 @@ TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
                         .setElementSize<int>()
                         .setWidth(1)
                         .build();
-  auto memsetNode   = graph.addNode(memsetParams);
+  auto memsetNode = graph.addNode(memsetParams);
 
   // Kernel depends on both roots (braced dependency list; the mixed view
   // types slice into GraphNodeView).
@@ -102,7 +102,7 @@ TEST(GraphAddNode, DispatchBuildsAndRunsDiamond) {
                         .setBlockDim(1)
                         .setArgs(dPtr)
                         .build();
-  auto kernelNode   = graph.addNode(kernelParams, {memsetNode, emptyNode});
+  auto kernelNode = graph.addNode(kernelParams, {memsetNode, emptyNode});
 
   // Record a real event after the kernel, then wait on it.
   auto rawEvent = driver::eventCreateWithFlags(
