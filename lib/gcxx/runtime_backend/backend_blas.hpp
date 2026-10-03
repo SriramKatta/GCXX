@@ -22,8 +22,8 @@ GCXX_FH auto blasDestroy(deviceBlasHandle_t handle) -> void {
   GCXX_SAFE_BLAS_CALL(Destroy, "Failed to destroy BLAS handle", handle);
 }
 
-GCXX_FH auto blasSetStream(deviceBlasHandle_t handle,
-                           deviceStream_t stream) -> void {
+GCXX_FH auto blasSetStream(deviceBlasHandle_t handle, deviceStream_t stream)
+  -> void {
   GCXX_SAFE_BLAS_CALL(SetStream, "Failed to set BLAS stream", handle, stream);
 }
 
@@ -61,6 +61,59 @@ GCXX_FH auto blasGetVersion(deviceBlasHandle_t handle) -> int {
   return hipblasVersionMajor * version_scale_major +
          hipblasVersionMinor * version_scale_minor + hipblasVersionPatch;
 #endif
+}
+
+GCXX_FH auto blasSetVector(int n, int elemsize, const void* hostptr,
+                           int hostinc, void* devptr, int devinc) {
+  GCXX_SAFE_BLAS_CALL(SetVector, "Failed to set vector", n, elemsize, hostptr,
+                      hostinc, devptr, devinc);
+}
+
+GCXX_FH auto blasSetVectorAsync(deviceStream_t str, int n, int elemsize,
+                                const void* hostptr, int hostinc, void* devptr,
+                                int devinc) {
+  GCXX_SAFE_BLAS_CALL(SetVectorAsync, "Failed to set vector", n, elemsize,
+                      hostptr, hostinc, devptr, devinc, str);
+}
+
+GCXX_FH auto blasGetVector(int n, int elemsize, const void* devptr, int devinc,
+                           void* hostptr, int hostinc) {
+  GCXX_SAFE_BLAS_CALL(GetVector, "Failed to get vector", n, elemsize, devptr,
+                      devinc, hostptr, hostinc);
+}
+
+GCXX_FH auto blasGetVectorAsync(deviceStream_t str, int n, int elemsize,
+                                const void* devptr, int devinc, void* hostptr,
+                                int hostinc) {
+  GCXX_SAFE_BLAS_CALL(GetVectorAsync, "Failed to get vector", n, elemsize,
+                      devptr, devinc, hostptr, hostinc, str);
+}
+
+GCXX_FH auto blasSetMatrix(int rows, int cols, int elemsize,
+                           const void* hostptr, int hostld, void* devptr,
+                           int devld) {
+  GCXX_SAFE_BLAS_CALL(SetMatrix, "Failed to set matrix", rows, cols, elemsize,
+                      hostptr, hostld, devptr, devld);
+}
+
+GCXX_FH auto blasSetMatrixAsync(deviceStream_t str, int rows, int cols,
+                                int elemsize, const void* hostptr, int hostld,
+                                void* devptr, int devld) {
+  GCXX_SAFE_BLAS_CALL(SetMatrixAsync, "Failed to set matrix", rows, cols,
+                      elemsize, hostptr, hostld, devptr, devld, str);
+}
+
+GCXX_FH auto blasGetMatrix(int rows, int cols, int elemsize, const void* devptr,
+                           int devld, void* hostptr, int hostld) {
+  GCXX_SAFE_BLAS_CALL(GetMatrix, "Failed to get matrix", rows, cols, elemsize,
+                      devptr, devld, hostptr, hostld);
+}
+
+GCXX_FH auto blasGetMatrixAsync(deviceStream_t str, int rows, int cols,
+                                int elemsize, const void* devptr, int devld,
+                                void* hostptr, int hostld) {
+  GCXX_SAFE_BLAS_CALL(GetMatrixAsync, "Failed to get matrix", rows, cols,
+                      elemsize, devptr, devld, hostptr, hostld, str);
 }
 
 GCXX_NAMESPACE_MAIN_DRIVER_END()

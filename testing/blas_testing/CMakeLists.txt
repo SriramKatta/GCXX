@@ -7,7 +7,7 @@ set(SRC_BASE_NAMES
     test_blas_l1
     test_blas_l2
     test_blas_geam_dgmm
-    test_blas_gemm_batched
+    # test_blas_gemm_batched  # disabled with the batched gemm ops (L3.hpp)
     test_blas_l3_symmetric_triangular
     test_blas_device_scalar
 )
