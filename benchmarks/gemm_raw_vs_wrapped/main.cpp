@@ -45,7 +45,7 @@
 
 namespace {
 
-  using gcxx::f32_t;
+  using data_type = gcxx::float32_t;
 
   // mdspan index_type: int32 selects the plain GemmEx entry point (the
   // wrapper picks GemmEx vs GemmEx_64 from this type).
@@ -77,12 +77,12 @@ namespace {
 
   // Deterministic small-magnitude fills, shared by the device upload and
   // the naive host reference in verify_equivalence().
-  constexpr auto elem_a(std::size_t i) -> f32_t {
-    return static_cast<f32_t>(static_cast<int>(i % 13) - 6) / 7.0F;
+  constexpr auto elem_a(std::size_t i) -> data_type {
+    return static_cast<data_type>(static_cast<int>(i % 13) - 6) / 7.0F;
   }
 
-  constexpr auto elem_b(std::size_t i) -> f32_t {
-    return static_cast<f32_t>(static_cast<int>(i % 11) - 5) / 9.0F;
+  constexpr auto elem_b(std::size_t i) -> data_type {
+    return static_cast<data_type>(static_cast<int>(i % 11) - 5) / 9.0F;
   }
 
   // Device buffers + column-major views for one C(m×n) = A(m×k) * B(k×n)
@@ -94,17 +94,17 @@ namespace {
     std::int32_t lda;
     std::int32_t ldb;
     std::int32_t ldc;
-    gcxx::uninit_device_buffer<f32_t> a;
-    gcxx::uninit_device_buffer<f32_t> b;
-    gcxx::uninit_device_buffer<f32_t> c;
-    dmat_left<f32_t, index_t> va;
-    dmat_left<f32_t, index_t> vb;
-    dmat_left<f32_t, index_t> vc;
+    gcxx::uninit_device_buffer<data_type> a;
+    gcxx::uninit_device_buffer<data_type> b;
+    gcxx::uninit_device_buffer<data_type> c;
+    dmat_left<data_type, index_t> va;
+    dmat_left<data_type, index_t> vb;
+    dmat_left<data_type, index_t> vc;
 
     GemmProblem(std::int32_t m_, std::int32_t k_, std::int32_t n_,
-                gcxx::uninit_device_buffer<f32_t> a_,
-                gcxx::uninit_device_buffer<f32_t> b_,
-                gcxx::uninit_device_buffer<f32_t> c_)
+                gcxx::uninit_device_buffer<data_type> a_,
+                gcxx::uninit_device_buffer<data_type> b_,
+                gcxx::uninit_device_buffer<data_type> c_)
         : m(m_),
           k(k_),
           n(n_),
@@ -119,8 +119,8 @@ namespace {
           vc(c.data(), m_, n_) {}
   };
 
-  auto make_gemm(std::int32_t m, std::int32_t k,
-                 std::int32_t n) -> GemmProblem {
+  auto make_gemm(std::int32_t m, std::int32_t k, std::int32_t n)
+    -> GemmProblem {
     auto& env = blas_env();
 
     const auto na = static_cast<std::size_t>(m) * static_cast<std::size_t>(k);
@@ -128,11 +128,14 @@ namespace {
     const auto nc = static_cast<std::size_t>(m) * static_cast<std::size_t>(n);
 
     auto pool = gcxx::device_default_memory_pool(gcxx::DeviceHandle{0});
-    gcxx::uninit_device_buffer<f32_t> da(gcxx::StreamView::Null(), pool, na);
-    gcxx::uninit_device_buffer<f32_t> db(gcxx::StreamView::Null(), pool, nb);
-    gcxx::uninit_device_buffer<f32_t> dc(gcxx::StreamView::Null(), pool, nc);
+    gcxx::uninit_device_buffer<data_type> da(gcxx::StreamView::Null(), pool,
+                                             na);
+    gcxx::uninit_device_buffer<data_type> db(gcxx::StreamView::Null(), pool,
+                                             nb);
+    gcxx::uninit_device_buffer<data_type> dc(gcxx::StreamView::Null(), pool,
+                                             nc);
 
-    std::vector<f32_t> ha(na), hb(nb);
+    std::vector<data_type> ha(na), hb(nb);
     for (std::size_t i = 0; i < na; ++i) {
       ha[i] = elem_a(i);
     }
@@ -149,22 +152,23 @@ namespace {
 
   // The floor: one hand-written GemmEx with every argument spelled out —
   // no guards, no inference, no checks.
-  auto raw_gemm_ex(const GemmProblem& p, const f32_t* alpha,
-                   const f32_t* beta) -> gcxx::driver::deviceBlasStatus_t {
+  auto raw_gemm_ex(const GemmProblem& p, const data_type* alpha,
+                   const data_type* beta) -> gcxx::driver::deviceBlasStatus_t {
     return ::GCXX_BLAS_BACKEND(GemmEx)(
       blas_env().handle.getRawHandle(), gcxx::driver::deviceBlasOpN,
       gcxx::driver::deviceBlasOpN, p.m, p.n, p.k, alpha, p.a.data(),
-      gcxx::blas::cuda_datatype_v<f32_t>, p.lda, p.b.data(),
-      gcxx::blas::cuda_datatype_v<f32_t>, p.ldb, beta,
+      gcxx::blas::cuda_datatype_v<data_type>, p.lda, p.b.data(),
+      gcxx::blas::cuda_datatype_v<data_type>, p.ldb, beta,
       // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast): C is the
       // gemm output; the problem is const but its allocation is written.
-      const_cast<f32_t*>(p.c.data()), gcxx::blas::cuda_datatype_v<f32_t>, p.ldc,
-      gcxx::blas::blas_compute_type_v<f32_t>, GCXX_BLAS_GEMM(DEFAULT));
+      const_cast<data_type*>(p.c.data()),
+      gcxx::blas::cuda_datatype_v<data_type>, p.ldc,
+      gcxx::blas::blas_compute_type_v<data_type>, GCXX_BLAS_GEMM(DEFAULT));
   }
 
   // items/s == FLOP/s for the WithSync and GpuTime variants.
-  auto set_flops_counter(benchmark::State& state,
-                         const GemmProblem& p) -> void {
+  auto set_flops_counter(benchmark::State& state, const GemmProblem& p)
+    -> void {
     bench::set_flops_counter(state, 2.0 * p.m * p.k * p.n);
   }
 
@@ -174,8 +178,8 @@ namespace {
     auto& env    = blas_env();
     const auto n = static_cast<std::int32_t>(state.range(0));
     auto problem = make_gemm(n, n, n);
-    const f32_t alpha{1.0F};
-    const f32_t beta{0.0F};
+    const data_type alpha{1.0F};
+    const data_type beta{0.0F};
     bench::issue_only(state, env.stream, [&] {
       const auto status = raw_gemm_ex(problem, &alpha, &beta);
       benchmark::DoNotOptimize(status);
@@ -198,8 +202,8 @@ namespace {
     auto& env    = blas_env();
     const auto n = static_cast<std::int32_t>(state.range(0));
     auto problem = make_gemm(n, n, n);
-    const f32_t alpha{1.0F};
-    const f32_t beta{0.0F};
+    const data_type alpha{1.0F};
+    const data_type beta{0.0F};
     bench::with_sync(state, env.stream, [&] {
       const auto status = raw_gemm_ex(problem, &alpha, &beta);
       benchmark::DoNotOptimize(status);
@@ -224,8 +228,8 @@ namespace {
     auto& env    = blas_env();
     const auto n = static_cast<std::int32_t>(state.range(0));
     auto problem = make_gemm(n, n, n);
-    const f32_t alpha{1.0F};
-    const f32_t beta{0.0F};
+    const data_type alpha{1.0F};
+    const data_type beta{0.0F};
     bench::gpu_time(state, env.stream, [&] {
       const auto status = raw_gemm_ex(problem, &alpha, &beta);
       benchmark::DoNotOptimize(status);
@@ -256,8 +260,8 @@ namespace {
 
     auto problem = make_gemm(m, k, n);
 
-    const f32_t alpha{1.0F};
-    const f32_t beta{0.0F};
+    const data_type alpha{1.0F};
+    const data_type beta{0.0F};
 
     if (raw_gemm_ex(problem, &alpha, &beta) !=
         gcxx::driver::deviceBlasStatusSuccess) {
@@ -265,20 +269,20 @@ namespace {
       return false;
     }
     env.stream.sync();
-    std::vector<f32_t> c_raw(nc);
+    std::vector<data_type> c_raw(nc);
     gcxx::Copy(env.stream, c_raw, problem.c);
     env.stream.sync();
 
     gcxx::blas::matrix_product(env.handle, problem.va, problem.vb, problem.vc);
     env.stream.sync();
-    std::vector<f32_t> c_wrapped(nc);
+    std::vector<data_type> c_wrapped(nc);
     gcxx::Copy(env.stream, c_wrapped, problem.c);
     env.stream.sync();
 
-    constexpr f32_t tol = 1.0e-4F;
+    constexpr data_type tol = 1.0e-4F;
     for (std::int32_t j = 0; j < n; ++j) {
       for (std::int32_t i = 0; i < m; ++i) {
-        f32_t ref{};
+        data_type ref{};
         for (std::int32_t p = 0; p < k; ++p) {
           ref += elem_a(static_cast<std::size_t>(i + p * m)) *
                  elem_b(static_cast<std::size_t>(p + j * k));
