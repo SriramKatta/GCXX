@@ -28,32 +28,6 @@ struct native_scalar<gcxx::cf64_t> {
 template <class T>
 using native_scalar_t = typename native_scalar<T>::type;
 
-// Compile-time dispatch table: element type -> typed backend symbol address.
-#define GCXX_BLAS_REGISTER_OP(name, S, D, C, Z)               \
-  template <class T>                                          \
-  struct name##_ptr {                                         \
-    static_assert(gcxx::details_::is_always_false_v<T>,       \
-                  "Unsupported BLAS type for " #name "_ptr"); \
-  };                                                          \
-  template <>                                                 \
-  struct name##_ptr<gcxx::f32_t> {                            \
-    static constexpr auto value = &GCXX_BLAS_BACKEND(S);      \
-  };                                                          \
-  template <>                                                 \
-  struct name##_ptr<gcxx::f64_t> {                            \
-    static constexpr auto value = &GCXX_BLAS_BACKEND(D);      \
-  };                                                          \
-  template <>                                                 \
-  struct name##_ptr<gcxx::cf32_t> {                           \
-    static constexpr auto value = &GCXX_BLAS_BACKEND(C);      \
-  };                                                          \
-  template <>                                                 \
-  struct name##_ptr<gcxx::cf64_t> {                           \
-    static constexpr auto value = &GCXX_BLAS_BACKEND(Z);      \
-  };                                                          \
-  template <class T>                                          \
-  inline constexpr auto name##_ptr_v = name##_ptr<T>::value
-
 GCXX_NAMESPACE_MAIN_BLAS_END()
 
 #endif
