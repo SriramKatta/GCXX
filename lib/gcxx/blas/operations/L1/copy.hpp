@@ -43,9 +43,10 @@ auto copy(BlasHandleView h,
                 "copy operands from, to must share a single element type");
 
   // TODO: Wire complex Ccopy/Zcopy into GCXX_BLAS_DISPATCH_TYPED.
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
-                "copy currently supports only f32_t/f64_t element types "
-                "(complex support is a TODO)");
+  static_assert(
+    gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+    "copy currently supports only float32_t/float64_t element types "
+    "(complex support is a TODO)");
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(from, "from");

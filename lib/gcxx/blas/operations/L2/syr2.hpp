@@ -60,9 +60,10 @@ auto symmetric_matrix_rank_2_update(
                 "a single element type");
 
   // TODO: Support complex element types once the C/Z dispatch branches exist.
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
-                "symmetric_matrix_rank_2_update currently supports only "
-                "f32_t/f64_t element types (complex support is a TODO)");
+  static_assert(
+    gcxx::blas::details_::is_supported_blas_element_v<AVt>,
+    "symmetric_matrix_rank_2_update currently supports only "
+    "float32_t/float64_t element types (complex support is a TODO)");
 
   // Alpha comes only from scaled() views on the inputs.
   auto alpha_res = details_::combine_scaled_alpha(

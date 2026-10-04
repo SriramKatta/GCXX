@@ -35,9 +35,10 @@ auto idx_abs_min(BlasHandleView h,
                 "mdspan index_type");
 
   // TODO: Support complex element types once the C/Z dispatch branches exist.
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
-                "idx_abs_min currently supports only f32_t/f64_t element "
-                "types (complex support is a TODO)");
+  static_assert(
+    gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+    "idx_abs_min currently supports only float32_t/float64_t element "
+    "types (complex support is a TODO)");
 
   // Pin host pointer mode for the call (restored on scope exit) so the result
   // lands in the host storage below.
@@ -54,7 +55,7 @@ auto idx_abs_min(BlasHandleView h,
   XIt result{0};
 
   driver::deviceBlasStatus_t status{};
-  if constexpr (std::is_same_v<XVt, gcxx::f32_t>) {
+  if constexpr (std::is_same_v<XVt, gcxx::float32_t>) {
     GCXX_BLAS_DISPATCH_INT64(status, XIt, Isamin, h.getRawHandle(), len_x,
                              x.data_handle(), inc_x, &result);
   } else {

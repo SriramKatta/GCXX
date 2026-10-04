@@ -25,10 +25,19 @@ inline constexpr bool uses_64bit_interface_v =
 // Centralized so widening the accepted element set is a one-line change.
 template <class ElemT>
 inline constexpr bool is_supported_blas_element_v =
-  std::is_same_v<ElemT, gcxx::f32_t> || std::is_same_v<ElemT, gcxx::f64_t>;
+  std::is_same_v<ElemT, gcxx::float32_t> ||
+  std::is_same_v<ElemT, gcxx::float64_t>;
 
 
 GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
+
+// Static element-type gate shared by the BLAS entry points; keeps the
+// "supported element set" policy in one place.
+#define GCXX_BLAS_ELEMENT_CHECK(ELEM_TYPE, OP_NAME)                           \
+  static_assert(gcxx::blas::details_::is_supported_blas_element_v<ELEM_TYPE>, \
+                OP_NAME                                                       \
+                " currently supports only float32_t/float64_t element "       \
+                "types (complex support is a TODO)")
 
 // For ops with no type-erased Ex entry point (e.g. cublasGemmEx/AxpyEx).
 #define GCXX_BLAS_DISPATCH_INT64(OUT, IDX_TYPE, FN, ...)                    \
@@ -49,22 +58,23 @@ GCXX_NAMESPACE_MAIN_BLAS_DETAILS_END()
 // General typed routines (gemv, ger, symv, ...)
 #define GCXX_BLAS_DISPATCH_TYPED(OUT, IDX_TYPE, ELEM_TYPE, OP, ...)           \
   do {                                                                        \
-    if constexpr (std::is_same_v<ELEM_TYPE, gcxx::f32_t>) {                   \
+    if constexpr (std::is_same_v<ELEM_TYPE, gcxx::float32_t>) {               \
       if constexpr (gcxx::blas::details_::uses_64bit_interface_v<IDX_TYPE>) { \
         OUT = ::GCXX_BLAS_TYPED_FN_64(S, OP)(__VA_ARGS__);                    \
       } else {                                                                \
         OUT = ::GCXX_BLAS_TYPED_FN(S, OP)(__VA_ARGS__);                       \
       }                                                                       \
-    } else if constexpr (std::is_same_v<ELEM_TYPE, gcxx::f64_t>) {            \
+    } else if constexpr (std::is_same_v<ELEM_TYPE, gcxx::float64_t>) {        \
       if constexpr (gcxx::blas::details_::uses_64bit_interface_v<IDX_TYPE>) { \
         OUT = ::GCXX_BLAS_TYPED_FN_64(D, OP)(__VA_ARGS__);                    \
       } else {                                                                \
         OUT = ::GCXX_BLAS_TYPED_FN(D, OP)(__VA_ARGS__);                       \
       }                                                                       \
     } else {                                                                  \
-      static_assert(gcxx::details_::is_always_false_v<ELEM_TYPE>,             \
-                    "GCXX_BLAS_DISPATCH_TYPED: unsupported element type "     \
-                    "(f32_t/f64_t only until C/Z branches are added)");       \
+      static_assert(                                                          \
+        gcxx::details_::is_always_false_v<ELEM_TYPE>,                         \
+        "GCXX_BLAS_DISPATCH_TYPED: unsupported element type "                 \
+        "(float32_t/float64_t only until C/Z branches are added)");           \
     }                                                                         \
   } while (0)
 

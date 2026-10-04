@@ -49,10 +49,12 @@ auto apply_modified_givens_rotation(
                 "apply_modified_givens_rotation operands x, y, param must "
                 "share a single element type");
 
-  // rotm has no complex entry point; f32_t/f64_t are the whole backend set.
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
-                "apply_modified_givens_rotation supports only f32_t/f64_t "
-                "element types");
+  // rotm has no complex entry point; float32_t/float64_t are the whole backend
+  // set.
+  static_assert(
+    gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+    "apply_modified_givens_rotation supports only float32_t/float64_t "
+    "element types");
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(x, "x");

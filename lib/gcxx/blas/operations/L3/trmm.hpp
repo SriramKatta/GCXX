@@ -64,8 +64,8 @@ auto triangular_matrix_product(
 
   // TODO: Support complex element types once the C/Z dispatch branches exist.
   static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
-                "triangular_matrix_product currently supports only f32_t/"
-                "f64_t element types (complex support is a TODO)");
+                "triangular_matrix_product currently supports only float32_t/"
+                "float64_t element types (complex support is a TODO)");
 
   // Alpha comes only from scaled() views on the inputs.
   auto alpha_res = details_::combine_scaled_alpha(

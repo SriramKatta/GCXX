@@ -19,7 +19,7 @@ GCXX_REQUIRES(true)
 auto setup_modified_givens_rotation(T& d1, T& d2, T& x1, const T& y1,
                                     std::array<T, 5>& param) -> void {
   static_assert(
-    std::is_same_v<T, gcxx::f32_t> || std::is_same_v<T, gcxx::f64_t>,
+    std::is_same_v<T, gcxx::float32_t> || std::is_same_v<T, gcxx::float64_t>,
     "setup_modified_givens_rotation currently supports only "
     "float/double element types");
 

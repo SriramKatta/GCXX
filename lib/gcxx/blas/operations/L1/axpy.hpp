@@ -53,9 +53,10 @@ auto axpy(BlasHandleView h, const S& alpha,
                 "axpy alpha value type must match the operands' element "
                 "type");
 
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<XVt>,
-                "axpy currently supports only f32_t/f64_t element types "
-                "(complex support is a TODO)");
+  static_assert(
+    gcxx::blas::details_::is_supported_blas_element_v<XVt>,
+    "axpy currently supports only float32_t/float64_t element types "
+    "(complex support is a TODO)");
 
   // Select the pointer mode for this call and restore the prior mode on scope
   // exit; alpha is read from the host parameter or the device pointer carried

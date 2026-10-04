@@ -50,9 +50,10 @@ auto dgmm(BlasHandleView h, Side side,
                 "dgmm operands A, x, C must share a single element type");
 
   // TODO: Wire complex Cdgmm/Zdgmm into GCXX_BLAS_DISPATCH_TYPED.
-  static_assert(gcxx::blas::details_::is_supported_blas_element_v<AVt>,
-                "dgmm currently supports only f32_t/f64_t element types "
-                "(complex support is a TODO)");
+  static_assert(
+    gcxx::blas::details_::is_supported_blas_element_v<AVt>,
+    "dgmm currently supports only float32_t/float64_t element types "
+    "(complex support is a TODO)");
 
   // run-time device-memory probe (no-op unless checks are enabled)
   details_::validate_device_view(a, "A");
