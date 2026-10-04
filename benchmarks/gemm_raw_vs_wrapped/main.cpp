@@ -119,8 +119,8 @@ namespace {
           vc(c.data(), m_, n_) {}
   };
 
-  auto make_gemm(std::int32_t m, std::int32_t k, std::int32_t n)
-    -> GemmProblem {
+  auto make_gemm(std::int32_t m, std::int32_t k,
+                 std::int32_t n) -> GemmProblem {
     auto& env = blas_env();
 
     const auto na = static_cast<std::size_t>(m) * static_cast<std::size_t>(k);
@@ -167,8 +167,8 @@ namespace {
   }
 
   // items/s == FLOP/s for the WithSync and GpuTime variants.
-  auto set_flops_counter(benchmark::State& state, const GemmProblem& p)
-    -> void {
+  auto set_flops_counter(benchmark::State& state,
+                         const GemmProblem& p) -> void {
     bench::set_flops_counter(state, 2.0 * p.m * p.k * p.n);
   }
 

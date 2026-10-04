@@ -22,8 +22,8 @@ GCXX_FH auto blasDestroy(deviceBlasHandle_t handle) -> void {
   GCXX_SAFE_BLAS_CALL(Destroy, "Failed to destroy BLAS handle", handle);
 }
 
-GCXX_FH auto blasSetStream(deviceBlasHandle_t handle, deviceStream_t stream)
-  -> void {
+GCXX_FH auto blasSetStream(deviceBlasHandle_t handle,
+                           deviceStream_t stream) -> void {
   GCXX_SAFE_BLAS_CALL(SetStream, "Failed to set BLAS stream", handle, stream);
 }
 

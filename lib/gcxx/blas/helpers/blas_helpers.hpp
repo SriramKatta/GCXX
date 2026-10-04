@@ -249,10 +249,9 @@ namespace details_ {
 GCXX_TEMPLATE(class TH, class ExtentsH, class LayoutH, class AccessorH,
               class TD, class ExtentsD, class LayoutD, class AccessorD)
 GCXX_REQUIRES(ExtentsH::rank() == 1 GCXX_AND ExtentsD::rank() == 1)
-auto set_vector(BlasHandleView h,
-                const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host,
-                const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev)
-  -> void {
+auto set_vector(
+  BlasHandleView h, const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host,
+  const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev) -> void {
   details_::stage_vector_core</*ToDevice*/ true, /*Async*/ false>(h, host, dev);
 }
 
@@ -261,10 +260,9 @@ auto set_vector(BlasHandleView h,
 GCXX_TEMPLATE(class TH, class ExtentsH, class LayoutH, class AccessorH,
               class TD, class ExtentsD, class LayoutD, class AccessorD)
 GCXX_REQUIRES(ExtentsH::rank() == 1 GCXX_AND ExtentsD::rank() == 1)
-auto get_vector(BlasHandleView h,
-                const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev,
-                const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host)
-  -> void {
+auto get_vector(
+  BlasHandleView h, const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev,
+  const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host) -> void {
   details_::stage_vector_core</*ToDevice*/ false, /*Async*/ false>(h, host,
                                                                    dev);
 }
@@ -299,10 +297,9 @@ auto get_vector_async(
 GCXX_TEMPLATE(class TH, class ExtentsH, class LayoutH, class AccessorH,
               class TD, class ExtentsD, class LayoutD, class AccessorD)
 GCXX_REQUIRES(ExtentsH::rank() == 2 GCXX_AND ExtentsD::rank() == 2)
-auto set_matrix(BlasHandleView h,
-                const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host,
-                const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev)
-  -> void {
+auto set_matrix(
+  BlasHandleView h, const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host,
+  const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev) -> void {
   details_::stage_matrix_core</*ToDevice*/ true, /*Async*/ false>(h, host, dev);
 }
 
@@ -312,10 +309,9 @@ auto set_matrix(BlasHandleView h,
 GCXX_TEMPLATE(class TH, class ExtentsH, class LayoutH, class AccessorH,
               class TD, class ExtentsD, class LayoutD, class AccessorD)
 GCXX_REQUIRES(ExtentsH::rank() == 2 GCXX_AND ExtentsD::rank() == 2)
-auto get_matrix(BlasHandleView h,
-                const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev,
-                const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host)
-  -> void {
+auto get_matrix(
+  BlasHandleView h, const gcxx::mdspan<TD, ExtentsD, LayoutD, AccessorD>& dev,
+  const gcxx::mdspan<TH, ExtentsH, LayoutH, AccessorH>& host) -> void {
   details_::stage_matrix_core</*ToDevice*/ false, /*Async*/ false>(h, host,
                                                                    dev);
 }
