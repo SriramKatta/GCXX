@@ -8,17 +8,14 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 
-/// Tag type selecting lazy (no-allocation) buffer construction.
 struct no_init_t {
   explicit no_init_t() = default;
 };
 
-/// Tag instance for lazy buffer construction.
+// Tag instance for lazy buffer construction.
 inline constexpr no_init_t no_init{};
 
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

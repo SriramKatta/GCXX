@@ -5,23 +5,23 @@
 #define GCXX_RUNTIME_GRAPH_GRAPH_EXEC_VIEW_HPP_
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime/graph/fwd.hpp>
+#include <gcxx/runtime/stream/fwd.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-class StreamView;
-
 class GraphExecView {
  public:
   using deviceGraphExec_t = driver::deviceGraphExec_t;
+  using raw_handle_type   = driver::deviceGraphExec_t;
 
   GCXX_FHC GraphExecView() = default;
   GCXX_FHC GraphExecView(deviceGraphExec_t rawExec);
-  GCXX_FHC auto getRawExec() const -> deviceGraphExec_t;
-  GCXX_FHC operator deviceGraphExec_t() const GCXX_NOEXCEPT;
+  GCXX_FHC auto getRawHandle() const -> deviceGraphExec_t;
 
-  GCXX_FH auto Launch(const StreamView& stream) const -> void;
-  GCXX_FH auto Upload(const StreamView& stream) const -> void;
+  GCXX_FH auto launch(const StreamView& stream) const -> void;
+  GCXX_FH auto upload(const StreamView& stream) const -> void;
 
 
  protected:

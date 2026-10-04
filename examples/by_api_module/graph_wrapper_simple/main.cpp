@@ -53,50 +53,50 @@ void stream_capture() {
   gcxx::Stream StreamforGraph;
 
   if constexpr (with_graph) {
-    stream1.BeginCapture(gcxx::flags::streamCaptureMode::Global);
+    stream1.beginCapture(gcxx::flags::streamCaptureMode::Global);
   } else {
-    start.RecordInStream();
+    start.recordInStream();
   }
 
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_A);
-  eve_after_A.RecordInStream(stream1);
+  eve_after_A.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_B);
-  eve_after_B.RecordInStream(stream1);
+  eve_after_B.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_C);
 
 
-  stream2.WaitOnEvent(eve_after_B);
+  stream2.waitOnEvent(eve_after_B);
   gcxx::launch::Kernel(stream2, {1}, {1}, 0, kern_D);
-  eve_after_D.RecordInStream(stream2);
+  eve_after_D.recordInStream(stream2);
 
-  stream1.WaitOnEvent(eve_after_D);
+  stream1.waitOnEvent(eve_after_D);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_E);
-  // eve_after_E.RecordInStream(stream1);
+  // eve_after_E.recordInStream(stream1);
 
-  stream3.WaitOnEvent(eve_after_A);
+  stream3.waitOnEvent(eve_after_A);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_X);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_Y);
-  eve_after_Y.RecordInStream(stream3);
+  eve_after_Y.recordInStream(stream3);
 
-  // stream1.WaitOnEvent(eve_after_E);
-  stream1.WaitOnEvent(eve_after_Y);
+  // stream1.waitOnEvent(eve_after_E);
+  stream1.waitOnEvent(eve_after_Y);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_F);
 
 
   if constexpr (with_graph) {
-    auto gp = stream1.EndCapture();
-    gp.SaveDotfile("./test_stream_capture.dot",
+    auto gp = stream1.endCapture();
+    gp.saveDotfile("./test_stream_capture.dot",
                    gcxx::flags::graphDebugDot::Verbose);
-    auto exec = gp.Instantiate();
-    start.RecordInStream();
-    exec.Launch(StreamforGraph);
-    stop.RecordInStream();
+    auto exec = gp.instantiate();
+    start.recordInStream();
+    exec.launch(StreamforGraph);
+    stop.recordInStream();
   } else {
-    stop.RecordInStream();
-    gcxx::Device::Synchronize();
+    stop.recordInStream();
+    gcxx::Device::sync();
   }
 
-  auto dur = stop.ElapsedTimeSince(start);
+  auto dur = stop.elapsedTimeSince(start);
 
   if constexpr (with_graph) {
     fmt::print("in graph mode elapsed time  : {}\n", dur);
@@ -119,38 +119,38 @@ void stream_capture_tograph() {
 
   gcxx::Graph graph;
 
-  stream1.BeginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
+  stream1.beginCaptureToGraph(graph, gcxx::flags::streamCaptureMode::Global);
 
 
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_A);
-  eve_after_A.RecordInStream(stream1);
+  eve_after_A.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_B);
-  eve_after_B.RecordInStream(stream1);
+  eve_after_B.recordInStream(stream1);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_C);
 
 
-  stream2.WaitOnEvent(eve_after_B);
+  stream2.waitOnEvent(eve_after_B);
   gcxx::launch::Kernel(stream2, {1}, {1}, 0, kern_D);
-  eve_after_D.RecordInStream(stream2);
+  eve_after_D.recordInStream(stream2);
 
-  stream1.WaitOnEvent(eve_after_D);
+  stream1.waitOnEvent(eve_after_D);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_E);
-  // eve_after_E.RecordInStream(stream1);
+  // eve_after_E.recordInStream(stream1);
 
-  stream3.WaitOnEvent(eve_after_A);
+  stream3.waitOnEvent(eve_after_A);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_X);
   gcxx::launch::Kernel(stream3, {1}, {1}, 0, kern_Y);
-  eve_after_Y.RecordInStream(stream3);
+  eve_after_Y.recordInStream(stream3);
 
-  // stream1.WaitOnEvent(eve_after_E);
-  stream1.WaitOnEvent(eve_after_Y);
+  // stream1.waitOnEvent(eve_after_E);
+  stream1.waitOnEvent(eve_after_Y);
   gcxx::launch::Kernel(stream1, {1}, {1}, 0, kern_F);
 
-  stream1.EndCaptureToGraph(graph);
-  graph.SaveDotfile("./test_stream_capture_to.dot",
+  stream1.endCaptureToGraph(graph);
+  graph.saveDotfile("./test_stream_capture_to.dot",
                     gcxx::flags::graphDebugDot::KernelNodeParams);
-  auto exec = graph.Instantiate();
-  exec.Launch(StreamforGraph);
+  auto exec = graph.instantiate();
+  exec.launch(StreamforGraph);
 }
 
 void manual_graph_build() {
@@ -158,46 +158,59 @@ void manual_graph_build() {
 
   gcxx::Stream StreamforGraph;
 
-  std::vector<gcxx::GraphView::deviceGraphNode_t> deps;
-  deps.reserve(2);
+  auto KA = gcxx::KernelParamsBuilder()
+              .setKernel(kern_A)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KB = gcxx::KernelParamsBuilder()
+              .setKernel(kern_B)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KC = gcxx::KernelParamsBuilder()
+              .setKernel(kern_C)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KD = gcxx::KernelParamsBuilder()
+              .setKernel(kern_D)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KE = gcxx::KernelParamsBuilder()
+              .setKernel(kern_E)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KF = gcxx::KernelParamsBuilder()
+              .setKernel(kern_F)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KX = gcxx::KernelParamsBuilder()
+              .setKernel(kern_X)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
+  auto KY = gcxx::KernelParamsBuilder()
+              .setKernel(kern_Y)
+              .setGridDim(1)
+              .setBlockDim(1)
+              .build();
 
-  auto KA = gcxx::KernelParamsBuilder().setKernel(kern_A).build<0>();
-  auto KB = gcxx::KernelParamsBuilder().setKernel(kern_B).build<0>();
-  auto KC = gcxx::KernelParamsBuilder().setKernel(kern_C).build<0>();
-  auto KD = gcxx::KernelParamsBuilder().setKernel(kern_D).build<0>();
-  auto KE = gcxx::KernelParamsBuilder().setKernel(kern_E).build<0>();
-  auto KF = gcxx::KernelParamsBuilder().setKernel(kern_F).build<0>();
-  auto KX = gcxx::KernelParamsBuilder().setKernel(kern_X).build<0>();
-  auto KY = gcxx::KernelParamsBuilder().setKernel(kern_Y).build<0>();
+  auto KAnode = graph.addNode(KA);
+  auto KBnode = graph.addNode(KB, {KAnode});
+  auto KXnode = graph.addNode(KX, {KAnode});
+  auto KCnode = graph.addNode(KC, {KBnode});
+  auto KDnode = graph.addNode(KD, {KBnode});
+  auto KEnode = graph.addNode(KE, {KCnode, KDnode});
+  auto KYnode = graph.addNode(KY, {KXnode});
+  std::ignore = graph.addNode(KF, {KEnode, KYnode});
 
-  auto KAnode = graph.AddKernelNode(&(KA.getRawParams()));
-
-  deps.push_back(KAnode);
-  auto KBnode = graph.AddKernelNode(KB, deps);
-  auto KXnode = graph.AddKernelNode(KX, deps);
-
-  deps.clear();
-  deps.push_back(KBnode);
-  auto KCnode = graph.AddKernelNode(KC, deps);
-  auto KDnode = graph.AddKernelNode(KD, deps);
-
-  deps.clear();
-  deps.push_back(KCnode);
-  deps.push_back(KDnode);
-  auto KEnode = graph.AddKernelNode(KE, deps);
-
-  deps.clear();
-  deps.push_back(KXnode);
-  auto KYnode = graph.AddKernelNode(KY, deps);
-
-  deps.clear();
-  deps.push_back(KEnode);
-  deps.push_back(KYnode);
-  auto KFnode = graph.AddKernelNode(KF, deps);
-
-  graph.SaveDotfile("./test_manual.dot", gcxx::flags::graphDebugDot::Verbose);
-  auto exec = graph.Instantiate();
-  exec.Launch(StreamforGraph);
+  graph.saveDotfile("./test_manual.dot", gcxx::flags::graphDebugDot::Verbose);
+  auto exec = graph.instantiate();
+  exec.launch(StreamforGraph);
 }
 
 int main(int argc, char const* argv[]) {

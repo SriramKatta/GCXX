@@ -11,10 +11,10 @@
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
 
 // Constructor: takes a CUDA stream
-GCXX_FH EnsureCurrentDevice::EnsureCurrentDevice(device_t new_dev) {
-  // Get current device
-  m_old_device = driver::deviceGet();
-  m_changed    = (m_old_device != new_dev);
+GCXX_FH EnsureCurrentDevice::EnsureCurrentDevice(device_t new_dev)
+    // Get current device
+    : m_old_device(driver::deviceGet()), m_changed(false) {
+  m_changed = (m_old_device != new_dev);
   driver::deviceSet(new_dev);
 }
 

@@ -1,21 +1,19 @@
 {
-  "name": "GCXX NVHPC 25.11 CUDA 13.0 (GCC 13)",
+  "name": "nvhpc25.11-cuda13.0-gcc13",
   "build": {
     "dockerfile": "../Dockerfile",
     "context": ".",
     "args": {
       "BASE_IMAGE": "nvcr.io/nvidia/nvhpc:25.11-devel-cuda13.0-ubuntu24.04",
       "GCC_VERSION": "13",
-      "CONTAINER_NAME": "gcxx-nvhpc25.11-cuda13.0-gcc13"
+      "CONTAINER_NAME": "nvhpc25.11-cuda13.0-gcc13"
     }
   },
   "mounts": [
     "source=${localEnv:HOME},target=/host-home,type=bind"
   ],
   "runArgs": [
-    "--init",
-    "--name",
-    "nvhpc-25.11cuda13.0-devel-gcc13"
+    "--init"
   ],
   "hostRequirements": {
     "gpu": "optional"
@@ -24,7 +22,7 @@
     "CMAKE_GENERATOR": "Ninja"
   },
   "remoteUser": "vscode",
-  "workspaceFolder": "/workspaces/GCXX",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "customizations": {
     "vscode": {
       "extensions": [

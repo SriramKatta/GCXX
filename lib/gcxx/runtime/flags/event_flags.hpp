@@ -16,13 +16,7 @@
 
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
-/**
- * @enum eventCreate
- * @brief Flags for controlling GPU event creation behavior.
- *
- * These flags specify how an event should be created, including synchronization
- * behavior, timing capabilities, and inter-process sharing.
- */
+// Flags controlling event creation (sync behavior, timing, interprocess).
 enum class eventCreate : details_::flag_t {
   None = GCXX_RUNTIME_BACKEND(EventDefault), /**< Default event creation. */
   blockingSync =
@@ -37,12 +31,6 @@ enum class eventCreate : details_::flag_t {
                                                  (timing disabled). */
 };
 
-/**
- * @brief Bitwise OR operator for combining eventCreate flags.
- * @param lhs Left-hand side eventCreate flag.
- * @param rhs Right-hand side eventCreate flag.
- * @return Combined eventCreate flags.
- */
 inline auto operator|(const eventCreate& lhs,
                       const eventCreate& rhs) -> eventCreate {
   return static_cast<eventCreate>(static_cast<details_::flag_t>(lhs) |
@@ -50,12 +38,7 @@ inline auto operator|(const eventCreate& lhs,
 }
 
 
-/**
- * @enum eventRecord
- * @brief Flags for controlling event recording behavior.
- *
- * These flags specify how an event should be recorded in a stream.
- */
+// Flags controlling how an event is recorded in a stream.
 enum class eventRecord : details_::flag_t {
   None = GCXX_RUNTIME_BACKEND(EventRecordDefault),      /**< Default recording
                                                            behavior. */
@@ -63,12 +46,7 @@ enum class eventRecord : details_::flag_t {
                                                            synchronization. */
 };
 
-/**
- * @enum eventWait
- * @brief Flags for controlling event wait behavior.
- *
- * These flags specify how a stream should wait on an event.
- */
+// Flags controlling how a stream waits on an event.
 enum class eventWait : details_::flag_t {
   None = GCXX_RUNTIME_BACKEND(EventWaitDefault), /**< Default wait behavior. */
   external =

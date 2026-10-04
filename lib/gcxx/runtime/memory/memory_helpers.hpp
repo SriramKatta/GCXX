@@ -9,7 +9,6 @@
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-GCXX_NAMESPACE_MEMORY_BEGIN()
 using devicePitchedPtr = driver::devicePitchedPtr;
 using devicePos        = driver::devicePos;
 using deviceExtent     = driver::deviceExtent;
@@ -31,7 +30,6 @@ GCXX_FH auto makeExtent(size_t xSize = 1, size_t ySize = 1,
   return GCXX_DIRECT_BACKEND_ALT(make_cudaExtent, make_hipExtent)(
     xSize * sizeof(VT), ySize, zSize);
 }
-GCXX_NAMESPACE_MEMORY_END()
 
 GCXX_NAMESPACE_MAIN_END()
 

@@ -23,8 +23,8 @@ GCXX_FH auto ChildGraphNodeView::getGraph() -> GraphView {
 
 GCXX_FH auto ChildGraphNodeView::setParams(GraphExecView exec,
                                            GraphView graph) -> void {
-  driver::graphExecChildGraphNodeSetParams(exec.getRawExec(), m_node,
-                                           graph.getRawGraph());
+  driver::graphExecChildGraphNodeSetParams(exec.getRawHandle(), m_node,
+                                           graph.getRawHandle());
 }
 
 GCXX_NAMESPACE_MAIN_END()

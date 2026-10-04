@@ -9,8 +9,7 @@
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
 enum class graphCreate : details_::flag_t {
-  None = 0  // as per cuda decumentation they may make new flags in future so
-            // for now just set this
+  None = 0  // Per cuda docs new flags may appear later; only 0 for now.
 };
 
 enum class graphNodeType {

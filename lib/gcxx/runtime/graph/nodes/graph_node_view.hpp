@@ -7,25 +7,20 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/flags/graph_flags.hpp>
+#include <gcxx/runtime/graph/fwd.hpp>
 #include <gcxx/runtime_backend/backend_graph.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN()
 
-class GraphView;
-class GraphExecView;
-
-// TODO : needs diffrent specilaization for memallocnode, memfreenode ..... and
-// have the set* and get* menber funtions that can be speciliazed to set the
-// appropriate params like
-
 class GraphNodeView {
  public:
   using deviceGraphNode_t = driver::deviceGraphNode_t;
+  using raw_handle_type   = driver::deviceGraphNode_t;
 
   GCXX_FHC GraphNodeView(deviceGraphNode_t node) : m_node(node) {}
 
-  GCXX_FHC auto getRawNode() -> deviceGraphNode_t { return m_node; }
+  GCXX_FHC auto getRawHandle() const -> deviceGraphNode_t { return m_node; }
 
   GCXX_FH auto getContainingGraph() -> GraphView;
 

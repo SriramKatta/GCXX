@@ -8,7 +8,6 @@
 #include <gcxx/internal/prologue.hpp>
 
 #include <gcxx/runtime/device/device_handle.hpp>
-#include <gcxx/runtime/memory/mempool/mempool_view.hpp>
 
 
 GCXX_NAMESPACE_MAIN_BEGIN()
@@ -28,7 +27,11 @@ GCXX_FH auto Device::count() -> int {
   return num_dev;
 }
 
-GCXX_FH auto Device::Synchronize() -> void {
+GCXX_FH auto Device::available() -> bool {
+  return driver::deviceAvailable();
+}
+
+GCXX_FH auto Device::sync() -> void {
   driver::deviceSynchronize();
 }
 
@@ -38,41 +41,19 @@ GCXX_FH auto Device::getDeviceProp() -> driver::deviceProp_t {
   return handle;
 }
 
-GCXX_FH auto Device::getAttribute(const flags::deviceAttribute& attr) -> int {
-  auto deviceId_ = get().id();
-  const auto val = driver::deviceGetAttribute(
-    static_cast<ATTRIBUTE_BACKEND_TYPE>(attr), deviceId_);
-  return val;
+template <typename Attr>
+GCXX_FH auto Device::attribute(Attr attr) -> typename Attr::type {
+  return attr(get().id());
 }
 
-GCXX_FH
-auto Device::getLimit(const flags::deviceLimit& limattr) -> std::size_t {
-  std::size_t pval =
-    driver::deviceGetLimit(static_cast<LIMIT_BACKEND_TYPE>(limattr));
-  return pval;
+template <typename Lim>
+GCXX_FH auto Device::limit(Lim lim) -> typename Lim::type {
+  return lim();
 }
 
-GCXX_FH
-auto Device::setLimit(const flags::deviceLimit& limattr,
-                      std::size_t limval) -> void {
-  driver::deviceSetLimit(static_cast<LIMIT_BACKEND_TYPE>(limattr), limval);
-}
-
-GCXX_FH auto Device::GetDefaultMemPool() -> MemPoolView {
-  auto deviceId_ = get().id();
-  auto pool      = driver::deviceGetDefaultMemoryPool(deviceId_);
-  return {pool};
-}
-
-GCXX_FH auto Device::SetMemPool(const MemPoolView& pool) -> void {
-  auto deviceId_ = get().id();
-  driver::deviceSetMemPool(deviceId_, pool.getRawMemPool());
-}
-
-GCXX_FH auto Device::GetMemPool() -> MemPoolView {
-  auto deviceId_ = get().id();
-  auto pool      = driver::deviceGetMemPool(deviceId_);
-  return {pool};
+template <typename Lim>
+GCXX_FH auto Device::set_limit(Lim /*lim*/, typename Lim::type value) -> void {
+  Lim::set(value);
 }
 
 GCXX_NAMESPACE_MAIN_END()

@@ -6,7 +6,11 @@
 // clang-format off
 #include <gcxx/internal/prologue.hpp>
 
+// section for functional
+#include <gcxx/functional/functional.hpp>
+
 // section for types
+#include <gcxx/types/scalar_types.hpp>
 #include <gcxx/types/shared_mem.hpp>
 #include <gcxx/types/vector_types.hpp>
 #include <gcxx/types/vector_types_op.hpp>
@@ -30,6 +34,12 @@
 
 // section for memory API
 #include <gcxx/runtime/memory.hpp>
+
+// section for iterators
+#include <gcxx/iterators/heterogeneous_iterator.hpp>
+#include <gcxx/iterators/iterator_traits.hpp>
+#include <gcxx/iterators/reverse_iterator.hpp>
+#include <gcxx/iterators/stride_iterator.hpp>
 
 // clang-format on
 #endif

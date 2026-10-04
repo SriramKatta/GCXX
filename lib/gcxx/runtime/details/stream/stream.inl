@@ -16,8 +16,7 @@ GCXX_FH Stream::Stream(const flags::streamType createFlag,
     return;
   }
   m_stream = driver::streamCreateWithPriority(
-    static_cast<details_::flag_t>(createFlag),
-    -static_cast<details_::flag_t>(priorityFlag));
+    static_cast<details_::flag_t>(createFlag), -static_cast<int>(priorityFlag));
 }
 
 GCXX_FH auto Stream::operator=(Stream&& other) GCXX_NOEXCEPT -> Stream& {
@@ -33,7 +32,7 @@ GCXX_FH auto Stream::destroy() -> void {
   // similar behaviour
 #if GCXX_HIP_MODE()
   if (!isInvalidStream()) {
-    Synchronize();
+    sync();
   }
 #endif
 
@@ -51,7 +50,7 @@ GCXX_FH Stream::~Stream() {
   this->destroy();
 }
 
-GCXX_FH auto Stream::Release() GCXX_NOEXCEPT -> StreamView {
+GCXX_FH auto Stream::release() GCXX_NOEXCEPT -> StreamView {
   auto oldStream = m_stream;
   m_stream       = driver::INVALID_STREAM;
   return StreamView(oldStream);

@@ -24,15 +24,15 @@ void checkdata(const gcxx::span<VT>& h_a, VT checkval) {
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
-  str.Synchronize();
-  auto kernelstart = str.RecordEvent();
+  str.sync();
+  auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.RecordEvent();
-  str.Synchronize();
+  auto kernelend = str.recordEvent();
+  str.sync();
   float kerneltime =
-    (kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart)).count();
+    (kernelend.elapsedTimeSince<gcxx::Sec>(kernelstart)).count();
   return kerneltime;
 }
 
@@ -41,23 +41,31 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  auto h_a = gcxx::memory::host_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_host_resource{}, arg.N);
-  auto d_a = gcxx::memory::device_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_device_resource{}, arg.N);
+
+  auto devhand = gcxx::Device::get();
+
+  // Non-blocking stream shared by every pool allocation, copy, and kernel.
+  auto str = gcxx::Stream(gcxx::flags::streamType::NoSyncWithNull);
+
+  auto device_pool = gcxx::device_default_memory_pool(devhand);
+  auto pinned_pool = gcxx::pinned_default_memory_pool();
+
+  auto d_a = gcxx::device_buffer<datatype>(str, device_pool, arg.N);
+  auto h_a = gcxx::host_buffer<datatype>(str, pinned_pool, arg.N);
 
 
   gcxx::span h_a_span(h_a);
   gcxx::span d_a_span(d_a);
 
 
+  // h_a is host (pinned) memory — zero it with a host memset. gcxx::Memset is
+  // cudaMemsetAsync and only accepts device pointers, so it would fail here
+  // with cudaErrorInvalidValue.
   std::memset(h_a_span.data(), 0, h_a_span.size_bytes());
 
-  gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
-
-  auto H2Dstart = str.RecordEvent();
-  gcxx::memory::Copy(str, d_a_span, h_a_span);
-  auto H2Dend = str.RecordEvent();
+  auto H2Dstart = str.recordEvent();
+  gcxx::Copy(str, d_a_span, h_a_span);
+  auto H2Dend = str.recordEvent();
 
   auto scalar_kern_time =
     time_measure(str, arg, d_a_span, launch_scalar_kernel<datatype>);
@@ -67,17 +75,17 @@ int main(int argc, char** argv) {
     time_measure(str, arg, d_a_span, launch_vec4_kernel<datatype>);
 
 
-  auto D2Hstart = str.RecordEvent();
-  gcxx::memory::Copy(str, h_a_span, d_a_span);
-  auto D2Hend = str.RecordEvent();
+  auto D2Hstart = str.recordEvent();
+  gcxx::Copy(str, h_a_span, d_a_span);
+  auto D2Hend = str.recordEvent();
 
-  D2Hend.Synchronize();
+  D2Hend.sync();
 
   checkdata(h_a_span, static_cast<datatype>(arg.rep * 3));
 
-  auto Dtohtime = (D2Hend.ElapsedTimeSince<gcxx::sec>(D2Hstart)).count();
+  auto Dtohtime = (D2Hend.elapsedTimeSince<gcxx::Sec>(D2Hstart)).count();
 
-  auto HtoDtime = (H2Dend.ElapsedTimeSince<gcxx::sec>(H2Dstart)).count();
+  auto HtoDtime = (H2Dend.elapsedTimeSince<gcxx::Sec>(H2Dstart)).count();
 
   auto arraySizeinGbytes = static_cast<float>(arg.N * sizeof(datatype)) / kGiga;
   auto transfer_size =
