@@ -4,6 +4,8 @@
 #ifndef GCXX_COOPRATIVE_GROUPS_HPP_
 #define GCXX_COOPRATIVE_GROUPS_HPP_
 
+#include <gcxx/macros/backend_mode_macros.hpp>
+
 #if GCXX_CUDA_MODE()
 #include <cooperative_groups.h>
 #elif GCXX_HIP_MODE()

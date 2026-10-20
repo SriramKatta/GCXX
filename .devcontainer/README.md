@@ -10,10 +10,12 @@ GCXX provides pre-configured development containers with all necessary tools. Th
 | `nvhpc25.7-cuda12.9-gcc13/` | NVHPC 25.7, CUDA 12.9, GCC 13 |
 | `nvhpc25.11-cuda13.0-gcc13/` | NVHPC 25.11, CUDA 13.0, GCC 13 |
 | `nvhpc26.3-cuda13.1-gcc13/` | NVHPC 26.3, CUDA 13.1, GCC 13 |
-| `cuda13.2.1-runtime-gcc13/` | CUDA 13.2.1 runtime, GCC 13 |
+| `nvhpc26.5-cuda13.2-gcc13/` | NVHPC 26.5, CUDA 13.2, GCC 13 |
 | `cuda13.3.0-runtime-gcc13/` | CUDA 13.3.0 runtime, GCC 13 |
+| `cuda13.4.2-runtime-gcc13/` | CUDA 13.4.2 runtime, GCC 13 |
 | `rocm7.1.1-complete/` | ROCm 7.1.1, HIP |
 | `rocm7.2.3-complete/` | ROCm 7.2.3, HIP |
+| `rocm10.0.0-full/` | ROCm 10.0.0, HIP |
 
 ## Usage
 

@@ -10,10 +10,11 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
-*build*
+build*
 
 # IDE Specific ignores
 .vscode
 
 # Extra folders
 .cache
+aux_files

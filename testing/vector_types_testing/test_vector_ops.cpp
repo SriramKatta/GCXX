@@ -7,19 +7,10 @@
 #include <gcxx/types/vector_types.hpp>
 #include <gcxx/types/vector_types_op.hpp>
 
-// ========================================
-// Test Vector Operations
-// ========================================
-
-// Test helper for comparing floating point vectors
 template <typename T>
 bool almost_equal(T a, T b, T epsilon = 1e-5) {
   return std::abs(a - b) < epsilon;
 }
-
-// ========================================
-// Test Addition Operations
-// ========================================
 
 TEST(VectorOps, AddInt2) {
   int2 a      = {1, 2};
@@ -92,10 +83,6 @@ TEST(VectorOps, AddDouble3) {
   EXPECT_TRUE(almost_equal(result.z, 9.0));
 }
 
-// ========================================
-// Test Subtraction Operations
-// ========================================
-
 TEST(VectorOps, SubtractInt2) {
   int2 a      = {5, 8};
   int2 b      = {3, 4};
@@ -131,10 +118,6 @@ TEST(VectorOps, SubtractFloat3) {
   EXPECT_TRUE(almost_equal(result.y, 15.0f));
   EXPECT_TRUE(almost_equal(result.z, 24.0f));
 }
-
-// ========================================
-// Test Multiplication Operations
-// ========================================
 
 TEST(VectorOps, MultiplyInt2) {
   int2 a      = {2, 3};
@@ -181,10 +164,6 @@ TEST(VectorOps, MultiplyFloat4) {
   EXPECT_TRUE(almost_equal(result.w, 22.5f));
 }
 
-// ========================================
-// Test Division Operations
-// ========================================
-
 TEST(VectorOps, DivideInt2) {
   int2 a      = {8, 15};
   int2 b      = {2, 3};
@@ -229,10 +208,6 @@ TEST(VectorOps, DivideFloat4) {
   EXPECT_TRUE(almost_equal(result.w, 5.0f));
 }
 
-// ========================================
-// Test Modulo Operations (integers only)
-// ========================================
-
 TEST(VectorOps, ModuloInt2) {
   int2 a      = {10, 15};
   int2 b      = {3, 4};
@@ -259,10 +234,6 @@ TEST(VectorOps, ModuloInt4) {
   EXPECT_EQ(result.z, 2);
   EXPECT_EQ(result.w, 4);
 }
-
-// ========================================
-// Test Vector-Scalar Operations
-// ========================================
 
 TEST(VectorOps, AddVectorScalarInt2) {
   int2 a      = {1, 2};
@@ -350,10 +321,6 @@ TEST(VectorOps, ModuloScalarVectorInt3) {
   EXPECT_EQ(result.y, 2);
   EXPECT_EQ(result.z, 6);
 }
-
-// ========================================
-// Test In-Place Operations (+=, -=, *=, /=, %=)
-// ========================================
 
 TEST(VectorOps, AddAssignInt2) {
   int2 a = {1, 2};
@@ -452,10 +419,6 @@ TEST(VectorOps, ModuloAssignInt4) {
   EXPECT_EQ(a.w, 4);
 }
 
-// ========================================
-// Test In-Place Operations with Scalars
-// ========================================
-
 TEST(VectorOps, AddAssignScalarInt2) {
   int2 a     = {1, 2};
   int scalar = 5;
@@ -527,10 +490,6 @@ TEST(VectorOps, ModuloAssignScalarInt3) {
   EXPECT_EQ(a.z, 2);
 }
 
-// ========================================
-// Test Mixed Type Operations
-// ========================================
-
 TEST(VectorOps, MixedTypeAddShortInt2) {
   short2 a      = {1, 2};
   short2 b      = {3, 4};
@@ -565,10 +524,6 @@ TEST(VectorOps, MixedTypeUChar2) {
   EXPECT_EQ(result.x, 1);
   EXPECT_EQ(result.y, 3);
 }
-
-// ========================================
-// Test Complex Expressions
-// ========================================
 
 TEST(VectorOps, ComplexExpressionInt2) {
   int2 a      = {2, 3};
@@ -612,10 +567,6 @@ TEST(VectorOps, ChainedInPlaceOps) {
   EXPECT_EQ(a.z, 60);
 }
 
-// ========================================
-// Test Edge Cases
-// ========================================
-
 TEST(VectorOps, ZeroVectorAddition) {
   int2 a      = {5, 10};
   int2 zero   = {0, 0};
@@ -656,4 +607,97 @@ TEST(VectorOps, SelfAssignment) {
   a += a;
   EXPECT_EQ(a.x, 10);
   EXPECT_EQ(a.y, 20);
+}
+
+TEST(VectorOps, AddVectorScalarFloat2) {
+  float2 a      = {1.5f, 2.5f};
+  float scalar  = 1.0f;
+  float2 result = a + scalar;
+  EXPECT_TRUE(almost_equal(result.x, 2.5f));
+  EXPECT_TRUE(almost_equal(result.y, 3.5f));
+}
+
+TEST(VectorOps, MultiplyScalarVectorFloat4) {
+  float scalar  = 0.5f;
+  float4 b      = {2.0f, 4.0f, 6.0f, 8.0f};
+  float4 result = scalar * b;
+  EXPECT_TRUE(almost_equal(result.x, 1.0f));
+  EXPECT_TRUE(almost_equal(result.y, 2.0f));
+  EXPECT_TRUE(almost_equal(result.z, 3.0f));
+  EXPECT_TRUE(almost_equal(result.w, 4.0f));
+}
+
+TEST(VectorOps, SubtractAssignScalarFloat2) {
+  float2 a     = {10.0f, 20.0f};
+  float scalar = 5.0f;
+  a -= scalar;
+  EXPECT_TRUE(almost_equal(a.x, 5.0f));
+  EXPECT_TRUE(almost_equal(a.y, 15.0f));
+}
+
+// Matching component counts suffice even when the element types differ: the
+// operation computes in the vector side's base type, so the double
+// components narrow to float. Skipped under HIP because AMD's builtin
+// HIP_vector_type also declares mixed-type binary operators, which makes any
+// cross-element-type vector-vector op ambiguous before this layer runs.
+#if !GCXX_HIP_MODE()
+TEST(VectorOps, MixedTypeAddFloat3Double3) {
+  float3 a      = {1.5f, 2.5f, 3.5f};
+  double3 b     = {1.0, 2.0, 3.0};
+  float3 result = a + b;
+  static_assert(std::is_same_v<decltype(result), float3>,
+                "result follows the vector operand's element type");
+  EXPECT_TRUE(almost_equal(result.x, 2.5f));
+  EXPECT_TRUE(almost_equal(result.y, 4.5f));
+  EXPECT_TRUE(almost_equal(result.z, 6.5f));
+}
+#endif
+
+TEST(VectorOps, MixedTypeAddAssignDouble2Int2) {
+  double2 a = {1.5, 2.5};
+  int2 b    = {1, -2};
+  a += b;
+  EXPECT_TRUE(almost_equal(a.x, 2.5));
+  EXPECT_TRUE(almost_equal(a.y, 0.5));
+}
+
+// The scalar operand is materialized once per operation, so aliasing one of
+// lhs's own components must not feed earlier component writes into later
+// ones: every component sees the original value.
+TEST(VectorOps, AddAssignAliasedScalarFloat3) {
+  float3 f = {1.0f, 2.0f, 3.0f};
+  float& s = f.x;
+  f += s;
+  EXPECT_TRUE(almost_equal(f.x, 2.0f));
+  EXPECT_TRUE(almost_equal(f.y, 3.0f));
+  EXPECT_TRUE(almost_equal(f.z, 4.0f));
+}
+
+TEST(VectorOps, ModuloAssignInt3) {
+  int3 a = {10, 17, 23};
+  int3 b = {3, 5, 7};
+  a %= b;
+  EXPECT_EQ(a.x, 1);
+  EXPECT_EQ(a.y, 2);
+  EXPECT_EQ(a.z, 2);
+}
+
+// C++ remainder semantics truncate toward zero, so the sign of the result
+// follows the dividend: these expectations pin that against modulo-style
+// regressions.
+TEST(VectorOps, ModuloNegativeInt3) {
+  int3 a      = {-7, -10, 7};
+  int3 b      = {3, 3, -3};
+  int3 result = a % b;
+  EXPECT_EQ(result.x, -1);
+  EXPECT_EQ(result.y, -1);
+  EXPECT_EQ(result.z, 1);
+}
+
+TEST(VectorOps, ModuloAssignNegativeInt2) {
+  int2 a = {-13, 22};
+  int2 b = {5, -4};
+  a %= b;
+  EXPECT_EQ(a.x, -3);
+  EXPECT_EQ(a.y, 2);
 }

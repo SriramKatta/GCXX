@@ -15,10 +15,9 @@ class [[maybe_unused]] EnsureCurrentDevice {
  public:
   GCXX_FH EnsureCurrentDevice(device_t);
 
-  // Destructor: restore old device if changed
+  // Destructor: restore old device if changed.
   GCXX_FH ~EnsureCurrentDevice();
 
-  // Delete copy constructor/assignment
   EnsureCurrentDevice(const EnsureCurrentDevice&)             = delete;
   EnsureCurrentDevice& operator=(const EnsureCurrentDevice&)  = delete;
   EnsureCurrentDevice(const EnsureCurrentDevice&&)            = delete;

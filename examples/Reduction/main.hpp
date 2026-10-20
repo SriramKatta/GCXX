@@ -49,9 +49,7 @@ inline Args parse_args(int argc, char** argv) {
           program.get<size_t>("blocks"), program.get<size_t>("threads")};
 }
 
-// prefer using vec2 types in case of double to improve
-// bandwidth also test with vec4_32a and vec4_16a to get
-// an idea of if they improve the performance
+// TODO: try vec2/vec4_16a/vec4_32a variants to see if they help bandwidth.
 template <typename VT>
 GCXX_FD VT thread_partial_sum(const gcxx::span<VT> a) {
   VT sum{};
@@ -74,9 +72,7 @@ GCXX_FD VT thread_partial_sum(const gcxx::span<VT> a) {
   return sum;
 }
 
-// need to improve since huge thread divergence and should use the warp shuffles
-// to utilize the registers in place of shared memory since they would be even
-// quicker access
+// TODO: warp shuffles instead of shared mem (huge thread divergence here).
 template <typename VT>
 GCXX_FD void in_block_reduction(VT* smem, size_t N) {
   const auto tid = threadIdx.x;
@@ -88,8 +84,7 @@ GCXX_FD void in_block_reduction(VT* smem, size_t N) {
   }
 }
 
-// okay for now but not possible in terms of old cuda with no atomic support for
-// doubles
+// OK for now; older CUDA without double atomicAdd could not do this.
 template <typename VT>
 GCXX_FDC void inter_block_reduction(VT* smem, VT* res) {
   if (threadIdx.x == 0) {
@@ -111,14 +106,13 @@ __global__ void kernel_reduction(const gcxx::span<VT> a, VT* result) {
 template <typename VT>
 VT launch_reduction_kernel(const Args& arg, const gcxx::Stream& str,
                            gcxx::span<VT>& ptr) {
-  auto res_raii = gcxx::memory::make_device_unique_ptr<VT>(str, 1);
-  gcxx::memory::Memset(str, res_raii, 0, 1);
-  VT* res = res_raii.get();
+  auto res = gcxx::make_device_scalar<VT>(gcxx::DeviceHandle{0}, str);
+  res.set_value_to_zero_async(str);
+  VT* res_ptr = res.data();
 
   gcxx::launch::Kernel(str, arg.blocks, arg.threads, arg.threads * sizeof(VT),
-                       kernel_reduction<VT>, ptr, res);
+                       kernel_reduction<VT>, ptr, res_ptr);
 
-  auto res_host = gcxx::memory::make_host_pinned_unique_ptr<VT>(1);
-  gcxx::memory::Copy(str, res_host.get(), res_raii.get(), 1);
-  return *res_host;
+  // value() copies D2H on the captured stream and synchronizes it.
+  return res.value();
 }

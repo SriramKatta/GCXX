@@ -12,14 +12,14 @@ using datatype       = float;
 template <typename VT, typename func_t>
 float time_measure(const gcxx::Stream& str, const Args& arg,
                    gcxx::span<VT>& d_a_span, func_t func) {
-  str.Synchronize();
-  auto kernelstart = str.RecordEvent();
+  str.sync();
+  auto kernelstart = str.recordEvent();
   for (size_t i = 1; i <= arg.rep; i++) {
     func(arg, str, d_a_span);
   }
-  auto kernelend = str.RecordEvent();
-  str.Synchronize();
-  auto kerneltime = kernelend.ElapsedTimeSince<gcxx::sec>(kernelstart).count();
+  auto kernelend = str.recordEvent();
+  str.sync();
+  auto kerneltime = kernelend.elapsedTimeSince<gcxx::Sec>(kernelstart).count();
   return kerneltime;
 }
 
@@ -27,10 +27,12 @@ int main(int argc, char** argv) {
 
   Args arg = parse_args(argc, argv);
 
-  auto h_a = gcxx::memory::host_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_host_resource{}, arg.N);
-  auto d_a = gcxx::memory::device_buffer<datatype>(
-    gcxx::StreamView::Null(), gcxx::memory::sync_device_resource{}, arg.N);
+  auto devhand = gcxx::Device::get();
+
+  auto h_a = gcxx::host_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::pinned_default_memory_pool(), arg.N);
+  auto d_a = gcxx::device_buffer<datatype>(
+    gcxx::StreamView::Null(), gcxx::device_default_memory_pool(devhand), arg.N);
 
   gcxx::span h_a_span(h_a);
   gcxx::span d_a_span(d_a);
@@ -40,12 +42,12 @@ int main(int argc, char** argv) {
 
   gcxx::Stream str(gcxx::flags::streamType::NoSyncWithNull);
 
-  auto H2Dstart = str.RecordEvent();
-  gcxx::memory::Copy(str, d_a, h_a);
-  auto H2Dend = str.RecordEvent();
+  auto H2Dstart = str.recordEvent();
+  gcxx::Copy(str, d_a, h_a);
+  auto H2Dend = str.recordEvent();
 
   auto res = launch_reduction_kernel<datatype>(arg, str, d_a_span);
-  str.Synchronize();
+  str.sync();
 
   if ((res - static_cast<datatype>(arg.N) > keps)) {
     fmt::print("CHECK FAILED res {} and check val{}\n", res, arg.N);

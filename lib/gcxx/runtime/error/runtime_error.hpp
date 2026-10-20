@@ -7,17 +7,16 @@
 #include <iostream>
 
 #include <gcxx/internal/prologue.hpp>
+#include <gcxx/runtime_backend/backend_error.hpp>
 #include <gcxx/runtime_backend/backend_handles.hpp>
 
-#include <gcxx/runtime_backend/backend_error.hpp>
 #if defined(GCXX_WITH_EXCEPTIONS)
 #include <gcxx/runtime/error/runtime_exception.hpp>
 #endif
 
 GCXX_NAMESPACE_MAIN_DETAILS_BEGIN()
-using driver::deviceError_t;
 
-inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
+inline auto throwGPUError(driver::deviceError_t err, const char* msg) -> void {
 #if defined(GCXX_WITH_EXCEPTIONS)
   throw gcxx::Exception(err, msg);
 #else
@@ -26,14 +25,14 @@ inline auto throwGPUError(deviceError_t err, const char* msg) -> void {
 #endif
 }
 
-GCXX_FH auto nonFatalErrorQuery(deviceError_t err) -> bool {
+GCXX_FH auto nonFatalErrorQuery(driver::deviceError_t err) -> bool {
   switch (err) {
     case driver::deviceErrSuccess:
       return true;
     case driver::deviceErrNotReady:
       return false;
     default:
-      details_::throwGPUError(err, "Failed to query GPU Stream");
+      details_::throwGPUError(err, /*msg=*/"Failed to query GPU Stream");
   }
   return false;
 }

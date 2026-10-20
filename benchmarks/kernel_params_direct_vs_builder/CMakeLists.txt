@@ -1,0 +1,1 @@
+gcxx_add_benchmark(NAME kernel_params_direct_vs_builder)

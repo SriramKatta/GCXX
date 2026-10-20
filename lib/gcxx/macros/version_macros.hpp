@@ -4,9 +4,7 @@
 #ifndef GCXX_MACROS_BACKEND_VERSION_MACROS_HPP_
 #define GCXX_MACROS_BACKEND_VERSION_MACROS_HPP_
 
-/* =========================
- * CUDA VERSION MACROS
- * ========================= */
+// CUDA version macros.
 #if defined(__CUDACC__) && defined(__CUDACC_VER_MAJOR__)
 
 #define GCXX_MAKE_CUDA_VERSION(major, minor, build) \
@@ -44,15 +42,10 @@
 #endif
 
 
-/* =========================
- * HIP VERSION MACROS
- * ========================= */
+// HIP version macros.
 #if defined(__HIPCC__) && defined(HIP_VERSION)
 
-/* HIP_VERSION format:
- * major * 10000000 + minor * 100000 + patch
- */
-
+// HIP_VERSION format: major * 10000000 + minor * 100000 + patch.
 #define GCXX_HIP_VERSION HIP_VERSION
 
 #define GCXX_MAKE_HIP_VERSION(major, minor, patch) \
@@ -85,6 +78,10 @@
 
 #endif
 
-#define GCXX_DEVICE_COMPILE (__HIP_DEVICE_COMPILE__ || __CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__) || defined(__CUDA_ARCH__)
+#define GCXX_DEVICE_COMPILE 1
+#else
+#define GCXX_DEVICE_COMPILE 0
+#endif
 
 #endif

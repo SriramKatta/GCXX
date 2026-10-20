@@ -10,24 +10,7 @@
 
 GCXX_NAMESPACE_MAIN_FLAGS_BEGIN()
 
-/**
- * @brief Flags for selecting the type of GPU stream.
- *
- * These values control how a stream interacts with the special *NULL stream*
- * (a.k.a. "default stream", stream 0) provided by most GPU backends such as
- * CUDA and HIP.
- *
- * In CUDA:
- * - The NULL stream executes all operations sequentially with respect to
- *   *all* other streams that use `SyncWithNull`.
- * - Streams created with `NoSyncWithNull` are independent and may run
- *   concurrently with both the NULL stream and each other, subject to device
- *   resources.
- * - The `NullStream` flag provides explicit access to stream 0 itself.
- *
- * These flags are useful when tuning execution overlap and synchronization
- * behavior for kernels, memory copies, and host-device interactions.
- */
+// Stream type relative to the backend NULL/default stream (see enumerators).
 enum class streamType : details_::flag_t {
   /**
    * @brief Stream that synchronizes with the NULL stream.
@@ -58,47 +41,28 @@ enum class streamType : details_::flag_t {
   NullStream = std::numeric_limits<details_::flag_t>::max()
 };
 
-/**
- * @brief Flags for specifying scheduling priority of GPU streams.
- *
- * Many GPU backends (CUDA, HIP) allow streams to be created with different
- * priorities. Higher-priority streams may be scheduled before lower-priority
- * streams when the device is oversubscribed. Priority can influence latency-
- * sensitive workloads (e.g. interactive tasks) versus throughput workloads
- * (e.g. large batch kernels).
- *
- * Note:
- * - Not all devices or backends support fine-grained priority ranges.
- * - The values defined here are relative hints; the runtime maps them to the
- *   actual priority range supported by the device.
- */
+// Relative priority hints; the runtime maps them to the device's range.
 enum class streamPriority : details_::flag_t {
-  /// No priority hint; runtime chooses the default scheduling behavior.
+  // No priority hint; runtime chooses the default scheduling behavior.
   None = 0U,
 
-  /// Hint for the lowest available priority (background work).
+  // Hint for the lowest available priority (background work).
   VeryLow = 1U,
 
-  /// Hint for a slightly reduced priority compared to default.
+  // Hint for a slightly reduced priority compared to default.
   Low = 2U,
 
-  /// Hint for elevated priority; work may preempt lower-priority streams.
+  // Hint for elevated priority; work may preempt lower-priority streams.
   High = 3U,
 
-  /// Hint for very High priority, just below Critical tasks.
+  // Hint for very High priority, just below Critical tasks.
   VeryHigh = 4U,
 
-  /// Hint for the absolute highest available priority (latency Critical).
+  // Hint for the absolute highest available priority (latency Critical).
   Critical = 5U,
 };
 
-/**
- * @enum streamCaptureMode
- * @brief Flags for controlling stream capture mode behavior.
- *
- * These flags determine how stream capture interacts with other streams
- * and threads during CUDA/HIP graph capture operations.
- */
+// Scope of safety checks during graph capture (global/thread/relaxed).
 enum class streamCaptureMode : details_::flag_t {
   Global = GCXX_RUNTIME_BACKEND(
     StreamCaptureModeGlobal), /**< Capture affects all threads; any unsafe API

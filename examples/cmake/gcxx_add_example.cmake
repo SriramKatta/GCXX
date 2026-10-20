@@ -55,6 +55,9 @@ function(gcxx_add_example)
 
   add_executable(${ARG_NAME} ${ARG_SOURCES})
 
+  # Attach to the umbrella target so `--target examples` builds every example.
+  add_dependencies(examples ${ARG_NAME})
+
   target_link_libraries(${ARG_NAME} PRIVATE gcxx::gcxx ${ARG_LINKS})
 
   if(ARG_SEPARABLE_COMPILATION)

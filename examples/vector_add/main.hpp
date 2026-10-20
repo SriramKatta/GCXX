@@ -46,9 +46,8 @@ inline Args parse_args(int argc, char** argv) {
   }
 
   auto devhand = gcxx::Device::get();
-  int SMcount =
-    devhand.getAttribute(gcxx::flags::deviceAttribute::MultiProcessorCount);
-  int warpSize = devhand.getAttribute(gcxx::flags::deviceAttribute::WarpSize);
+  int SMcount  = devhand.attribute(gcxx::dev_attr::multiprocessor_count);
+  int warpSize = devhand.attribute(gcxx::dev_attr::warp_size);
 
   return {program.get<size_t>("N"), program.get<size_t>("reps"),
           SMcount * program.get<size_t>("blocksmult"),

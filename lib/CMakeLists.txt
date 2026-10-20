@@ -29,9 +29,9 @@ if(GCXX_WITH_EXCEPTIONS)
   )
 endif()
 
-if(GCXX_DISABLE_RUNTIME_CHECKS)
+if(GCXX_ENABLE_RUNTIME_CHECKS)
   target_compile_definitions(
-    ${LIB_INTERNAL_NAME} INTERFACE "GCXX_DISABLE_RUNTIME_CHECKS"
+    ${LIB_INTERNAL_NAME} INTERFACE "GCXX_ENABLE_RUNTIME_CHECKS"
   )
 endif()
 
@@ -44,6 +44,30 @@ elseif(GCXX_HIP_MODE)
   target_link_libraries(${LIB_INTERNAL_NAME} INTERFACE hip::host)
 endif()
 
+# BLAS backend (cuBLAS/hipBLAS).Consumers that use BlasHandle opt in by linking gcxx::blas.
+# And including the appropriate header file
+add_library(gcxx_blas INTERFACE)
+add_library(gcxx::blas ALIAS gcxx_blas)
+target_link_libraries(gcxx_blas INTERFACE gcxx::gcxx)
+if(GCXX_CUDA_MODE)
+  target_link_libraries(gcxx_blas INTERFACE CUDA::cublas)
+elseif(GCXX_HIP_MODE)
+  find_package(hipblas REQUIRED)
+  target_link_libraries(gcxx_blas INTERFACE roc::hipblas)
+endif()
+
+# SPARSE backend (cuSPARSE/hipSPARSE, Generic API only). Consumers that use
+# SparseHandle or the Sp*/Dn* descriptors opt in by linking gcxx::sparse.
+add_library(gcxx_sparse INTERFACE)
+add_library(gcxx::sparse ALIAS gcxx_sparse)
+target_link_libraries(gcxx_sparse INTERFACE gcxx::gcxx)
+if(GCXX_CUDA_MODE)
+  target_link_libraries(gcxx_sparse INTERFACE CUDA::cusparse)
+elseif(GCXX_HIP_MODE)
+  find_package(hipsparse REQUIRED)
+  target_link_libraries(gcxx_sparse INTERFACE roc::hipsparse)
+endif()
+
 # Register all library headers as clang-tidy targets.
 # gcxx_tidy_add_target is a no-op when GCXX_ENABLE_CLANG_TIDY=OFF.
 file(
@@ -54,6 +78,26 @@ file(
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.hh"
   "${CMAKE_CURRENT_SOURCE_DIR}/gcxx/*.cuh"
 )
+
+# Skip backend headers for the *inactive* backend: they include that backend's
+# SDK unconditionally (cuda_runtime.h / hip_runtime.h), which is not present
+# when tidy runs inside a single-backend container.
+set(_gcxx_tidy_exclude "")
+if(GCXX_CUDA_MODE)
+  set(_gcxx_tidy_exclude "backend/hip_[^/]*\\.hpp$")
+elseif(GCXX_HIP_MODE)
+  set(_gcxx_tidy_exclude "backend/cuda_[^/]*\\.hpp$")
+endif()
+if(_gcxx_tidy_exclude)
+  list(
+    FILTER
+    _gcxx_headers
+    EXCLUDE
+    REGEX
+    "${_gcxx_tidy_exclude}"
+  )
+endif()
+
 gcxx_tidy_add_target(
   TARGET
   gcxx
